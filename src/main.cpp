@@ -17,15 +17,17 @@ int main(int argc, const char *argv[])
 	bool init = false;
 
 	init = gfx::init(64);
-	if(init) init = sys::init();
-	if(init) init = data::init();
+	if(init)
+		init = sys::init();
+	if(init)
+		init = data::init();
 
 	if(init)
 	{
 		data::loadDataInfo();
 		gfx::switchMode();
 		ui::init();
-        ui::userMenuInit();
+		ui::userMenuInit();
 
 		bool run = true;
 		while(appletMainLoop() && run)
@@ -37,10 +39,10 @@ int main(int argc, const char *argv[])
 			touchPosition p;
 			hidTouchRead(&p, 0);
 
-            if(down & KEY_PLUS)
-                break;
+			if(down & KEY_PLUS)
+				break;
 
-            gfx::clearConsoleColor(0x3B3B3BFF);
+			gfx::clearConsoleColor(0x3B3B3BFF);
 			gfx::drawText("JKSV - 6/10/2018", 16, 16, 64, 0xFFFFFFFF);
 			gfx::drawRectangle(16, 64, 1248, 2, 0xFFFFFFFF);
 			gfx::drawRectangle(384, 64, 2, 592, 0xFFFFFFFF);
@@ -52,21 +54,21 @@ int main(int argc, const char *argv[])
 		}
 	}
 	else
-    {
-        while(appletMainLoop())
-        {
-            hidScanInput();
+	{
+		while(appletMainLoop())
+		{
+			hidScanInput();
 
-            uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
 
-            if(down & KEY_PLUS)
-                break;
+			if(down & KEY_PLUS)
+				break;
 
-            gfx::handleBuffs();
-        }
-    }
+			gfx::handleBuffs();
+		}
+	}
 
-    gfx::fini();
-    sys::fini();
-    data::fini();
+	gfx::fini();
+	sys::fini();
+	data::fini();
 }

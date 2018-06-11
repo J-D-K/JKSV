@@ -3,10 +3,10 @@
 
 namespace sys
 {
-    bool init();
-    bool fini();
+	bool init();
+	bool fini();
 
-    void debugWrite(const std::string& out);
+	void debugWrite(const std::string& out);
 }
 
 #endif // SYS_H
