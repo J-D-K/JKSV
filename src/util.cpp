@@ -4,6 +4,7 @@
 #include <sys/stat.h>
 
 #include "data.h"
+#include "gfx.h"
 
 namespace util
 {
@@ -26,8 +27,33 @@ namespace util
 		mkdir(path.c_str(), 777);
 	}
 
-	const std::string getTitleDir(data::user& u, data::titledata& t)
+	std::string getTitleDir(data::user& u, data::titledata& t)
 	{
 		return std::string(u.getUsername() + "/" + t.getTitleSafe() + "/");
+	}
+
+	std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth)
+	{
+	    if(gfx::getTextWidth(s, sz) < maxWidth)
+            return s;
+
+        std::string ret = "", tmp = "";
+        unsigned first = 0, lastSpace = 0;
+
+        for(unsigned i = 0; i < s.length(); i++)
+        {
+            tmp += s[i];
+            if(s[i] == ' ')
+                lastSpace = i;
+
+            if(gfx::getTextWidth(tmp, sz) > maxWidth)
+            {
+                tmp.assign(s, first, lastSpace);
+                first = lastSpace + 1;
+                ret += tmp + "\n";
+            }
+        }
+
+        return ret;
 	}
 }

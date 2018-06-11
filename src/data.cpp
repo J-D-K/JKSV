@@ -24,7 +24,7 @@ bool isVerboten(char t)
 	return false;
 }
 
-const std::string safeString(const std::string& s)
+std::string safeString(const std::string& s)
 {
 	std::string ret = "";
 	for(unsigned i = 0; i < s.length(); i++)

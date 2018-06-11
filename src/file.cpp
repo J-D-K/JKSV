@@ -7,6 +7,7 @@
 #include "data.h"
 #include "gfx.h"
 #include "ui.h"
+#include "util.h"
 
 #define BUFF_SIZE 512 * 1024
 
@@ -90,6 +91,7 @@ namespace fs
 		ui::progBar prog(fileSize);
 
 		std::string copyString = "Copying " + from + "...";
+		copyString = util::getWrappedString(copyString, 64, 1136);
 		for(unsigned i = 0; i < fileSize; )
 		{
 			hidScanInput();
@@ -129,6 +131,7 @@ namespace fs
 		ui::progBar prog(fileSize);
 
 		std::string copyString = "Copying " + from + "...";
+		copyString = util::getWrappedString(copyString, 64, 1136);
 		for(unsigned i = 0; i < fileSize; )
 		{
 			hidScanInput();

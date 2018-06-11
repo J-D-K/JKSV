@@ -159,10 +159,10 @@ namespace ui
 		gfx::drawRectangle(96, 400, 1088, 64, 0x000000FF);
 		gfx::drawRectangle(96, 400, (uint32_t)width, 64, 0x00CC00FF);
 
-		char tmp[64];
-		sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
+		//char tmp[64];
+		//sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
 		gfx::drawText(text, 80, 256, 64, 0x000000FF);
-		gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
+		//gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
 	}
 
 	key::key(const std::string& txt, const char& _let, const unsigned& _txtSz, const unsigned& _x, const unsigned& _y, const unsigned& _w, const unsigned& _h)
@@ -266,7 +266,7 @@ namespace ui
 
 		//spc key
 		key shift("Shift", ' ', 64, 16, 544, 128, 80);
-		key space("Spc", ' ', 64, 240, 640, 800, 80);
+		key space(" ", ' ', 64, 240, 640, 800, 80);
 		key bckSpc("Back", ' ', 64, 1120, 256, 128, 80);
 		key enter("Entr", ' ', 64, 1120, 352, 128, 80);
 		key cancel("Cancel", ' ', 64, 1120, 448, 128, 80);
@@ -285,6 +285,8 @@ namespace ui
 
 	void keyboard::draw()
 	{
+	    titleMenu.print(16, 88, 364);
+	    folderMenu.print(390, 88, 874);
 		gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
 		gfx::drawRectangle(0, 240, 1280, 480, 0x3B3B3BFF);
 
