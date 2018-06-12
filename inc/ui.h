@@ -50,6 +50,11 @@ namespace ui
 			void toCaps();
 			void toLower();
 
+			unsigned getX();
+			unsigned getY();
+			unsigned getW();
+			unsigned getH();
+
 		private:
 			bool pressed;
 			char let;
@@ -72,6 +77,9 @@ namespace ui
 		private:
 			std::vector<key> keys;
 			std::string str;
+			int selKey = 0;
+			uint8_t clrSh = 0;
+			bool clrAdd = true;
 	};
 
 	void init();

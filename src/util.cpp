@@ -5,6 +5,7 @@
 
 #include "data.h"
 #include "gfx.h"
+#include "ui.h"
 
 namespace util
 {
@@ -34,26 +35,32 @@ namespace util
 
 	std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth)
 	{
-	    if(gfx::getTextWidth(s, sz) < maxWidth)
-            return s;
+		if(gfx::getTextWidth(s, sz) < maxWidth)
+			return s;
 
-        std::string ret = "", tmp = "";
-        unsigned first = 0, lastSpace = 0;
+		std::string ret = "", tmp = "";
+		unsigned first = 0, lastSpace = 0;
 
-        for(unsigned i = 0; i < s.length(); i++)
-        {
-            tmp += s[i];
-            if(s[i] == ' ')
-                lastSpace = i;
+		for(unsigned i = 0; i < s.length(); i++)
+		{
+			tmp += s[i];
 
-            if(gfx::getTextWidth(tmp, sz) > maxWidth)
-            {
-                tmp.assign(s, first, lastSpace);
-                first = lastSpace + 1;
-                ret += tmp + "\n";
-            }
-        }
+			if(s[i] == ' ')
+				lastSpace = i;
 
-        return ret;
+			if(gfx::getTextWidth(tmp, sz) >= maxWidth)
+			{
+				tmp.assign(s, first, lastSpace - first);
+
+				first = lastSpace + 1;
+				ret += tmp + "\n";
+
+				tmp.assign(s, first, i);
+			}
+			else if(i == s.length() - 1 && gfx::getTextWidth(tmp, sz) < maxWidth)
+				ret += tmp;
+		}
+
+		return ret;
 	}
 }

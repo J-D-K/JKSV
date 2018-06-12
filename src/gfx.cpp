@@ -95,7 +95,7 @@ namespace gfx
 		gfxWaitForVsync();
 	}
 
-    //switch-portlibs examples.
+	//switch-portlibs examples.
 	void drawGlyph(FT_Bitmap& bmp, uint32_t *frameBuf, unsigned x, unsigned y, const uint32_t& clr)
 	{
 		uint32_t frameX, frameY, tmpX, tmpY;
@@ -127,7 +127,7 @@ namespace gfx
 
 	void drawText(const std::string& str, unsigned x, unsigned y, const uint32_t& sz, const uint32_t& clr)
 	{
-	    //This offset needs to be fixed better
+		//This offset needs to be fixed better
 		y = y + 27;
 		uint32_t tmpX = x;
 		FT_Error ret = 0;
@@ -175,40 +175,40 @@ namespace gfx
 
 	unsigned getTextWidth(const std::string& str, const uint32_t& sz)
 	{
-	    unsigned width = 0;
+		unsigned width = 0;
 
-        uint32_t unitCount = 0, tmpChr = 0;
-        FT_UInt glyphIndex = 0;
-        FT_GlyphSlot slot = face->glyph;
-        FT_Error ret = 0;
+		uint32_t unitCount = 0, tmpChr = 0;
+		FT_UInt glyphIndex = 0;
+		FT_GlyphSlot slot = face->glyph;
+		FT_Error ret = 0;
 
-        uint8_t tmpstr[1024];
-        sprintf((char *)tmpstr, "%s", str.c_str());
+		uint8_t tmpstr[1024];
+		sprintf((char *)tmpstr, "%s", str.c_str());
 
-        FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
+		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
 
-        for(unsigned i = 0; i < str.length(); )
-        {
-            unitCount = decode_utf8(&tmpChr, &tmpstr[i]);
+		for(unsigned i = 0; i < str.length(); )
+		{
+			unitCount = decode_utf8(&tmpChr, &tmpstr[i]);
 
-            if(unitCount <= 0)
-                break;
+			if(unitCount <= 0)
+				break;
 
-            i += unitCount;
-            glyphIndex = FT_Get_Char_Index(face, tmpChr);
-            ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-            if(ret == 0)
-            {
-                ret = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-            }
+			i += unitCount;
+			glyphIndex = FT_Get_Char_Index(face, tmpChr);
+			ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+			if(ret == 0)
+			{
+				ret = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+			}
 
-            if(ret)
-                return 0;
+			if(ret)
+				return 0;
 
-            width += slot->advance.x >> 6;
-        }
+			width += slot->advance.x >> 6;
+		}
 
-        return width;
+		return width;
 	}
 
 	void clearConsoleColor(const uint32_t& clr)

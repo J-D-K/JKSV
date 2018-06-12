@@ -48,11 +48,11 @@ namespace ui
 			fc++;
 		else
 			fc = 0;
-		if(fc > 10)
+		if(fc > 8)
 			fc = 0;
 
 		int size = opt.size() - 1;
-		if((down & KEY_UP) || ((held & KEY_UP) && fc == 10))
+		if((down & KEY_UP) || ((held & KEY_UP) && fc == 8))
 		{
 			selected--;
 			if(selected < 0)
@@ -65,7 +65,7 @@ namespace ui
 			if((selected - 14) > start)
 				start = selected - 14;
 		}
-		else if((down & KEY_DOWN) || ((held & KEY_DOWN) && fc == 10))
+		else if((down & KEY_DOWN) || ((held & KEY_DOWN) && fc == 8))
 		{
 			selected++;
 			if(selected > size)
@@ -103,13 +103,13 @@ namespace ui
 	{
 		if(clrAdd)
 		{
-			clrSh++;
+			clrSh += 2;
 			if(clrSh > 63)
 				clrAdd = false;
 		}
 		else
 		{
-			clrSh--;
+			clrSh -= 2;
 			if(clrSh == 0)
 				clrAdd = true;
 		}
@@ -189,11 +189,10 @@ namespace ui
 
 	void key::draw()
 	{
-		gfx::drawRectangle(x, y, w, h, 0x3B3B3BFF);
 		if(pressed)
-			gfx::drawRectangle(x + 1, y + 1, w - 1, h - 1, 0x2B2B2BFF);
+			gfx::drawRectangle(x, y, w, h, 0x2B2B2BFF);
 		else
-			gfx::drawRectangle(x + 1, y + 1, w - 1, h - 1, 0xC0C0C0FF);
+			gfx::drawRectangle(x, y, w, h, 0xC0C0C0FF);
 
 		gfx::drawText(text, tX, tY, txtSz, 0x000000FF);
 	}
@@ -246,6 +245,26 @@ namespace ui
 		updateText(tmp);
 	}
 
+	unsigned key::getX()
+	{
+		return x;
+	}
+
+	unsigned key::getY()
+	{
+		return y;
+	}
+
+	unsigned key::getW()
+	{
+		return w;
+	}
+
+	unsigned key::getH()
+	{
+		return h;
+	}
+
 	keyboard::keyboard()
 	{
 		int x = 160, y = 256;
@@ -266,10 +285,11 @@ namespace ui
 
 		//spc key
 		key shift("Shift", ' ', 64, 16, 544, 128, 80);
-		key space(" ", ' ', 64, 240, 640, 800, 80);
+		//Space bar needs to be trimmed back so we don't try to draw off buffer
+		key space(" ", ' ', 64, 240, 640, 800, 72);
 		key bckSpc("Back", ' ', 64, 1120, 256, 128, 80);
 		key enter("Entr", ' ', 64, 1120, 352, 128, 80);
-		key cancel("Cancel", ' ', 64, 1120, 448, 128, 80);
+		key cancel("Cancl", ' ', 64, 1120, 448, 128, 80);
 
 		keys.push_back(space);
 		keys.push_back(shift);
@@ -285,10 +305,28 @@ namespace ui
 
 	void keyboard::draw()
 	{
-	    titleMenu.print(16, 88, 364);
-	    folderMenu.print(390, 88, 874);
+		if(clrAdd)
+		{
+			clrSh += 2;
+			if(clrSh > 63)
+				clrAdd = false;
+		}
+		else
+		{
+			clrSh -= 2;
+			if(clrSh == 0)
+				clrAdd = true;
+		}
+
+		titleMenu.print(16, 88, 364);
+		folderMenu.print(390, 88, 874);
 		gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
 		gfx::drawRectangle(0, 240, 1280, 480, 0x3B3B3BFF);
+
+		uint32_t rectClr = 0x00 << 24 | ((0x88 + clrSh) & 0xFF) << 16 | ((0xbb + clrSh) & 0xFF) << 8 | 0xFF;
+
+		//Draw sel rectangle around key for controller
+		gfx::drawRectangle(keys[selKey].getX() - 4, keys[selKey].getY() - 4, keys[selKey].getW() + 8, keys[selKey].getH() + 8, rectClr);
 
 		for(unsigned i = 0; i < keys.size(); i++)
 			keys[i].draw();
@@ -309,6 +347,31 @@ namespace ui
 			touchPosition p;
 			hidTouchRead(&p, 0);
 
+			//Controller input for keyboard
+			if(down & KEY_RIGHT)
+				selKey++;
+			else if(down & KEY_LEFT && selKey > 0)
+				selKey--;
+			else if(down & KEY_DOWN)
+			{
+				selKey += 10;
+				if(selKey > 40)
+					selKey = 40;
+			}
+			else if(down & KEY_UP)
+			{
+				selKey -= 10;
+				if(selKey < 0)
+					selKey = 0;
+			}
+			else if(down & KEY_A)
+			{
+				if(selKey < 41)
+				{
+					str += keys[selKey].getLet();
+				}
+			}
+
 			//Stndrd key
 			for(unsigned i = 0; i < 41; i++)
 			{
@@ -319,7 +382,7 @@ namespace ui
 			}
 
 			//shift
-			if(keys[41].released(p))
+			if(keys[41].released(p) || down & KEY_LSTICK)
 			{
 				if(keys[10].getLet() == 'q')
 				{
@@ -333,7 +396,7 @@ namespace ui
 				}
 			}
 			//bckspace
-			else if(keys[42].released(p))
+			else if(keys[42].released(p) || down & KEY_Y)
 			{
 				if(!str.empty())
 					str.erase(str.end() - 1, str.end());

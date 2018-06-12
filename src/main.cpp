@@ -36,17 +36,15 @@ int main(int argc, const char *argv[])
 
 			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
 			uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-			touchPosition p;
-			hidTouchRead(&p, 0);
 
 			if(down & KEY_PLUS)
 				break;
 
 			gfx::clearConsoleColor(0x3B3B3BFF);
 			gfx::drawText("JKSV - 6/10/2018", 16, 16, 64, 0xFFFFFFFF);
-			gfx::drawRectangle(16, 64, 1248, 2, 0xFFFFFFFF);
-			gfx::drawRectangle(384, 64, 2, 592, 0xFFFFFFFF);
-			gfx::drawRectangle(16, 656, 1248, 2, 0xFFFFFFFF);
+			gfx::drawRectangle(16, 64, 1248, 1, 0xFFFFFFFF);
+			gfx::drawRectangle(384, 64, 1, 592, 0xFFFFFFFF);
+			gfx::drawRectangle(16, 656, 1248, 1, 0xFFFFFFFF);
 
 			ui::runApp(down, held);
 
