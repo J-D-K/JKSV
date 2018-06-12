@@ -211,7 +211,25 @@ namespace gfx
 		return width;
 	}
 
-	void clearConsoleColor(const uint32_t& clr)
+	unsigned getTextHeight(const uint32_t& sz)
+	{
+		FT_UInt glyphIndex = 0;
+		FT_Error error = 0;
+		uint32_t tChar = 'A';
+
+		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
+		glyphIndex = FT_Get_Char_Index(face, tChar);
+		error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
+		if(error == 0)
+			error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
+
+		if(error)
+			return 0;
+
+		return face->size->metrics.height / sz;
+	}
+
+	void clearBufferColor(const uint32_t& clr)
 	{
 		uint8_t r, g, b;
 		r = clr >> 24 & 0xFF;

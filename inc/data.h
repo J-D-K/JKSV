@@ -8,19 +8,25 @@
 
 namespace data
 {
+	//Just inits account service
 	bool init();
 	bool fini();
 
+	//Loads user + title info
 	void loadDataInfo();
 
+	//Class to store title info
 	class titledata
 	{
 		public:
+			//Attempts to read title's info. Returns false if failed
 			bool init(const uint64_t& _id, const u128& _uID);
 
+			//Returns title + title without forbidden chars
 			std::string getTitle();
 			std::string getTitleSafe();
 
+			//Returns ID
 			uint64_t getID();
 
 		private:
@@ -29,13 +35,20 @@ namespace data
 			u128 uID;
 	};
 
+	//Class to store user info + titles
 	class user
 	{
 		public:
+			//Attempts to read user data using _id
 			bool init(const u128& _id);
+
+			//Returns user ID
 			u128 getUID();
+
+			//Returns username
 			std::string getUsername();
 
+			//Vector for storing save data info for user
 			std::vector<titledata> titles;
 
 		private:
@@ -43,7 +56,10 @@ namespace data
 			std::string username;
 	};
 
+	//User vector
 	extern std::vector<user> users;
+
+	//Stores current data we're using so I don't have to type so much.
 	extern titledata curData;
 	extern user curUser;
 }

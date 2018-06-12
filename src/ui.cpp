@@ -32,6 +32,14 @@ static gfx::tex buttonA, buttonB, buttonX, buttonY;
 
 namespace ui
 {
+	void init()
+	{
+		buttonA.loadFromFile("romfs:/img/buttonA.data");
+		buttonB.loadFromFile("romfs:/img/buttonB.data");
+		buttonX.loadFromFile("romfs:/img/buttonX.data");
+		buttonY.loadFromFile("romfs:/img/buttonY.data");
+	}
+
 	void menu::addOpt(const std::string& add)
 	{
 		opt.push_back(add);
@@ -48,11 +56,11 @@ namespace ui
 			fc++;
 		else
 			fc = 0;
-		if(fc > 8)
+		if(fc > 10)
 			fc = 0;
 
 		int size = opt.size() - 1;
-		if((down & KEY_UP) || ((held & KEY_UP) && fc == 8))
+		if((down & KEY_UP) || ((held & KEY_UP) && fc == 10))
 		{
 			selected--;
 			if(selected < 0)
@@ -65,7 +73,7 @@ namespace ui
 			if((selected - 14) > start)
 				start = selected - 14;
 		}
-		else if((down & KEY_DOWN) || ((held & KEY_DOWN) && fc == 8))
+		else if((down & KEY_DOWN) || ((held & KEY_DOWN) && fc == 10))
 		{
 			selected++;
 			if(selected > size)
@@ -103,13 +111,13 @@ namespace ui
 	{
 		if(clrAdd)
 		{
-			clrSh += 2;
+			clrSh++;
 			if(clrSh > 63)
 				clrAdd = false;
 		}
 		else
 		{
-			clrSh -= 2;
+			clrSh--;
 			if(clrSh == 0)
 				clrAdd = true;
 		}
@@ -307,13 +315,13 @@ namespace ui
 	{
 		if(clrAdd)
 		{
-			clrSh += 2;
+			clrSh++;
 			if(clrSh > 63)
 				clrAdd = false;
 		}
 		else
 		{
-			clrSh -= 2;
+			clrSh--;
 			if(clrSh == 0)
 				clrAdd = true;
 		}
@@ -371,6 +379,10 @@ namespace ui
 					str += keys[selKey].getLet();
 				}
 			}
+			else if(down & KEY_X)
+			{
+				str += ' ';
+			}
 
 			//Stndrd key
 			for(unsigned i = 0; i < 41; i++)
@@ -419,12 +431,58 @@ namespace ui
 		return str;
 	}
 
-	void init()
+	button::button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h)
 	{
-		buttonA.loadFromFile("romfs:/img/buttonA.data");
-		buttonB.loadFromFile("romfs:/img/buttonB.data");
-		buttonX.loadFromFile("romfs:/img/buttonX.data");
-		buttonY.loadFromFile("romfs:/img/buttonY.data");
+		x = _x;
+		y = _y;
+		w = _w;
+		h = _h;
+		text = _txt;
+
+		unsigned tw = gfx::getTextWidth(text, 48);
+		unsigned th = gfx::getTextHeight(48);
+
+		tx = x + (w / 2) - (tw / 2);
+		ty = y + (h / 2) - (th / 2);
+	}
+
+	void button::draw()
+	{
+		gfx::drawRectangle(x - 2, y - 2, w + 4, h + 4, 0x303030FF);
+
+		if(pressed)
+			gfx::drawRectangle(x, y, w, h, 0x2B2B2BFF);
+		else
+		{
+			gfx::drawRectangle(x, y, w, h, 0xC0C0C0FF);
+		}
+
+		gfx::drawText(text, tx, ty, 48, 0x000000FF);
+	}
+
+	bool button::isOver(const touchPosition& p)
+	{
+		return (p.px > x && p.px < x + w) && (p.py > y && p.py < y + h);
+	}
+
+	bool button::released(const touchPosition& p)
+	{
+		prev = p;
+		if(isOver(p))
+			pressed = true;
+		else
+		{
+			uint32_t touchCount = hidTouchCount();
+			if(pressed && touchCount == 0)
+			{
+				pressed = false;
+				return true;
+			}
+			else
+				pressed = false;
+		}
+
+		return false;
 	}
 
 	void userMenuInit()
@@ -454,6 +512,25 @@ namespace ui
 			folderMenu.addOpt(list.getItem(i));
 	}
 
+	void drawMenus()
+	{
+		switch(mstate)
+		{
+			case USR_SEL:
+				userMenu.print(16, 88, 364);
+				break;
+
+			case TTL_SEL:
+				titleMenu.print(16, 88, 364);
+				break;
+
+			case FLD_SEL:
+				titleMenu.print(16, 88, 364);
+				folderMenu.print(390, 88, 874);
+				break;
+		}
+	}
+
 	void showUserMenu(const uint64_t& down, const uint64_t& held)
 	{
 		userMenu.handleInput(down, held);
@@ -468,7 +545,8 @@ namespace ui
 			mstate = TTL_SEL;
 		}
 
-		userMenu.print(16, 88, 364);
+		drawMenus();
+
 		//I'm too lazy to add width calculation right now.
 		unsigned startX = 1152;
 		buttonA.draw(startX, 672);
@@ -495,7 +573,7 @@ namespace ui
 		else if(down & KEY_B)
 			mstate = USR_SEL;
 
-		titleMenu.print(16, 88, 364);
+		drawMenus();
 
 		unsigned startX = 1056;
 
@@ -532,10 +610,14 @@ namespace ui
 				std::string scanPath = util::getTitleDir(data::curUser, data::curData);
 				fs::dirList list(scanPath);
 
-				std::string toPath = util::getTitleDir(data::curUser, data::curData) + list.getItem(folderMenu.getSelected() - 1) + "/";
-				std::string root = "sv:/";
+				std::string folderName = list.getItem(folderMenu.getSelected() - 1);
+				if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?"))
+				{
+					std::string toPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+					std::string root = "sv:/";
 
-				fs::copyDirToDir(root, toPath);
+					fs::copyDirToDir(root, toPath);
+				}
 			}
 		}
 		else if(down & KEY_Y)
@@ -547,10 +629,14 @@ namespace ui
 				std::string scanPath = util::getTitleDir(data::curUser, data::curData);
 				fs::dirList list(scanPath);
 
-				std::string fromPath = util::getTitleDir(data::curUser, data::curData) + list.getItem(folderMenu.getSelected() - 1) + "/";
-				std::string root = "sv:/";
+				std::string folderName = list.getItem(folderMenu.getSelected() - 1);
+				if(confirm("Are you sure you want to restore \"" + folderName + "\"?"))
+				{
+					std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+					std::string root = "sv:/";
 
-				fs::copyDirToDirCommit(fromPath, root, "sv");
+					fs::copyDirToDirCommit(fromPath, root, "sv");
+				}
 			}
 		}
 		else if(down & KEY_X)
@@ -560,8 +646,12 @@ namespace ui
 				std::string scanPath = util::getTitleDir(data::curUser, data::curData);
 				fs::dirList list(scanPath);
 
-				std::string delPath = scanPath + list.getItem(folderMenu.getSelected() - 1) + "/";
-				fs::delDir(delPath);
+				std::string folderName = list.getItem(folderMenu.getSelected() - 1);
+				if(confirm("Are you sure you want to delete \"" + folderName + "\"?"))
+				{
+					std::string delPath = scanPath + folderName + "/";
+					fs::delDir(delPath);
+				}
 
 				folderMenuPrepare(data::curUser, data::curData);
 			}
@@ -572,8 +662,7 @@ namespace ui
 			mstate = TTL_SEL;
 		}
 
-		titleMenu.print(16, 88, 364);
-		folderMenu.print(390, 88, 874);
+		drawMenus();
 
 		unsigned startX = 836;
 
@@ -619,7 +708,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B)
 				break;
 
-			gfx::drawRectangle(128, 128, 1024, 464, 0xC0C0C0FF);
+			drawMenus();
+
 			gfx::drawText(mess, 144, 144, 32, 0x000000FF);
 
 			gfx::handleBuffs();
@@ -640,10 +730,49 @@ namespace ui
 			if(down & KEY_A || down & KEY_B)
 				break;
 
-			gfx::drawRectangle(128, 128, 1024, 464, 0xC0C0C0FF);
+			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
 			gfx::drawText(tmp, 144, 144, 32, 0x000000FF);
 
 			gfx::handleBuffs();
 		}
+	}
+
+	bool confirm(const std::string& mess)
+	{
+		bool ret = false;
+
+		button yes("Yes (A)", 288, 464, 320, 96);
+		button no("No (B)", 672, 464, 320, 96);
+
+		while(true)
+		{
+			hidScanInput();
+
+			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+			touchPosition p;
+			hidTouchRead(&p, 0);
+
+			if(down & KEY_A || yes.released(p))
+			{
+				ret = true;
+				break;
+			}
+			else if(down & KEY_B || no.released(p))
+			{
+				ret = false;
+				break;
+			}
+
+			drawMenus();
+
+			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
+			gfx::drawText(mess, 272, 144, 48, 0x000000FF);
+			yes.draw();
+			no.draw();
+
+			gfx::handleBuffs();
+		}
+
+		return ret;
 	}
 }

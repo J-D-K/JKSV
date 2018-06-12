@@ -10,11 +10,19 @@
 
 namespace fs
 {
+	//Mounts usr's save data for open. Returns false it fails
 	bool mountSave(data::user& usr, data::titledata& open);
+
+	//Recursively copies 'from' to 'to'
 	void copyDirToDir(const std::string& from, const std::string& to);
+
+	//Same as above, but commits data to 'dev' after every file is closed
 	void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
+
+	//Recursively deletes 'path'
 	void delDir(const std::string& path);
 
+	//Just retrieves a listing for _path and stores it in item vector
 	class dirList
 	{
 		public:
