@@ -20,7 +20,7 @@ namespace data
 	{
 		public:
 			//Attempts to read title's info. Returns false if failed
-			bool init(const uint64_t& _id, const u128& _uID);
+			bool init(const FsSaveDataInfo& inf);
 
 			//Returns title + title without forbidden chars
 			std::string getTitle();
@@ -29,7 +29,10 @@ namespace data
 			//Returns ID
 			uint64_t getID();
 
+			FsSaveDataType getType();
+
 		private:
+			FsSaveDataType type;
 			std::string title, titleSafe;
 			uint64_t id;
 			u128 uID;

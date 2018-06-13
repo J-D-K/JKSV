@@ -9,6 +9,7 @@
 #include "gfx.h"
 #include "util.h"
 #include "file.h"
+#include "sys.h"
 
 static const char qwerty[] =
 {
@@ -577,6 +578,39 @@ namespace ui
 
 		unsigned startX = 1056;
 
+		if(sys::devMode)
+		{
+			std::string drawType = "Type: ";
+			switch(data::curUser.titles[titleMenu.getSelected()].getType())
+			{
+				case FsSaveDataType_SystemSaveData:
+					drawType += "System Save";
+					break;
+
+				case FsSaveDataType_SaveData:
+					drawType += "Save Data";
+					break;
+
+				case FsSaveDataType_BcatDeliveryCacheStorage:
+					drawType += "Bcat Delivery Cache";
+					break;
+
+				case FsSaveDataType_DeviceSaveData:
+					drawType += "Device Save";
+					break;
+
+				case FsSaveDataType_TemporaryStorage:
+					drawType += "Temp Storage";
+					break;
+
+				case FsSaveDataType_CacheStorage:
+					drawType += "Cache Storage";
+					break;
+			}
+
+			gfx::drawText(drawType, 16, 668, 32, 0xFFFFFFFF);
+		}
+
 		buttonA.draw(startX, 672);
 		gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
 		buttonB.draw(startX += 72, 672);
@@ -622,22 +656,27 @@ namespace ui
 		}
 		else if(down & KEY_Y)
 		{
-			if(folderMenu.getSelected() > 0)
+			if(data::curData.getType() != FsSaveDataType_SystemSaveData)
 			{
-				fs::delDir("sv:/");
-
-				std::string scanPath = util::getTitleDir(data::curUser, data::curData);
-				fs::dirList list(scanPath);
-
-				std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-				if(confirm("Are you sure you want to restore \"" + folderName + "\"?"))
+				if(folderMenu.getSelected() > 0)
 				{
-					std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
-					std::string root = "sv:/";
+					fs::delDir("sv:/");
 
-					fs::copyDirToDirCommit(fromPath, root, "sv");
+					std::string scanPath = util::getTitleDir(data::curUser, data::curData);
+					fs::dirList list(scanPath);
+
+					std::string folderName = list.getItem(folderMenu.getSelected() - 1);
+					if(confirm("Are you sure you want to restore \"" + folderName + "\"?"))
+					{
+						std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+						std::string root = "sv:/";
+
+						fs::copyDirToDirCommit(fromPath, root, "sv");
+					}
 				}
 			}
+			else
+				ui::showMessage("NEIN NEIN NEIN.");
 		}
 		else if(down & KEY_X)
 		{
@@ -710,7 +749,8 @@ namespace ui
 
 			drawMenus();
 
-			gfx::drawText(mess, 144, 144, 32, 0x000000FF);
+			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
+			gfx::drawText(mess, 272, 144, 48, 0x000000FF);
 
 			gfx::handleBuffs();
 		}
@@ -731,7 +771,7 @@ namespace ui
 				break;
 
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
-			gfx::drawText(tmp, 144, 144, 32, 0x000000FF);
+			gfx::drawText(tmp, 272, 144, 48, 0x000000FF);
 
 			gfx::handleBuffs();
 		}

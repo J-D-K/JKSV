@@ -8,6 +8,7 @@
 #include "gfx.h"
 #include "ui.h"
 #include "util.h"
+#include "sys.h"
 
 #define BUFF_SIZE 512 * 1024
 
@@ -18,13 +19,26 @@ namespace fs
 		FsFileSystem sv;
 		Result res = 0;
 
-		res = fsMount_SaveData(&sv, open.getID(), usr.getUID());
-		if(R_FAILED(res))
-			return false;
+		if(open.getType() == FsSaveDataType_SaveData)
+		{
+			res = fsMount_SaveData(&sv, open.getID(), usr.getUID());
+			if(R_FAILED(res))
+				return false;
 
-		int r = fsdevMountDevice("sv", sv);
-		if(r == -1)
-			return false;
+			int r = fsdevMountDevice("sv", sv);
+			if(r == -1)
+				return false;
+		}
+		else if(sys::devMode && open.getType() == FsSaveDataType_SystemSaveData)
+		{
+			res = fsMount_SystemSaveData(&sv, open.getID());
+			if(R_FAILED(res))
+				return false;
+
+			int r = fsdevMountDevice("sv", sv);
+			if(r == -1)
+				return false;
+		}
 
 		return true;
 	}

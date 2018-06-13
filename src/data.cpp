@@ -126,14 +126,14 @@ namespace data
 
 						u = getUserIndex(info.userID);
 						titledata newData;
-						if(newData.init(info.titleID, info.userID))
+						if(newData.init(info))
 							users[u].titles.push_back(newData);
 					}
 				}
 				else
 				{
 					titledata newData;
-					if(newData.init(info.titleID, info.userID))
+					if(newData.init(info))
 					{
 						users[u].titles.push_back(newData);
 					}
@@ -148,21 +148,26 @@ namespace data
 
 	}
 
-	bool titledata::init(const uint64_t& _id, const u128& _uID)
+	bool titledata::init(const FsSaveDataInfo& inf)
 	{
 		Result res = 0;
 		NsApplicationControlData *dat = new NsApplicationControlData;
 		std::memset(dat, 0, sizeof(NsApplicationControlData));
 		NacpLanguageEntry *ent = NULL;
 
-		id = _id;
-		uID = _uID;
+		if(inf.SaveDataType == FsSaveDataType_SaveData)
+			id = inf.titleID;
+		else if(inf.SaveDataType == FsSaveDataType_SystemSaveData)
+			id = inf.saveID;
+
+		uID = inf.userID;
+		type = (FsSaveDataType)inf.SaveDataType;
 		size_t outSz = 0;
 
-		res = nsGetApplicationControlData(1, _id, dat, sizeof(NsApplicationControlData), &outSz);
-		if(R_FAILED(res) && outSz < sizeof(dat->nacp))
+		res = nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz);
+		if(R_FAILED(res) || outSz < sizeof(dat->nacp))
 		{
-			printf("nsGetAppCtrlData Failed\n");
+			printf("nsGetAppCtrlData Failed: 0x%08X\n", (unsigned)res);
 			delete dat;
 		}
 
@@ -185,7 +190,7 @@ namespace data
 		else
 		{
 			char tmp[32];
-			sprintf(tmp, "%016lX", id);
+			sprintf(tmp, "%016lX", (u64)id);
 			title.assign(tmp);
 			titleSafe = safeString(tmp);
 		}
@@ -208,6 +213,11 @@ namespace data
 		return id;
 	}
 
+	FsSaveDataType titledata::getType()
+	{
+		return type;
+	}
+
 	bool user::init(const u128& _id)
 	{
 		Result res = 0;
@@ -226,7 +236,7 @@ namespace data
 
 		username.assign(base.username);
 		if(username.empty())
-			username = "???";
+			username = "Unknown";
 
 		accountProfileClose(&prof);
 
@@ -253,7 +263,7 @@ namespace data
 			accountProfileClose(&prof);
 		}
 		else
-			username = "???";
+			username = "Unknown";
 
 		return true;
 	}
