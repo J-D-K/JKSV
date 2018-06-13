@@ -42,6 +42,9 @@ namespace data
 			//Attempts to read user data using _id
 			bool init(const u128& _id);
 
+			//Allows user to init without reading data. For fun.
+			bool initNoChk(const u128& _id);
+
 			//Returns user ID
 			u128 getUID();
 

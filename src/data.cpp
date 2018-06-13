@@ -94,23 +94,6 @@ namespace data
 		return -1;
 	}
 
-	void waitForA()
-	{
-		while(true)
-		{
-			hidScanInput();
-
-			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-
-			if(down & KEY_A)
-				break;
-
-			gfxFlushBuffers();
-			gfxSwapBuffers();
-			gfxWaitForVsync();
-		}
-	}
-
 	void loadDataInfo()
 	{
 		Result res = 0;
@@ -131,13 +114,13 @@ namespace data
 			if(R_FAILED(res) || total == 0)
 				break;
 
-			if(info.SaveDataType == FsSaveDataType_SaveData)
+			if((info.SaveDataType == FsSaveDataType_SaveData) || sys::devMode)
 			{
 				int u = getUserIndex(info.userID);
 				if(u == -1)
 				{
 					user newUser;
-					if(newUser.init(info.userID))
+					if(newUser.init(info.userID) || (sys::devMode && newUser.initNoChk(info.userID)))
 					{
 						users.push_back(newUser);
 
@@ -246,6 +229,31 @@ namespace data
 			username = "???";
 
 		accountProfileClose(&prof);
+
+		return true;
+	}
+
+	bool user::initNoChk(const u128& _id)
+	{
+		Result res = 0;
+		userID = _id;
+
+		AccountProfile prof;
+		AccountProfileBase base;
+
+		res = accountGetProfile(&prof, userID);
+		if(R_SUCCEEDED(res))
+		{
+			res = accountProfileGet(&prof, NULL, &base);
+		}
+
+		if(R_SUCCEEDED(res))
+		{
+			username.assign(base.username);
+			accountProfileClose(&prof);
+		}
+		else
+			username = "???";
 
 		return true;
 	}

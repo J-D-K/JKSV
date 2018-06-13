@@ -4,11 +4,14 @@
 #include <unistd.h>
 
 #include "sys.h"
+#include "ui.h"
 
 static std::fstream deb;
 
 namespace sys
 {
+	bool devMode = false;
+
 	bool init()
 	{
 		Result res = 0;
@@ -44,6 +47,13 @@ namespace sys
 		chdir("sdmc:/JKSV");
 
 		deb.open("deb.txt", std::ios::out);
+
+		std::fstream chk("0x4A4B.dev", std::ios::in);
+		if(chk.is_open())
+		{
+			devMode = true;
+			chk.close();
+		}
 
 		return true;
 	}

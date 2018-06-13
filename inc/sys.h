@@ -9,6 +9,9 @@ namespace sys
 
 	//Writes to 'deb.txt' in JKSV folder
 	void debugWrite(const std::string& out);
+
+	//Uh oh
+	extern bool devMode;
 }
 
 #endif // SYS_H
