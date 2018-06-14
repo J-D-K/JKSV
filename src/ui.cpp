@@ -738,19 +738,23 @@ namespace ui
 
 	void showMessage(const std::string& mess)
 	{
+		button ok("OK (A)", 480, 464, 320, 96);
 		while(true)
 		{
 			hidScanInput();
 
 			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+			touchPosition p;
+			hidTouchRead(&p, 0);
 
-			if(down & KEY_A || down & KEY_B)
+			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
 			drawMenus();
 
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
 			gfx::drawText(mess, 272, 144, 48, 0x000000FF);
+			ok.draw();
 
 			gfx::handleBuffs();
 		}
@@ -758,6 +762,7 @@ namespace ui
 
 	void showError(const std::string& mess, const Result& r)
 	{
+		button ok("OK (A)", 480, 464, 320, 96);
 		char tmp[512];
 		sprintf(tmp, "%s\n0x%08X", mess.c_str(), (unsigned)r);
 
@@ -766,12 +771,15 @@ namespace ui
 			hidScanInput();
 
 			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+			touchPosition p;
+			hidTouchRead(&p, 0);
 
-			if(down & KEY_A || down & KEY_B)
+			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
 			gfx::drawText(tmp, 272, 144, 48, 0x000000FF);
+			ok.draw();
 
 			gfx::handleBuffs();
 		}

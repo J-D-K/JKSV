@@ -98,7 +98,7 @@ namespace fs
 		std::fstream t(to, std::ios::out | std::ios::binary);
 
 		f.seekg(0, f.end);
-		uint64_t fileSize = f.tellg();
+		size_t fileSize = f.tellg();
 		f.seekg(0, f.beg);
 
 		uint8_t *buff = new uint8_t[BUFF_SIZE];
@@ -138,7 +138,7 @@ namespace fs
 		std::fstream t(to, std::ios::out | std::ios::binary);
 
 		f.seekg(0, f.end);
-		uint64_t fileSize = f.tellg();
+		size_t fileSize = f.tellg();
 		f.seekg(0, f.beg);
 
 		uint8_t *buff = new uint8_t[BUFF_SIZE];
