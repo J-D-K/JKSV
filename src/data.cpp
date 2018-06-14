@@ -10,6 +10,7 @@
 #include "data.h"
 #include "sys.h"
 #include "gfx.h"
+#include "file.h"
 
 static const char verboten[] = { '.', ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
 
@@ -126,14 +127,14 @@ namespace data
 
 						u = getUserIndex(info.userID);
 						titledata newData;
-						if(newData.init(info))
+						if(newData.init(info) && newData.isMountable(newUser.getUID()))
 							users[u].titles.push_back(newData);
 					}
 				}
 				else
 				{
 					titledata newData;
-					if(newData.init(info))
+					if(newData.init(info) && newData.isMountable(users[u].getUID()))
 					{
 						users[u].titles.push_back(newData);
 					}
@@ -197,6 +198,18 @@ namespace data
 		}
 
 		return true;
+	}
+
+	bool titledata::isMountable(const u128& uID)
+	{
+		data::user tmpUser;
+		tmpUser.initNoChk(uID);
+		if(fs::mountSave(tmpUser, *this))
+		{
+			fsdevUnmountDevice("sv");
+			return true;
+		}
+		return false;
 	}
 
 	std::string titledata::getTitle()

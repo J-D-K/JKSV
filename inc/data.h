@@ -22,6 +22,9 @@ namespace data
 			//Attempts to read title's info. Returns false if failed
 			bool init(const FsSaveDataInfo& inf);
 
+			//Attempts to mount data with uID + id. Returns false if fails. For filtering.
+			bool isMountable(const u128& uID);
+
 			//Returns title + title without forbidden chars
 			std::string getTitle();
 			std::string getTitleSafe();

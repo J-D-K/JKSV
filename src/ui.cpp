@@ -328,8 +328,7 @@ namespace ui
 				clrAdd = true;
 		}
 
-		titleMenu.print(16, 88, 364);
-		folderMenu.print(390, 88, 874);
+		drawMenus();
 		gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
 		gfx::drawRectangle(0, 240, 1280, 480, 0x3B3B3BFF);
 

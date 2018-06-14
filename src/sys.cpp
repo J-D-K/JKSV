@@ -25,6 +25,21 @@ namespace sys
 			sysSave = byte >> 7 & 1;
 			devMenu = byte >> 6 & 1;
 
+			//Make sure the rest are 0
+			for(unsigned i = 5; i > 0; i--)
+			{
+				bool chk = byte >> i & 1;
+				if(chk == true)
+				{
+					//Disable
+					sysSave = false;
+					devMenu = false;
+				}
+			}
+
+			//oops
+			deb.open("deb.txt", std::ios::out);
+
 			if(sysSave)
 				printf("System save dumping enabled.\n");
 			if(devMenu)
