@@ -10,7 +10,27 @@ static std::fstream deb;
 
 namespace sys
 {
-	bool devMode = false;
+	bool sysSave = false;
+	bool devMenu = false;
+
+	void loadCfg()
+	{
+		std::fstream devIn("0x4A4B.dev", std::ios::in | std::ios::binary);
+		if(devIn.is_open())
+		{
+			uint8_t byte = 0;
+			devIn.read((char *)&byte, 1);
+			devIn.close();
+
+			sysSave = byte >> 7 & 1;
+			devMenu = byte >> 6 & 1;
+
+			if(sysSave)
+				printf("System save dumping enabled.\n");
+			if(devMenu)
+				printf("DevMenu enabled\n");
+		}
+	}
 
 	bool init()
 	{
@@ -46,14 +66,7 @@ namespace sys
 		mkdir("sdmc:/JKSV", 0777);
 		chdir("sdmc:/JKSV");
 
-		deb.open("deb.txt", std::ios::out);
-
-		std::fstream chk("0x4A4B.dev", std::ios::in);
-		if(chk.is_open())
-		{
-			devMode = true;
-			chk.close();
-		}
+		loadCfg();
 
 		return true;
 	}

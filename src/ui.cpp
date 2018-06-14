@@ -23,12 +23,13 @@ enum menuState
 {
 	USR_SEL,
 	TTL_SEL,
-	FLD_SEL
+	FLD_SEL,
+	DEV_MNU
 };
 
 static int mstate = USR_SEL;
 
-static ui::menu userMenu, titleMenu, folderMenu;
+static ui::menu userMenu, titleMenu, folderMenu, devMenu;
 static gfx::tex buttonA, buttonB, buttonX, buttonY;
 
 namespace ui
@@ -129,14 +130,14 @@ namespace ui
 		else
 			length = start + 15;
 
-		uint32_t rectClr = 0x00 << 24 | ((0x88 + clrSh) & 0xFF) << 16 | ((0xbb + clrSh) & 0xFF) << 8 | 0xFF;
+		uint32_t rectClr = 0x00 << 24 | ((0x88 + clrSh) & 0xFF) << 16 | ((0xBB + clrSh) & 0xFF) << 8 | 0xFF;
 
 		for(int i = start; i < length; i++)
 		{
 			if(i == selected)
 				gfx::drawRectangle(x, y + ((i - start) * 36), rectWidth, 32, rectClr);
 
-			gfx::drawText(opt[i], x, y + ((i - start) * 36), 32, 0xFFFFFFFF);
+			gfx::drawText(opt[i], x, y + ((i - start) * 36), 38, 0xFFFFFFFF);
 		}
 	}
 
@@ -513,21 +514,26 @@ namespace ui
 			folderMenu.addOpt(list.getItem(i));
 	}
 
+	void devMenuPrepare()
+	{
+		devMenu.addOpt("Dump all saves");
+	}
+
 	void drawMenus()
 	{
 		switch(mstate)
 		{
 			case USR_SEL:
-				userMenu.print(16, 88, 364);
+				userMenu.print(16, 88, 424);
 				break;
 
 			case TTL_SEL:
-				titleMenu.print(16, 88, 364);
+				titleMenu.print(16, 88, 424);
 				break;
 
 			case FLD_SEL:
-				titleMenu.print(16, 88, 364);
-				folderMenu.print(390, 88, 874);
+				titleMenu.print(16, 88, 424);
+				folderMenu.print(456, 88, 808);
 				break;
 		}
 	}
@@ -539,11 +545,16 @@ namespace ui
 		if(down & KEY_A)
 		{
 			data::curUser = data::users[userMenu.getSelected()];
-
-			mkdir(data::curUser.getUsername().c_str(), 777);
+			util::makeUserDir(data::curUser);
 			titleMenuPrepare(data::curUser);
 
 			mstate = TTL_SEL;
+		}
+		else if(down & KEY_MINUS && sys::devMenu)
+		{
+			devMenu.reset();
+			devMenuPrepare();
+			mstate = DEV_MNU;
 		}
 
 		drawMenus();
@@ -578,7 +589,7 @@ namespace ui
 
 		unsigned startX = 1056;
 
-		if(sys::devMode)
+		if(sys::sysSave)
 		{
 			std::string drawType = "Type: ";
 			switch(data::curUser.titles[titleMenu.getSelected()].getType())
@@ -676,7 +687,7 @@ namespace ui
 				}
 			}
 			else
-				ui::showMessage("NEIN NEIN NEIN.");
+				ui::showMessage("NEIN! NEIN! NEIN!");
 		}
 		else if(down & KEY_X)
 		{
@@ -718,6 +729,54 @@ namespace ui
 		gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
 	}
 
+	void showDevMenu(const uint64_t& down, const uint64_t& held)
+	{
+		devMenu.handleInput(down, held);
+
+		if(down & KEY_A)
+		{
+			switch(devMenu.getSelected())
+			{
+				case 0:
+					ui::progBar userProg(data::users.size());
+					for(unsigned i = 0; i < data::users.size(); i++)
+					{
+						data::curUser = data::users[i];
+						util::makeUserDir(data::curUser);
+						for(unsigned j = 0; j < data::curUser.titles.size(); j++)
+						{
+							data::curData = data::curUser.titles[j];
+							if(fs::mountSave(data::curUser, data::curData))
+							{
+								util::makeTitleDir(data::curUser, data::curData);
+
+								std::string to = util::getTitleDir(data::curUser, data::curData) + util::getDateTime();
+								mkdir(to.c_str(), 777);
+								to += "/";
+
+								std::string root = "sv:/";
+
+								fs::copyDirToDir(root, to);
+
+								fsdevUnmountDevice("sv");
+							}
+
+							userProg.draw("Dumping " + data::curUser.getUsername() + "...");
+
+							gfx::handleBuffs();
+						}
+					}
+					break;
+			}
+		}
+		else if(down & KEY_B)
+			mstate = USR_SEL;
+
+		devMenu.print(16, 88, 424);
+
+		gfx::handleBuffs();
+	}
+
 	void runApp(const uint64_t& down, const uint64_t& held)
 	{
 		switch(mstate)
@@ -732,6 +791,10 @@ namespace ui
 
 			case FLD_SEL:
 				showFolderMenu(down, held);
+				break;
+
+			case DEV_MNU:
+				showDevMenu(down, held);
 				break;
 		}
 	}

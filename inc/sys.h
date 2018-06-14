@@ -11,7 +11,8 @@ namespace sys
 	void debugWrite(const std::string& out);
 
 	//Uh oh
-	extern bool devMode;
+	extern bool sysSave;
+	extern bool devMenu;
 }
 
 #endif // SYS_H

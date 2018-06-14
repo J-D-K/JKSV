@@ -22,6 +22,11 @@ namespace util
 		return std::string(ret);
 	}
 
+	void makeUserDir(data::user& u)
+	{
+		mkdir(u.getUsername().c_str(), 0777);
+	}
+
 	void makeTitleDir(data::user& u, data::titledata& t)
 	{
 		std::string path = u.getUsername() + "/" + t.getTitleSafe();

@@ -43,7 +43,7 @@ int main(int argc, const char *argv[])
 			gfx::clearBufferColor(0x3B3B3BFF);
 			gfx::drawText("JKSV - 6/13/2018", 16, 16, 64, 0xFFFFFFFF);
 			gfx::drawRectangle(16, 64, 1248, 1, 0xFFFFFFFF);
-			gfx::drawRectangle(384, 64, 1, 592, 0xFFFFFFFF);
+			gfx::drawRectangle(448, 64, 1, 592, 0xFFFFFFFF);
 			gfx::drawRectangle(16, 656, 1248, 1, 0xFFFFFFFF);
 
 			ui::runApp(down, held);

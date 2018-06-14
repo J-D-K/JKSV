@@ -114,13 +114,13 @@ namespace data
 			if(R_FAILED(res) || total == 0)
 				break;
 
-			if((info.SaveDataType == FsSaveDataType_SaveData) || sys::devMode)
+			if((info.SaveDataType == FsSaveDataType_SaveData) || sys::sysSave)
 			{
 				int u = getUserIndex(info.userID);
 				if(u == -1)
 				{
 					user newUser;
-					if(newUser.init(info.userID) || (sys::devMode && newUser.initNoChk(info.userID)))
+					if(newUser.init(info.userID) || (sys::sysSave && newUser.initNoChk(info.userID)))
 					{
 						users.push_back(newUser);
 
@@ -167,7 +167,8 @@ namespace data
 		res = nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz);
 		if(R_FAILED(res) || outSz < sizeof(dat->nacp))
 		{
-			printf("nsGetAppCtrlData Failed: 0x%08X\n", (unsigned)res);
+			if(!sys::sysSave)
+				printf("nsGetAppCtrlData Failed: 0x%08X\n", (unsigned)res);
 			delete dat;
 		}
 

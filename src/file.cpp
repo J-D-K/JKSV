@@ -29,7 +29,7 @@ namespace fs
 			if(r == -1)
 				return false;
 		}
-		else if(sys::devMode && open.getType() == FsSaveDataType_SystemSaveData)
+		else if(sys::sysSave && open.getType() == FsSaveDataType_SystemSaveData)
 		{
 			res = fsMount_SystemSaveData(&sv, open.getID());
 			if(R_FAILED(res))
