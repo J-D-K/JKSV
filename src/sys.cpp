@@ -26,7 +26,7 @@ namespace sys
 			devMenu = byte >> 6 & 1;
 
 			//Make sure the rest are 0
-			for(unsigned i = 5; i > 0; i--)
+			for(int i = 5; i > -1; i--)
 			{
 				bool chk = byte >> i & 1;
 				if(chk == true)
@@ -36,9 +36,6 @@ namespace sys
 					devMenu = false;
 				}
 			}
-
-			//oops
-			deb.open("deb.txt", std::ios::out);
 
 			if(sysSave)
 				printf("System save dumping enabled.\n");
@@ -80,6 +77,9 @@ namespace sys
 
 		mkdir("sdmc:/JKSV", 0777);
 		chdir("sdmc:/JKSV");
+
+		//oops again
+		deb.open("deb.txt", std::ios::out);
 
 		loadCfg();
 

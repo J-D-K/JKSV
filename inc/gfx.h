@@ -17,6 +17,9 @@ namespace gfx
 	//Clears framebuffer to clr. RGBA8
 	void clearBufferColor(const uint32_t& clr);
 
+	//Blends two pixels. Clr is the color to be drawn. FB should be the framebuffer pixel
+	uint32_t blend(const uint32_t& clr, const uint32_t& fb);
+
 	//Draws text using shared font. No alpha blending yet.
 	void drawText(const std::string& str, unsigned x, unsigned y, const uint32_t& sz, const uint32_t& clr);
 

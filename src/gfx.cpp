@@ -15,7 +15,6 @@ static FT_Error ret = 0, libret = 1, faceret = 1;
 static FT_Library lib;
 static FT_Face face;
 static uint32_t frameBufWidth = 0;
-static uint32_t fontSize = 0;
 
 namespace gfx
 {
@@ -35,7 +34,7 @@ namespace gfx
 			return false;
 		}
 
-		res = plGetSharedFontByType(&font, PlSharedFontType_Standard);
+		res = plGetSharedFontByType(&font, PlSharedFontType_KO);
 		if(R_FAILED(res))
 		{
 			printf("plGetSharedFontByTypeFailed!");
@@ -57,15 +56,6 @@ namespace gfx
 			printf("FT_New_Memory_Face failed: %d", ret);
 			return false;
 		}
-
-		ret = FT_Set_Char_Size(face, 0, 8 * _fontSize, 300, 300);
-		if(ret)
-		{
-			printf("FT_Set_Char_Size failed: %d", ret);
-			return false;
-		}
-
-		fontSize = _fontSize;
 
 		return true;
 	}
@@ -103,6 +93,7 @@ namespace gfx
 
 		if(bmp.pixel_mode != FT_PIXEL_MODE_GRAY)
 			return;
+
 		uint8_t r, g, b;
 		r = clr >> 24 & 0xFF;
 		g = clr >> 16 & 0xFF;
@@ -117,7 +108,9 @@ namespace gfx
 
 				if(imgPtr[tmpX] > 0)
 				{
-					frameBuf[frameY * frameBufWidth + frameX] = RGBA8_MAXALPHA(r, g, b);
+					uint32_t fbPx = frameBuf[frameY * frameBufWidth + frameX];
+					uint32_t txPx = (r << 24 | g << 16 | b << 8 | imgPtr[tmpX]);
+					frameBuf[frameY * frameBufWidth + frameX] = blend(txPx, fbPx);
 				}
 			}
 
@@ -153,7 +146,7 @@ namespace gfx
 			if(tmpChr == '\n')
 			{
 				tmpX = x;
-				y += face->size->metrics.height / fontSize;
+				y += face->size->metrics.height / sz;
 				continue;
 			}
 
@@ -245,6 +238,29 @@ namespace gfx
 		}
 	}
 
+	uint32_t blend(const uint32_t& clr, const uint32_t& fb)
+	{
+		uint8_t r1, g1, b1, al;
+		r1 = clr >> 24 & 0xFF;
+		g1 = clr >> 16 & 0xFF;
+		b1 = clr >> 8  & 0xFF;
+		al = clr & 0xFF;
+
+		//Assuming this is FB
+		uint8_t r2, g2, b2;
+		r2 = fb & 0xFF;
+		g2 = fb >> 8 & 0xFF;
+		b2 = fb >> 16 & 0xFF;
+
+		uint8_t subAl = (uint8_t)0xFF - al;
+
+		uint8_t finalRed = (r1 * al + r2 * subAl) / 0xFF;
+		uint8_t finalGreen = (g1 * al + g2 * subAl) / 0xFF;
+		uint8_t finalBlue = (b1 * al + b2 * subAl) / 0xFF;
+
+		return (0xFF << 24 | finalBlue << 16 | finalGreen << 8 | finalRed);
+	}
+
 	void drawRectangle(uint32_t x, uint32_t y, const uint32_t& width, const uint32_t& height, const uint32_t& clr)
 	{
 		uint32_t w, h, tX, tY;
@@ -298,7 +314,9 @@ namespace gfx
 			{
 				for(tX = x; tX < x + width; tX++, i += 4)
 				{
-					frameBuffer[tY * frameBufWidth + tX] = RGBA8_MAXALPHA(data[i], data[i + 1], data[i + 2]);
+					uint32_t clr = (data[i] << 24 | data[i + 1] << 16 | data[i + 2] << 8 | data[i + 3]);
+					uint32_t buf = frameBuffer[tY * frameBufWidth + tX];
+					frameBuffer[tY * frameBufWidth + tX] = blend(clr, buf);
 				}
 			}
 		}

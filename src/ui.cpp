@@ -532,7 +532,7 @@ namespace ui
 
 			case FLD_SEL:
 				titleMenu.print(16, 88, 424);
-				folderMenu.print(456, 88, 808);
+				folderMenu.print(458, 88, 806);
 				break;
 		}
 	}
@@ -772,8 +772,6 @@ namespace ui
 			mstate = USR_SEL;
 
 		devMenu.print(16, 88, 424);
-
-		gfx::handleBuffs();
 	}
 
 	void runApp(const uint64_t& down, const uint64_t& held)
