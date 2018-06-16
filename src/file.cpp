@@ -4,11 +4,10 @@
 #include <unistd.h>
 
 #include "file.h"
-#include "data.h"
-#include "gfx.h"
-#include "ui.h"
 #include "util.h"
 #include "sys.h"
+#include "ui.h"
+#include "gfx.h"
 
 #define BUFF_SIZE 512 * 1024
 
@@ -108,13 +107,6 @@ namespace fs
 		copyString = util::getWrappedString(copyString, 64, 1136);
 		for(unsigned i = 0; i < fileSize; )
 		{
-			hidScanInput();
-
-			uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-			if(held & KEY_B)
-				break;
-
 			f.read((char *)buff, BUFF_SIZE);
 			t.write((char *)buff, f.gcount());
 
@@ -148,13 +140,6 @@ namespace fs
 		copyString = util::getWrappedString(copyString, 64, 1136);
 		for(unsigned i = 0; i < fileSize; )
 		{
-			hidScanInput();
-
-			uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-			if(held & KEY_B)
-				break;
-
 			f.read((char *)buff, BUFF_SIZE);
 			t.write((char *)buff, f.gcount());
 

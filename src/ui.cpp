@@ -1,8 +1,7 @@
 #include <string>
 #include <vector>
 #include <fstream>
-
-#include <stdio.h>
+#include <cstdio>
 #include <switch.h>
 
 #include "ui.h"
@@ -328,7 +327,6 @@ namespace ui
 				clrAdd = true;
 		}
 
-		drawMenus();
 		gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
 		gfx::drawRectangle(0, 240, 1280, 480, 0x3B3B3BFF);
 
@@ -523,16 +521,45 @@ namespace ui
 		switch(mstate)
 		{
 			case USR_SEL:
-				userMenu.print(16, 88, 424);
+				{
+					//Menu
+					userMenu.print(16, 88, 424);
+					//Input guide
+					unsigned startX = 1152;
+					buttonA.draw(startX, 672);
+					gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
+				}
 				break;
 
 			case TTL_SEL:
-				titleMenu.print(16, 88, 424);
+				{
+					//Menu
+					titleMenu.print(16, 88, 424);
+					//Input guide
+					unsigned startX = 1056;
+					buttonA.draw(startX, 672);
+					gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
+					buttonB.draw(startX += 72, 672);
+					gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
+				}
 				break;
 
 			case FLD_SEL:
-				titleMenu.print(16, 88, 424);
-				folderMenu.print(458, 88, 806);
+				{
+					//Menus
+					titleMenu.print(16, 88, 424);
+					folderMenu.print(458, 88, 806);
+					//Input guide
+					unsigned startX = 836;
+					buttonA.draw(startX, 672);
+					gfx::drawText("Backup", startX += 38, 668, 32, 0xFFFFFFFF);
+					buttonY.draw(startX += 72, 672);
+					gfx::drawText("Restore", startX += 38, 668, 32, 0xFFFFFFFF);
+					buttonX.draw(startX += 72, 672);
+					gfx::drawText("Delete", startX += 38, 668, 32, 0xFFFFFFFF);
+					buttonB.draw(startX += 72, 672);
+					gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
+				}
 				break;
 		}
 	}
@@ -540,6 +567,8 @@ namespace ui
 	void showUserMenu(const uint64_t& down, const uint64_t& held)
 	{
 		userMenu.handleInput(down, held);
+
+		drawMenus();
 
 		if(down & KEY_A)
 		{
@@ -555,18 +584,13 @@ namespace ui
 			devMenuPrepare();
 			mstate = DEV_MNU;
 		}
-
-		drawMenus();
-
-		//I'm too lazy to add width calculation right now.
-		unsigned startX = 1152;
-		buttonA.draw(startX, 672);
-		gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
 	}
 
 	void showTitleMenu(const uint64_t& down, const uint64_t& held)
 	{
 		titleMenu.handleInput(down, held);
+
+		drawMenus();
 
 		if(down & KEY_A)
 		{
@@ -583,10 +607,6 @@ namespace ui
 		}
 		else if(down & KEY_B)
 			mstate = USR_SEL;
-
-		drawMenus();
-
-		unsigned startX = 1056;
 
 		if(sys::sysSave)
 		{
@@ -620,16 +640,13 @@ namespace ui
 
 			gfx::drawText(drawType, 16, 668, 32, 0xFFFFFFFF);
 		}
-
-		buttonA.draw(startX, 672);
-		gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
-		buttonB.draw(startX += 72, 672);
-		gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
 	}
 
 	void showFolderMenu(const uint64_t& down, const uint64_t& held)
 	{
 		folderMenu.handleInput(down, held);
+
+		drawMenus();
 
 		if(down & KEY_A)
 		{
@@ -710,22 +727,6 @@ namespace ui
 			fsdevUnmountDevice("sv");
 			mstate = TTL_SEL;
 		}
-
-		drawMenus();
-
-		unsigned startX = 836;
-
-		buttonA.draw(startX, 672);
-		gfx::drawText("Backup", startX += 38, 668, 32, 0xFFFFFFFF);
-
-		buttonY.draw(startX += 72, 672);
-		gfx::drawText("Restore", startX += 38, 668, 32, 0xFFFFFFFF);
-
-		buttonX.draw(startX += 72, 672);
-		gfx::drawText("Delete", startX += 38, 668, 32, 0xFFFFFFFF);
-
-		buttonB.draw(startX += 72, 672);
-		gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
 	}
 
 	void showDevMenu(const uint64_t& down, const uint64_t& held)
@@ -810,8 +811,6 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			drawMenus();
-
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
 			gfx::drawText(mess, 272, 144, 48, 0x000000FF);
 			ok.draw();
@@ -870,8 +869,6 @@ namespace ui
 				ret = false;
 				break;
 			}
-
-			drawMenus();
 
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
 			gfx::drawText(mess, 272, 144, 48, 0x000000FF);

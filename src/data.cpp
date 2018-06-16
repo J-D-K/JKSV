@@ -1,15 +1,13 @@
-#include <stdio.h>
-#include <switch.h>
-
 #include <vector>
 #include <string>
 #include <cstring>
 #include <fstream>
 #include <algorithm>
+#include <cstdio>
+#include <switch.h>
 
 #include "data.h"
 #include "sys.h"
-#include "gfx.h"
 #include "file.h"
 
 static const char verboten[] = { '.', ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
@@ -251,6 +249,7 @@ namespace data
 		username.assign(base.username);
 		if(username.empty())
 			username = "Unknown";
+		userSafe = safeString(username);
 
 		accountProfileClose(&prof);
 
@@ -274,10 +273,14 @@ namespace data
 		if(R_SUCCEEDED(res))
 		{
 			username.assign(base.username);
+			userSafe = safeString(username);
 			accountProfileClose(&prof);
 		}
 		else
+		{
 			username = "Unknown";
+			userSafe = "Unknown";
+		}
 
 		return true;
 	}
@@ -290,5 +293,10 @@ namespace data
 	std::string user::getUsername()
 	{
 		return username;
+	}
+
+	std::string user::getUsernameSafe()
+	{
+		return userSafe;
 	}
 }

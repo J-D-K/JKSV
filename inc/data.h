@@ -56,13 +56,14 @@ namespace data
 
 			//Returns username
 			std::string getUsername();
+			std::string getUsernameSafe();
 
 			//Vector for storing save data info for user
 			std::vector<titledata> titles;
 
 		private:
 			u128 userID;
-			std::string username;
+			std::string username, userSafe;
 	};
 
 	//User vector

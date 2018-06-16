@@ -1,11 +1,10 @@
 #include <string>
-#include <stdio.h>
-#include <time.h>
+#include <cstdio>
+#include <ctime>
 #include <sys/stat.h>
 
 #include "data.h"
 #include "gfx.h"
-#include "ui.h"
 
 namespace util
 {
@@ -24,18 +23,18 @@ namespace util
 
 	void makeUserDir(data::user& u)
 	{
-		mkdir(u.getUsername().c_str(), 0777);
+		mkdir(u.getUsernameSafe().c_str(), 0777);
 	}
 
 	void makeTitleDir(data::user& u, data::titledata& t)
 	{
-		std::string path = u.getUsername() + "/" + t.getTitleSafe();
+		std::string path = u.getUsernameSafe() + "/" + t.getTitleSafe();
 		mkdir(path.c_str(), 777);
 	}
 
 	std::string getTitleDir(data::user& u, data::titledata& t)
 	{
-		return std::string(u.getUsername() + "/" + t.getTitleSafe() + "/");
+		return std::string(u.getUsernameSafe() + "/" + t.getTitleSafe() + "/");
 	}
 
 	std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth)

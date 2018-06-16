@@ -1,15 +1,11 @@
 #include <string>
 #include <vector>
 #include <fstream>
-#include <unistd.h>
-#include <sys/stat.h>
 #include <switch.h>
 
 #include "gfx.h"
 #include "sys.h"
 #include "data.h"
-#include "file.h"
-#include "util.h"
 #include "ui.h"
 
 int main(int argc, const char *argv[])
@@ -41,7 +37,7 @@ int main(int argc, const char *argv[])
 				break;
 
 			gfx::clearBufferColor(0x3B3B3BFF);
-			gfx::drawText("JKSV - 6/14/2018", 16, 16, 64, 0xFFFFFFFF);
+			gfx::drawText("JKSV - 6/15/2018", 16, 16, 64, 0xFFFFFFFF);
 			gfx::drawRectangle(16, 64, 1248, 1, 0xFFFFFFFF);
 			gfx::drawRectangle(448, 64, 1, 592, 0xFFFFFFFF);
 			gfx::drawRectangle(16, 656, 1248, 1, 0xFFFFFFFF);

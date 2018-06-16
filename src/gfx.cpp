@@ -1,10 +1,8 @@
 #include <string>
 #include <cstring>
 #include <fstream>
-#include <stdio.h>
+#include <cstdio>
 #include <switch.h>
-
-#include <malloc.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H

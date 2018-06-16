@@ -4,7 +4,6 @@
 #include <unistd.h>
 
 #include "sys.h"
-#include "ui.h"
 
 static std::fstream deb;
 
