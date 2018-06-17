@@ -55,6 +55,20 @@ namespace fs
 		closedir(d);
 	}
 
+	void dirList::reassign(const std::string& _path)
+	{
+		path = _path;
+
+		d = opendir(path.c_str());
+
+		while((ent = readdir(d)))
+		{
+			item.push_back(ent->d_name);
+		}
+
+		closedir(d);
+	}
+
 	void dirList::rescan()
 	{
 		item.clear();

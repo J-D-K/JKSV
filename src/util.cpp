@@ -56,14 +56,16 @@ namespace util
 			{
 				tmp.assign(s, first, lastSpace - first);
 
-				first = lastSpace + 1;
 				ret += tmp + "\n";
 
-				tmp.assign(s, first, i);
+				first = lastSpace + 1;
+				i = lastSpace;
+
+				tmp.clear();
 			}
-			else if(i == s.length() - 1 && gfx::getTextWidth(tmp, sz) < maxWidth)
-				ret += tmp;
 		}
+		if(!tmp.empty())
+			ret += tmp;
 
 		return ret;
 	}

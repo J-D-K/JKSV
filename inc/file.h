@@ -27,6 +27,7 @@ namespace fs
 	{
 		public:
 			dirList(const std::string& _path);
+			void reassign(const std::string& _path);
 			void rescan();
 
 			std::string getItem(int index);

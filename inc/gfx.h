@@ -20,7 +20,7 @@ namespace gfx
 	//Blends two pixels. Clr is the color to be drawn. FB should be the framebuffer pixel
 	uint32_t blend(const uint32_t& clr, const uint32_t& fb);
 
-	//Draws text using shared font. No alpha blending yet.
+	//Draws text using shared font.
 	void drawText(const std::string& str, unsigned x, unsigned y, const uint32_t& sz, const uint32_t& clr);
 
 	//Returns width of str

@@ -687,8 +687,6 @@ namespace ui
 			{
 				if(folderMenu.getSelected() > 0)
 				{
-					fs::delDir("sv:/");
-
 					std::string scanPath = util::getTitleDir(data::curUser, data::curData);
 					fs::dirList list(scanPath);
 
@@ -703,7 +701,7 @@ namespace ui
 				}
 			}
 			else
-				ui::showMessage("NEIN! NEIN! NEIN!");
+				ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.");
 		}
 		else if(down & KEY_X)
 		{
@@ -800,6 +798,7 @@ namespace ui
 	void showMessage(const std::string& mess)
 	{
 		button ok("OK (A)", 480, 464, 320, 96);
+		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 		while(true)
 		{
 			hidScanInput();
@@ -812,7 +811,7 @@ namespace ui
 				break;
 
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
-			gfx::drawText(mess, 272, 144, 48, 0x000000FF);
+			gfx::drawText(wrapMess, 272, 144, 48, 0x000000FF);
 			ok.draw();
 
 			gfx::handleBuffs();
@@ -823,6 +822,7 @@ namespace ui
 	{
 		button ok("OK (A)", 480, 464, 320, 96);
 		char tmp[512];
+		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 		sprintf(tmp, "%s\n0x%08X", mess.c_str(), (unsigned)r);
 
 		while(true)
@@ -851,6 +851,8 @@ namespace ui
 		button yes("Yes (A)", 288, 464, 320, 96);
 		button no("No (B)", 672, 464, 320, 96);
 
+		std::string wrapMess = util::getWrappedString(mess, 48, 752);
+
 		while(true)
 		{
 			hidScanInput();
@@ -871,7 +873,7 @@ namespace ui
 			}
 
 			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
-			gfx::drawText(mess, 272, 144, 48, 0x000000FF);
+			gfx::drawText(wrapMess, 272, 144, 48, 0x000000FF);
 			yes.draw();
 			no.draw();
 
