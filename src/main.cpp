@@ -36,11 +36,10 @@ int main(int argc, const char *argv[])
 			if(down & KEY_PLUS)
 				break;
 
-			gfx::clearBufferColor(0x3B3B3BFF);
-			gfx::drawText("JKSV - 6/17/2018", 16, 16, 64, 0xFFFFFFFF);
-			gfx::drawRectangle(16, 64, 1248, 1, 0xFFFFFFFF);
-			gfx::drawRectangle(448, 64, 1, 592, 0xFFFFFFFF);
-			gfx::drawRectangle(16, 656, 1248, 1, 0xFFFFFFFF);
+			gfx::clearBufferColor(0xFF3B3B3B);
+			ui::drawTitleBar("JKSV - 06/17/2018");
+			gfx::drawRectangle(448, 64, 1, 592, 0xFF7B7B7B);
+			gfx::drawRectangle(16, 656, 1248, 1, 0xFF7B7B7B);
 
 			ui::runApp(down, held);
 

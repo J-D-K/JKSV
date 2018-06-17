@@ -84,18 +84,13 @@ namespace gfx
 	}
 
 	//switch-portlibs examples.
-	void drawGlyph(FT_Bitmap& bmp, uint32_t *frameBuf, unsigned x, unsigned y, const uint32_t& clr)
+	void drawGlyph(FT_Bitmap& bmp, uint32_t *frameBuf, unsigned x, unsigned y, const uint8_t& r, const uint8_t& g, const uint8_t& b)
 	{
 		uint32_t frameX, frameY, tmpX, tmpY;
 		uint8_t *imgPtr = bmp.buffer;
 
 		if(bmp.pixel_mode != FT_PIXEL_MODE_GRAY)
 			return;
-
-		uint8_t r, g, b;
-		r = clr >> 24 & 0xFF;
-		g = clr >> 16 & 0xFF;
-		b = clr >> 8 & 0xFF;
 
 		for(tmpY = 0; tmpY < bmp.rows; tmpY++)
 		{
@@ -107,7 +102,7 @@ namespace gfx
 				if(imgPtr[tmpX] > 0)
 				{
 					uint32_t fbPx = frameBuf[frameY * frameBufWidth + frameX];
-					uint32_t txPx = (r << 24 | g << 16 | b << 8 | imgPtr[tmpX]);
+					uint32_t txPx = imgPtr[tmpX] << 24 | b << 16 | g << 8 | r;
 					frameBuf[frameY * frameBufWidth + frameX] = blend(txPx, fbPx);
 				}
 			}
@@ -134,6 +129,11 @@ namespace gfx
 		uint8_t tmpStr[1024];
 		sprintf((char *)tmpStr, "%s", str.c_str());
 
+		uint8_t r, g, b;
+		r = clr & 0xFF;
+		g = clr >> 8 & 0xFF;
+		b = clr >> 16 & 0xFF;
+
 		for(unsigned i = 0; i < str.length(); )
 		{
 			unitCount = decode_utf8(&tmpChr, &tmpStr[i]);
@@ -158,7 +158,7 @@ namespace gfx
 			if(ret)
 				return;
 
-			drawGlyph(slot->bitmap, frameBuffer, tmpX + slot->bitmap_left, y - slot->bitmap_top, clr);
+			drawGlyph(slot->bitmap, frameBuffer, tmpX + slot->bitmap_left, y - slot->bitmap_top, r, g, b);
 			tmpX += slot->advance.x >> 6;
 			y += slot->advance.y >> 6;
 		}
@@ -222,27 +222,18 @@ namespace gfx
 
 	void clearBufferColor(const uint32_t& clr)
 	{
-		uint8_t r, g, b;
-		r = clr >> 24 & 0xFF;
-		g = clr >> 16 & 0xFF;
-		b = clr >> 8 & 0xFF;
-
-		size_t fbSize = gfxGetFramebufferSize() / 4;
+		size_t fbSize = gfxGetFramebufferSize();
 		uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
-
-		for(unsigned i = 0; i < fbSize; i++)
-		{
-			fb[i] = RGBA8_MAXALPHA(r, g, b);
-		}
+		std::memset(fb, clr, fbSize);
 	}
 
 	uint32_t blend(const uint32_t& clr, const uint32_t& fb)
 	{
 		uint8_t r1, g1, b1, al;
-		r1 = clr >> 24 & 0xFF;
-		g1 = clr >> 16 & 0xFF;
-		b1 = clr >> 8  & 0xFF;
-		al = clr & 0xFF;
+		r1 = clr & 0xFF;
+		g1 = clr >> 8 & 0xFF;
+		b1 = clr >> 16 & 0xFF;
+		al = clr >> 24 & 0xFF;
 
 		//Assuming this is FB
 		uint8_t r2, g2, b2;
@@ -264,16 +255,11 @@ namespace gfx
 		uint32_t w, h, tX, tY;
 		uint32_t *frameBuffer = (uint32_t *)gfxGetFramebuffer(&w, &h);
 
-		uint8_t r, g, b;
-		r = clr >> 24 & 0xFF;
-		g = clr >> 16 & 0xFF;
-		b = clr >> 8 & 0xFF;
-
 		for(tY = y; tY < y + height; tY++)
 		{
 			for(tX = x; tX < x + width; tX++)
 			{
-				frameBuffer[tY * w + tX] = RGBA8_MAXALPHA(r, g, b);
+				frameBuffer[tY * w + tX] = clr;
 			}
 		}
 	}
@@ -287,7 +273,7 @@ namespace gfx
 			dataIn.read((char *)&width, sizeof(uint16_t));
 			dataIn.read((char *)&height, sizeof(uint16_t));
 
-			data = new uint8_t[sz];
+			data = new uint32_t[sz];
 			if(data != NULL)
 				dataIn.read((char *)data, sz);
 
@@ -310,11 +296,10 @@ namespace gfx
 
 			for(tY = y; tY < y + height; tY++)
 			{
-				for(tX = x; tX < x + width; tX++, i += 4)
+				for(tX = x; tX < x + width; tX++, i++)
 				{
-					uint32_t clr = (data[i] << 24 | data[i + 1] << 16 | data[i + 2] << 8 | data[i + 3]);
 					uint32_t buf = frameBuffer[tY * frameBufWidth + tX];
-					frameBuffer[tY * frameBufWidth + tX] = blend(clr, buf);
+					frameBuffer[tY * frameBufWidth + tX] = blend(data[i], buf);
 				}
 			}
 		}

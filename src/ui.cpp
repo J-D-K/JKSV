@@ -29,7 +29,7 @@ enum menuState
 static int mstate = USR_SEL;
 
 static ui::menu userMenu, titleMenu, folderMenu, devMenu;
-static gfx::tex buttonA, buttonB, buttonX, buttonY;
+static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
 
 namespace ui
 {
@@ -39,6 +39,7 @@ namespace ui
 		buttonB.loadFromFile("romfs:/img/buttonB.data");
 		buttonX.loadFromFile("romfs:/img/buttonX.data");
 		buttonY.loadFromFile("romfs:/img/buttonY.data");
+		titleBar.loadFromFile("romfs:/img/topbar.data");
 	}
 
 	void menu::addOpt(const std::string& add)
@@ -129,7 +130,7 @@ namespace ui
 		else
 			length = start + 15;
 
-		uint32_t rectClr = 0x00 << 24 | ((0x88 + clrSh) & 0xFF) << 16 | ((0xBB + clrSh) & 0xFF) << 8 | 0xFF;
+		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x88 + clrSh)) << 8 | 0x00;
 
 		for(int i = start; i < length; i++)
 		{
@@ -164,13 +165,13 @@ namespace ui
 
 	void progBar::draw(const std::string& text)
 	{
-		gfx::drawRectangle(64, 240, 1152, 240, 0xC0C0C0FF);
-		gfx::drawRectangle(96, 400, 1088, 64, 0x000000FF);
-		gfx::drawRectangle(96, 400, (uint32_t)width, 64, 0x00CC00FF);
+		gfx::drawRectangle(64, 240, 1152, 240, 0xFFC0C0C0);
+		gfx::drawRectangle(96, 400, 1088, 64, 0xFF000000);
+		gfx::drawRectangle(96, 400, (uint32_t)width, 64, 0xFF00CC00);
 
 		//char tmp[64];
 		//sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
-		gfx::drawText(text, 80, 256, 64, 0x000000FF);
+		gfx::drawText(text, 80, 256, 64, 0xFF000000);
 		//gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
 	}
 
@@ -199,11 +200,11 @@ namespace ui
 	void key::draw()
 	{
 		if(pressed)
-			gfx::drawRectangle(x, y, w, h, 0x2B2B2BFF);
+			gfx::drawRectangle(x, y, w, h, 0xFF2B2B2B);
 		else
-			gfx::drawRectangle(x, y, w, h, 0xC0C0C0FF);
+			gfx::drawRectangle(x, y, w, h, 0xFFC0C0C0);
 
-		gfx::drawText(text, tX, tY, txtSz, 0x000000FF);
+		gfx::drawText(text, tX, tY, txtSz, 0xFF000000);
 	}
 
 	bool key::isOver(const touchPosition& p)
@@ -328,9 +329,9 @@ namespace ui
 		}
 
 		gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
-		gfx::drawRectangle(0, 240, 1280, 480, 0x3B3B3BFF);
+		gfx::drawRectangle(0, 240, 1280, 480, 0xFF3B3B3B);
 
-		uint32_t rectClr = 0x00 << 24 | ((0x88 + clrSh) & 0xFF) << 16 | ((0xbb + clrSh) & 0xFF) << 8 | 0xFF;
+		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x88 + clrSh) & 0xFF) << 8 | 0x00;
 
 		//Draw sel rectangle around key for controller
 		gfx::drawRectangle(keys[selKey].getX() - 4, keys[selKey].getY() - 4, keys[selKey].getW() + 8, keys[selKey].getH() + 8, rectClr);
@@ -338,7 +339,7 @@ namespace ui
 		for(unsigned i = 0; i < keys.size(); i++)
 			keys[i].draw();
 
-		gfx::drawText(str, 16, 192, 64, 0x000000FF);
+		gfx::drawText(str, 16, 192, 64, 0xFF000000);
 	}
 
 	std::string keyboard::getString()
@@ -447,16 +448,16 @@ namespace ui
 
 	void button::draw()
 	{
-		gfx::drawRectangle(x - 2, y - 2, w + 4, h + 4, 0x303030FF);
+		gfx::drawRectangle(x - 2, y - 2, w + 4, h + 4, 0xFF303030);
 
 		if(pressed)
-			gfx::drawRectangle(x, y, w, h, 0x2B2B2BFF);
+			gfx::drawRectangle(x, y, w, h, 0xFF2B2B2B);
 		else
 		{
-			gfx::drawRectangle(x, y, w, h, 0xC0C0C0FF);
+			gfx::drawRectangle(x, y, w, h, 0xFFC0C0C0);
 		}
 
-		gfx::drawText(text, tx, ty, 48, 0x000000FF);
+		gfx::drawText(text, tx, ty, 48, 0xFF000000);
 	}
 
 	bool button::isOver(const touchPosition& p)
@@ -562,6 +563,12 @@ namespace ui
 				}
 				break;
 		}
+	}
+
+	void drawTitleBar(const std::string& txt)
+	{
+		titleBar.draw(0, 0);
+		gfx::drawText(txt, 16, 16, 64, 0xFFFFFFFF);
 	}
 
 	void showUserMenu(const uint64_t& down, const uint64_t& held)
@@ -810,8 +817,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
-			gfx::drawText(wrapMess, 272, 144, 48, 0x000000FF);
+			gfx::drawRectangle(256, 128, 768, 464, 0xFFC0C0C0);
+			gfx::drawText(wrapMess, 272, 144, 48, 0xFF000000);
 			ok.draw();
 
 			gfx::handleBuffs();
@@ -836,8 +843,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
-			gfx::drawText(tmp, 272, 144, 48, 0x000000FF);
+			gfx::drawRectangle(256, 128, 768, 464, 0xFFC0C0C0);
+			gfx::drawText(tmp, 272, 144, 48, 0xFF000000);
 			ok.draw();
 
 			gfx::handleBuffs();
@@ -872,8 +879,8 @@ namespace ui
 				break;
 			}
 
-			gfx::drawRectangle(256, 128, 768, 464, 0xC0C0C0FF);
-			gfx::drawText(wrapMess, 272, 144, 48, 0x000000FF);
+			gfx::drawRectangle(256, 128, 768, 464, 0xFFC0C0C0);
+			gfx::drawText(wrapMess, 272, 144, 48, 0xFF000000);
 			yes.draw();
 			no.draw();
 

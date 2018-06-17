@@ -5,8 +5,6 @@
 
 #include "sys.h"
 
-static std::fstream deb;
-
 namespace sys
 {
 	bool sysSave = false;
@@ -77,9 +75,6 @@ namespace sys
 		mkdir("sdmc:/JKSV", 0777);
 		chdir("sdmc:/JKSV");
 
-		//oops again
-		deb.open("deb.txt", std::ios::out);
-
 		loadCfg();
 
 		return true;
@@ -87,17 +82,11 @@ namespace sys
 
 	bool fini()
 	{
-		deb.close();
 		fsdevUnmountAll();
 		romfsExit();
 		hidExit();
 		nsExit();
 
 		return true;
-	}
-
-	void debugWrite(const std::string& out)
-	{
-		deb.write(out.c_str(), out.length());
 	}
 }

@@ -51,7 +51,7 @@ namespace gfx
 		private:
 			uint32_t sz;
 			uint16_t width, height;
-			uint8_t *data = NULL;
+			uint32_t *data = NULL;
 	};
 }
 

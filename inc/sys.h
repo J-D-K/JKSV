@@ -7,9 +7,6 @@ namespace sys
 	bool init();
 	bool fini();
 
-	//Writes to 'deb.txt' in JKSV folder
-	void debugWrite(const std::string& out);
-
 	//Uh oh
 	extern bool sysSave;
 	extern bool devMenu;
