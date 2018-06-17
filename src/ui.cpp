@@ -580,7 +580,6 @@ namespace ui
 		if(down & KEY_A)
 		{
 			data::curUser = data::users[userMenu.getSelected()];
-			util::makeUserDir(data::curUser);
 			titleMenuPrepare(data::curUser);
 
 			mstate = TTL_SEL;
@@ -747,7 +746,6 @@ namespace ui
 					for(unsigned i = 0; i < data::users.size(); i++)
 					{
 						data::curUser = data::users[i];
-						util::makeUserDir(data::curUser);
 						for(unsigned j = 0; j < data::curUser.titles.size(); j++)
 						{
 							data::curData = data::curUser.titles[j];

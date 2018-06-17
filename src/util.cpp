@@ -21,20 +21,15 @@ namespace util
 		return std::string(ret);
 	}
 
-	void makeUserDir(data::user& u)
-	{
-		mkdir(u.getUsernameSafe().c_str(), 0777);
-	}
-
 	void makeTitleDir(data::user& u, data::titledata& t)
 	{
-		std::string path = u.getUsernameSafe() + "/" + t.getTitleSafe();
+		std::string path = t.getTitleSafe();
 		mkdir(path.c_str(), 777);
 	}
 
 	std::string getTitleDir(data::user& u, data::titledata& t)
 	{
-		return std::string(u.getUsernameSafe() + "/" + t.getTitleSafe() + "/");
+		return std::string(t.getTitleSafe() + "/");
 	}
 
 	std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth)

@@ -8,16 +8,13 @@ namespace util
 	//Returns string with date + time
 	std::string getDateTime();
 
-	//Creates user dir
-	void makeUserDir(data::user& u);
-
 	//Creates Dir 'JKSV/[user]/[title]
 	void makeTitleDir(data::user& u, data::titledata& t);
 
 	//Returns 'JKSV/[user]/[title]/'
 	std::string getTitleDir(data::user& u, data::titledata& t);
 
-	//Just returns string with '\n' inserted. Doesn't work as intended yet.
+	//Just returns string with '\n' inserted.
 	std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth);
 }
 #endif // UTIL_H
