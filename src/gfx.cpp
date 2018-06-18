@@ -16,7 +16,7 @@ static uint32_t frameBufWidth = 0;
 
 namespace gfx
 {
-	bool init(const uint32_t& _fontSize)
+	bool init()
 	{
 		Result res = 0;
 
@@ -149,11 +149,7 @@ namespace gfx
 			}
 
 			glyphIndex = FT_Get_Char_Index(face, tmpChr);
-			ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-			if(ret == 0)
-			{
-				ret = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-			}
+			ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
 
 			if(ret)
 				return;
@@ -187,11 +183,7 @@ namespace gfx
 
 			i += unitCount;
 			glyphIndex = FT_Get_Char_Index(face, tmpChr);
-			ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-			if(ret == 0)
-			{
-				ret = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-			}
+			ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
 
 			if(ret)
 				return 0;
@@ -300,6 +292,24 @@ namespace gfx
 				{
 					uint32_t buf = frameBuffer[tY * frameBufWidth + tX];
 					frameBuffer[tY * frameBufWidth + tX] = blend(data[i], buf);
+				}
+			}
+		}
+	}
+
+	void tex::drawRepeatHori(uint32_t x, uint32_t y, uint32_t w)
+	{
+		if(data != NULL)
+		{
+			uint32_t tY, tX, i = 0;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			for(tY = y; tY < y + height; tY++, i++)
+			{
+				for(tX = x; tX < x + w; tX++)
+				{
+					uint32_t fbPx = fb[tY * frameBufWidth + tX];
+					fb[tY * frameBufWidth + tX] = blend(data[i], fbPx);
 				}
 			}
 		}

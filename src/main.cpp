@@ -12,7 +12,7 @@ int main(int argc, const char *argv[])
 {
 	bool init = false;
 
-	init = gfx::init(64);
+	init = gfx::init();
 	if(init)
 		init = sys::init();
 	if(init)
@@ -39,7 +39,10 @@ int main(int argc, const char *argv[])
 			gfx::clearBufferColor(0xFF3B3B3B);
 			ui::drawTitleBar("JKSV - 06/17/2018");
 			gfx::drawRectangle(448, 64, 1, 592, 0xFF7B7B7B);
+			gfx::drawRectangle(449, 64, 2, 592, 0xFF2B2B2B);
+
 			gfx::drawRectangle(16, 656, 1248, 1, 0xFF7B7B7B);
+			gfx::drawRectangle(16, 657, 1248, 2, 0xFF2B2B2B);
 
 			ui::runApp(down, held);
 

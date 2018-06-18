@@ -8,10 +8,10 @@ namespace util
 	//Returns string with date + time
 	std::string getDateTime();
 
-	//Creates Dir 'JKSV/[user]/[title]
+	//Creates Dir 'JKSV/[title]
 	void makeTitleDir(data::user& u, data::titledata& t);
 
-	//Returns 'JKSV/[user]/[title]/'
+	//Returns 'JKSV/[title]/'
 	std::string getTitleDir(data::user& u, data::titledata& t);
 
 	//Just returns string with '\n' inserted.

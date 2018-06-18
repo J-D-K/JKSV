@@ -567,7 +567,7 @@ namespace ui
 
 	void drawTitleBar(const std::string& txt)
 	{
-		titleBar.draw(0, 0);
+		titleBar.drawRepeatHori(0, 0, 1280);
 		gfx::drawText(txt, 16, 16, 64, 0xFFFFFFFF);
 	}
 

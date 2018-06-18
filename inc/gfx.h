@@ -6,7 +6,7 @@
 namespace gfx
 {
 	//Inits graphics and shared font. Code for shared font is from switch-portlibs examples
-	bool init(const uint32_t& _fontSize);
+	bool init();
 	bool fini();
 
 	//Changes gfx mode to linear double
@@ -47,6 +47,9 @@ namespace gfx
 			//Frees memory used by data
 			~tex();
 			void draw(uint32_t x, uint32_t y);
+
+			//This is specifically for the topbar.
+			void drawRepeatHori(uint32_t x, uint32_t y, uint32_t w);
 
 		private:
 			uint32_t sz;
