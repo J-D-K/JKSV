@@ -5,10 +5,13 @@
 
 #include "data.h"
 #include "gfx.h"
+#include "util.h"
+#include "file.h"
+#include "ui.h"
 
 namespace util
 {
-	const std::string getDateTime()
+	std::string getDateTime()
 	{
 		char ret[48];
 
@@ -63,5 +66,18 @@ namespace util
 			ret += tmp;
 
 		return ret;
+	}
+
+	void copyDirListToMenu(fs::dirList& d, ui::menu& m)
+	{
+		m.reset();
+		m.addOpt("..");
+		for(unsigned i = 0; i < d.getCount(); i++)
+		{
+			if(d.isDir(i))
+				m.addOpt("D " + d.getItem(i));
+			else
+				m.addOpt("F " + d.getItem(i));
+		}
 	}
 }

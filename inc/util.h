@@ -2,6 +2,8 @@
 #define UTIL_H
 
 #include "data.h"
+#include "ui.h"
+#include "file.h"
 
 namespace util
 {
@@ -16,5 +18,8 @@ namespace util
 
 	//Just returns string with '\n' inserted.
 	std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth);
+
+	//Copys dir list to a menu with 'D: ' + 'F: '
+	void copyDirListToMenu(fs::dirList& d, ui::menu& m);
 }
 #endif // UTIL_H

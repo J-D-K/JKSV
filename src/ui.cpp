@@ -23,13 +23,18 @@ enum menuState
 	USR_SEL,
 	TTL_SEL,
 	FLD_SEL,
-	DEV_MNU
+	DEV_MNU,
+	ADV_MDE
 };
 
 static int mstate = USR_SEL;
 
-static ui::menu userMenu, titleMenu, folderMenu, devMenu;
+static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu;
 static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
+
+static std::string savePath, sdPath;
+static fs::dirList saveList(""), sdList("sdmc:/");
+static bool sdMenuCtrl = false;
 
 namespace ui
 {
@@ -517,8 +522,33 @@ namespace ui
 		devMenu.addOpt("Dump all saves");
 	}
 
-	void drawMenus()
+	void drawUI()
 	{
+		gfx::clearBufferColor(0xFF3B3B3B);
+		ui::drawTitleBar("JKSV - 06/18/2018");
+
+		switch(mstate)
+		{
+			case USR_SEL:
+			case TTL_SEL:
+			case FLD_SEL:
+			case DEV_MNU:
+				gfx::drawRectangle(448, 64, 1, 592, 0xFF7B7B7B);
+				gfx::drawRectangle(449, 64, 2, 592, 0xFF2B2B2B);
+
+				gfx::drawRectangle(16, 656, 1248, 1, 0xFF7B7B7B);
+				gfx::drawRectangle(16, 657, 1248, 2, 0xFF2B2B2B);
+				break;
+
+			case ADV_MDE:
+				gfx::drawRectangle(624, 64, 1, 592, 0xFF7B7B7B);
+				gfx::drawRectangle(625, 64, 2, 592, 0xFF2B2B2B);
+
+				gfx::drawRectangle(16, 656, 1248, 1, 0xFF7B7B7B);
+				gfx::drawRectangle(16, 657, 1248, 2, 0xFF2B2B2B);
+				break;
+		}
+
 		switch(mstate)
 		{
 			case USR_SEL:
@@ -551,8 +581,9 @@ namespace ui
 					titleMenu.print(16, 88, 424);
 					folderMenu.print(458, 88, 806);
 					//Input guide
-					unsigned startX = 836;
-					buttonA.draw(startX, 672);
+					unsigned startX = 726;
+					gfx::drawText("- Adv. Mode", startX, 668, 32, 0xFFFFFFFF);
+					buttonA.draw(startX += 110, 672);
 					gfx::drawText("Backup", startX += 38, 668, 32, 0xFFFFFFFF);
 					buttonY.draw(startX += 72, 672);
 					gfx::drawText("Restore", startX += 38, 668, 32, 0xFFFFFFFF);
@@ -562,7 +593,21 @@ namespace ui
 					gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
 				}
 				break;
+
+			case DEV_MNU:
+				devMenu.print(16, 88, 424);
+				break;
+
+			case ADV_MDE:
+				saveMenu.print(16, 88, 600);
+				sdMenu.print(632, 88, 632);
+
+				gfx::drawText(savePath, 16, 668, 32, 0xFFFFFFFF);
+				gfx::drawText(sdPath, 632, 668, 32, 0xFFFFFFFF);
+				break;
 		}
+
+		gfx::handleBuffs();
 	}
 
 	void drawTitleBar(const std::string& txt)
@@ -574,8 +619,6 @@ namespace ui
 	void showUserMenu(const uint64_t& down, const uint64_t& held)
 	{
 		userMenu.handleInput(down, held);
-
-		drawMenus();
 
 		if(down & KEY_A)
 		{
@@ -595,8 +638,6 @@ namespace ui
 	void showTitleMenu(const uint64_t& down, const uint64_t& held)
 	{
 		titleMenu.handleInput(down, held);
-
-		drawMenus();
 
 		if(down & KEY_A)
 		{
@@ -651,8 +692,6 @@ namespace ui
 	void showFolderMenu(const uint64_t& down, const uint64_t& held)
 	{
 		folderMenu.handleInput(down, held);
-
-		drawMenus();
 
 		if(down & KEY_A)
 		{
@@ -726,11 +765,86 @@ namespace ui
 				folderMenuPrepare(data::curUser, data::curData);
 			}
 		}
+		else if(down & KEY_MINUS)
+		{
+			savePath = "sv:/";
+			sdPath   = "sdmc:/";
+
+			saveList.reassign(savePath);
+			sdList.reassign(sdPath);
+
+			util::copyDirListToMenu(saveList, saveMenu);
+			util::copyDirListToMenu(sdList, sdMenu);
+
+			sdMenuCtrl = false;
+			mstate = ADV_MDE;
+
+		}
 		else if(down & KEY_B)
 		{
 			fsdevUnmountDevice("sv");
 			mstate = TTL_SEL;
 		}
+	}
+
+	void showAdvMode(const uint64_t& down, const uint64_t& held)
+	{
+		//save menu = false; sd menu = true;
+		if(sdMenuCtrl)
+			sdMenu.handleInput(down, held);
+		else
+			saveMenu.handleInput(down, held);
+
+		if(down & KEY_A)
+		{
+			if(sdMenuCtrl)
+			{
+				if(sdMenu.getSelected() > 0 && sdList.isDir(sdMenu.getSelected() - 1))
+				{
+					sdPath += sdList.getItem(sdMenu.getSelected() - 1) + "/";
+					sdList.reassign(sdPath);
+					util::copyDirListToMenu(sdList, sdMenu);
+				}
+			}
+			else
+			{
+				if(saveMenu.getSelected() > 0 && saveList.isDir(saveMenu.getSelected() - 1))
+				{
+					savePath += saveList.getItem(saveMenu.getSelected() - 1) + "/";
+					saveList.reassign(savePath);
+					util::copyDirListToMenu(saveList, saveMenu);
+				}
+			}
+		}
+		else if(down & KEY_B)
+		{
+			if(sdMenuCtrl && sdPath != "sdmc:/")
+			{
+				unsigned last = sdPath.find_last_of('/', sdPath.length() - 2);
+				sdPath.erase(last + 1, sdPath.length());
+				sdList.reassign(sdPath);
+				util::copyDirListToMenu(sdList, sdMenu);
+			}
+			else
+			{
+				if(savePath != "sv:/")
+				{
+					unsigned last = savePath.find_last_of('/', savePath.length() - 2);
+					savePath.erase(last + 1, savePath.length());
+					saveList.reassign(savePath);
+					util::copyDirListToMenu(saveList, saveMenu);
+				}
+			}
+		}
+		else if(down & KEY_X)
+		{
+			if(sdMenuCtrl)
+				sdMenuCtrl = false;
+			else
+				sdMenuCtrl = true;
+		}
+		else if(down & KEY_MINUS)
+			mstate = FLD_SEL;
 	}
 
 	void showDevMenu(const uint64_t& down, const uint64_t& held)
@@ -774,12 +888,12 @@ namespace ui
 		}
 		else if(down & KEY_B)
 			mstate = USR_SEL;
-
-		devMenu.print(16, 88, 424);
 	}
 
 	void runApp(const uint64_t& down, const uint64_t& held)
 	{
+		drawUI();
+
 		switch(mstate)
 		{
 			case USR_SEL:
@@ -796,6 +910,10 @@ namespace ui
 
 			case DEV_MNU:
 				showDevMenu(down, held);
+				break;
+
+			case ADV_MDE:
+				showAdvMode(down, held);
 				break;
 		}
 	}

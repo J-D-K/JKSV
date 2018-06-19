@@ -142,10 +142,13 @@ namespace ui
 	void showUserMenu(const uint64_t& down, const uint64_t& held);
 	void showTitleMenu(const uint64_t& down, const uint64_t& held);
 	void showFolderMenu(const uint64_t& down, const uint64_t& held);
-	//Draws menus in background so they don't pop in and out so much
-	void drawMenus();
+
+	//Draws menus
+	void drawUI();
+
 	//Draws title bar at top
 	void drawTitleBar(const std::string& txt);
+
 	//switch case so we don't have problems with multiple main loops like 3DS
 	void runApp(const uint64_t& down, const uint64_t& held);
 

@@ -61,6 +61,8 @@ namespace fs
 
 		d = opendir(path.c_str());
 
+		item.clear();
+
 		while((ent = readdir(d)))
 		{
 			item.push_back(ent->d_name);
