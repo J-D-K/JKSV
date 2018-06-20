@@ -21,5 +21,8 @@ namespace util
 
 	//Copys dir list to a menu with 'D: ' + 'F: '
 	void copyDirListToMenu(fs::dirList& d, ui::menu& m);
+
+	//Removes last folder from '_path'
+	void removeLastFolderFromString(std::string& _path);
 }
 #endif // UTIL_H

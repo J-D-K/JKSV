@@ -27,7 +27,7 @@ namespace ui
 			int getSelected();
 
 			//Draws the menu at x and y. rectWidth is the width of the rectangle drawn under the selected
-			void print(const unsigned& x, const unsigned& y, const uint32_t& rectWidth);
+			void print(const unsigned& x, const unsigned& y, const uint32_t& textClr, const uint32_t& rectWidth);
 
 			//Clears and resets menu
 			void reset();
@@ -106,7 +106,7 @@ namespace ui
 
 			void draw();
 			//returns string
-			std::string getString();
+			std::string getString(const std::string& def);
 
 		private:
 			std::vector<key> keys;

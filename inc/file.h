@@ -13,6 +13,9 @@ namespace fs
 	//Mounts usr's save data for open. Returns false it fails
 	bool mountSave(data::user& usr, data::titledata& open);
 
+	void copyFile(const std::string& from, const std::string& to);
+	void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
+
 	//Recursively copies 'from' to 'to'
 	void copyDirToDir(const std::string& from, const std::string& to);
 

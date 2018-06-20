@@ -202,10 +202,7 @@ namespace gfx
 
 		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
 		glyphIndex = FT_Get_Char_Index(face, tChar);
-		error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_DEFAULT);
-		if(error == 0)
-			error = FT_Render_Glyph(face->glyph, FT_RENDER_MODE_NORMAL);
-
+		error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
 		if(error)
 			return 0;
 
@@ -297,6 +294,23 @@ namespace gfx
 		}
 	}
 
+	void tex::drawNoBlend(uint32_t x, uint32_t y)
+	{
+		if(data != NULL)
+		{
+			uint32_t tY, tX, i = 0;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			for(tY = y; tY < y + height; tY++)
+			{
+				for(tX = x; tX < x + width; tX++, i++)
+				{
+					fb[tY * frameBufWidth + tX] = data[i];
+				}
+			}
+		}
+	}
+
 	void tex::drawRepeatHori(uint32_t x, uint32_t y, uint32_t w)
 	{
 		if(data != NULL)
@@ -311,6 +325,24 @@ namespace gfx
 					uint32_t fbPx = fb[tY * frameBufWidth + tX];
 					fb[tY * frameBufWidth + tX] = blend(data[i], fbPx);
 				}
+			}
+		}
+	}
+
+	void tex::drawRepeatHoriNoBlend(uint32_t x, uint32_t y, uint32_t w)
+	{
+		if(data != NULL)
+		{
+			uint32_t tY, tX, i = 0;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			for(tY = y; tY < y + height; tY++, i++)
+			{
+				for(tX = x; tX < x + w; tX++)
+				{
+					fb[tY * frameBufWidth + tX] = data[i];
+				}
+
 			}
 		}
 	}

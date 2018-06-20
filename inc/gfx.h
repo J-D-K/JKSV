@@ -47,9 +47,11 @@ namespace gfx
 			//Frees memory used by data
 			~tex();
 			void draw(uint32_t x, uint32_t y);
+			void drawNoBlend(uint32_t x, uint32_t y);
 
 			//This is specifically for the topbar.
 			void drawRepeatHori(uint32_t x, uint32_t y, uint32_t w);
+			void drawRepeatHoriNoBlend(uint32_t x, uint32_t y, uint32_t w);
 
 		private:
 			uint32_t sz;

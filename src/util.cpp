@@ -80,4 +80,10 @@ namespace util
 				m.addOpt("F " + d.getItem(i));
 		}
 	}
+
+	void removeLastFolderFromString(std::string& _path)
+	{
+		unsigned last = _path.find_last_of('/', _path.length() - 2);
+		_path.erase(last + 1, _path.length());
+	}
 }

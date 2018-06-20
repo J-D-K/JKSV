@@ -37,6 +37,8 @@ int main(int argc, const char *argv[])
 				break;
 
 			ui::runApp(down, held);
+
+			gfx::handleBuffs();
 		}
 	}
 	else

@@ -29,12 +29,13 @@ enum menuState
 
 static int mstate = USR_SEL;
 
-static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu;
+static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu, copyMenu;
 static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
 
+static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
 static std::string savePath, sdPath;
 static fs::dirList saveList(""), sdList("sdmc:/");
-static bool sdMenuCtrl = false;
+static int advMenuCtrl = 0, advPrev = 0;
 
 namespace ui
 {
@@ -45,6 +46,12 @@ namespace ui
 		buttonX.loadFromFile("romfs:/img/buttonX.data");
 		buttonY.loadFromFile("romfs:/img/buttonY.data");
 		titleBar.loadFromFile("romfs:/img/topbar.data");
+
+		copyMenu.addOpt("Copy From");
+		copyMenu.addOpt("Delete");
+		copyMenu.addOpt("Rename");
+		copyMenu.addOpt("Make Dir");
+		copyMenu.addOpt("Back");
 	}
 
 	void menu::addOpt(const std::string& add)
@@ -114,7 +121,7 @@ namespace ui
 		return selected;
 	}
 
-	void menu::print(const unsigned& x, const unsigned& y, const uint32_t& rectWidth)
+	void menu::print(const unsigned& x, const unsigned& y, const uint32_t& textClr, const uint32_t& rectWidth)
 	{
 		if(clrAdd)
 		{
@@ -142,7 +149,7 @@ namespace ui
 			if(i == selected)
 				gfx::drawRectangle(x, y + ((i - start) * 36), rectWidth, 32, rectClr);
 
-			gfx::drawText(opt[i], x, y + ((i - start) * 36), 38, 0xFFFFFFFF);
+			gfx::drawText(opt[i], x, y + ((i - start) * 36), 38, textClr);
 		}
 	}
 
@@ -347,8 +354,9 @@ namespace ui
 		gfx::drawText(str, 16, 192, 64, 0xFF000000);
 	}
 
-	std::string keyboard::getString()
+	std::string keyboard::getString(const std::string& def)
 	{
+		str = def;
 		while(true)
 		{
 			hidScanInput();
@@ -525,7 +533,7 @@ namespace ui
 	void drawUI()
 	{
 		gfx::clearBufferColor(0xFF3B3B3B);
-		ui::drawTitleBar("JKSV - 06/18/2018");
+		ui::drawTitleBar("JKSV - 06/20/2018");
 
 		switch(mstate)
 		{
@@ -554,7 +562,7 @@ namespace ui
 			case USR_SEL:
 				{
 					//Menu
-					userMenu.print(16, 88, 424);
+					userMenu.print(16, 88, 0xFFFFFFFF, 424);
 					//Input guide
 					unsigned startX = 1152;
 					buttonA.draw(startX, 672);
@@ -565,7 +573,7 @@ namespace ui
 			case TTL_SEL:
 				{
 					//Menu
-					titleMenu.print(16, 88, 424);
+					titleMenu.print(16, 88, 0xFFFFFFFF, 424);
 					//Input guide
 					unsigned startX = 1056;
 					buttonA.draw(startX, 672);
@@ -578,8 +586,8 @@ namespace ui
 			case FLD_SEL:
 				{
 					//Menus
-					titleMenu.print(16, 88, 424);
-					folderMenu.print(458, 88, 806);
+					titleMenu.print(16, 88, 0xFFFFFFFF, 424);
+					folderMenu.print(458, 88, 0xFFFFFFFF, 806);
 					//Input guide
 					unsigned startX = 726;
 					gfx::drawText("- Adv. Mode", startX, 668, 32, 0xFFFFFFFF);
@@ -595,24 +603,22 @@ namespace ui
 				break;
 
 			case DEV_MNU:
-				devMenu.print(16, 88, 424);
+				devMenu.print(16, 88, 0xFFFFFFFF, 424);
 				break;
 
 			case ADV_MDE:
-				saveMenu.print(16, 88, 600);
-				sdMenu.print(632, 88, 632);
+				saveMenu.print(16, 88, 0xFFFFFFFF, 600);
+				sdMenu.print(632, 88, 0xFFFFFFFF, 632);
 
 				gfx::drawText(savePath, 16, 668, 32, 0xFFFFFFFF);
 				gfx::drawText(sdPath, 632, 668, 32, 0xFFFFFFFF);
 				break;
 		}
-
-		gfx::handleBuffs();
 	}
 
 	void drawTitleBar(const std::string& txt)
 	{
-		titleBar.drawRepeatHori(0, 0, 1280);
+		titleBar.drawRepeatHoriNoBlend(0, 0, 1280);
 		gfx::drawText(txt, 16, 16, 64, 0xFFFFFFFF);
 	}
 
@@ -698,7 +704,7 @@ namespace ui
 			if(folderMenu.getSelected() == 0)
 			{
 				ui::keyboard key;
-				std::string folder = key.getString();
+				std::string folder = key.getString("");
 				if(!folder.empty())
 				{
 					std::string path = util::getTitleDir(data::curUser, data::curData) + "/" + folder;
@@ -776,7 +782,7 @@ namespace ui
 			util::copyDirListToMenu(saveList, saveMenu);
 			util::copyDirListToMenu(sdList, sdMenu);
 
-			sdMenuCtrl = false;
+			advMenuCtrl = 0;
 			mstate = ADV_MDE;
 
 		}
@@ -787,64 +793,349 @@ namespace ui
 		}
 	}
 
+	void performCopyMenuOps()
+	{
+		switch(copyMenu.getSelected())
+		{
+			//Copy
+			case 0:
+				{
+					switch(advPrev)
+					{
+						//save
+						case 0:
+							if(saveMenu.getSelected() > 0)
+							{
+								//Forget '..'
+								int saveSel = saveMenu.getSelected() - 1;
+								if(saveList.isDir(saveSel))
+								{
+									//Dir we're copying from
+									std::string fromPath = savePath + saveList.getItem(saveSel) + "/";
+
+									//Where we're copying to
+									std::string toPath = sdPath + saveList.getItem(saveSel);
+									//make dir on sd
+									mkdir(toPath.c_str(), 777);
+									toPath += "/";
+
+									fs::copyDirToDir(fromPath, toPath);
+								}
+								else
+								{
+									//just copy file
+									std::string fromPath = savePath + saveList.getItem(saveSel);
+									std::string toPath = sdPath + saveList.getItem(saveSel);
+
+									fs::copyFile(fromPath, toPath);
+								}
+							}
+							break;
+
+						case 1:
+							if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+							{
+								if(sdMenu.getSelected() > 0)
+								{
+									//Same as above, but reverse
+									int sdSel = sdMenu.getSelected() - 1;
+									if(sdList.isDir(sdSel))
+									{
+										std::string fromPath = sdPath + sdList.getItem(sdSel) + "/";
+
+										std::string toPath = savePath + sdList.getItem(sdSel);
+										mkdir(toPath.c_str(), 777);
+										toPath += "/";
+
+										fs::copyDirToDirCommit(fromPath, toPath, "sv");
+									}
+									else
+									{
+										std::string fromPath = sdPath + sdList.getItem(sdSel);
+										std::string toPath = savePath + sdList.getItem(sdSel);
+
+										fs::copyFileCommit(fromPath, toPath, "sv");
+									}
+								}
+							}
+							else
+								ui::showMessage(sysSaveMess);
+							break;
+
+					}
+				}
+				break;
+
+			//delete
+			case 1:
+				{
+					switch(advPrev)
+					{
+						//save menu
+						case 0:
+							if(saveMenu.getSelected() > 0 && data::curData.getType() != FsSaveDataType_SystemSaveData)
+							{
+								int saveSel = saveMenu.getSelected() - 1;
+								if(saveList.isDir(saveSel))
+								{
+									std::string delPath = savePath + saveList.getItem(saveSel) + "/";
+									fs::delDir(delPath);
+								}
+								else
+								{
+									std::string delPath = savePath + saveList.getItem(saveSel);
+									std::remove(delPath.c_str());
+								}
+								fsdevCommitDevice("sv");
+							}
+							break;
+
+						//sd
+						case 1:
+							if(sdMenu.getSelected() > 0)
+							{
+								int sdSel = sdMenu.getSelected() - 1;
+								if(sdList.isDir(sdSel))
+								{
+									std::string delPath = sdPath + sdList.getItem(sdSel) + "/";
+									fs::delDir(delPath);
+								}
+								else
+								{
+									std::string delPath = sdPath + sdList.getItem(sdSel);
+									std::remove(delPath.c_str());
+								}
+							}
+							break;
+					}
+				}
+				break;
+
+			//Rename
+			case 2:
+				switch(advPrev)
+				{
+					//save
+					case 0:
+						{
+							if(saveMenu.getSelected() > 0 && data::curData.getType() != FsSaveDataType_SystemSaveData)
+							{
+								int selSave = saveMenu.getSelected() - 1;
+								keyboard getName;
+								std::string newName = getName.getString(saveList.getItem(selSave));
+								if(!newName.empty())
+								{
+									std::string b4Path = savePath + saveList.getItem(selSave);
+									std::string newPath = savePath + newName;
+
+									std::rename(b4Path.c_str(), newPath.c_str());
+									fsdevCommitDevice("sv");
+								}
+							}
+						}
+						break;
+
+					//sd
+					case 1:
+						{
+							if(sdMenu.getSelected() > 0)
+							{
+								int sdSel = sdMenu.getSelected() - 1;
+								keyboard getName;
+								std::string newName = getName.getString(sdList.getItem(sdSel));
+								if(!newName.empty())
+								{
+									std::string b4Path = sdPath + sdList.getItem(sdSel);
+									std::string newPath = sdPath + newName;
+
+									std::rename(b4Path.c_str(), newPath.c_str());
+								}
+							}
+						}
+						break;
+				}
+				break;
+
+			//Mkdir
+			case 3:
+				{
+					switch(advPrev)
+					{
+						//save
+						case 0:
+							{
+								if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+								{
+									keyboard getFolder;
+									std::string newFolder = getFolder.getString("");
+									if(!newFolder.empty())
+									{
+										std::string folderPath = savePath + newFolder;
+										mkdir(folderPath.c_str(), 777);
+										fsdevCommitDevice("sv");
+									}
+								}
+							}
+							break;
+
+						//sd
+						case 1:
+							{
+								keyboard getFolder;
+								std::string newFolder = getFolder.getString("");
+								if(!newFolder.empty())
+								{
+									std::string folderPath = sdPath + newFolder;
+									mkdir(folderPath.c_str(), 777);
+								}
+							}
+							break;
+					}
+				}
+				break;
+
+
+			//back
+			case 4:
+				advMenuCtrl = advPrev;
+				break;
+
+		}
+
+		//update lists + menus
+		sdList.rescan();
+		saveList.rescan();
+		util::copyDirListToMenu(sdList, sdMenu);
+		util::copyDirListToMenu(saveList, saveMenu);
+	}
+
 	void showAdvMode(const uint64_t& down, const uint64_t& held)
 	{
-		//save menu = false; sd menu = true;
-		if(sdMenuCtrl)
-			sdMenu.handleInput(down, held);
-		else
-			saveMenu.handleInput(down, held);
+		//0 = save; 1 = sd; 2 = cpy
+		switch(advMenuCtrl)
+		{
+			case 0:
+				saveMenu.handleInput(down, held);
+				break;
 
+			case 1:
+				sdMenu.handleInput(down, held);
+				break;
+
+			case 2:
+				copyMenu.handleInput(down, held);
+				break;
+		}
+
+		//OH BOY HERE WE GO
 		if(down & KEY_A)
 		{
-			if(sdMenuCtrl)
+			switch(advMenuCtrl)
 			{
-				if(sdMenu.getSelected() > 0 && sdList.isDir(sdMenu.getSelected() - 1))
-				{
-					sdPath += sdList.getItem(sdMenu.getSelected() - 1) + "/";
-					sdList.reassign(sdPath);
-					util::copyDirListToMenu(sdList, sdMenu);
-				}
-			}
-			else
-			{
-				if(saveMenu.getSelected() > 0 && saveList.isDir(saveMenu.getSelected() - 1))
-				{
-					savePath += saveList.getItem(saveMenu.getSelected() - 1) + "/";
-					saveList.reassign(savePath);
-					util::copyDirListToMenu(saveList, saveMenu);
-				}
+				//save
+				case 0:
+					{
+						int saveSel = saveMenu.getSelected();
+						if(saveSel == 0 && savePath != "sv:/")
+						{
+							util::removeLastFolderFromString(savePath);
+							saveList.reassign(savePath);
+							util::copyDirListToMenu(saveList, saveMenu);
+						}
+						else if(saveSel > 0 && saveList.isDir(saveSel - 1))
+						{
+							savePath += saveList.getItem(saveSel - 1) + "/";
+							saveList.reassign(savePath);
+							util::copyDirListToMenu(saveList, saveMenu);
+						}
+					}
+					break;
+
+				//sd
+				case 1:
+					{
+						int sdSel = sdMenu.getSelected();
+						if(sdSel == 0 && sdPath != "sdmc:/")
+						{
+							util::removeLastFolderFromString(sdPath);
+							sdList.reassign(sdPath);
+							util::copyDirListToMenu(sdList, sdMenu);
+						}
+						else if(sdSel > 0 && sdList.isDir(sdSel - 1))
+						{
+							sdPath += sdList.getItem(sdSel - 1) + "/";
+							sdList.reassign(sdPath);
+							util::copyDirListToMenu(sdList, sdMenu);
+						}
+					}
+					break;
+
+				//advanced mode
+				case 2:
+					performCopyMenuOps();
+					break;
 			}
 		}
 		else if(down & KEY_B)
 		{
-			if(sdMenuCtrl && sdPath != "sdmc:/")
+			//save
+			if(advMenuCtrl == 0 && savePath != "sv:/")
 			{
-				unsigned last = sdPath.find_last_of('/', sdPath.length() - 2);
-				sdPath.erase(last + 1, sdPath.length());
+				util::removeLastFolderFromString(savePath);
+				saveList.reassign(savePath);
+				util::copyDirListToMenu(saveList, saveMenu);
+			}
+			//sd
+			else if(advMenuCtrl == 1 && sdPath != "sdmc:/")
+			{
+				util::removeLastFolderFromString(sdPath);
 				sdList.reassign(sdPath);
 				util::copyDirListToMenu(sdList, sdMenu);
-			}
-			else
-			{
-				if(savePath != "sv:/")
-				{
-					unsigned last = savePath.find_last_of('/', savePath.length() - 2);
-					savePath.erase(last + 1, savePath.length());
-					saveList.reassign(savePath);
-					util::copyDirListToMenu(saveList, saveMenu);
-				}
 			}
 		}
 		else if(down & KEY_X)
 		{
-			if(sdMenuCtrl)
-				sdMenuCtrl = false;
+			if(advMenuCtrl == 2)
+			{
+				advMenuCtrl = advPrev;
+			}
 			else
-				sdMenuCtrl = true;
+			{
+				advPrev = advMenuCtrl;
+				advMenuCtrl = 2;
+			}
+		}
+		else if(down & KEY_ZL || down & KEY_ZR)
+		{
+			if(advMenuCtrl == 0 || advMenuCtrl == 1)
+			{
+				if(advMenuCtrl == 0)
+					advMenuCtrl = 1;
+				else
+					advMenuCtrl = 0;
+			}
 		}
 		else if(down & KEY_MINUS)
 			mstate = FLD_SEL;
+
+		//draw copy menu if it's supposed to be up
+		if(advMenuCtrl == 2)
+		{
+			gfx::drawRectangle(464, 252, 320, 230, 0xFFC0C0C0);
+
+			switch(advPrev)
+			{
+				case 0:
+					gfx::drawText("SAVE", 468, 256, 32, 0xFF000000);
+					break;
+
+				case 1:
+					gfx::drawText("SDMC", 468, 256, 32, 0xFF000000);
+					break;
+			}
+
+			copyMenu.print(468, 294, 0xFF000000, 300);
+		}
 	}
 
 	void showDevMenu(const uint64_t& down, const uint64_t& held)
