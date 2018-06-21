@@ -71,6 +71,7 @@ namespace util
 	void copyDirListToMenu(fs::dirList& d, ui::menu& m)
 	{
 		m.reset();
+		m.addOpt(".");
 		m.addOpt("..");
 		for(unsigned i = 0; i < d.getCount(); i++)
 		{

@@ -155,6 +155,8 @@ namespace ui
 	void showMessage(const std::string& mess);
 	void showError(const std::string& mess, const Result& r);
 	bool confirm(const std::string& q);
+	bool confirmTransfer(const std::string& f, const std::string& t);
+	bool confirmDelete(const std::string& p);
 }
 
 #endif

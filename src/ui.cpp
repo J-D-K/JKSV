@@ -15,7 +15,7 @@ static const char qwerty[] =
 	'1', '2', '3', '4', '5', '6', '7', '8', '9', '0',
 	'q', 'w', 'e', 'r', 't', 'y', 'u', 'i', 'o', 'p',
 	'a', 's', 'd', 'f', 'g', 'h', 'j', 'k', 'l', '_',
-	'z', 'x', 'c', 'v', 'b', 'n', 'm', '-', '@', '+'
+	'z', 'x', 'c', 'v', 'b', 'n', 'm', ':', '.', '/'
 };
 
 enum menuState
@@ -528,6 +528,8 @@ namespace ui
 	void devMenuPrepare()
 	{
 		devMenu.addOpt("Dump all saves");
+		devMenu.addOpt("Change 'sv:/' path");
+		devMenu.addOpt("Back");
 	}
 
 	void drawUI()
@@ -804,10 +806,16 @@ namespace ui
 					{
 						//save
 						case 0:
-							if(saveMenu.getSelected() > 0)
+							if(saveMenu.getSelected() == 0)
+							{
+								//Copy current open dir
+								if(confirmTransfer(savePath, sdPath))
+									fs::copyDirToDir(savePath, sdPath);
+							}
+							else if(saveMenu.getSelected() > 1)
 							{
 								//Forget '..'
-								int saveSel = saveMenu.getSelected() - 1;
+								int saveSel = saveMenu.getSelected() - 2;
 								if(saveList.isDir(saveSel))
 								{
 									//Dir we're copying from
@@ -815,19 +823,22 @@ namespace ui
 
 									//Where we're copying to
 									std::string toPath = sdPath + saveList.getItem(saveSel);
-									//make dir on sd
-									mkdir(toPath.c_str(), 777);
-									toPath += "/";
+									if(confirmTransfer(fromPath, toPath))
+									{
+										//make dir on sd
+										mkdir(toPath.c_str(), 777);
+										toPath += "/";
 
-									fs::copyDirToDir(fromPath, toPath);
+										fs::copyDirToDir(fromPath, toPath);
+									}
 								}
 								else
 								{
 									//just copy file
 									std::string fromPath = savePath + saveList.getItem(saveSel);
 									std::string toPath = sdPath + saveList.getItem(saveSel);
-
-									fs::copyFile(fromPath, toPath);
+									if(confirmTransfer(fromPath, toPath))
+										fs::copyFile(fromPath, toPath);
 								}
 							}
 							break;
@@ -835,26 +846,35 @@ namespace ui
 						case 1:
 							if(data::curData.getType() != FsSaveDataType_SystemSaveData)
 							{
-								if(sdMenu.getSelected() > 0)
+								if(sdMenu.getSelected() == 0)
+								{
+									if(confirmTransfer(sdPath, savePath))
+										fs::copyDirToDirCommit(sdPath, savePath, "sv");
+								}
+								else if(sdMenu.getSelected() > 1)
 								{
 									//Same as above, but reverse
-									int sdSel = sdMenu.getSelected() - 1;
+									int sdSel = sdMenu.getSelected() - 2;
 									if(sdList.isDir(sdSel))
 									{
 										std::string fromPath = sdPath + sdList.getItem(sdSel) + "/";
 
 										std::string toPath = savePath + sdList.getItem(sdSel);
-										mkdir(toPath.c_str(), 777);
-										toPath += "/";
 
-										fs::copyDirToDirCommit(fromPath, toPath, "sv");
+										if(confirmTransfer(fromPath, toPath))
+										{
+											mkdir(toPath.c_str(), 777);
+											toPath += "/";
+
+											fs::copyDirToDirCommit(fromPath, toPath, "sv");
+										}
 									}
 									else
 									{
 										std::string fromPath = sdPath + sdList.getItem(sdSel);
 										std::string toPath = savePath + sdList.getItem(sdSel);
-
-										fs::copyFileCommit(fromPath, toPath, "sv");
+										if(confirmTransfer(fromPath, toPath))
+											fs::copyFileCommit(fromPath, toPath, "sv");
 									}
 								}
 							}
@@ -873,37 +893,57 @@ namespace ui
 					{
 						//save menu
 						case 0:
-							if(saveMenu.getSelected() > 0 && data::curData.getType() != FsSaveDataType_SystemSaveData)
+							if(data::curData.getType() != FsSaveDataType_SystemSaveData)
 							{
-								int saveSel = saveMenu.getSelected() - 1;
-								if(saveList.isDir(saveSel))
+								if(saveMenu.getSelected() == 0)
 								{
-									std::string delPath = savePath + saveList.getItem(saveSel) + "/";
-									fs::delDir(delPath);
+									if(confirmDelete(savePath))
+									{
+										fs::delDir(savePath);
+										fsdevCommitDevice("sv");
+									}
 								}
-								else
+								else if(saveMenu.getSelected() > 1)
 								{
-									std::string delPath = savePath + saveList.getItem(saveSel);
-									std::remove(delPath.c_str());
+									int saveSel = saveMenu.getSelected() - 2;
+									if(saveList.isDir(saveSel))
+									{
+										std::string delPath = savePath + saveList.getItem(saveSel) + "/";
+										if(confirmDelete(delPath))
+											fs::delDir(delPath);
+									}
+									else
+									{
+										std::string delPath = savePath + saveList.getItem(saveSel);
+										if(confirmDelete(delPath))
+											std::remove(delPath.c_str());
+									}
+									fsdevCommitDevice("sv");
 								}
-								fsdevCommitDevice("sv");
 							}
 							break;
 
 						//sd
 						case 1:
-							if(sdMenu.getSelected() > 0)
+							if(sdMenu.getSelected() == 0)
 							{
-								int sdSel = sdMenu.getSelected() - 1;
+								if(confirmDelete(sdPath))
+									fs::delDir(sdPath);
+							}
+							else if(sdMenu.getSelected() > 1)
+							{
+								int sdSel = sdMenu.getSelected() - 2;
 								if(sdList.isDir(sdSel))
 								{
 									std::string delPath = sdPath + sdList.getItem(sdSel) + "/";
-									fs::delDir(delPath);
+									if(confirmDelete(delPath))
+										fs::delDir(delPath);
 								}
 								else
 								{
 									std::string delPath = sdPath + sdList.getItem(sdSel);
-									std::remove(delPath.c_str());
+									if(confirmDelete(delPath))
+										std::remove(delPath.c_str());
 								}
 							}
 							break;
@@ -918,9 +958,9 @@ namespace ui
 					//save
 					case 0:
 						{
-							if(saveMenu.getSelected() > 0 && data::curData.getType() != FsSaveDataType_SystemSaveData)
+							if(saveMenu.getSelected() > 1 && data::curData.getType() != FsSaveDataType_SystemSaveData)
 							{
-								int selSave = saveMenu.getSelected() - 1;
+								int selSave = saveMenu.getSelected() - 2;
 								keyboard getName;
 								std::string newName = getName.getString(saveList.getItem(selSave));
 								if(!newName.empty())
@@ -938,9 +978,9 @@ namespace ui
 					//sd
 					case 1:
 						{
-							if(sdMenu.getSelected() > 0)
+							if(sdMenu.getSelected() > 1)
 							{
-								int sdSel = sdMenu.getSelected() - 1;
+								int sdSel = sdMenu.getSelected() - 2;
 								keyboard getName;
 								std::string newName = getName.getString(sdList.getItem(sdSel));
 								if(!newName.empty())
@@ -1036,15 +1076,15 @@ namespace ui
 				case 0:
 					{
 						int saveSel = saveMenu.getSelected();
-						if(saveSel == 0 && savePath != "sv:/")
+						if(saveSel == 1 && savePath != "sv:/")
 						{
 							util::removeLastFolderFromString(savePath);
 							saveList.reassign(savePath);
 							util::copyDirListToMenu(saveList, saveMenu);
 						}
-						else if(saveSel > 0 && saveList.isDir(saveSel - 1))
+						else if(saveSel > 1 && saveList.isDir(saveSel - 2))
 						{
-							savePath += saveList.getItem(saveSel - 1) + "/";
+							savePath += saveList.getItem(saveSel - 2) + "/";
 							saveList.reassign(savePath);
 							util::copyDirListToMenu(saveList, saveMenu);
 						}
@@ -1055,15 +1095,15 @@ namespace ui
 				case 1:
 					{
 						int sdSel = sdMenu.getSelected();
-						if(sdSel == 0 && sdPath != "sdmc:/")
+						if(sdSel == 1 && sdPath != "sdmc:/")
 						{
 							util::removeLastFolderFromString(sdPath);
 							sdList.reassign(sdPath);
 							util::copyDirListToMenu(sdList, sdMenu);
 						}
-						else if(sdSel > 0 && sdList.isDir(sdSel - 1))
+						else if(sdSel > 1 && sdList.isDir(sdSel - 2))
 						{
-							sdPath += sdList.getItem(sdSel - 1) + "/";
+							sdPath += sdList.getItem(sdSel - 2) + "/";
 							sdList.reassign(sdPath);
 							util::copyDirListToMenu(sdList, sdMenu);
 						}
@@ -1146,33 +1186,55 @@ namespace ui
 		{
 			switch(devMenu.getSelected())
 			{
+				//dump all
 				case 0:
-					ui::progBar userProg(data::users.size());
-					for(unsigned i = 0; i < data::users.size(); i++)
 					{
-						data::curUser = data::users[i];
-						for(unsigned j = 0; j < data::curUser.titles.size(); j++)
+						ui::progBar userProg(data::users.size());
+						for(unsigned i = 0; i < data::users.size(); i++)
 						{
-							data::curData = data::curUser.titles[j];
-							if(fs::mountSave(data::curUser, data::curData))
+							data::curUser = data::users[i];
+							for(unsigned j = 0; j < data::curUser.titles.size(); j++)
 							{
-								util::makeTitleDir(data::curUser, data::curData);
+								data::curData = data::curUser.titles[j];
+								if(fs::mountSave(data::curUser, data::curData))
+								{
+									util::makeTitleDir(data::curUser, data::curData);
 
-								std::string to = util::getTitleDir(data::curUser, data::curData) + util::getDateTime();
-								mkdir(to.c_str(), 777);
-								to += "/";
+									std::string to = util::getTitleDir(data::curUser, data::curData) + util::getDateTime();
+									mkdir(to.c_str(), 777);
+									to += "/";
 
-								std::string root = "sv:/";
+									std::string root = "sv:/";
 
-								fs::copyDirToDir(root, to);
+									fs::copyDirToDir(root, to);
 
-								fsdevUnmountDevice("sv");
+									fsdevUnmountDevice("sv");
+								}
+
+								userProg.draw("Dumping " + data::curUser.getUsername() + "...");
+
+								gfx::handleBuffs();
 							}
-
-							userProg.draw("Dumping " + data::curUser.getUsername() + "...");
-
-							gfx::handleBuffs();
 						}
+					}
+					break;
+
+				//switch sv:/
+				case 1:
+					keyboard getPath;
+					std::string newPath = getPath.getString(savePath);
+					if(!newPath.empty())
+					{
+						savePath = newPath;
+						sdPath   = "sdmc:/";
+
+						saveList.reassign(savePath);
+						sdList.reassign(sdPath);
+
+						util::copyDirListToMenu(saveList, saveMenu);
+						util::copyDirListToMenu(sdList, sdMenu);
+
+						mstate = ADV_MDE;
 					}
 					break;
 			}
@@ -1295,5 +1357,19 @@ namespace ui
 		}
 
 		return ret;
+	}
+
+	bool confirmTransfer(const std::string& f, const std::string& t)
+	{
+		std::string confMess = "Are you sure you want to copy \"" + f + "\" to \"" + t +"\"?";
+
+		return confirm(confMess);
+	}
+
+	bool confirmDelete(const std::string& p)
+	{
+		std::string confMess = "Are you 100% sure you want to delete \"" + p + "\"? This is permanent!";
+
+		return confirm(confMess);
 	}
 }
