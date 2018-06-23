@@ -74,6 +74,13 @@ namespace sys
 			return false;
 		}
 
+		res = setsysInitialize();
+		if(R_FAILED(res))
+		{
+			printf("setInit() failed\n");
+			return false;
+		}
+
 		mkdir("sdmc:/JKSV", 0777);
 		chdir("sdmc:/JKSV");
 
@@ -88,6 +95,7 @@ namespace sys
 		romfsExit();
 		hidExit();
 		nsExit();
+		setsysExit();
 
 		return true;
 	}

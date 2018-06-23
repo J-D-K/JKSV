@@ -39,13 +39,46 @@ static int advMenuCtrl = 0, advPrev = 0;
 
 namespace ui
 {
+	uint32_t clearClr = 0, mnuTxt = 0, rectLt = 0, rectSh = 0;
 	void init()
 	{
+		ColorSetId gthm;
+		setsysGetColorSetId(&gthm);
+
 		buttonA.loadFromFile("romfs:/img/buttonA.data");
 		buttonB.loadFromFile("romfs:/img/buttonB.data");
 		buttonX.loadFromFile("romfs:/img/buttonX.data");
 		buttonY.loadFromFile("romfs:/img/buttonY.data");
-		titleBar.loadFromFile("romfs:/img/topbar.data");
+
+		switch(gthm)
+		{
+			case ColorSetId_Light:
+				titleBar.loadFromFile("romfs:/img/topbar_lght.data");
+
+				clearClr = 0xFFEBEBEB;
+				mnuTxt   = 0xFF000000;
+				rectLt   = 0xFFDFDFDF;
+				rectSh   = 0xFFCACACA;
+				break;
+
+			case ColorSetId_Dark:
+				titleBar.loadFromFile("romfs:/img/topbar_drk.data");
+
+				clearClr = 0xFF2D2D2D;
+				mnuTxt   = 0xFFFFFFFF;
+				rectLt   = 0xFF505050;
+				rectSh   = 0xFF202020;
+				break;
+
+			default:
+				titleBar.loadFromFile("romfs:/img/topbar_drk.data");
+
+				clearClr = 0xFF3B3B3B;
+				mnuTxt   = 0xFFFFFFFF;
+				rectLt   = 0xFF7B7B7B;
+				rectSh   = 0xFF2B2B2B;
+				break;
+		}
 
 		copyMenu.addOpt("Copy From");
 		copyMenu.addOpt("Delete");
@@ -126,7 +159,7 @@ namespace ui
 		if(clrAdd)
 		{
 			clrSh++;
-			if(clrSh > 63)
+			if(clrSh > 64)
 				clrAdd = false;
 		}
 		else
@@ -177,7 +210,8 @@ namespace ui
 
 	void progBar::draw(const std::string& text)
 	{
-		gfx::drawRectangle(64, 240, 1152, 240, 0xFFC0C0C0);
+		gfx::drawRectangle(62, 238, 1156, 244, 0xFF2D2D2D);
+		gfx::drawRectangle(64, 240, 1152, 240, 0xFFEBEBEB);
 		gfx::drawRectangle(96, 400, 1088, 64, 0xFF000000);
 		gfx::drawRectangle(96, 400, (uint32_t)width, 64, 0xFF00CC00);
 
@@ -212,9 +246,9 @@ namespace ui
 	void key::draw()
 	{
 		if(pressed)
-			gfx::drawRectangle(x, y, w, h, 0xFF2B2B2B);
+			gfx::drawRectangle(x, y, w, h, 0xFF2D2D2D);
 		else
-			gfx::drawRectangle(x, y, w, h, 0xFFC0C0C0);
+			gfx::drawRectangle(x, y, w, h, 0xFFEBEBEB);
 
 		gfx::drawText(text, tX, tY, txtSz, 0xFF000000);
 	}
@@ -330,7 +364,7 @@ namespace ui
 		if(clrAdd)
 		{
 			clrSh++;
-			if(clrSh > 63)
+			if(clrSh > 64)
 				clrAdd = false;
 		}
 		else
@@ -341,7 +375,7 @@ namespace ui
 		}
 
 		gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
-		gfx::drawRectangle(0, 240, 1280, 480, 0xFF3B3B3B);
+		gfx::drawRectangle(0, 240, 1280, 480, 0xFF2D2D2D);
 
 		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x88 + clrSh) & 0xFF) << 8 | 0x00;
 
@@ -461,13 +495,13 @@ namespace ui
 
 	void button::draw()
 	{
-		gfx::drawRectangle(x - 2, y - 2, w + 4, h + 4, 0xFF303030);
+		gfx::drawRectangle(x - 2, y - 2, w + 4, h + 4, 0xFF2D2D2D);
 
 		if(pressed)
-			gfx::drawRectangle(x, y, w, h, 0xFF2B2B2B);
+			gfx::drawRectangle(x, y, w, h, 0xFFD0D0D0);
 		else
 		{
-			gfx::drawRectangle(x, y, w, h, 0xFFC0C0C0);
+			gfx::drawRectangle(x, y, w, h, 0xFFEBEBEB);
 		}
 
 		gfx::drawText(text, tx, ty, 48, 0xFF000000);
@@ -534,7 +568,7 @@ namespace ui
 
 	void drawUI()
 	{
-		gfx::clearBufferColor(0xFF3B3B3B);
+		gfx::clearBufferColor(clearClr);
 		ui::drawTitleBar("JKSV - 06/22/2018");
 
 		switch(mstate)
@@ -543,19 +577,19 @@ namespace ui
 			case TTL_SEL:
 			case FLD_SEL:
 			case DEV_MNU:
-				gfx::drawRectangle(448, 64, 1, 592, 0xFF7B7B7B);
-				gfx::drawRectangle(449, 64, 2, 592, 0xFF2B2B2B);
+				gfx::drawRectangle(448, 64, 1, 592, rectLt);
+				gfx::drawRectangle(449, 64, 2, 592, rectSh);
 
-				gfx::drawRectangle(16, 656, 1248, 1, 0xFF7B7B7B);
-				gfx::drawRectangle(16, 657, 1248, 2, 0xFF2B2B2B);
+				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
 				break;
 
 			case ADV_MDE:
-				gfx::drawRectangle(624, 64, 1, 592, 0xFF7B7B7B);
-				gfx::drawRectangle(625, 64, 2, 592, 0xFF2B2B2B);
+				gfx::drawRectangle(624, 64, 1, 592, rectLt);
+				gfx::drawRectangle(625, 64, 2, 592, rectSh);
 
-				gfx::drawRectangle(16, 656, 1248, 1, 0xFF7B7B7B);
-				gfx::drawRectangle(16, 657, 1248, 2, 0xFF2B2B2B);
+				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
 				break;
 		}
 
@@ -564,58 +598,58 @@ namespace ui
 			case USR_SEL:
 				{
 					//Menu
-					userMenu.print(16, 88, 0xFFFFFFFF, 424);
+					userMenu.print(16, 88, mnuTxt, 424);
 					//Input guide
 					unsigned startX = 1152;
 					buttonA.draw(startX, 672);
-					gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
 				}
 				break;
 
 			case TTL_SEL:
 				{
 					//Menu
-					titleMenu.print(16, 88, 0xFFFFFFFF, 424);
+					titleMenu.print(16, 88, mnuTxt, 424);
 					//Input guide
 					unsigned startX = 914;
 					buttonA.draw(startX, 672);
-					gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
 					buttonY.draw(startX += 72, 672);
-					gfx::drawText("Dump All", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Dump All", startX += 38, 668, 32, mnuTxt);
 					buttonB.draw(startX += 96, 672);
-					gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Back", startX += 38, 668, 32, mnuTxt);
 				}
 				break;
 
 			case FLD_SEL:
 				{
 					//Menus
-					titleMenu.print(16, 88, 0xFFFFFFFF, 424);
-					folderMenu.print(458, 88, 0xFFFFFFFF, 806);
+					titleMenu.print(16, 88, mnuTxt, 424);
+					folderMenu.print(458, 88, mnuTxt, 806);
 					//Input guide
 					unsigned startX = 726;
-					gfx::drawText("- Adv. Mode", startX, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("- Adv. Mode", startX, 668, 32, mnuTxt);
 					buttonA.draw(startX += 110, 672);
-					gfx::drawText("Backup", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Backup", startX += 38, 668, 32, mnuTxt);
 					buttonY.draw(startX += 72, 672);
-					gfx::drawText("Restore", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Restore", startX += 38, 668, 32, mnuTxt);
 					buttonX.draw(startX += 72, 672);
-					gfx::drawText("Delete", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Delete", startX += 38, 668, 32, mnuTxt);
 					buttonB.draw(startX += 72, 672);
-					gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
+					gfx::drawText("Back", startX += 38, 668, 32, mnuTxt);
 				}
 				break;
 
 			case DEV_MNU:
-				devMenu.print(16, 88, 0xFFFFFFFF, 424);
+				devMenu.print(16, 88, mnuTxt, 424);
 				break;
 
 			case ADV_MDE:
-				saveMenu.print(16, 88, 0xFFFFFFFF, 600);
-				sdMenu.print(632, 88, 0xFFFFFFFF, 632);
+				saveMenu.print(16, 88, mnuTxt, 600);
+				sdMenu.print(632, 88, mnuTxt, 632);
 
-				gfx::drawText(savePath, 16, 668, 32, 0xFFFFFFFF);
-				gfx::drawText(sdPath, 632, 668, 32, 0xFFFFFFFF);
+				gfx::drawText(savePath, 16, 668, 32, mnuTxt);
+				gfx::drawText(sdPath, 632, 668, 32, mnuTxt);
 				break;
 		}
 	}
@@ -623,7 +657,7 @@ namespace ui
 	void drawTitleBar(const std::string& txt)
 	{
 		titleBar.drawRepeatHoriNoBlend(0, 0, 1280);
-		gfx::drawText(txt, 16, 16, 64, 0xFFFFFFFF);
+		gfx::drawText(txt, 16, 16, 64, mnuTxt);
 	}
 
 	void showUserMenu(const uint64_t& down, const uint64_t& held)
@@ -1169,7 +1203,8 @@ namespace ui
 		//draw copy menu if it's supposed to be up
 		if(advMenuCtrl == 2)
 		{
-			gfx::drawRectangle(464, 252, 320, 230, 0xFFC0C0C0);
+			gfx::drawRectangle(462, 250, 324, 234, 0xFF2D2D2D);
+			gfx::drawRectangle(464, 252, 320, 230, 0xFFEBEBEB);
 
 			switch(advPrev)
 			{
@@ -1294,7 +1329,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			gfx::drawRectangle(256, 128, 768, 464, 0xFFC0C0C0);
+			gfx::drawRectangle(254, 126, 772, 468, 0xFF2D2D2D);
+			gfx::drawRectangle(256, 128, 768, 464, 0xFFEBEBEB);
 			gfx::drawText(wrapMess, 272, 144, 48, 0xFF000000);
 			ok.draw();
 
@@ -1320,7 +1356,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			gfx::drawRectangle(256, 128, 768, 464, 0xFFC0C0C0);
+			gfx::drawRectangle(254, 126, 772, 468, 0xFF2D2D2D);
+			gfx::drawRectangle(256, 128, 768, 464, 0xFFEBEBEB);
 			gfx::drawText(tmp, 272, 144, 48, 0xFF000000);
 			ok.draw();
 
@@ -1356,7 +1393,8 @@ namespace ui
 				break;
 			}
 
-			gfx::drawRectangle(256, 128, 768, 464, 0xFFC0C0C0);
+			gfx::drawRectangle(254, 126, 772, 468, 0xFF2D2D2D);
+			gfx::drawRectangle(256, 128, 768, 464, 0xFFEBEBEB);
 			gfx::drawText(wrapMess, 272, 144, 48, 0xFF000000);
 			yes.draw();
 			no.draw();

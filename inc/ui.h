@@ -11,6 +11,9 @@ namespace ui
 	//Loads in the A, B, X, Y button graphics
 	void init();
 
+	//Colors to use now that I added theme detection
+	extern uint32_t clearClr, mnuTxt, rectLt, rectSh;
+
 	//Button controlled menu
 	class menu
 	{
