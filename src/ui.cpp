@@ -159,7 +159,7 @@ namespace ui
 		if(clrAdd)
 		{
 			clrSh++;
-			if(clrSh > 64)
+			if(clrSh > 63)
 				clrAdd = false;
 		}
 		else
@@ -364,7 +364,7 @@ namespace ui
 		if(clrAdd)
 		{
 			clrSh++;
-			if(clrSh > 64)
+			if(clrSh > 63)
 				clrAdd = false;
 		}
 		else
@@ -585,8 +585,8 @@ namespace ui
 				break;
 
 			case ADV_MDE:
-				gfx::drawRectangle(624, 64, 1, 592, rectLt);
-				gfx::drawRectangle(625, 64, 2, 592, rectSh);
+				gfx::drawRectangle(640, 64, 1, 592, rectLt);
+				gfx::drawRectangle(641, 64, 2, 592, rectSh);
 
 				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
 				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
@@ -645,11 +645,11 @@ namespace ui
 				break;
 
 			case ADV_MDE:
-				saveMenu.print(16, 88, mnuTxt, 600);
-				sdMenu.print(632, 88, mnuTxt, 632);
+				saveMenu.print(16, 88, mnuTxt, 616);
+				sdMenu.print(648, 88, mnuTxt, 616);
 
 				gfx::drawText(savePath, 16, 668, 32, mnuTxt);
-				gfx::drawText(sdPath, 632, 668, 32, mnuTxt);
+				gfx::drawText(sdPath, 656, 668, 32, mnuTxt);
 				break;
 		}
 	}
