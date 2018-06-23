@@ -84,6 +84,7 @@ namespace ui
 		copyMenu.addOpt("Delete");
 		copyMenu.addOpt("Rename");
 		copyMenu.addOpt("Make Dir");
+		copyMenu.addOpt("Properties");
 		copyMenu.addOpt("Back");
 	}
 
@@ -648,8 +649,8 @@ namespace ui
 				saveMenu.print(16, 88, mnuTxt, 616);
 				sdMenu.print(648, 88, mnuTxt, 616);
 
-				gfx::drawText(savePath, 16, 668, 32, mnuTxt);
-				gfx::drawText(sdPath, 656, 668, 32, mnuTxt);
+				gfx::drawText(util::getWrappedString(savePath, 32, 600), 16, 652, 32, mnuTxt);
+				gfx::drawText(util::getWrappedString(sdPath, 32, 600), 656, 652, 32, mnuTxt);
 				break;
 		}
 	}
@@ -733,7 +734,7 @@ namespace ui
 					break;
 			}
 
-			gfx::drawText(drawType, 16, 668, 32, 0xFFFFFFFF);
+			gfx::drawText(drawType, 16, 668, 32, mnuTxt);
 		}
 	}
 
@@ -1074,9 +1075,43 @@ namespace ui
 				}
 				break;
 
+            //Props
+            case 4:
+                {
+                    switch(advPrev)
+                    {
+                        //sv
+                        case 0:
+                            {
+                                if(saveMenu.getSelected() > 1)
+                                {
+                                    int sel = saveMenu.getSelected() - 2;
+                                    std::string fullPath = savePath + saveList.getItem(sel);
+                                    std::string props = fs::getFileProps(fullPath);
+                                    if(!props.empty())
+                                        showMessage(props);
+                                }
+                            }
+                            break;
+
+                        case 1:
+                            {
+                                if(sdMenu.getSelected() > 1)
+                                {
+                                    int sel = sdMenu.getSelected() - 2;
+                                    std::string fullPath = sdPath + sdList.getItem(sel);
+                                    std::string props = fs::getFileProps(fullPath);
+                                    if(!props.empty())
+                                        showMessage(props);
+                                }
+                            }
+                            break;
+                    }
+                }
+                break;
 
 			//back
-			case 4:
+			case 5:
 				advMenuCtrl = advPrev;
 				break;
 
@@ -1203,21 +1238,21 @@ namespace ui
 		//draw copy menu if it's supposed to be up
 		if(advMenuCtrl == 2)
 		{
-			gfx::drawRectangle(462, 250, 324, 234, 0xFF2D2D2D);
-			gfx::drawRectangle(464, 252, 320, 230, 0xFFEBEBEB);
+			gfx::drawRectangle(462, 234, 324, 272, 0xFF2D2D2D);
+			gfx::drawRectangle(464, 236, 320, 268, 0xFFEBEBEB);
 
 			switch(advPrev)
 			{
 				case 0:
-					gfx::drawText("SAVE", 472, 256, 32, 0xFF000000);
+					gfx::drawText("SAVE", 472, 242, 32, 0xFF000000);
 					break;
 
 				case 1:
-					gfx::drawText("SDMC", 472, 256, 32, 0xFF000000);
+					gfx::drawText("SDMC", 472, 242, 32, 0xFF000000);
 					break;
 			}
 
-			copyMenu.print(472, 294, 0xFF000000, 304);
+			copyMenu.print(472, 286, 0xFF000000, 304);
 		}
 	}
 

@@ -28,6 +28,9 @@ namespace fs
 	//Dumps all titles for 'user'
 	void dumpAllUserSaves(data::user& u);
 
+	//returns file properties as C++ string
+	std::string getFileProps(const std::string& _path);
+
 	//Just retrieves a listing for _path and stores it in item vector
 	class dirList
 	{

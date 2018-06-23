@@ -241,14 +241,14 @@ namespace gfx
 
 	void drawRectangle(uint32_t x, uint32_t y, const uint32_t& width, const uint32_t& height, const uint32_t& clr)
 	{
-		uint32_t w, h, tX, tY;
-		uint32_t *frameBuffer = (uint32_t *)gfxGetFramebuffer(&w, &h);
+		uint32_t tX, tY;
+		uint32_t *frameBuffer = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
 		for(tY = y; tY < y + height; tY++)
 		{
 			for(tX = x; tX < x + width; tX++)
 			{
-				frameBuffer[tY * w + tX] = clr;
+				frameBuffer[tY * frameBufWidth + tX] = clr;
 			}
 		}
 	}
