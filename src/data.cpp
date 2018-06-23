@@ -9,35 +9,7 @@
 #include "data.h"
 #include "sys.h"
 #include "file.h"
-
-static const char verboten[] = { '.', ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
-
-bool isVerboten(char t)
-{
-	for(unsigned i = 0; i < 11; i++)
-	{
-		if(t == verboten[i])
-			return true;
-	}
-
-	return false;
-}
-
-std::string safeString(const std::string& s)
-{
-	std::string ret = "";
-	for(unsigned i = 0; i < s.length(); i++)
-	{
-		if(isVerboten(s[i]))
-		{
-			ret += ' ';
-		}
-		else
-			ret += s[i];
-	}
-
-	return ret;
-}
+#include "util.h"
 
 namespace data
 {
@@ -125,14 +97,14 @@ namespace data
 
 						u = getUserIndex(info.userID);
 						titledata newData;
-						if(newData.init(info) && newData.isMountable(newUser.getUID()))
+						if(newData.init(info) && (!sys::forceMountable || newData.isMountable(newUser.getUID())))
 							users[u].titles.push_back(newData);
 					}
 				}
 				else
 				{
 					titledata newData;
-					if(newData.init(info) && newData.isMountable(users[u].getUID()))
+					if(newData.init(info) && (!sys::forceMountable || newData.isMountable(users[u].getUID())))
 					{
 						users[u].titles.push_back(newData);
 					}
@@ -184,7 +156,7 @@ namespace data
 		if(R_SUCCEEDED(res))
 		{
 			title.assign(ent->name);
-			titleSafe = safeString(ent->name);
+			titleSafe = util::safeString(ent->name);
 			delete dat;
 		}
 		else
@@ -192,7 +164,7 @@ namespace data
 			char tmp[32];
 			sprintf(tmp, "%016lX", (u64)id);
 			title.assign(tmp);
-			titleSafe = safeString(tmp);
+			titleSafe = util::safeString(tmp);
 		}
 
 		return true;
@@ -249,7 +221,7 @@ namespace data
 		username.assign(base.username);
 		if(username.empty())
 			username = "Unknown";
-		userSafe = safeString(username);
+		userSafe = util::safeString(username);
 
 		accountProfileClose(&prof);
 
@@ -273,7 +245,7 @@ namespace data
 		if(R_SUCCEEDED(res))
 		{
 			username.assign(base.username);
-			userSafe = safeString(username);
+			userSafe = util::safeString(username);
 			accountProfileClose(&prof);
 		}
 		else

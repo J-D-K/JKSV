@@ -262,7 +262,7 @@ namespace gfx
 			dataIn.read((char *)&width, sizeof(uint16_t));
 			dataIn.read((char *)&height, sizeof(uint16_t));
 
-			data = new uint32_t[sz];
+			data = new uint32_t[sz / sizeof(uint32_t)];
 			if(data != NULL)
 				dataIn.read((char *)data, sz);
 

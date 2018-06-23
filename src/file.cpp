@@ -249,4 +249,26 @@ namespace fs
 
 		rmdir(path.c_str());
 	}
+
+	void dumpAllUserSaves(data::user& u)
+	{
+		for(unsigned i = 0; i < u.titles.size(); i++)
+		{
+			if(fs::mountSave(u, u.titles[i]))
+			{
+				util::makeTitleDir(u, u.titles[i]);
+
+				//sdmc:/JKSV/[title]/[user] - [date]/
+				std::string outPath = util::getTitleDir(u, u.titles[i]) + u.getUsernameSafe() + " - " + util::getDateTime();
+				mkdir(outPath.c_str(), 777);
+				outPath += "/";
+
+				std::string root = "sv:/";
+
+				fs::copyDirToDir(root, outPath);
+
+				fsdevUnmountDevice("sv");
+			}
+		}
+	}
 }

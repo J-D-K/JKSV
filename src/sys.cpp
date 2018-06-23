@@ -9,6 +9,7 @@ namespace sys
 {
 	bool sysSave = false;
 	bool devMenu = false;
+	bool forceMountable = true;
 
 	void loadCfg()
 	{
@@ -21,9 +22,10 @@ namespace sys
 
 			sysSave = byte >> 7 & 1;
 			devMenu = byte >> 6 & 1;
+			forceMountable = byte >> 5 & 1;
 
 			//Make sure the rest are 0
-			for(int i = 5; i > -1; i--)
+			for(int i = 4; i > -1; i--)
 			{
 				bool chk = byte >> i & 1;
 				if(chk == true)

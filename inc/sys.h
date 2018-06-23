@@ -8,8 +8,7 @@ namespace sys
 	bool fini();
 
 	//Uh oh
-	extern bool sysSave;
-	extern bool devMenu;
+	extern bool sysSave, devMenu, forceMountable;
 }
 
 #endif // SYS_H

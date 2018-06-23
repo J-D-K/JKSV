@@ -535,7 +535,7 @@ namespace ui
 	void drawUI()
 	{
 		gfx::clearBufferColor(0xFF3B3B3B);
-		ui::drawTitleBar("JKSV - 06/20/2018");
+		ui::drawTitleBar("JKSV - 06/22/2018");
 
 		switch(mstate)
 		{
@@ -577,10 +577,12 @@ namespace ui
 					//Menu
 					titleMenu.print(16, 88, 0xFFFFFFFF, 424);
 					//Input guide
-					unsigned startX = 1056;
+					unsigned startX = 914;
 					buttonA.draw(startX, 672);
 					gfx::drawText("Select", startX += 38, 668, 32, 0xFFFFFFFF);
-					buttonB.draw(startX += 72, 672);
+					buttonY.draw(startX += 72, 672);
+					gfx::drawText("Dump All", startX += 38, 668, 32, 0xFFFFFFFF);
+					buttonB.draw(startX += 96, 672);
 					gfx::drawText("Back", startX += 38, 668, 32, 0xFFFFFFFF);
 				}
 				break;
@@ -659,6 +661,10 @@ namespace ui
 
 				mstate = FLD_SEL;
 			}
+		}
+		else if(down & KEY_Y)
+		{
+			fs::dumpAllUserSaves(data::curUser);
 		}
 		else if(down & KEY_B)
 			mstate = USR_SEL;
@@ -1007,7 +1013,7 @@ namespace ui
 								if(data::curData.getType() != FsSaveDataType_SystemSaveData)
 								{
 									keyboard getFolder;
-									std::string newFolder = getFolder.getString("");
+									std::string newFolder = util::safeString(getFolder.getString(""));
 									if(!newFolder.empty())
 									{
 										std::string folderPath = savePath + newFolder;
@@ -1132,6 +1138,8 @@ namespace ui
 				sdList.reassign(sdPath);
 				util::copyDirListToMenu(sdList, sdMenu);
 			}
+			else if(advMenuCtrl == 2)
+				advMenuCtrl = advPrev;
 		}
 		else if(down & KEY_X)
 		{
@@ -1166,15 +1174,15 @@ namespace ui
 			switch(advPrev)
 			{
 				case 0:
-					gfx::drawText("SAVE", 468, 256, 32, 0xFF000000);
+					gfx::drawText("SAVE", 472, 256, 32, 0xFF000000);
 					break;
 
 				case 1:
-					gfx::drawText("SDMC", 468, 256, 32, 0xFF000000);
+					gfx::drawText("SDMC", 472, 256, 32, 0xFF000000);
 					break;
 			}
 
-			copyMenu.print(468, 294, 0xFF000000, 300);
+			copyMenu.print(472, 294, 0xFF000000, 304);
 		}
 	}
 

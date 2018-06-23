@@ -24,5 +24,7 @@ namespace util
 
 	//Removes last folder from '_path'
 	void removeLastFolderFromString(std::string& _path);
+
+	std::string safeString(const std::string& s);
 }
 #endif // UTIL_H

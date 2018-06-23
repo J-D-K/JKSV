@@ -9,6 +9,8 @@
 #include "file.h"
 #include "ui.h"
 
+static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
+
 namespace util
 {
 	std::string getDateTime()
@@ -87,4 +89,32 @@ namespace util
 		unsigned last = _path.find_last_of('/', _path.length() - 2);
 		_path.erase(last + 1, _path.length());
 	}
+
+	bool isVerboten(char t)
+	{
+		for(unsigned i = 0; i < 10; i++)
+		{
+			if(t == verboten[i])
+				return true;
+		}
+
+		return false;
+	}
+
+	std::string safeString(const std::string& s)
+	{
+		std::string ret = "";
+		for(unsigned i = 0; i < s.length(); i++)
+		{
+			if(isVerboten(s[i]))
+			{
+				ret += ' ';
+			}
+			else
+				ret += s[i];
+		}
+
+		return ret;
+	}
+
 }

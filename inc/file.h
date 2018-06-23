@@ -25,6 +25,9 @@ namespace fs
 	//Recursively deletes 'path'
 	void delDir(const std::string& path);
 
+	//Dumps all titles for 'user'
+	void dumpAllUserSaves(data::user& u);
+
 	//Just retrieves a listing for _path and stores it in item vector
 	class dirList
 	{
