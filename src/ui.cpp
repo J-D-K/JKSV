@@ -33,7 +33,7 @@ static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu, copy
 static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
 
 static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
-static std::string savePath, sdPath;
+static std::string savePath, sdPath, saveWrap, sdWrap;
 static fs::dirList saveList(""), sdList("sdmc:/");
 static int advMenuCtrl = 0, advPrev = 0;
 
@@ -570,7 +570,7 @@ namespace ui
 	void drawUI()
 	{
 		gfx::clearBufferColor(clearClr);
-		ui::drawTitleBar("JKSV - 06/22/2018");
+		ui::drawTitleBar("JKSV - 06/24/2018");
 
 		switch(mstate)
 		{
@@ -649,8 +649,8 @@ namespace ui
 				saveMenu.print(16, 88, mnuTxt, 616);
 				sdMenu.print(648, 88, mnuTxt, 616);
 
-				gfx::drawText(util::getWrappedString(savePath, 32, 600), 16, 652, 32, mnuTxt);
-				gfx::drawText(util::getWrappedString(sdPath, 32, 600), 656, 652, 32, mnuTxt);
+				gfx::drawText(saveWrap, 16, 652, 32, mnuTxt);
+				gfx::drawText(sdWrap, 656, 652, 32, mnuTxt);
 				break;
 		}
 	}
@@ -819,6 +819,9 @@ namespace ui
 			savePath = "sv:/";
 			sdPath   = "sdmc:/";
 
+			saveWrap = "sv:/";
+			sdWrap   = "sdmc:/";
+
 			saveList.reassign(savePath);
 			sdList.reassign(sdPath);
 
@@ -968,7 +971,7 @@ namespace ui
 						case 1:
 							if(sdMenu.getSelected() == 0)
 							{
-								if(confirmDelete(sdPath))
+								if(confirmDelete(sdPath) && sdPath != "sdmc:/")
 									fs::delDir(sdPath);
 							}
 							else if(sdMenu.getSelected() > 1)
@@ -1075,40 +1078,40 @@ namespace ui
 				}
 				break;
 
-            //Props
-            case 4:
-                {
-                    switch(advPrev)
-                    {
-                        //sv
-                        case 0:
-                            {
-                                if(saveMenu.getSelected() > 1)
-                                {
-                                    int sel = saveMenu.getSelected() - 2;
-                                    std::string fullPath = savePath + saveList.getItem(sel);
-                                    std::string props = fs::getFileProps(fullPath);
-                                    if(!props.empty())
-                                        showMessage(props);
-                                }
-                            }
-                            break;
+			//Props
+			case 4:
+				{
+					switch(advPrev)
+					{
+						//sv
+						case 0:
+							{
+								if(saveMenu.getSelected() > 1)
+								{
+									int sel = saveMenu.getSelected() - 2;
+									std::string fullPath = savePath + saveList.getItem(sel);
+									std::string props = fs::getFileProps(fullPath);
+									if(!props.empty())
+										showMessage(props);
+								}
+							}
+							break;
 
-                        case 1:
-                            {
-                                if(sdMenu.getSelected() > 1)
-                                {
-                                    int sel = sdMenu.getSelected() - 2;
-                                    std::string fullPath = sdPath + sdList.getItem(sel);
-                                    std::string props = fs::getFileProps(fullPath);
-                                    if(!props.empty())
-                                        showMessage(props);
-                                }
-                            }
-                            break;
-                    }
-                }
-                break;
+						case 1:
+							{
+								if(sdMenu.getSelected() > 1)
+								{
+									int sel = sdMenu.getSelected() - 2;
+									std::string fullPath = sdPath + sdList.getItem(sel);
+									std::string props = fs::getFileProps(fullPath);
+									if(!props.empty())
+										showMessage(props);
+								}
+							}
+							break;
+					}
+				}
+				break;
 
 			//back
 			case 5:
@@ -1154,12 +1157,16 @@ namespace ui
 						if(saveSel == 1 && savePath != "sv:/")
 						{
 							util::removeLastFolderFromString(savePath);
+							saveWrap = util::getWrappedString(savePath, 32, 600);
+
 							saveList.reassign(savePath);
 							util::copyDirListToMenu(saveList, saveMenu);
 						}
 						else if(saveSel > 1 && saveList.isDir(saveSel - 2))
 						{
 							savePath += saveList.getItem(saveSel - 2) + "/";
+							saveWrap = util::getWrappedString(savePath, 32, 600);
+
 							saveList.reassign(savePath);
 							util::copyDirListToMenu(saveList, saveMenu);
 						}
@@ -1173,12 +1180,16 @@ namespace ui
 						if(sdSel == 1 && sdPath != "sdmc:/")
 						{
 							util::removeLastFolderFromString(sdPath);
+							sdWrap = util::getWrappedString(sdPath, 32, 600);
+
 							sdList.reassign(sdPath);
 							util::copyDirListToMenu(sdList, sdMenu);
 						}
 						else if(sdSel > 1 && sdList.isDir(sdSel - 2))
 						{
 							sdPath += sdList.getItem(sdSel - 2) + "/";
+							sdWrap  = util::getWrappedString(sdPath, 32, 600);
+
 							sdList.reassign(sdPath);
 							util::copyDirListToMenu(sdList, sdMenu);
 						}
@@ -1197,6 +1208,8 @@ namespace ui
 			if(advMenuCtrl == 0 && savePath != "sv:/")
 			{
 				util::removeLastFolderFromString(savePath);
+				saveWrap = util::getWrappedString(savePath, 32, 600);
+
 				saveList.reassign(savePath);
 				util::copyDirListToMenu(saveList, saveMenu);
 			}
@@ -1204,6 +1217,8 @@ namespace ui
 			else if(advMenuCtrl == 1 && sdPath != "sdmc:/")
 			{
 				util::removeLastFolderFromString(sdPath);
+				sdWrap = util::getWrappedString(sdPath, 32, 600);
+
 				sdList.reassign(sdPath);
 				util::copyDirListToMenu(sdList, sdMenu);
 			}

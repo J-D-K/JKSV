@@ -43,13 +43,14 @@ namespace util
 			return s;
 
 		std::string ret = "", tmp = "";
-		unsigned first = 0, lastSpace = 0;
+		unsigned first = 0, lastSpace = 0, chkNoSpc = 0;
 
 		for(unsigned i = 0; i < s.length(); i++)
 		{
 			tmp += s[i];
 
-			if(s[i] == ' ')
+			// slash for really long file paths with no spaces.
+			if(s[i] == ' ' || s[i] == '/')
 				lastSpace = i;
 
 			if(gfx::getTextWidth(tmp, sz) >= maxWidth)

@@ -275,24 +275,24 @@ namespace fs
 
 	std::string getFileProps(const std::string& _path)
 	{
-	    std::string ret = "";
-	    std::fstream get(_path, std::ios::in | std::ios::binary);
-	    if(get.is_open())
-	    {
-	        //Size
-	        get.seekg(0, get.end);
-	        unsigned fileSize = get.tellg();
-	        get.seekg(0, get.beg);
+		std::string ret = "";
+		std::fstream get(_path, std::ios::in | std::ios::binary);
+		if(get.is_open())
+		{
+			//Size
+			get.seekg(0, get.end);
+			unsigned fileSize = get.tellg();
+			get.seekg(0, get.beg);
 
-	        get.close();
+			get.close();
 
-	        //Probably add more later
+			//Probably add more later
 
-	        char tmp[256];
-	        std::sprintf(tmp, "Path: \"%s\"\nSize: %u", _path.c_str(), fileSize);
+			char tmp[256];
+			std::sprintf(tmp, "Path: \"%s\"\nSize: %u", _path.c_str(), fileSize);
 
-	        ret = tmp;
-	    }
-	    return ret;
+			ret = tmp;
+		}
+		return ret;
 	}
 }
