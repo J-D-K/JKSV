@@ -9,7 +9,7 @@
 #include "file.h"
 #include "ui.h"
 
-static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
+static const char verboten[] = { '.', ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
 
 namespace util
 {
@@ -43,7 +43,7 @@ namespace util
 			return s;
 
 		std::string ret = "", tmp = "";
-		unsigned first = 0, lastSpace = 0, chkNoSpc = 0;
+		unsigned first = 0, lastSpace = 0;
 
 		for(unsigned i = 0; i < s.length(); i++)
 		{
@@ -93,7 +93,7 @@ namespace util
 
 	bool isVerboten(char t)
 	{
-		for(unsigned i = 0; i < 10; i++)
+		for(unsigned i = 0; i < 11; i++)
 		{
 			if(t == verboten[i])
 				return true;

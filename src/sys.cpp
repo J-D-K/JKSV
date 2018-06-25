@@ -46,6 +46,13 @@ namespace sys
 	bool init()
 	{
 		Result res = 0;
+		res = romfsInit();
+		if(R_FAILED(res))
+		{
+			printf("romfsInit failed\n");
+			return false;
+		}
+
 		res = fsdevMountSdmc();
 		if(R_FAILED(res))
 		{
@@ -53,12 +60,6 @@ namespace sys
 			return false;
 		}
 
-		res = romfsInit();
-		if(R_FAILED(res))
-		{
-			printf("romfsInit failed\n");
-			return false;
-		}
 
 		res = hidInitialize();
 		if(R_FAILED(res))
@@ -81,8 +82,8 @@ namespace sys
 			return false;
 		}
 
-		mkdir("sdmc:/JKSV", 0777);
-		chdir("sdmc:/JKSV");
+		mkdir(".JKSV", 0777);
+		chdir(".JKSV");
 
 		loadCfg();
 
@@ -91,8 +92,8 @@ namespace sys
 
 	bool fini()
 	{
+	    romfsExit();
 		fsdevUnmountAll();
-		romfsExit();
 		hidExit();
 		nsExit();
 		setsysExit();

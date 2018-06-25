@@ -159,7 +159,7 @@ namespace ui
 	{
 		if(clrAdd)
 		{
-			clrSh++;
+			clrSh += 4;
 			if(clrSh > 63)
 				clrAdd = false;
 		}
@@ -364,7 +364,7 @@ namespace ui
 	{
 		if(clrAdd)
 		{
-			clrSh++;
+			clrSh += 4;
 			if(clrSh > 63)
 				clrAdd = false;
 		}
@@ -570,7 +570,7 @@ namespace ui
 	void drawUI()
 	{
 		gfx::clearBufferColor(clearClr);
-		ui::drawTitleBar("JKSV - 06/24/2018");
+		ui::drawTitleBar("JKSV - 06/25/2018");
 
 		switch(mstate)
 		{
