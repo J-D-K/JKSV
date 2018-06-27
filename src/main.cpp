@@ -8,6 +8,8 @@
 #include "data.h"
 #include "ui.h"
 
+
+
 int main(int argc, const char *argv[])
 {
 	bool init = false;

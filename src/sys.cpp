@@ -53,14 +53,6 @@ namespace sys
 			return false;
 		}
 
-		res = fsdevMountSdmc();
-		if(R_FAILED(res))
-		{
-			printf("MountSdmc failed\n");
-			return false;
-		}
-
-
 		res = hidInitialize();
 		if(R_FAILED(res))
 		{
@@ -92,7 +84,7 @@ namespace sys
 
 	bool fini()
 	{
-	    romfsExit();
+		romfsExit();
 		fsdevUnmountAll();
 		hidExit();
 		nsExit();

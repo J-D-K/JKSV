@@ -115,6 +115,10 @@ namespace util
 				ret += s[i];
 		}
 
+		//Check for spaces at end
+		if(ret[ret.length() - 1] == ' ')
+			ret.erase(ret.end() - 1, ret.end());
+
 		return ret;
 	}
 

@@ -5,6 +5,7 @@
 #include <string>
 
 #include "data.h"
+#include "gfx.h"
 
 namespace ui
 {

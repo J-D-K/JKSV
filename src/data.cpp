@@ -11,6 +11,34 @@
 #include "file.h"
 #include "util.h"
 
+//Sorts titles sort-of alphabetically
+static struct
+{
+	bool operator()(data::titledata& a, data::titledata& b)
+	{
+		for(unsigned i = 0; i < a.getTitle().length(); i++)
+		{
+			int charA = tolower(a.getTitle().c_str()[i]), charB = tolower(b.getTitle().c_str()[i]);
+			if(charA != charB)
+				return charA < charB;
+		}
+
+		return false;
+	}
+} sortTitles;
+
+//Returns -1 for new
+static int getUserIndex(const u128& id)
+{
+	for(unsigned i = 0; i < data::users.size(); i++)
+	{
+		if(data::users[i].getUID() == id)
+			return i;
+	}
+
+	return -1;
+}
+
 namespace data
 {
 	titledata curData;
@@ -36,33 +64,6 @@ namespace data
 		accountExit();
 
 		return true;
-	}
-
-
-	struct
-	{
-		bool operator()(titledata& a, titledata& b)
-		{
-			for(unsigned i = 0; i < a.getTitle().length(); i++)
-			{
-				int charA = tolower(a.getTitle().c_str()[i]), charB = tolower(b.getTitle().c_str()[i]);
-				if(charA != charB)
-					return charA < charB;
-			}
-
-			return false;
-		}
-	} sortTitles;
-
-	int getUserIndex(const u128& id)
-	{
-		for(unsigned i = 0; i < users.size(); i++)
-		{
-			if(users[i].getUID() == id)
-				return i;
-		}
-
-		return -1;
 	}
 
 	void loadDataInfo()

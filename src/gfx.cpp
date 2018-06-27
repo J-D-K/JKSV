@@ -8,6 +8,7 @@
 #include FT_FREETYPE_H
 
 #include "gfx.h"
+#include "ui.h"
 
 static FT_Error ret = 0, libret = 1, faceret = 1;
 static FT_Library lib;

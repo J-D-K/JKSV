@@ -27,14 +27,23 @@ enum menuState
 	ADV_MDE
 };
 
+//Menu currently up
 static int mstate = USR_SEL;
 
+//Button controlled menus
 static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu, copyMenu;
+
+//Bar at top
 static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
 
+//Shown if someone tries to write to system saves
 static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
+
+//Advanced mode paths
 static std::string savePath, sdPath, saveWrap, sdWrap;
-static fs::dirList saveList(""), sdList("sdmc:/");
+//Advanced mode directory listings
+static fs::dirList saveList(""), sdList("");
+//Current menu and previous menu for advanced mode.
 static int advMenuCtrl = 0, advPrev = 0;
 
 namespace ui
@@ -44,11 +53,6 @@ namespace ui
 	{
 		ColorSetId gthm;
 		setsysGetColorSetId(&gthm);
-
-		buttonA.loadFromFile("romfs:/img/buttonA.data");
-		buttonB.loadFromFile("romfs:/img/buttonB.data");
-		buttonX.loadFromFile("romfs:/img/buttonX.data");
-		buttonY.loadFromFile("romfs:/img/buttonY.data");
 
 		switch(gthm)
 		{
@@ -79,6 +83,11 @@ namespace ui
 				rectSh   = 0xFF2B2B2B;
 				break;
 		}
+
+		buttonA.loadFromFile("romfs:/img/buttonA.data");
+		buttonB.loadFromFile("romfs:/img/buttonB.data");
+		buttonX.loadFromFile("romfs:/img/buttonX.data");
+		buttonY.loadFromFile("romfs:/img/buttonY.data");
 
 		copyMenu.addOpt("Copy From");
 		copyMenu.addOpt("Delete");
@@ -176,7 +185,7 @@ namespace ui
 		else
 			length = start + 15;
 
-		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x88 + clrSh)) << 8 | 0x00;
+		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x60 + clrSh)) << 8 | 0x00;
 
 		for(int i = start; i < length; i++)
 		{
@@ -601,9 +610,11 @@ namespace ui
 					//Menu
 					userMenu.print(16, 88, mnuTxt, 424);
 					//Input guide
-					unsigned startX = 1152;
+					unsigned startX = 1010;
 					buttonA.draw(startX, 672);
 					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
+					buttonY.draw(startX += 72, 672);
+					gfx::drawText("Dump All", startX += 38, 668, 32, mnuTxt);
 				}
 				break;
 
@@ -671,6 +682,11 @@ namespace ui
 			titleMenuPrepare(data::curUser);
 
 			mstate = TTL_SEL;
+		}
+		else if(down & KEY_Y)
+		{
+			for(unsigned i = 0; i < data::users.size(); i++)
+				fs::dumpAllUserSaves(data::users[i]);
 		}
 		else if(down & KEY_MINUS && sys::devMenu)
 		{
