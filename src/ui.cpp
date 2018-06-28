@@ -52,7 +52,9 @@ static int advMenuCtrl = 0, advPrev = 0;
 
 namespace ui
 {
-	uint32_t clearClr = 0, mnuTxt = 0, txtClr = 0, rectLt = 0, rectSh = 0, tboxClr = 0;
+	uint32_t clearClr = 0xFFFFFFFF, mnuTxt = 0xFF000000, txtClr = 0xFF000000, \
+	                    rectLt = 0xFFC0C0C0, rectSh = 0, tboxClr = 0xFFC0C0C0;
+
 	void init()
 	{
 		ColorSetId gthm;
@@ -61,19 +63,19 @@ namespace ui
 		switch(gthm)
 		{
 			case ColorSetId_Light:
-				titleBar.loadFromFile("romfs:/img/topbar_lght.data");
+				titleBar.loadFromFile("romfs:/img/topbar_lght.png");
 
 				//Dark corners
-				cornerTopLeft.loadFromFile("romfs:/img/tbox/tBoxCornerTopLeft_drk.data");
-				cornerTopRight.loadFromFile("romfs:/img/tbox/tBoxCornerTopRight_drk.data");
-				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tBoxCornerBotLeft_drk.data");
-				cornerBottomRight.loadFromFile("romfs:/img/tbox/tBoxCornerBotRight_drk.data");
+				cornerTopLeft.loadFromFile("romfs:/img/tbox/tboxCornerTopLeft_drk.png");
+				cornerTopRight.loadFromFile("romfs:/img/tbox/tboxCornerTopRight_drk.png");
+				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tboxCornerBotLeft_drk.png");
+				cornerBottomRight.loadFromFile("romfs:/img/tbox/tboxCornerBotRight_drk.png");
 
 				//Dark edges
-				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_drk.data");
-				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_drk.data");
-				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_drk.data");
-				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_drk.data");
+				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_drk.png");
+				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_drk.png");
+				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_drk.png");
+				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_drk.png");
 
 				clearClr = 0xFFEBEBEB;
 				mnuTxt   = 0xFF000000;
@@ -83,21 +85,21 @@ namespace ui
 				tboxClr  = 0xFF2D2D2D;
 				break;
 
-            default:
+			default:
 			case ColorSetId_Dark:
-				titleBar.loadFromFile("romfs:/img/topbar_drk.data");
+				titleBar.loadFromFile("romfs:/img/topbar_drk.png");
 
 				//Light corners
-				cornerTopLeft.loadFromFile("romfs:/img/tbox/tBoxCornerTopLeft_lght.data");
-				cornerTopRight.loadFromFile("romfs:/img/tbox/tBoxCornerTopRight_lght.data");
-				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tBoxCornerBotLeft_lght.data");
-				cornerBottomRight.loadFromFile("romfs:/img/tbox/tBoxCornerBotRight_lght.data");
+				cornerTopLeft.loadFromFile("romfs:/img/tbox/tboxCornerTopLeft_lght.png");
+				cornerTopRight.loadFromFile("romfs:/img/tbox/tboxCornerTopRight_lght.png");
+				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tboxCornerBotLeft_lght.png");
+				cornerBottomRight.loadFromFile("romfs:/img/tbox/tboxCornerBotRight_lght.png");
 
 				//light edges
-				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_lght.data");
-				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_lght.data");
-				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_lght.data");
-				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_lght.data");
+				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_lght.png");
+				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_lght.png");
+				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_lght.png");
+				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_lght.png");
 
 				clearClr = 0xFF2D2D2D;
 				mnuTxt   = 0xFFFFFFFF;
@@ -108,10 +110,10 @@ namespace ui
 				break;
 		}
 
-		buttonA.loadFromFile("romfs:/img/buttonA.data");
-		buttonB.loadFromFile("romfs:/img/buttonB.data");
-		buttonX.loadFromFile("romfs:/img/buttonX.data");
-		buttonY.loadFromFile("romfs:/img/buttonY.data");
+		buttonA.loadFromFile("romfs:/img/buttonA.png");
+		buttonB.loadFromFile("romfs:/img/buttonB.png");
+		buttonX.loadFromFile("romfs:/img/buttonX.png");
+		buttonY.loadFromFile("romfs:/img/buttonY.png");
 
 		copyMenu.addOpt("Copy From");
 		copyMenu.addOpt("Delete");
@@ -600,7 +602,7 @@ namespace ui
 	void drawUI()
 	{
 		gfx::clearBufferColor(clearClr);
-		ui::drawTitleBar("JKSV - 06/27/2018");
+		ui::drawTitleBar("JKSV - 06/28/2018");
 
 		switch(mstate)
 		{

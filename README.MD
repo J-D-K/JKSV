@@ -7,6 +7,7 @@ JKSV for Switch. Mostly to get used to libnx. Reuses a lot of code of JKSM for 3
 # Building:
 1. Requires [devkitPro](https://devkitpro.org/) devkitA64
 2. Requires switch-freetype
+3. libpng
 
 # Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8

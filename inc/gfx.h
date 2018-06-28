@@ -37,11 +37,9 @@ namespace gfx
 	{
 		public:
 			/*
-			Loads binary data from path
-			First 4 bytes are data size
-			Next 2 are width
-			Next 2 are height
-			The rest is raw RGBA8 data
+			Now uses libpng and png files
+			Only accepts RGBA8 PNGs
+			Others will have issues.
 			*/
 			void loadFromFile(const std::string& path);
 			//Frees memory used by data

@@ -3,6 +3,8 @@
 #include <fstream>
 #include <cstdio>
 #include <switch.h>
+#include <png.h>
+#include <malloc.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -256,18 +258,59 @@ namespace gfx
 
 	void tex::loadFromFile(const std::string& path)
 	{
-		std::fstream dataIn(path, std::ios::in | std::ios::binary);
-		if(dataIn.is_open())
+		FILE *pngIn = fopen(path.c_str(), "rb");
+		if(pngIn != NULL)
 		{
-			dataIn.read((char *)&sz, sizeof(uint32_t));
-			dataIn.read((char *)&width, sizeof(uint16_t));
-			dataIn.read((char *)&height, sizeof(uint16_t));
+			png_structp png = png_create_read_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+			if(png == 0)
+				return;
 
-			data = new uint32_t[sz / sizeof(uint32_t)];
-			if(data != NULL)
-				dataIn.read((char *)data, sz);
+			png_infop pngInfo = png_create_info_struct(png);
+			if(pngInfo == 0)
+				return;
 
-			dataIn.close();
+			int jmp = setjmp(png_jmpbuf(png));
+			if(jmp)
+				return;
+
+			png_init_io(png, pngIn);
+
+			png_read_info(png, pngInfo);
+
+			unsigned clrType = png_get_color_type(png, pngInfo);
+			if(clrType != PNG_COLOR_TYPE_RGBA)
+				return;
+
+			width = png_get_image_width(png, pngInfo);
+			height = png_get_image_height(png, pngInfo);
+
+			data = new uint32_t[width * height];
+
+			png_bytep *rows = new png_bytep[sizeof(png_bytep) * height];
+			for(unsigned i = 0; i < height; i++)
+				rows[i] = new png_byte[png_get_rowbytes(png, pngInfo)];
+
+			png_read_image(png, rows);
+
+			for(unsigned y = 0, i = 0; y < height; y++)
+			{
+				png_bytep row = rows[y];
+				for(unsigned x = 0; x < width; x++, i++)
+				{
+					png_bytep px = &(row[x * 4]);
+
+					data[i] = px[3] << 24 | px[2] << 16 | px[1] << 8 | px[0];
+				}
+			}
+
+			for(unsigned i = 0; i < height; i++)
+				delete rows[i];
+
+			delete[] rows;
+
+			png_destroy_read_struct(&png, &pngInfo, NULL);
+
+			fclose(pngIn);
 		}
 	}
 
