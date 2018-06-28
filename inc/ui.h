@@ -13,7 +13,7 @@ namespace ui
 	void init();
 
 	//Colors to use now that I added theme detection
-	extern uint32_t clearClr, mnuTxt, rectLt, rectSh;
+	extern uint32_t clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
 
 	//Button controlled menu
 	class menu
@@ -161,6 +161,8 @@ namespace ui
 	bool confirm(const std::string& q);
 	bool confirmTransfer(const std::string& f, const std::string& t);
 	bool confirmDelete(const std::string& p);
+
+	void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h);
 }
 
 #endif

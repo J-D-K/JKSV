@@ -36,6 +36,10 @@ static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu, copy
 //Bar at top
 static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
 
+//textbox pieces
+//I was going to flip them when I draw them, but then laziness kicked in.
+static gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight, horEdgeTop, horEdgeBot, vertEdgeLeft, vertEdgeRight;
+
 //Shown if someone tries to write to system saves
 static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
 
@@ -48,7 +52,7 @@ static int advMenuCtrl = 0, advPrev = 0;
 
 namespace ui
 {
-	uint32_t clearClr = 0, mnuTxt = 0, rectLt = 0, rectSh = 0;
+	uint32_t clearClr = 0, mnuTxt = 0, txtClr = 0, rectLt = 0, rectSh = 0, tboxClr = 0;
 	void init()
 	{
 		ColorSetId gthm;
@@ -59,28 +63,48 @@ namespace ui
 			case ColorSetId_Light:
 				titleBar.loadFromFile("romfs:/img/topbar_lght.data");
 
+				//Dark corners
+				cornerTopLeft.loadFromFile("romfs:/img/tbox/tBoxCornerTopLeft_drk.data");
+				cornerTopRight.loadFromFile("romfs:/img/tbox/tBoxCornerTopRight_drk.data");
+				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tBoxCornerBotLeft_drk.data");
+				cornerBottomRight.loadFromFile("romfs:/img/tbox/tBoxCornerBotRight_drk.data");
+
+				//Dark edges
+				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_drk.data");
+				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_drk.data");
+				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_drk.data");
+				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_drk.data");
+
 				clearClr = 0xFFEBEBEB;
 				mnuTxt   = 0xFF000000;
+				txtClr   = 0xFFFFFFFF;
 				rectLt   = 0xFFDFDFDF;
 				rectSh   = 0xFFCACACA;
+				tboxClr  = 0xFF2D2D2D;
 				break;
 
+            default:
 			case ColorSetId_Dark:
 				titleBar.loadFromFile("romfs:/img/topbar_drk.data");
 
+				//Light corners
+				cornerTopLeft.loadFromFile("romfs:/img/tbox/tBoxCornerTopLeft_lght.data");
+				cornerTopRight.loadFromFile("romfs:/img/tbox/tBoxCornerTopRight_lght.data");
+				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tBoxCornerBotLeft_lght.data");
+				cornerBottomRight.loadFromFile("romfs:/img/tbox/tBoxCornerBotRight_lght.data");
+
+				//light edges
+				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_lght.data");
+				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_lght.data");
+				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_lght.data");
+				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_lght.data");
+
 				clearClr = 0xFF2D2D2D;
 				mnuTxt   = 0xFFFFFFFF;
+				txtClr   = 0xFF000000;
 				rectLt   = 0xFF505050;
 				rectSh   = 0xFF202020;
-				break;
-
-			default:
-				titleBar.loadFromFile("romfs:/img/topbar_drk.data");
-
-				clearClr = 0xFF3B3B3B;
-				mnuTxt   = 0xFFFFFFFF;
-				rectLt   = 0xFF7B7B7B;
-				rectSh   = 0xFF2B2B2B;
+				tboxClr  = 0xFFEBEBEB;
 				break;
 		}
 
@@ -220,14 +244,13 @@ namespace ui
 
 	void progBar::draw(const std::string& text)
 	{
-		gfx::drawRectangle(62, 238, 1156, 244, 0xFF2D2D2D);
-		gfx::drawRectangle(64, 240, 1152, 240, 0xFFEBEBEB);
+		ui::drawTextbox(64, 240, 1152, 240);
 		gfx::drawRectangle(96, 400, 1088, 64, 0xFF000000);
 		gfx::drawRectangle(96, 400, (uint32_t)width, 64, 0xFF00CC00);
 
 		//char tmp[64];
 		//sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
-		gfx::drawText(text, 80, 256, 64, 0xFF000000);
+		gfx::drawText(text, 80, 256, 64, txtClr);
 		//gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
 	}
 
@@ -505,16 +528,14 @@ namespace ui
 
 	void button::draw()
 	{
-		gfx::drawRectangle(x - 2, y - 2, w + 4, h + 4, 0xFF2D2D2D);
-
 		if(pressed)
 			gfx::drawRectangle(x, y, w, h, 0xFFD0D0D0);
 		else
 		{
-			gfx::drawRectangle(x, y, w, h, 0xFFEBEBEB);
+			ui::drawTextbox(x, y, w, h);
 		}
 
-		gfx::drawText(text, tx, ty, 48, 0xFF000000);
+		gfx::drawText(text, tx, ty, 48, txtClr);
 	}
 
 	bool button::isOver(const touchPosition& p)
@@ -579,7 +600,7 @@ namespace ui
 	void drawUI()
 	{
 		gfx::clearBufferColor(clearClr);
-		ui::drawTitleBar("JKSV - 06/25/2018");
+		ui::drawTitleBar("JKSV - 06/27/2018");
 
 		switch(mstate)
 		{
@@ -1269,21 +1290,20 @@ namespace ui
 		//draw copy menu if it's supposed to be up
 		if(advMenuCtrl == 2)
 		{
-			gfx::drawRectangle(462, 234, 324, 272, 0xFF2D2D2D);
-			gfx::drawRectangle(464, 236, 320, 268, 0xFFEBEBEB);
+			ui::drawTextbox(464, 236, 320, 268);
 
 			switch(advPrev)
 			{
 				case 0:
-					gfx::drawText("SAVE", 472, 242, 32, 0xFF000000);
+					gfx::drawText("SAVE", 472, 242, 32,txtClr);
 					break;
 
 				case 1:
-					gfx::drawText("SDMC", 472, 242, 32, 0xFF000000);
+					gfx::drawText("SDMC", 472, 242, 32, txtClr);
 					break;
 			}
 
-			copyMenu.print(472, 286, 0xFF000000, 304);
+			copyMenu.print(472, 278, txtClr, 304);
 		}
 	}
 
@@ -1382,7 +1402,7 @@ namespace ui
 
 	void showMessage(const std::string& mess)
 	{
-		button ok("OK (A)", 480, 464, 320, 96);
+		button ok("OK (A)", 256, 496, 768, 96);
 		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 		while(true)
 		{
@@ -1395,9 +1415,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			gfx::drawRectangle(254, 126, 772, 468, 0xFF2D2D2D);
-			gfx::drawRectangle(256, 128, 768, 464, 0xFFEBEBEB);
-			gfx::drawText(wrapMess, 272, 144, 48, 0xFF000000);
+			ui::drawTextbox(256, 128, 768, 464);
+			gfx::drawText(wrapMess, 272, 144, 48, txtClr);
 			ok.draw();
 
 			gfx::handleBuffs();
@@ -1406,7 +1425,7 @@ namespace ui
 
 	void showError(const std::string& mess, const Result& r)
 	{
-		button ok("OK (A)", 480, 464, 320, 96);
+		button ok("OK (A)", 256, 496, 768, 96);
 		char tmp[512];
 		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 		sprintf(tmp, "%s\n0x%08X", mess.c_str(), (unsigned)r);
@@ -1422,9 +1441,8 @@ namespace ui
 			if(down & KEY_A || down & KEY_B || ok.released(p))
 				break;
 
-			gfx::drawRectangle(254, 126, 772, 468, 0xFF2D2D2D);
-			gfx::drawRectangle(256, 128, 768, 464, 0xFFEBEBEB);
-			gfx::drawText(tmp, 272, 144, 48, 0xFF000000);
+			ui::drawTextbox(256, 128, 768, 464);
+			gfx::drawText(tmp, 272, 144, 48, txtClr);
 			ok.draw();
 
 			gfx::handleBuffs();
@@ -1435,8 +1453,8 @@ namespace ui
 	{
 		bool ret = false;
 
-		button yes("Yes (A)", 288, 464, 320, 96);
-		button no("No (B)", 672, 464, 320, 96);
+		button yes("Yes (A)", 256, 496, 384, 96);
+		button no("No (B)", 640, 496, 384, 96);
 
 		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 
@@ -1459,9 +1477,8 @@ namespace ui
 				break;
 			}
 
-			gfx::drawRectangle(254, 126, 772, 468, 0xFF2D2D2D);
-			gfx::drawRectangle(256, 128, 768, 464, 0xFFEBEBEB);
-			gfx::drawText(wrapMess, 272, 144, 48, 0xFF000000);
+			ui::drawTextbox(256, 128, 768, 464);
+			gfx::drawText(wrapMess, 272, 144, 48, txtClr);
 			yes.draw();
 			no.draw();
 
@@ -1483,5 +1500,24 @@ namespace ui
 		std::string confMess = "Are you 100% sure you want to delete \"" + p + "\"? This is permanent!";
 
 		return confirm(confMess);
+	}
+
+	void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h)
+	{
+		//Top
+		cornerTopLeft.draw(x, y);
+		horEdgeTop.drawRepeatHoriNoBlend(x + 32, y, w - 64);
+		cornerTopRight.draw((x + w) - 32, y);
+
+		//middle
+		vertEdgeLeft.drawRepeatVertNoBlend(x, y + 32, h - 64);
+		gfx::drawRectangle(x + 32, y + 32, w - 64, h - 64, tboxClr);
+		vertEdgeRight.drawRepeatVertNoBlend((x + w) - 32, y + 32, h - 64);
+
+		//bottom
+		cornerBottomLeft.draw(x, (y + h) - 32);
+		horEdgeBot.drawRepeatHoriNoBlend(x + 32, (y + h) - 32, w - 64);
+		cornerBottomRight.draw((x + w) - 32, (y + h) -32);
+
 	}
 }

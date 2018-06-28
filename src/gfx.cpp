@@ -347,4 +347,41 @@ namespace gfx
 			}
 		}
 	}
+
+	void tex::drawRepeatVert(uint32_t x, uint32_t y, uint32_t h)
+	{
+		if(data != NULL)
+		{
+			uint32_t tY, tX, i = 0;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			for(tY = y; tY < y + h; tY++)
+			{
+				for(tX = x; tX < x + width; tX++, i++)
+				{
+					uint32_t fbPx = fb[tY * frameBufWidth + tX];
+					fb[tY * frameBufWidth + tX] = blend(data[i], fbPx);
+				}
+				i = 0;
+			}
+		}
+	}
+
+	void tex::drawRepeatVertNoBlend(uint32_t x, uint32_t y, uint32_t h)
+	{
+		if(data != NULL)
+		{
+			uint32_t tY, tX, i = 0;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			for(tY = y; tY < y + h; tY++)
+			{
+				for(tX = x; tX < x + width; tX++, i++)
+				{
+					fb[tY * frameBufWidth + tX] = data[i];
+				}
+				i = 0;
+			}
+		}
+	}
 }

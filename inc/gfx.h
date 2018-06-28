@@ -49,9 +49,12 @@ namespace gfx
 			void draw(uint32_t x, uint32_t y);
 			void drawNoBlend(uint32_t x, uint32_t y);
 
-			//This is specifically for the topbar.
+			//These only repeat pixels.
 			void drawRepeatHori(uint32_t x, uint32_t y, uint32_t w);
 			void drawRepeatHoriNoBlend(uint32_t x, uint32_t y, uint32_t w);
+
+			void drawRepeatVert(uint32_t x, uint32_t y, uint32_t h);
+			void drawRepeatVertNoBlend(uint32_t x, uint32_t y, uint32_t h);
 
 		private:
 			uint32_t sz;
