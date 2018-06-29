@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <switch.h>
 #include <png.h>
-#include <malloc.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -58,6 +57,8 @@ namespace gfx
 			return false;
 		}
 
+		gfxSetMode(GfxMode_LinearDouble);
+
 		return true;
 	}
 
@@ -72,11 +73,6 @@ namespace gfx
 		gfxExit();
 
 		return true;
-	}
-
-	void switchMode()
-	{
-		gfxSetMode(GfxMode_LinearDouble);
 	}
 
 	void handleBuffs()

@@ -8,7 +8,6 @@
 #include "gfx.h"
 #include "util.h"
 #include "file.h"
-#include "sys.h"
 
 static const char qwerty[] =
 {
@@ -23,7 +22,6 @@ enum menuState
 	USR_SEL,
 	TTL_SEL,
 	FLD_SEL,
-	DEV_MNU,
 	ADV_MDE
 };
 
@@ -82,7 +80,7 @@ namespace ui
 				txtClr   = 0xFFFFFFFF;
 				rectLt   = 0xFFDFDFDF;
 				rectSh   = 0xFFCACACA;
-				tboxClr  = 0xFF2D2D2D;
+				tboxClr  = 0xFF505050;
 				break;
 
 			default:
@@ -567,6 +565,7 @@ namespace ui
 
 	void userMenuInit()
 	{
+		userMenu.reset();
 		for(unsigned i = 0; i < data::users.size(); i++)
 			userMenu.addOpt(data::users[i].getUsername());
 	}
@@ -592,13 +591,6 @@ namespace ui
 			folderMenu.addOpt(list.getItem(i));
 	}
 
-	void devMenuPrepare()
-	{
-		devMenu.addOpt("Dump all saves");
-		devMenu.addOpt("Change 'sv:/' path");
-		devMenu.addOpt("Back");
-	}
-
 	void drawUI()
 	{
 		gfx::clearBufferColor(clearClr);
@@ -609,7 +601,6 @@ namespace ui
 			case USR_SEL:
 			case TTL_SEL:
 			case FLD_SEL:
-			case DEV_MNU:
 				gfx::drawRectangle(448, 64, 1, 592, rectLt);
 				gfx::drawRectangle(449, 64, 2, 592, rectSh);
 
@@ -675,10 +666,6 @@ namespace ui
 				}
 				break;
 
-			case DEV_MNU:
-				devMenu.print(16, 88, mnuTxt, 424);
-				break;
-
 			case ADV_MDE:
 				saveMenu.print(16, 88, mnuTxt, 616);
 				sdMenu.print(648, 88, mnuTxt, 616);
@@ -711,12 +698,6 @@ namespace ui
 			for(unsigned i = 0; i < data::users.size(); i++)
 				fs::dumpAllUserSaves(data::users[i]);
 		}
-		else if(down & KEY_MINUS && sys::devMenu)
-		{
-			devMenu.reset();
-			devMenuPrepare();
-			mstate = DEV_MNU;
-		}
 	}
 
 	void showTitleMenu(const uint64_t& down, const uint64_t& held)
@@ -743,7 +724,7 @@ namespace ui
 		else if(down & KEY_B)
 			mstate = USR_SEL;
 
-		if(sys::sysSave)
+		if(data::sysSave)
 		{
 			std::string drawType = "Type: ";
 			switch(data::curUser.titles[titleMenu.getSelected()].getType())
@@ -1309,71 +1290,6 @@ namespace ui
 		}
 	}
 
-	void showDevMenu(const uint64_t& down, const uint64_t& held)
-	{
-		devMenu.handleInput(down, held);
-
-		if(down & KEY_A)
-		{
-			switch(devMenu.getSelected())
-			{
-				//dump all
-				case 0:
-					{
-						ui::progBar userProg(data::users.size());
-						for(unsigned i = 0; i < data::users.size(); i++)
-						{
-							data::curUser = data::users[i];
-							for(unsigned j = 0; j < data::curUser.titles.size(); j++)
-							{
-								data::curData = data::curUser.titles[j];
-								if(fs::mountSave(data::curUser, data::curData))
-								{
-									util::makeTitleDir(data::curUser, data::curData);
-
-									std::string to = util::getTitleDir(data::curUser, data::curData) + util::getDateTime();
-									mkdir(to.c_str(), 777);
-									to += "/";
-
-									std::string root = "sv:/";
-
-									fs::copyDirToDir(root, to);
-
-									fsdevUnmountDevice("sv");
-								}
-
-								userProg.draw("Dumping " + data::curUser.getUsername() + "...");
-
-								gfx::handleBuffs();
-							}
-						}
-					}
-					break;
-
-				//switch sv:/
-				case 1:
-					keyboard getPath;
-					std::string newPath = getPath.getString(savePath);
-					if(!newPath.empty())
-					{
-						savePath = newPath;
-						sdPath   = "sdmc:/";
-
-						saveList.reassign(savePath);
-						sdList.reassign(sdPath);
-
-						util::copyDirListToMenu(saveList, saveMenu);
-						util::copyDirListToMenu(sdList, sdMenu);
-
-						mstate = ADV_MDE;
-					}
-					break;
-			}
-		}
-		else if(down & KEY_B)
-			mstate = USR_SEL;
-	}
-
 	void runApp(const uint64_t& down, const uint64_t& held)
 	{
 		drawUI();
@@ -1390,10 +1306,6 @@ namespace ui
 
 			case FLD_SEL:
 				showFolderMenu(down, held);
-				break;
-
-			case DEV_MNU:
-				showDevMenu(down, held);
 				break;
 
 			case ADV_MDE:

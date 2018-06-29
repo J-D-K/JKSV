@@ -2,63 +2,68 @@
 #include <vector>
 #include <fstream>
 #include <switch.h>
+#include <unistd.h>
+#include <sys/stat.h>
 
 #include "gfx.h"
-#include "sys.h"
 #include "data.h"
 #include "ui.h"
 
+extern "C"
+{
+	void userAppInit(void)
+	{
+		romfsInit();
+		hidInitialize();
+		nsInitialize();
+		setsysInitialize();
+		accountInitialize();
 
+		mkdir(".JKSV", 777);
+		chdir(".JKSV");
+	}
+
+	void userAppExit(void)
+	{
+		romfsExit();
+		hidExit();
+		nsExit();
+		setsysExit();
+		accountExit();
+	}
+}
 
 int main(int argc, const char *argv[])
 {
-	bool init = false;
+	gfx::init();
+	data::loadDataInfo();
+	ui::init();
+	ui::userMenuInit();
 
-	init = gfx::init();
-	if(init)
-		init = sys::init();
-	if(init)
-		init = data::init();
-
-	if(init)
+	bool run = true;
+	while(appletMainLoop() && run)
 	{
-		data::loadDataInfo();
-		gfx::switchMode();
-		ui::init();
-		ui::userMenuInit();
+		hidScanInput();
 
-		bool run = true;
-		while(appletMainLoop() && run)
+		uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+		uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
+
+		if((held & KEY_L) && (held & KEY_R) && (held & KEY_ZL) && (held & KEY_ZR))
 		{
-			hidScanInput();
-
-			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-			uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-			if(down & KEY_PLUS)
-				break;
-
-			ui::runApp(down, held);
-
-			gfx::handleBuffs();
+			if(ui::confirm("You are about to enable system save dumping and remove checks. Are you sure you want to continue?"))
+			{
+				data::sysSave = true;
+				data::forceMountable = false;
+				data::loadDataInfo();
+				ui::userMenuInit();
+			}
 		}
+		else if(down & KEY_PLUS)
+			break;
+
+		ui::runApp(down, held);
+
+		gfx::handleBuffs();
 	}
-	else
-	{
-		while(appletMainLoop())
-		{
-			hidScanInput();
-
-			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-
-			if(down & KEY_PLUS)
-				break;
-
-			gfx::handleBuffs();
-		}
-	}
-
 	gfx::fini();
-	sys::fini();
-	data::fini();
 }

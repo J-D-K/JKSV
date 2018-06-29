@@ -7,7 +7,6 @@
 #include <switch.h>
 
 #include "data.h"
-#include "sys.h"
 #include "file.h"
 #include "util.h"
 
@@ -44,30 +43,15 @@ namespace data
 	titledata curData;
 	user      curUser;
 	std::vector<user> users;
-
-	bool init()
-	{
-		Result res = 0;
-
-		res = accountInitialize();
-		if(res)
-		{
-			printf("accountInitialize failed!");
-			return false;
-		}
-
-		return true;
-	}
-
-	bool fini()
-	{
-		accountExit();
-
-		return true;
-	}
+	bool sysSave = false, forceMountable = true;
 
 	void loadDataInfo()
 	{
+		for(unsigned i = 0; i < users.size(); i++)
+			users[i].titles.clear();
+
+		users.clear();
+
 		Result res = 0;
 		FsSaveDataIterator saveIt;
 		size_t total = 0;
@@ -86,26 +70,26 @@ namespace data
 			if(R_FAILED(res) || total == 0)
 				break;
 
-			if((info.SaveDataType == FsSaveDataType_SaveData) || sys::sysSave)
+			if((info.SaveDataType == FsSaveDataType_SaveData) || sysSave)
 			{
 				int u = getUserIndex(info.userID);
 				if(u == -1)
 				{
 					user newUser;
-					if(newUser.init(info.userID) || (sys::sysSave && newUser.initNoChk(info.userID)))
+					if(newUser.init(info.userID) || (sysSave && newUser.initNoChk(info.userID)))
 					{
 						users.push_back(newUser);
 
 						u = getUserIndex(info.userID);
 						titledata newData;
-						if(newData.init(info) && (!sys::forceMountable || newData.isMountable(newUser.getUID())))
+						if(newData.init(info) && (!forceMountable || newData.isMountable(newUser.getUID())))
 							users[u].titles.push_back(newData);
 					}
 				}
 				else
 				{
 					titledata newData;
-					if(newData.init(info) && (!sys::forceMountable || newData.isMountable(users[u].getUID())))
+					if(newData.init(info) && (!forceMountable || newData.isMountable(users[u].getUID())))
 					{
 						users[u].titles.push_back(newData);
 					}
@@ -139,7 +123,7 @@ namespace data
 		res = nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz);
 		if(R_FAILED(res) || outSz < sizeof(dat->nacp))
 		{
-			if(!sys::sysSave)
+			if(!sysSave)
 				printf("nsGetAppCtrlData Failed: 0x%08X\n", (unsigned)res);
 			delete dat;
 		}

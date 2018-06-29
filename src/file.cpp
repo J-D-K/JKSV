@@ -6,9 +6,9 @@
 
 #include "file.h"
 #include "util.h"
-#include "sys.h"
 #include "ui.h"
 #include "gfx.h"
+#include "data.h"
 
 #define BUFF_SIZE 512 * 1024
 
@@ -29,7 +29,7 @@ namespace fs
 			if(r == -1)
 				return false;
 		}
-		else if(sys::sysSave && open.getType() == FsSaveDataType_SystemSaveData)
+		else if(data::sysSave && open.getType() == FsSaveDataType_SystemSaveData)
 		{
 			res = fsMount_SystemSaveData(&sv, open.getID());
 			if(R_FAILED(res))

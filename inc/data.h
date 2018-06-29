@@ -8,9 +8,7 @@
 
 namespace data
 {
-	//Just inits account service
-	bool init();
-	bool fini();
+	extern bool sysSave, forceMountable;
 
 	//Loads user + title info
 	void loadDataInfo();
