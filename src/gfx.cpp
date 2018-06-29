@@ -295,12 +295,8 @@ namespace gfx
 			for(unsigned y = 0, i = 0; y < height; y++)
 			{
 				png_bytep row = rows[y];
-				for(unsigned x = 0; x < width; x++, i++)
-				{
-					png_bytep px = &(row[x * 4]);
-
-					data[i] = px[3] << 24 | px[2] << 16 | px[1] << 8 | px[0];
-				}
+				for(unsigned x = 0; x < width * 4; x += 4, i++)
+					std::memcpy(&data[i], &row[x], sizeof(uint32_t));
 			}
 
 			for(unsigned i = 0; i < height; i++)
