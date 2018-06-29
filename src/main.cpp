@@ -33,6 +33,8 @@ extern "C"
 	}
 }
 
+extern int mstate;
+
 int main(int argc, const char *argv[])
 {
 	gfx::init();
@@ -56,6 +58,11 @@ int main(int argc, const char *argv[])
 				data::forceMountable = false;
 				data::loadDataInfo();
 				ui::userMenuInit();
+
+				//Just to be sure
+				fsdevUnmountDevice("sv");
+
+				mstate = 0;
 			}
 		}
 		else if(down & KEY_PLUS)
