@@ -21,10 +21,10 @@ enum menuState
 int mstate = USR_SEL;
 
 //Button controlled menus
-static ui::menu userMenu, titleMenu, folderMenu, devMenu, saveMenu, sdMenu, copyMenu;
+static ui::menu folderMenu, devMenu, saveMenu, sdMenu, copyMenu;
 
 //Bar at top
-static gfx::tex buttonA, buttonB, buttonX, buttonY, titleBar;
+static gfx::tex buttonA, buttonB, buttonX, buttonY;
 
 //Shown if someone tries to write to system saves
 static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
@@ -53,8 +53,6 @@ namespace ui
 		switch(gthm)
 		{
 			case ColorSetId_Light:
-				titleBar.loadFromFile("romfs:/img/topbar_lght.png");
-
 				//Dark corners
 				cornerTopLeft.loadFromFile("romfs:/img/tbox/tboxCornerTopLeft_drk.png");
 				cornerTopRight.loadFromFile("romfs:/img/tbox/tboxCornerTopRight_drk.png");
@@ -77,8 +75,6 @@ namespace ui
 
 			default:
 			case ColorSetId_Dark:
-				titleBar.loadFromFile("romfs:/img/topbar_drk.png");
-
 				//Light corners
 				cornerTopLeft.loadFromFile("romfs:/img/tbox/tboxCornerTopLeft_lght.png");
 				cornerTopRight.loadFromFile("romfs:/img/tbox/tboxCornerTopRight_lght.png");
@@ -113,19 +109,22 @@ namespace ui
 		copyMenu.addOpt("Back");
 	}
 
-	void userMenuInit()
+	void exit()
 	{
-		userMenu.reset();
-		for(unsigned i = 0; i < data::users.size(); i++)
-			userMenu.addOpt(data::users[i].getUsername());
-	}
+		cornerTopLeft.deleteData();
+		cornerTopRight.deleteData();
+		cornerBottomLeft.deleteData();
+		cornerBottomRight.deleteData();
 
-	void titleMenuPrepare(data::user& usr)
-	{
-		titleMenu.reset();
+		horEdgeTop.deleteData();
+		horEdgeBot.deleteData();
+		vertEdgeLeft.deleteData();
+		vertEdgeRight.deleteData();
 
-		for(unsigned i = 0; i < usr.titles.size(); i++)
-			titleMenu.addOpt(usr.titles[i].getTitle());
+		buttonA.deleteData();
+		buttonB.deleteData();
+		buttonX.deleteData();
+		buttonY.deleteData();
 	}
 
 	void folderMenuPrepare(data::user& usr, data::titledata& dat)
@@ -143,22 +142,28 @@ namespace ui
 
 	void drawTitleBar(const std::string& txt)
 	{
-		titleBar.drawRepeatHoriNoBlend(0, 0, 1280);
 		gfx::drawText(txt, 16, 16, 64, mnuTxt);
 	}
 
 	void drawUI()
 	{
 		gfx::clearBufferColor(clearClr);
-		ui::drawTitleBar("JKSV - 06/29/2018");
+		ui::drawTitleBar("JKSV - 07/01/2018");
 
 		switch(mstate)
 		{
-			case USR_SEL:
-			case TTL_SEL:
 			case FLD_SEL:
 				gfx::drawRectangle(448, 64, 1, 592, rectLt);
 				gfx::drawRectangle(449, 64, 2, 592, rectSh);
+
+				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
+				break;
+
+			case USR_SEL:
+			case TTL_SEL:
+				gfx::drawRectangle(16, 64, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 65, 1248, 2, rectSh);
 
 				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
 				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
@@ -177,8 +182,6 @@ namespace ui
 		{
 			case USR_SEL:
 				{
-					//Menu
-					userMenu.print(16, 88, mnuTxt, 424);
 					//Input guide
 					unsigned startX = 1010;
 					buttonA.draw(startX, 672);
@@ -190,9 +193,6 @@ namespace ui
 
 			case TTL_SEL:
 				{
-					//Menu
-					titleMenu.print(16, 88, mnuTxt, 424);
-					//Input guide
 					unsigned startX = 914;
 					buttonA.draw(startX, 672);
 					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
@@ -205,8 +205,6 @@ namespace ui
 
 			case FLD_SEL:
 				{
-					//Menus
-					titleMenu.print(16, 88, mnuTxt, 424);
 					folderMenu.print(458, 88, mnuTxt, 806);
 					//Input guide
 					unsigned startX = 726;
@@ -234,13 +232,68 @@ namespace ui
 
 	void updateUserMenu(const uint64_t& down, const uint64_t& held)
 	{
-		userMenu.handleInput(down, held);
+		static int start = 0, selected = 0;
 
-		if(down & KEY_A)
+		static uint8_t clrShft = 0;
+		static bool clrAdd = true;
+
+		static unsigned selRectX = 64, selRectY = 74;
+
+		if(clrAdd)
 		{
-			data::curUser = data::users[userMenu.getSelected()];
-			titleMenuPrepare(data::curUser);
+			clrShft += 4;
+			if(clrShft > 63)
+				clrAdd = false;
+		}
+		else
+		{
+			clrShft--;
+			if(clrShft == 0)
+				clrAdd = true;
+		}
 
+
+		if(down & KEY_RIGHT)
+		{
+			if((unsigned)selected < data::users.size() - 1)
+				selected++;
+
+			if(selected >= (int)start + 32)
+				start += 8;
+		}
+		else if(down & KEY_LEFT)
+		{
+			if(selected > 0)
+				selected--;
+
+			if(selected < (int)start)
+				start -= 8;
+		}
+		else if(down & KEY_UP)
+		{
+			selected -= 8;
+			if(selected < 0)
+				selected = 0;
+
+			if(selected - start >= 32)
+				start -= 8;
+		}
+		else if(down & KEY_DOWN)
+		{
+			selected += 8;
+			if(selected > (int)data::users.size() - 1)
+				selected = data::users.size() - 1;
+
+			if(selected - start >= 32)
+				start += 8;
+		}
+		else if(down & KEY_A)
+		{
+			data::curUser = data::users[selected];
+			//Reset this
+			start = 0;
+			selected = 0;
+			selRectX = 64, selRectY = 74;
 			mstate = TTL_SEL;
 		}
 		else if(down & KEY_Y)
@@ -248,22 +301,126 @@ namespace ui
 			for(unsigned i = 0; i < data::users.size(); i++)
 				fs::dumpAllUserSaves(data::users[i]);
 		}
+
+		unsigned x = 70, y = 80;
+		unsigned endUser = start + 32;
+		if(start + 32 > (int)data::users.size())
+			endUser = data::users.size();
+
+		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+		gfx::drawRectangle(selRectX, selRectY, 140, 140, rectClr);
+
+		for(unsigned i = start; i < endUser; y += 144)
+		{
+			unsigned endRow = i + 8;
+			for(unsigned tX = x; i < endRow; i++, tX += 144)
+			{
+				if(i == endUser)
+					break;
+
+				if((int)i == selected)
+				{
+					if(selRectX != tX - 6)
+					{
+						if(selRectX < tX - 6)
+							selRectX += 24;
+						else
+							selRectX -= 24;
+					}
+
+					if(selRectY != y - 6)
+					{
+						if(selRectY < y - 6)
+							selRectY += 24;
+						else
+							selRectX -= 24;
+					}
+
+					std::string username = data::users[selected].getUsername();
+					unsigned userWidth = gfx::getTextWidth(username, 32);
+					int userRectWidth = userWidth + 32, userRectX = (tX + 64) - (userRectWidth  / 2);
+					if(userRectX < 16)
+						userRectX = 16;
+
+					if(userRectX + userRectWidth > 1264)
+						userRectX = 1264 - userRectWidth;
+
+					drawTextbox(userRectX, y - 50, userRectWidth, 38);
+					gfx::drawText(username, userRectX + 16, y - 50, 32, txtClr);
+				}
+				data::users[i].icn.drawNoBlendSkip(tX, y);
+			}
+		}
 	}
 
 	void updateTitleMenu(const uint64_t& down, const uint64_t& held)
 	{
-		titleMenu.handleInput(down, held);
+		//Static vars so they don't change on every loop
+		//Where to start in titles, selected title
+		static int start = 0, selected = 0;
 
-		if(down & KEY_A)
+		//Color shift for rect
+		static uint8_t clrShft = 0;
+		//Whether or not we're adding or subtracting from clrShft
+		static bool clrAdd = true;
+
+		//Selected rectangle X and Y.
+		static unsigned selRectX = 64, selRectY = 74;
+
+		if(clrAdd)
 		{
-			data::curData = data::curUser.titles[titleMenu.getSelected()];
+			clrShft += 4;
+			if(clrShft > 63)
+				clrAdd = false;
+		}
+		else
+		{
+			clrShft--;
+			if(clrShft == 0)
+				clrAdd = true;
+		}
 
+		if(down & KEY_RIGHT)
+		{
+			if(selected < (int)data::curUser.titles.size() - 1)
+				selected++;
+
+			if(selected >= (int)start + 32)
+				start += 8;
+		}
+		else if(down & KEY_LEFT)
+		{
+			if(selected > 0)
+				selected--;
+
+			if(selected < (int)start)
+				start -= 8;
+		}
+		else if(down & KEY_UP)
+		{
+			selected -= 8;
+			if(selected < 0)
+				selected = 0;
+
+			if(selected < start)
+				start -= 8;
+		}
+		else if(down & KEY_DOWN)
+		{
+			selected += 8;
+			if(selected > (int)data::curUser.titles.size() - 1)
+				selected = data::curUser.titles.size() - 1;
+
+			if(selected - start >= 32)
+				start += 8;
+		}
+		else if(down & KEY_A)
+		{
+			data::curData = data::curUser.titles[selected];
 			if(fs::mountSave(data::curUser, data::curData))
 			{
 				util::makeTitleDir(data::curUser, data::curData);
-
 				folderMenuPrepare(data::curUser, data::curData);
-
 				mstate = FLD_SEL;
 			}
 		}
@@ -272,40 +429,68 @@ namespace ui
 			fs::dumpAllUserSaves(data::curUser);
 		}
 		else if(down & KEY_B)
-			mstate = USR_SEL;
-
-		if(data::sysSave)
 		{
-			std::string drawType = "Type: ";
-			switch(data::curUser.titles[titleMenu.getSelected()].getType())
-			{
-				case FsSaveDataType_SystemSaveData:
-					drawType += "System Save";
-					break;
-
-				case FsSaveDataType_SaveData:
-					drawType += "Save Data";
-					break;
-
-				case FsSaveDataType_BcatDeliveryCacheStorage:
-					drawType += "Bcat Delivery Cache";
-					break;
-
-				case FsSaveDataType_DeviceSaveData:
-					drawType += "Device Save";
-					break;
-
-				case FsSaveDataType_TemporaryStorage:
-					drawType += "Temp Storage";
-					break;
-
-				case FsSaveDataType_CacheStorage:
-					drawType += "Cache Storage";
-					break;
-			}
-
-			gfx::drawText(drawType, 16, 668, 32, mnuTxt);
+			start = 0;
+			selected = 0;
+			selRectX = 64;
+			selRectY = 74;
+			mstate = USR_SEL;
+			return;
 		}
+
+		unsigned x = 70, y = 80;
+
+		unsigned endTitle = start + 32;
+		if(start + 32 > (int)data::curUser.titles.size())
+			endTitle = data::curUser.titles.size();
+
+		//draw Rect so it's always behind icons
+		uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+		gfx::drawRectangle(selRectX, selRectY, 140, 140, rectClr);
+
+		for(unsigned i = start; i < endTitle; y += 144)
+		{
+			unsigned endRow = i + 8;
+			for(unsigned tX = x; i < endRow; i++, tX += 144)
+			{
+				if(i == endTitle)
+					break;
+
+				if((int)i == selected)
+				{
+					//Most Switch icons seem to be 256x256, we're drawing them 128x128
+					if(selRectX != tX - 6)
+					{
+						if(selRectX < tX - 6)
+							selRectX += 24;
+						else
+							selRectX -= 24;
+					}
+
+					if(selRectY != y - 6)
+					{
+						if(selRectY < y - 6)
+							selRectY += 24;
+						else
+							selRectY -= 24;
+					}
+
+					std::string title = data::curUser.titles[selected].getTitle();
+					unsigned titleWidth = gfx::getTextWidth(title, 32);
+					int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
+					if(rectX < 16)
+						rectX = 16;
+
+					if(rectX + rectWidth > 1264)
+						rectX = 1264 - rectWidth;
+
+					drawTextbox(rectX, y - 50, rectWidth, 38);
+					gfx::drawText(title, rectX + 16, y - 50, 32, txtClr);
+				}
+				data::curUser.titles[i].icon.drawHalf(tX, y);
+			}
+		}
+
 	}
 
 	void updateFolderMenu(const uint64_t& down, const uint64_t& held)

@@ -4,6 +4,9 @@
 #include <cstdio>
 #include <switch.h>
 #include <png.h>
+#include <jpeglib.h>
+
+#include <malloc.h>
 
 #include <ft2build.h>
 #include FT_FREETYPE_H
@@ -62,7 +65,7 @@ namespace gfx
 		return true;
 	}
 
-	bool fini()
+	bool exit()
 	{
 		if(faceret == 0)
 			FT_Done_Face(face);
@@ -306,10 +309,77 @@ namespace gfx
 		}
 	}
 
-	tex::~tex()
+	void tex::loadJpegMem(const uint8_t *txData, const uint32_t& jpegSz)
+	{
+		struct jpeg_decompress_struct jpegInfo;
+		struct jpeg_error_mgr error;
+
+		jpegInfo.err = jpeg_std_error(&error);
+
+		jpeg_create_decompress(&jpegInfo);
+		jpeg_mem_src(&jpegInfo, txData, jpegSz);
+		jpeg_read_header(&jpegInfo, true);
+
+		//make sure we have RGB
+		if(jpegInfo.jpeg_color_space == JCS_YCbCr)
+			jpegInfo.out_color_space = JCS_RGB;
+
+		width = jpegInfo.image_width;
+		height = jpegInfo.image_height;
+
+		data = new uint32_t[width * height];
+
+		jpeg_start_decompress(&jpegInfo);
+
+		JSAMPARRAY row = (JSAMPARRAY)new JSAMPARRAY[sizeof(JSAMPROW)];
+		row[0] = (JSAMPROW)new JSAMPROW[(sizeof(JSAMPLE) * width) * 3];
+
+		uint8_t *ptr;
+
+		for(unsigned y = 0, i = 0; y < height; y++)
+		{
+			jpeg_read_scanlines(&jpegInfo, row, 1);
+			unsigned x;
+			for(x = 0, ptr = row[0]; x < width; x++, ptr += 3, i++)
+			{
+				uint8_t r, g, b;
+				r = ptr[0];
+				g = ptr[1];
+				b = ptr[2];
+
+				data[i] = 0xFF << 24 | b << 16 | g << 8 | r;
+			}
+		}
+
+		jpeg_finish_decompress(&jpegInfo);
+		jpeg_destroy_decompress(&jpegInfo);
+
+		delete row[0];
+		delete[] row;
+	}
+
+	void tex::deleteData()
 	{
 		if(data != NULL)
+		{
 			delete[] data;
+			data = NULL;
+		}
+	}
+
+	uint16_t tex::getWidth()
+	{
+		return width;
+	}
+
+	uint16_t tex::getHeight()
+	{
+		return height;
+	}
+
+	const uint32_t *tex::getDataPointer()
+	{
+		return data;
 	}
 
 	void tex::draw(uint32_t x, uint32_t y)
@@ -340,6 +410,23 @@ namespace gfx
 			for(tY = y; tY < y + height; tY++)
 			{
 				for(tX = x; tX < x + width; tX++, i++)
+				{
+					fb[tY * frameBufWidth + tX] = data[i];
+				}
+			}
+		}
+	}
+
+	void tex::drawNoBlendSkip(unsigned x, unsigned y)
+	{
+		if(data != NULL)
+		{
+			unsigned tY, tX, i = 0;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			for(tY = y; tY < y + (height / 2); tY++, i += width)
+			{
+				for(tX = x; tX < x + (width / 2); tX++, i += 2)
 				{
 					fb[tY * frameBufWidth + tX] = data[i];
 				}

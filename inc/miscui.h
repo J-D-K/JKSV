@@ -44,6 +44,7 @@ namespace ui
 	bool confirm(const std::string& q);
 	bool confirmTransfer(const std::string& f, const std::string& t);
 	bool confirmDelete(const std::string& p);
+	void debShowTex(gfx::tex tx);
 	void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h);
 }
 

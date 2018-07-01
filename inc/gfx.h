@@ -7,7 +7,7 @@ namespace gfx
 {
 	//Inits graphics and shared font. Code for shared font is from switch-portlibs examples
 	bool init();
-	bool fini();
+	bool exit();
 
 	//Changes gfx mode to linear double
 	void switchMode();
@@ -42,10 +42,20 @@ namespace gfx
 			Others will have issues.
 			*/
 			void loadFromFile(const std::string& path);
+			//Icons
+			void loadJpegMem(const uint8_t *txData, const uint32_t& jpegSz);
 			//Frees memory used by data
-			~tex();
+			void deleteData();
+			uint16_t getWidth();
+			uint16_t getHeight();
+			const uint32_t *getDataPointer();
+
 			void draw(uint32_t x, uint32_t y);
 			void drawNoBlend(uint32_t x, uint32_t y);
+
+			//For lazy-scaling icons
+			//Skips every-other pixel and row, so 1/2 scale
+			void drawNoBlendSkip(unsigned x, unsigned y);
 
 			//These only repeat pixels.
 			void drawRepeatHori(uint32_t x, uint32_t y, uint32_t w);

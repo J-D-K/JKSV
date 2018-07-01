@@ -22,6 +22,7 @@ namespace ui
 
 	//Loads in the A, B, X, Y button graphics
 	void init();
+	void exit();
 
 	//Prepares menus for use
 	void userMenuInit();

@@ -6,12 +6,32 @@
 #include <vector>
 #include <string>
 
+#include "gfx.h"
+
 namespace data
 {
 	extern bool sysSave, forceMountable;
 
 	//Loads user + title info
 	void loadDataInfo();
+	void exit();
+
+	//Class to help not load the same icons over and over
+	class icn
+	{
+		public:
+			void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
+			void setIcon(const uint64_t& _id, const gfx::tex& _set);
+			void draw(unsigned x, unsigned y);
+			void drawHalf(unsigned x, unsigned y);
+			uint64_t getTitleID();
+
+			void deleteData();
+
+		private:
+			uint64_t titleID;
+			gfx::tex iconTex;
+	};
 
 	//Class to store title info
 	class titledata
@@ -29,6 +49,9 @@ namespace data
 
 			//Returns ID
 			uint64_t getID();
+
+			//Game icon
+			icn icon;
 
 			FsSaveDataType getType();
 
@@ -58,6 +81,8 @@ namespace data
 
 			//Vector for storing save data info for user
 			std::vector<titledata> titles;
+
+			gfx::tex icn;
 
 		private:
 			u128 userID;

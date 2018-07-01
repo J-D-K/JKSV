@@ -38,15 +38,27 @@ static int getUserIndex(const u128& id)
 	return -1;
 }
 
+//Default icon if one isn't found. For system saves
+gfx::tex defIcn;
+
 namespace data
 {
 	titledata curData;
 	user      curUser;
+	std::vector<icn> icons;
 	std::vector<user> users;
 	bool sysSave = false, forceMountable = true;
 
 	void loadDataInfo()
 	{
+		//Load default icon
+		defIcn.loadFromFile("romfs:/img/icn/icnDefault.png");
+
+		//Create icon for it
+		icn defIcnIcon;
+		defIcnIcon.setIcon((uint64_t)0, defIcn);
+		icons.push_back(defIcnIcon);
+
 		for(unsigned i = 0; i < users.size(); i++)
 			users[i].titles.clear();
 
@@ -102,6 +114,60 @@ namespace data
 		for(unsigned i = 0; i < users.size(); i++)
 			std::sort(users[i].titles.begin(), users[i].titles.end(), sortTitles);
 
+		curUser = users[0];
+	}
+
+	void exit()
+	{
+		for(unsigned i = 0; i < users.size(); i++)
+			users[i].icn.deleteData();
+
+		for(unsigned i = 1; i < icons.size(); i++)
+			icons[i].deleteData();
+	}
+
+	void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
+	{
+		titleID = _id;
+
+		iconTex.loadJpegMem(jpegData, jpegSize);
+	}
+
+	void icn::setIcon(const uint64_t& _id, const gfx::tex& _set)
+	{
+		titleID = _id;
+		iconTex = _set;
+	}
+
+	void icn::draw(unsigned x, unsigned y)
+	{
+		iconTex.drawNoBlend(x, y);
+	}
+
+	void icn::drawHalf(unsigned x, unsigned y)
+	{
+		iconTex.drawNoBlendSkip(x, y);
+	}
+
+	uint64_t icn::getTitleID()
+	{
+		return titleID;
+	}
+
+	void icn::deleteData()
+	{
+		iconTex.deleteData();
+	}
+
+	int findIcnIndex(const uint64_t& titleID)
+	{
+		for(unsigned i = 0; i < icons.size(); i++)
+		{
+			if(icons[i].getTitleID() == titleID)
+				return i;
+		}
+
+		return -1;
 	}
 
 	bool titledata::init(const FsSaveDataInfo& inf)
@@ -142,6 +208,20 @@ namespace data
 		{
 			title.assign(ent->name);
 			titleSafe = util::safeString(ent->name);
+
+			int iconIndex = findIcnIndex(id);
+			if(iconIndex == -1)
+			{
+				uint32_t icnSize = outSz - sizeof(dat->nacp);
+				icn newIcon;
+				newIcon.load(id, dat->icon, icnSize);
+				icons.push_back(newIcon);
+
+				icon = icons[findIcnIndex(id)];
+			}
+			else
+				icon = icons[iconIndex];
+
 			delete dat;
 		}
 		else
@@ -150,6 +230,7 @@ namespace data
 			sprintf(tmp, "%016lX", (u64)id);
 			title.assign(tmp);
 			titleSafe = util::safeString(tmp);
+			icon = icons[0];
 		}
 
 		return true;
@@ -208,6 +289,15 @@ namespace data
 			username = "Unknown";
 		userSafe = util::safeString(username);
 
+		size_t sz = 0;
+		accountProfileGetImageSize(&prof, &sz);
+		uint8_t *profJpeg = new uint8_t[sz];
+
+		accountProfileLoadImage(&prof, profJpeg, sz, &sz);
+		icn.loadJpegMem(profJpeg, sz);
+
+		delete[] profJpeg;
+
 		accountProfileClose(&prof);
 
 		return true;
@@ -237,6 +327,7 @@ namespace data
 		{
 			username = "Unknown";
 			userSafe = "Unknown";
+			icn = defIcn;
 		}
 
 		return true;

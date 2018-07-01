@@ -33,14 +33,11 @@ extern "C"
 	}
 }
 
-extern int mstate;
-
 int main(int argc, const char *argv[])
 {
 	gfx::init();
-	data::loadDataInfo();
 	ui::init();
-	ui::userMenuInit();
+	data::loadDataInfo();
 
 	bool run = true;
 	while(appletMainLoop() && run)
@@ -57,12 +54,9 @@ int main(int argc, const char *argv[])
 				data::sysSave = true;
 				data::forceMountable = false;
 				data::loadDataInfo();
-				ui::userMenuInit();
 
 				//Just to be sure
 				fsdevUnmountDevice("sv");
-
-				mstate = 0;
 			}
 		}
 		else if(down & KEY_PLUS)
@@ -72,5 +66,7 @@ int main(int argc, const char *argv[])
 
 		gfx::handleBuffs();
 	}
-	gfx::fini();
+	gfx::exit();
+	ui::exit();
+	data::exit();
 }

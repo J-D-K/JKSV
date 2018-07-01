@@ -186,6 +186,30 @@ namespace ui
 		return confirm(confMess);
 	}
 
+	void debShowTex(gfx::tex tx)
+	{
+		unsigned tbX = 256, tbY = 128;
+		unsigned tbW = 768, tbH = 464;
+
+		unsigned texX = tbX + ((tbW / 2) - (tx.getWidth() / 2));
+		unsigned texY = tbY + ((tbH / 2) - (tx.getHeight() / 2));
+
+		while(true)
+		{
+			hidScanInput();
+
+			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+
+			if(down & KEY_A)
+				break;
+
+			ui::drawTextbox(tbX, tbY, tbW, tbH);
+			tx.drawNoBlend(texX, texY);
+
+			gfx::handleBuffs();
+		}
+	}
+
 	void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h)
 	{
 		//Top
