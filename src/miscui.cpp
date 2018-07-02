@@ -1,3 +1,4 @@
+#include <cstring>
 #include <switch.h>
 
 #include "gfx.h"
@@ -57,6 +58,16 @@ namespace ui
 		}
 
 		gfx::drawText(text, tx, ty, 48, txtClr);
+	}
+
+	unsigned button::getX()
+	{
+		return x;
+	}
+
+	unsigned button::getY()
+	{
+		return y;
 	}
 
 	bool button::isOver(const touchPosition& p)

@@ -32,13 +32,13 @@ static gfx::tex buttonA, buttonB, buttonX, buttonY;
 static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
 
 //Advanced mode paths
-static std::string savePath, sdPath, saveWrap, sdWrap, folderMenuInfo;
+static std::string savePath, sdPath, saveWrap, sdWrap;
 //Advanced mode directory listings
 static fs::dirList saveList(""), sdList("");
 //Current menu and previous menu for advanced mode.
 static int advMenuCtrl = 0, advPrev = 0;
 
-static std::vector<ui::button> selButtons;
+std::vector<ui::button> selButtons;
 
 namespace ui
 {
@@ -133,20 +133,20 @@ namespace ui
 		buttonY.deleteData();
 	}
 
-	void setupSelButtons()
-	{
-		int x = 70, y = 80;
-		for(int i = 0; i < 32; y += 144)
-		{
-			int endRow = i + 8;
-			for(int tX = x; i < endRow; tX += 144, i++)
-			{
-				//Make a new button with no text. We're not drawing them anyway
-				ui::button newSelButton("", tX, y, 128, 128);
-				selButtons.push_back(newSelButton);
-			}
-		}
-	}
+    void setupSelButtons()
+    {
+        int x = 64, y = 74;
+        for(int i = 0; i < 32; y += 144)
+        {
+            int endRow = i + 8;
+            for(int tX = x; i < endRow; tX += 144, i++)
+            {
+                //Make a new button with no text. We're not drawing them anyway
+                ui::button newSelButton("", tX, y, 128, 128);
+                selButtons.push_back(newSelButton);
+            }
+        }
+    }
 
 	void folderMenuPrepare(data::user& usr, data::titledata& dat)
 	{
@@ -169,11 +169,8 @@ namespace ui
 		switch(mstate)
 		{
 			case FLD_SEL:
-				gfx::drawRectangle(16, 64, 1248, 1, rectLt);
-				gfx::drawRectangle(16, 65, 1248, 2, rectSh);
-
-				gfx::drawRectangle(288, 65, 1, 592, rectLt);
-				gfx::drawRectangle(289, 65, 2, 592, rectSh);
+				gfx::drawRectangle(448, 64, 1, 592, rectLt);
+				gfx::drawRectangle(449, 64, 2, 592, rectSh);
 
 				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
 				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
@@ -224,7 +221,7 @@ namespace ui
 
 			case FLD_SEL:
 				{
-					folderMenu.print(308, 88, mnuTxt, 956);
+					folderMenu.print(458, 88, mnuTxt, 806);
 					//Input guide
 					unsigned startX = 726;
 					gfx::drawText("- Adv. Mode", startX, 668, 32, mnuTxt);
@@ -257,8 +254,6 @@ namespace ui
 		static bool clrAdd = true;
 
 		static unsigned selRectX = 64, selRectY = 74;
-
-		static ui::touchTrack track;
 
 		if(clrAdd)
 		{
@@ -324,20 +319,15 @@ namespace ui
 		}
 
 
-		//Update invisible buttons
-		for(int i = 0; i < 32; i++)
-		{
-			if(selected == i && selButtons[i].released(p))
-			{
-				data::curUser = data::users[selected];
-				mstate = TTL_SEL;
-			}
-			else if(selButtons[i].released(p))
-			{
-				if(start + i < (int)data::users.size())
-					selected = start + i;
-			}
-		}
+        //Update invisible buttons
+        for(int i = 0; i < 32; i++)
+        {
+            if(selButtons[i].released(p))
+            {
+                if(start + i < (int)data::users.size())
+                    selected = start + i;
+            }
+        }
 
 		if(down & KEY_RIGHT)
 		{
@@ -471,27 +461,13 @@ namespace ui
 
 		//Buttons
 		for(int i = 0; i < 32; i++)
-		{
-			if(i == selected && selButtons[i].released(p))
-			{
-				//Correct rectangle if it can't catch up. Buttons use same x, y as icons
-				selRectX = selButtons[i].getX() - 6;
-				selRectY = selButtons[i].getY() - 6;
-
-				data::curData = data::curUser.titles[selected];
-				if(fs::mountSave(data::curUser, data::curData))
-				{
-					util::makeTitleDir(data::curUser, data::curData);
-					folderMenuPrepare(data::curUser, data::curData);
-					mstate = FLD_SEL;
-				}
-			}
-			else if(selButtons[i].released(p))
-			{
-				if(start + i < (int)data::curUser.titles.size())
-					selected = start + i;
-			}
-		}
+        {
+            if(selButtons[i].released(p))
+            {
+                if(start + i < (int)data::curUser.titles.size())
+                    selected = start + i;
+            }
+        }
 
 		if(down & KEY_RIGHT)
 		{
@@ -534,13 +510,6 @@ namespace ui
 			{
 				util::makeTitleDir(data::curUser, data::curData);
 				folderMenuPrepare(data::curUser, data::curData);
-
-				char tmp[18];
-				sprintf(tmp, " %016lX", data::curData.getID());
-				folderMenuInfo = data::curData.getTitle() + tmp + util::retTypeString(data::curData);
-
-				folderMenuInfo = util::getWrappedString(folderMenuInfo, 38, 256);
-
 				mstate = FLD_SEL;
 			}
 		}
@@ -562,9 +531,6 @@ namespace ui
 	void updateFolderMenu(const uint64_t& down, const uint64_t& held)
 	{
 		folderMenu.handleInput(down, held);
-
-		data::curData.icon.draw(16, 88);
-		gfx::drawText(folderMenuInfo, 16, 344, 38, mnuTxt);
 
 		if(down & KEY_A)
 		{

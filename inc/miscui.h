@@ -1,6 +1,15 @@
 #ifndef MISCUI_H
 #define MISCUI_H
 
+enum touchTracks
+{
+	TOUCH_SWIPE_UP,
+	TOUCH_SWIPE_DOWN,
+	TOUCH_SWIPE_LEFT,
+	TOUCH_SWIPE_RIGHT,
+	TOUCH_NOTHING
+};
+
 //For smaller classes that aren't easy to get lost in and general functions
 namespace ui
 {
@@ -27,6 +36,9 @@ namespace ui
 			button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h);
 			void draw();
 
+			unsigned getX();
+			unsigned getY();
+
 			bool isOver(const touchPosition& p);
 			bool released(const touchPosition& p);
 
@@ -36,6 +48,20 @@ namespace ui
 			unsigned tx, ty;
 			std::string text;
 			touchPosition prev;
+	};
+
+	//Not ready yet.
+	class touchTrack
+	{
+		public:
+			void trackTouch(const touchPosition& p);
+
+			int getDifX();
+			int getDifY();
+
+		private:
+			touchPosition prev, cur;
+			int curPos = 0, avX = 0, avY = 0;
 	};
 
 	//General use

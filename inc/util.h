@@ -26,5 +26,7 @@ namespace util
 	void removeLastFolderFromString(std::string& _path);
 
 	std::string safeString(const std::string& s);
+
+	std::string retTypeString(data::titledata& d);
 }
 #endif // UTIL_H

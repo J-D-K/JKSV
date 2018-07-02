@@ -47,6 +47,9 @@ int main(int argc, const char *argv[])
 		uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
 		uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
 
+		touchPosition p;
+		hidTouchRead(&p, 0);
+
 		if((held & KEY_L) && (held & KEY_R) && (held & KEY_ZL) && (held & KEY_ZR))
 		{
 			if(ui::confirm("You are about to enable system save dumping and remove checks. Are you sure you want to continue?"))
@@ -62,7 +65,7 @@ int main(int argc, const char *argv[])
 		else if(down & KEY_PLUS)
 			break;
 
-		ui::runApp(down, held);
+		ui::runApp(down, held, p);
 
 		gfx::handleBuffs();
 	}

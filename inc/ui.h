@@ -24,25 +24,22 @@ namespace ui
 	void init();
 	void exit();
 
-	//Prepares menus for use
-	void userMenuInit();
-	void titleMenuPrepare(data::user& usr);
+	//Prepares ui
+	//Sets up buttons for icon touchin
+	void setupSelButtons();
 	void folderMenuPrepare(data::user& usr, data::titledata& dat);
-
-	//Draws title bar at top
-	void drawTitleBar(const std::string& txt);
 
 	//Clears, draws UI + menus
 	void drawUI();
 
 	//Handles input and actions for UI menus. Sometimes draw thing specific to each
-	void updateUserMenu(const uint64_t& down, const uint64_t& held);
-	void updateTitleMenu(const uint64_t& down, const uint64_t& held);
+	void updateUserMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
+	void updateTitleMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
 	void updateFolderMenu(const uint64_t& down, const uint64_t& held);
 	void updateAdvMode(const uint64_t& down, const uint64_t& held);
 
 	//switch case so we don't have problems with multiple main loops like 3DS
-	void runApp(const uint64_t& down, const uint64_t& held);
+	void runApp(const uint64_t& down, const uint64_t& held, const touchPosition& p);
 }
 
 #endif

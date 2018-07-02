@@ -122,4 +122,37 @@ namespace util
 		return ret;
 	}
 
+	std::string retTypeString(data::titledata& d)
+	{
+		std::string ret = "???";
+
+		switch(d.getType())
+		{
+			case FsSaveDataType_SystemSaveData:
+				ret = " System Save";
+				break;
+
+			case FsSaveDataType_SaveData:
+				ret = " Save Data";
+				break;
+
+			case FsSaveDataType_BcatDeliveryCacheStorage:
+				ret = " Bcat Delivery Cache";
+				break;
+
+			case FsSaveDataType_DeviceSaveData:
+				ret = " Device Save";
+				break;
+
+			case FsSaveDataType_TemporaryStorage:
+				ret = " Temp Storage";
+				break;
+
+			case FsSaveDataType_CacheStorage:
+				ret = " Cache Storage";
+				break;
+		}
+
+		return ret;
+	}
 }
