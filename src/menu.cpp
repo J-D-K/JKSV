@@ -3,9 +3,25 @@
 
 #include "gfx.h"
 #include "menu.h"
+#include "miscui.h"
 
 namespace ui
 {
+	void menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW)
+	{
+		x = _x;
+		y = _y;
+		rW = _rW;
+		rY = _y;
+
+		for(unsigned i = 0; i < 15; i++)
+		{
+			//Init + push invisible options buttons
+			ui::button newOptButton("", x, y + i * 36, rW, 36);
+			optButtons.push_back(newOptButton);
+		}
+	}
+
 	void menu::addOpt(const std::string& add)
 	{
 		opt.push_back(add);
@@ -16,7 +32,7 @@ namespace ui
 		opt.clear();
 	}
 
-	void menu::handleInput(const uint64_t& down, const uint64_t& held)
+	void menu::handleInput(const uint64_t& down, const uint64_t& held, const touchPosition& p)
 	{
 		if( (held & KEY_UP) || (held & KEY_DOWN))
 			fc++;
@@ -66,14 +82,42 @@ namespace ui
 			if(selected < start)
 				start = selected;
 		}
+
+		//New touch shit
+		for(int i = 0; i < 15; i++)
+		{
+			optButtons[i].update(p);
+			if(selected == i && optButtons[i - start].getEvent() == BUTTON_RELEASED)
+			{
+				retEvent = MENU_DOUBLE_REL;
+				break;
+			}
+			else if(optButtons[i].getEvent() == BUTTON_RELEASED && i + start < (int)opt.size())
+			{
+				selected = i + start;
+				retEvent = MENU_NOTHING;
+			}
+			else
+				retEvent = MENU_NOTHING;
+		}
+
+		track.update(p);
+
+		switch(track.getEvent())
+		{
+			case TRACK_SWIPE_UP:
+				if(start + 15 < (int)opt.size())
+					start++, selected++;
+				break;
+
+			case TRACK_SWIPE_DOWN:
+				if(start - 1 >= 0)
+					start--, selected--;
+				break;
+		}
 	}
 
-	int menu::getSelected()
-	{
-		return selected;
-	}
-
-	void menu::print(const unsigned& x, const unsigned& y, const uint32_t& textClr, const uint32_t& rectWidth)
+	void menu::draw(const uint32_t& textClr)
 	{
 		if(clrAdd)
 		{
@@ -99,7 +143,7 @@ namespace ui
 		for(int i = start; i < length; i++)
 		{
 			if(i == selected)
-				gfx::drawRectangle(x, y + ((i - start) * 36), rectWidth, 32, rectClr);
+				gfx::drawRectangle(x, y + ((i - start) * 36), rW, 32, rectClr);
 
 			gfx::drawText(opt[i], x, y + ((i - start) * 36), 38, textClr);
 		}

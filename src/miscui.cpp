@@ -48,56 +48,98 @@ namespace ui
 		ty = y + (h / 2) - (th / 2);
 	}
 
+	void button::update(const touchPosition& p)
+	{
+		prev = cur;
+		cur  = p;
+
+		//If button was first thing pressed
+		if(isOver() && prev.px == 0 && prev.py == 0)
+		{
+			first = true;
+			pressed = true;
+			retEvent = BUTTON_PRESSED;
+		}
+		else if(retEvent == BUTTON_PRESSED && hidTouchCount() == 0 && wasOver())
+		{
+			first = false;
+			pressed = false;
+			retEvent = BUTTON_RELEASED;
+		}
+		else if(retEvent != BUTTON_NOTHING && hidTouchCount() == 0)
+		{
+			first = false;
+			pressed = false;
+			retEvent = BUTTON_NOTHING;
+		}
+	}
+
+	bool button::isOver()
+	{
+		return (cur.px > x && cur.px < x + w && cur.py > y && cur.py < y + h);
+	}
+
+	bool button::wasOver()
+	{
+		return (prev.px > x && prev.px < x + w && prev.py > y && prev.py < y + h);
+	}
+
 	void button::draw()
 	{
 		if(pressed)
 			gfx::drawRectangle(x, y, w, h, 0xFFD0D0D0);
 		else
-		{
 			ui::drawTextbox(x, y, w, h);
-		}
 
 		gfx::drawText(text, tx, ty, 48, txtClr);
 	}
 
-	unsigned button::getX()
+	void touchTrack::update(const touchPosition& p)
 	{
-		return x;
-	}
-
-	unsigned button::getY()
-	{
-		return y;
-	}
-
-	bool button::isOver(const touchPosition& p)
-	{
-		return (p.px > x && p.px < x + w) && (p.py > y && p.py < y + h);
-	}
-
-	bool button::released(const touchPosition& p)
-	{
-		prev = p;
-		if(isOver(p))
-			pressed = true;
-		else
+		if(hidTouchCount() > 0)
 		{
-			uint32_t touchCount = hidTouchCount();
-			if(pressed && touchCount == 0)
+			pos[curPos++] = p;
+			if(curPos == 5)
 			{
-				pressed = false;
-				return true;
+				curPos = 0;
+
+				for(unsigned i = 1; i < 5; i++)
+				{
+					touchPosition c = pos[i], p = pos[i - 1];
+					avX += c.px - p.px;
+					avY += c.py - p.py;
+				}
+
+				avX /= 5;
+				avY /= 5;
+
+				if(avY <= -8)
+					retTrack = TRACK_SWIPE_UP;
+				else if(avY >= 8)
+					retTrack = TRACK_SWIPE_DOWN;
+				else if(retTrack <= -8)
+					retTrack = TRACK_SWIPE_LEFT;
+				else if(retTrack >= 8)
+					retTrack = TRACK_SWIPE_RIGHT;
+				else
+					retTrack = TRACK_NOTHING;
+
+				std::memset(pos, 0, sizeof(touchPosition) * 5);
 			}
 			else
-				pressed = false;
+				retTrack = TRACK_NOTHING;
+		}
+		else
+		{
+			retTrack = TRACK_NOTHING;
+			curPos = 0;
 		}
 
-		return false;
 	}
 
 	void showMessage(const std::string& mess)
 	{
-		button ok("OK (A)", 256, 496, 768, 96);
+		button ok("OK", 256, 496, 768, 96);
 		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 		while(true)
 		{
@@ -107,12 +149,15 @@ namespace ui
 			touchPosition p;
 			hidTouchRead(&p, 0);
 
-			if(down & KEY_A || down & KEY_B || ok.released(p))
+			ok.update(p);
+
+			if(down & KEY_A || down & KEY_B || ok.getEvent() == BUTTON_RELEASED)
 				break;
 
 			ui::drawTextbox(256, 128, 768, 464);
 			gfx::drawText(wrapMess, 272, 144, 48, txtClr);
 			ok.draw();
+			ui::buttonA.drawInvert(ok.getTx() + 48, ok.getTy());
 
 			gfx::handleBuffs();
 		}
@@ -133,7 +178,9 @@ namespace ui
 			touchPosition p;
 			hidTouchRead(&p, 0);
 
-			if(down & KEY_A || down & KEY_B || ok.released(p))
+			ok.update(p);
+
+			if(down & KEY_A || down & KEY_B || ok.getEvent() == BUTTON_RELEASED)
 				break;
 
 			ui::drawTextbox(256, 128, 768, 464);
@@ -148,8 +195,8 @@ namespace ui
 	{
 		bool ret = false;
 
-		button yes("Yes (A)", 256, 496, 384, 96);
-		button no("No (B)", 640, 496, 384, 96);
+		button yes("Yes ", 256, 496, 384, 96);
+		button no("No ", 640, 496, 384, 96);
 
 		std::string wrapMess = util::getWrappedString(mess, 48, 752);
 
@@ -161,12 +208,15 @@ namespace ui
 			touchPosition p;
 			hidTouchRead(&p, 0);
 
-			if(down & KEY_A || yes.released(p))
+			yes.update(p);
+			no.update(p);
+
+			if(down & KEY_A || yes.getEvent() == BUTTON_RELEASED)
 			{
 				ret = true;
 				break;
 			}
-			else if(down & KEY_B || no.released(p))
+			else if(down & KEY_B || no.getEvent() == BUTTON_RELEASED)
 			{
 				ret = false;
 				break;
@@ -175,7 +225,9 @@ namespace ui
 			ui::drawTextbox(256, 128, 768, 464);
 			gfx::drawText(wrapMess, 272, 144, 48, txtClr);
 			yes.draw();
+			ui::buttonA.drawInvert(yes.getTx() + 56, yes.getTy());
 			no.draw();
+			ui::buttonB.drawInvert(no.getTx() + 48, no.getTy());
 
 			gfx::handleBuffs();
 		}
@@ -195,30 +247,6 @@ namespace ui
 		std::string confMess = "Are you 100% sure you want to delete \"" + p + "\"? This is permanent!";
 
 		return confirm(confMess);
-	}
-
-	void debShowTex(gfx::tex tx)
-	{
-		unsigned tbX = 256, tbY = 128;
-		unsigned tbW = 768, tbH = 464;
-
-		unsigned texX = tbX + ((tbW / 2) - (tx.getWidth() / 2));
-		unsigned texY = tbY + ((tbH / 2) - (tx.getHeight() / 2));
-
-		while(true)
-		{
-			hidScanInput();
-
-			uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-
-			if(down & KEY_A)
-				break;
-
-			ui::drawTextbox(tbX, tbY, tbW, tbH);
-			tx.drawNoBlend(texX, texY);
-
-			gfx::handleBuffs();
-		}
 	}
 
 	void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h)

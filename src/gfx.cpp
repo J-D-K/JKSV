@@ -17,7 +17,7 @@
 static FT_Error ret = 0, libret = 1, faceret = 1;
 static FT_Library lib;
 static FT_Face face;
-static uint32_t frameBufWidth = 0;
+static uint32_t fbw = 0;
 
 namespace gfx
 {
@@ -86,59 +86,49 @@ namespace gfx
 	}
 
 	//switch-portlibs examples.
-	void drawGlyph(FT_Bitmap& bmp, uint32_t *frameBuf, unsigned x, unsigned y, const uint8_t& r, const uint8_t& g, const uint8_t& b)
+	void drawGlyph(const FT_Bitmap& bmp, uint32_t *fb, unsigned _x, unsigned _y, color& txtClr)
 	{
-		uint32_t frameX, frameY, tmpX, tmpY;
-		uint8_t *imgPtr = bmp.buffer;
-
 		if(bmp.pixel_mode != FT_PIXEL_MODE_GRAY)
 			return;
 
-		for(tmpY = 0; tmpY < bmp.rows; tmpY++)
+		uint8_t *imgPtr = bmp.buffer;
+		color fbPx;
+		for(unsigned y = _y; y < _y + bmp.rows; y++)
 		{
-			for(tmpX = 0; tmpX < bmp.width; tmpX++)
+			uint32_t *rowPtr = &fb[y * fbw + _x];
+			for(unsigned x = _x; x < _x + bmp.width; x++, imgPtr++, rowPtr++)
 			{
-				frameX = x + tmpX;
-				frameY = y + tmpY;
-
-				if(imgPtr[tmpX] > 0)
+				if(*imgPtr > 0)
 				{
-					uint32_t fbPx = frameBuf[frameY * frameBufWidth + frameX];
-					uint32_t txPx = imgPtr[tmpX] << 24 | b << 16 | g << 8 | r;
-					frameBuf[frameY * frameBufWidth + frameX] = blend(txPx, fbPx);
+					fbPx.fromU32(*rowPtr);
+					txtClr.setA(*imgPtr);
+
+					*rowPtr = blend(txtClr, fbPx);
 				}
 			}
-
-			imgPtr += bmp.pitch;
 		}
 	}
 
 	void drawText(const std::string& str, unsigned x, unsigned y, const uint32_t& sz, const uint32_t& clr)
 	{
-		//This offset needs to be fixed better
-		y = y + 27;
-		uint32_t tmpX = x;
+		int tmpX = x;
 		FT_Error ret = 0;
-		FT_UInt glyphIndex;
 		FT_GlyphSlot slot = face->glyph;
 		uint32_t tmpChr;
 		ssize_t unitCount = 0;
 
+		y += 27;
+
 		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
 
-		uint32_t *frameBuffer = (uint32_t *)gfxGetFramebuffer(&frameBufWidth, NULL);
+		uint32_t *fb = (uint32_t *)gfxGetFramebuffer(&fbw, NULL);
 
-		uint8_t tmpStr[1024];
-		sprintf((char *)tmpStr, "%s", str.c_str());
-
-		uint8_t r, g, b;
-		r = clr & 0xFF;
-		g = clr >> 8 & 0xFF;
-		b = clr >> 16 & 0xFF;
+		color textColor;
+		textColor.fromU32(clr);
 
 		for(unsigned i = 0; i < str.length(); )
 		{
-			unitCount = decode_utf8(&tmpChr, &tmpStr[i]);
+			unitCount = decode_utf8(&tmpChr, (uint8_t *)&str.data()[i]);
 			if(unitCount <= 0)
 				break;
 
@@ -150,15 +140,13 @@ namespace gfx
 				continue;
 			}
 
-			glyphIndex = FT_Get_Char_Index(face, tmpChr);
-			ret = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
+			ret = FT_Load_Glyph(face, FT_Get_Char_Index(face, tmpChr), FT_LOAD_RENDER);
 
 			if(ret)
 				return;
 
-			drawGlyph(slot->bitmap, frameBuffer, tmpX + slot->bitmap_left, y - slot->bitmap_top, r, g, b);
+			drawGlyph(slot->bitmap, fb, tmpX + slot->bitmap_left, y - slot->bitmap_top, textColor);
 			tmpX += slot->advance.x >> 6;
-			y += slot->advance.y >> 6;
 		}
 	}
 
@@ -171,14 +159,11 @@ namespace gfx
 		FT_GlyphSlot slot = face->glyph;
 		FT_Error ret = 0;
 
-		uint8_t tmpstr[1024];
-		sprintf((char *)tmpstr, "%s", str.c_str());
-
 		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
 
 		for(unsigned i = 0; i < str.length(); )
 		{
-			unitCount = decode_utf8(&tmpChr, &tmpstr[i]);
+			unitCount = decode_utf8(&tmpChr, (uint8_t *)&str.data()[i]);
 
 			if(unitCount <= 0)
 				break;
@@ -218,25 +203,19 @@ namespace gfx
 		std::memset(fb, clr, fbSize);
 	}
 
-	uint32_t blend(const uint32_t& clr, const uint32_t& fb)
+	uint32_t blend(color& px, color& fb)
 	{
-		uint8_t r1, g1, b1, al;
-		r1 = clr & 0xFF;
-		g1 = clr >> 8 & 0xFF;
-		b1 = clr >> 16 & 0xFF;
-		al = clr >> 24 & 0xFF;
+		//Skip fully transparent and solid pixels and not waste time
+		if(px.a() == 0)
+			return fb.clr();
+		else if(px.a() == 0xFF)
+			return px.clr();
 
-		//Assuming this is FB
-		uint8_t r2, g2, b2;
-		r2 = fb & 0xFF;
-		g2 = fb >> 8 & 0xFF;
-		b2 = fb >> 16 & 0xFF;
+		uint8_t subAl = (uint8_t)0xFF - px.a();
 
-		uint8_t subAl = (uint8_t)0xFF - al;
-
-		uint8_t finalRed = (r1 * al + r2 * subAl) / 0xFF;
-		uint8_t finalGreen = (g1 * al + g2 * subAl) / 0xFF;
-		uint8_t finalBlue = (b1 * al + b2 * subAl) / 0xFF;
+		uint8_t finalRed = (px.r() * px.a() + fb.r() * subAl) / 0xFF;
+		uint8_t finalGreen = (px.g() * px.a() + fb.g() * subAl) / 0xFF;
+		uint8_t finalBlue = (px.b() * px.a() + fb.b() * subAl) / 0xFF;
 
 		return (0xFF << 24 | finalBlue << 16 | finalGreen << 8 | finalRed);
 	}
@@ -244,18 +223,42 @@ namespace gfx
 	void drawRectangle(uint32_t x, uint32_t y, const uint32_t& width, const uint32_t& height, const uint32_t& clr)
 	{
 		uint32_t tX, tY;
-		uint32_t *frameBuffer = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+		uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
 		for(tY = y; tY < y + height; tY++)
 		{
+			uint32_t *rowPtr = &fb[tY * fbw + x];
 			for(tX = x; tX < x + width; tX++)
 			{
-				frameBuffer[tY * frameBufWidth + tX] = clr;
+				*rowPtr++ = clr;
 			}
 		}
 	}
 
-	void tex::loadFromFile(const std::string& path)
+	void color::fromRGBA(const uint8_t& _r, const uint8_t& _g, const uint8_t& _b, const uint8_t& _a)
+	{
+		rgb[0] = _a;
+		rgb[1] = _b;
+		rgb[2] = _g;
+		rgb[3] = _r;
+	}
+
+	void color::fromU32(const uint32_t& _px)
+	{
+		rgb[0] = _px >> 24 & 0xFF;
+		rgb[1] = _px >> 16 & 0xFF;
+		rgb[2] = _px >>  8 & 0xFF;
+		rgb[3] = _px & 0xFF;
+	}
+
+	void color::invert()
+	{
+		rgb[3] = 0xFF - rgb[3];
+		rgb[2] = 0xFF - rgb[2];
+		rgb[1] = 0xFF - rgb[1];
+	}
+
+	void tex::loadPNGFile(const std::string& path)
 	{
 		FILE *pngIn = fopen(path.c_str(), "rb");
 		if(pngIn != NULL)
@@ -276,8 +279,7 @@ namespace gfx
 
 			png_read_info(png, pngInfo);
 
-			unsigned clrType = png_get_color_type(png, pngInfo);
-			if(clrType != PNG_COLOR_TYPE_RGBA)
+			if(png_get_color_type(png, pngInfo) != PNG_COLOR_TYPE_RGBA)
 				return;
 
 			width = png_get_image_width(png, pngInfo);
@@ -291,11 +293,12 @@ namespace gfx
 
 			png_read_image(png, rows);
 
-			for(unsigned y = 0, i = 0; y < height; y++)
+			uint32_t *dataPtr = &data[0];
+			for(unsigned y = 0; y < height; y++)
 			{
-				png_bytep row = rows[y];
-				for(unsigned x = 0; x < width * 4; x += 4, i++)
-					std::memcpy(&data[i], &row[x], sizeof(uint32_t));
+				uint32_t *rowPtr = (uint32_t *)rows[y];
+				for(unsigned x = 0; x < width; x++)
+					*dataPtr++ = *rowPtr++;
 			}
 
 			for(unsigned i = 0; i < height; i++)
@@ -309,7 +312,7 @@ namespace gfx
 		}
 	}
 
-	void tex::loadJpegMem(const uint8_t *txData, const uint32_t& jpegSz)
+	void tex::loadJpegMem(const uint8_t *txData, const size_t& jpegSz)
 	{
 		struct jpeg_decompress_struct jpegInfo;
 		struct jpeg_error_mgr error;
@@ -331,23 +334,20 @@ namespace gfx
 
 		jpeg_start_decompress(&jpegInfo);
 
+		//Do it line by line. All at once doesn't seem to work?
 		JSAMPARRAY row = (JSAMPARRAY)new JSAMPARRAY[sizeof(JSAMPROW)];
 		row[0] = (JSAMPROW)new JSAMPROW[(sizeof(JSAMPLE) * width) * 3];
 
+		//Makes stuff easier
 		uint8_t *ptr;
-
-		for(unsigned y = 0, i = 0; y < height; y++)
+		uint32_t *dataPtr = &data[0];
+		for(unsigned y = 0; y < height; y++)
 		{
-			jpeg_read_scanlines(&jpegInfo, row, 1);
 			unsigned x;
-			for(x = 0, ptr = row[0]; x < width; x++, ptr += 3, i++)
+			jpeg_read_scanlines(&jpegInfo, row, 1);
+			for(x = 0, ptr = row[0]; x < width; x++, ptr += 3)
 			{
-				uint8_t r, g, b;
-				r = ptr[0];
-				g = ptr[1];
-				b = ptr[2];
-
-				data[i] = 0xFF << 24 | b << 16 | g << 8 | r;
+				*dataPtr++ = (0xFF << 24 | ptr[2] << 16 | ptr[1] << 8 | ptr[0]);
 			}
 		}
 
@@ -356,6 +356,57 @@ namespace gfx
 
 		delete row[0];
 		delete[] row;
+	}
+
+	void tex::loadJpegFile(const std::string& path)
+	{
+		FILE *jpegFile = fopen(path.c_str(), "rb");
+		if(jpegFile != NULL)
+		{
+			struct jpeg_decompress_struct jpegInfo;
+			struct jpeg_error_mgr error;
+
+			jpegInfo.err = jpeg_std_error(&error);
+
+			jpeg_create_decompress(&jpegInfo);
+			jpeg_stdio_src(&jpegInfo, jpegFile);
+			jpeg_read_header(&jpegInfo, true);
+
+			//make sure we have RGB
+			if(jpegInfo.jpeg_color_space == JCS_YCbCr)
+				jpegInfo.out_color_space = JCS_RGB;
+
+			width = jpegInfo.image_width;
+			height = jpegInfo.image_height;
+
+			data = new uint32_t[width * height];
+
+			jpeg_start_decompress(&jpegInfo);
+
+			//Do it line by line. All at once doesn't seem to work?
+			JSAMPARRAY row = (JSAMPARRAY)new JSAMPARRAY[sizeof(JSAMPROW)];
+			row[0] = (JSAMPROW)new JSAMPROW[(sizeof(JSAMPLE) * width) * 3];
+
+			//Makes stuff easier
+			uint8_t *ptr;
+			uint32_t *dataPtr = &data[0];
+			for(unsigned y = 0; y < height; y++)
+			{
+				unsigned x;
+				jpeg_read_scanlines(&jpegInfo, row, 1);
+				for(x = 0, ptr = row[0]; x < width; x++, ptr += 3)
+				{
+					*dataPtr++ = (0xFF << 24 | ptr[2] << 16 | ptr[1] << 8 | ptr[0]);
+				}
+			}
+
+			jpeg_finish_decompress(&jpegInfo);
+			jpeg_destroy_decompress(&jpegInfo);
+			fclose(jpegFile);
+
+			delete row[0];
+			delete[] row;
+		}
 	}
 
 	void tex::deleteData()
@@ -367,34 +418,47 @@ namespace gfx
 		}
 	}
 
-	uint16_t tex::getWidth()
-	{
-		return width;
-	}
-
-	uint16_t tex::getHeight()
-	{
-		return height;
-	}
-
-	const uint32_t *tex::getDataPointer()
-	{
-		return data;
-	}
-
 	void tex::draw(uint32_t x, uint32_t y)
 	{
 		if(data != NULL)
 		{
-			uint32_t tY, tX, i = 0;
-			uint32_t *frameBuffer = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+			uint32_t tY, tX;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
+			color dataClr, fbClr;
+
+			uint32_t *dataPtr = &data[0];
 			for(tY = y; tY < y + height; tY++)
 			{
-				for(tX = x; tX < x + width; tX++, i++)
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				for(tX = x; tX < x + width; tX++, rowPtr++)
 				{
-					uint32_t buf = frameBuffer[tY * frameBufWidth + tX];
-					frameBuffer[tY * frameBufWidth + tX] = blend(data[i], buf);
+					dataClr.fromU32(*dataPtr++);
+					fbClr.fromU32(*rowPtr);
+					*rowPtr = blend(dataClr, fbClr);
+				}
+			}
+		}
+	}
+
+	void tex::drawInvert(uint32_t x, uint32_t y)
+	{
+		if(data != NULL)
+		{
+			uint32_t tX, tY;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			color dataClr, fbClr;
+			uint32_t *dataPtr = &data[0];
+			for(tY = y; tY < y + height; tY++)
+			{
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				for(tX = x; tX < x + width; tX++, rowPtr++)
+				{
+					dataClr.fromU32(*dataPtr++);
+					dataClr.invert();
+					fbClr.fromU32(*rowPtr);
+					*rowPtr = blend(dataClr, fbClr);
 				}
 			}
 		}
@@ -404,14 +468,16 @@ namespace gfx
 	{
 		if(data != NULL)
 		{
-			uint32_t tY, tX, i = 0;
+			uint32_t tY, tX;
 			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
+			uint32_t *dataPtr = &data[0];
 			for(tY = y; tY < y + height; tY++)
 			{
-				for(tX = x; tX < x + width; tX++, i++)
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				for(tX = x; tX < x + width; tX++)
 				{
-					fb[tY * frameBufWidth + tX] = data[i];
+					*rowPtr++ = *dataPtr++;
 				}
 			}
 		}
@@ -421,14 +487,47 @@ namespace gfx
 	{
 		if(data != NULL)
 		{
-			unsigned tY, tX, i = 0;
+			unsigned tY, tX;
 			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
-			for(tY = y; tY < y + (height / 2); tY++, i += width)
+			uint32_t *dataPtr = &data[0];
+			for(tY = y; tY < y + (height / 2); tY++, dataPtr += width)
 			{
-				for(tX = x; tX < x + (width / 2); tX++, i += 2)
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				for(tX = x; tX < x + (width / 2); tX++, dataPtr += 2)
 				{
-					fb[tY * frameBufWidth + tX] = data[i];
+					*rowPtr++ = *dataPtr;
+				}
+			}
+		}
+	}
+
+	uint32_t smooth(color& px1, color& px2)
+	{
+		uint8_t fR = (px1.r() + px2.r()) / 2;
+		uint8_t fG = (px1.g() + px2.g()) / 2;
+		uint8_t fB = (px1.b() + px2.b()) / 2;
+
+		return 0xFF << 24 | fB << 16 | fG << 8 | fR;
+	}
+
+	void tex::drawNoBlendSkipSmooth(unsigned x, unsigned y)
+	{
+		if(data != NULL)
+		{
+			unsigned tY, tX;
+			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+
+			uint32_t *dataPtr = &data[0];
+			color px1, px2;
+			for(tY = y; tY < y + (height / 2); tY++, dataPtr += width)
+			{
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				for(tX = x; tX < x + (width / 2); tX++)
+				{
+					px1.fromU32(*dataPtr++);
+					px2.fromU32(*dataPtr++);
+					*rowPtr++ = smooth(px1, px2);
 				}
 			}
 		}
@@ -438,15 +537,19 @@ namespace gfx
 	{
 		if(data != NULL)
 		{
-			uint32_t tY, tX, i = 0;
+			uint32_t tY, tX;
 			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
-			for(tY = y; tY < y + height; tY++, i++)
+			uint32_t *dataPtr = &data[0];
+			color dataClr, fbClr;
+			for(tY = y; tY < y + height; tY++, dataPtr++)
 			{
-				for(tX = x; tX < x + w; tX++)
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				for(tX = x; tX < x + w; tX++, rowPtr++)
 				{
-					uint32_t fbPx = fb[tY * frameBufWidth + tX];
-					fb[tY * frameBufWidth + tX] = blend(data[i], fbPx);
+					dataClr.fromU32(*dataPtr);
+					fbClr.fromU32(*rowPtr);
+					*rowPtr = blend(dataClr, fbClr);
 				}
 			}
 		}
@@ -456,16 +559,17 @@ namespace gfx
 	{
 		if(data != NULL)
 		{
-			uint32_t tY, tX, i = 0;
+			uint32_t tY, tX;
 			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
-			for(tY = y; tY < y + height; tY++, i++)
+			uint32_t *dataPtr = &data[0];
+			for(tY = y; tY < y + height; tY++, dataPtr++)
 			{
+				uint32_t *rowPtr = &fb[tY * fbw + x];
 				for(tX = x; tX < x + w; tX++)
 				{
-					fb[tY * frameBufWidth + tX] = data[i];
+					*rowPtr++ = *dataPtr;
 				}
-
 			}
 		}
 	}
@@ -474,17 +578,21 @@ namespace gfx
 	{
 		if(data != NULL)
 		{
-			uint32_t tY, tX, i = 0;
+			uint32_t tY, tX;
 			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
+			uint32_t *dataPtr = &data[0];
+			color dataClr, fbClr;
 			for(tY = y; tY < y + h; tY++)
 			{
-				for(tX = x; tX < x + width; tX++, i++)
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				dataPtr = &data[0];
+				for(tX = x; tX < x + width; tX++, dataPtr++, rowPtr++)
 				{
-					uint32_t fbPx = fb[tY * frameBufWidth + tX];
-					fb[tY * frameBufWidth + tX] = blend(data[i], fbPx);
+					dataClr.fromU32(*dataPtr);
+					fbClr.fromU32(*rowPtr);
+					*rowPtr = blend(dataClr, fbClr);
 				}
-				i = 0;
 			}
 		}
 	}
@@ -493,16 +601,18 @@ namespace gfx
 	{
 		if(data != NULL)
 		{
-			uint32_t tY, tX, i = 0;
+			uint32_t tY, tX;
 			uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
+			uint32_t *dataPtr = &data[0];
 			for(tY = y; tY < y + h; tY++)
 			{
-				for(tX = x; tX < x + width; tX++, i++)
+				uint32_t *rowPtr = &fb[tY * fbw + x];
+				dataPtr = &data[0];
+				for(tX = x; tX < x + width; tX++, dataPtr++)
 				{
-					fb[tY * frameBufWidth + tX] = data[i];
+					*rowPtr++ = *dataPtr;
 				}
-				i = 0;
 			}
 		}
 	}

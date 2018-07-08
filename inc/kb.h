@@ -4,42 +4,38 @@
 #include <string>
 #include <vector>
 
+#include "miscui.h"
+
 namespace ui
 {
-	class key
+	//The way it should have been. Inheritance drives me insane sometimes, but they're basically the same thing.
+	class key : button
 	{
 		public:
-			//Key constructor. Txt = what text is drawn. _let = letter, _txtSz = font size, _w, _h = width, height
-			key(const std::string& txt, const char& _let, const unsigned& _txtSz, const unsigned& _x, const unsigned& _y, const unsigned& _w, const unsigned& _h);
-			//Updates the text shown
+			key(const std::string& _txt, const char& _l, unsigned _x, unsigned _y, unsigned _w, unsigned _h);
+
+			//Returns char assigned to key
+			char getLet() { return let; }
+
+			//Updates displayed text
 			void updateText(const std::string& txt);
-			//Draws key
-			void draw();
-			//Tells if user is touching screen at key's position
-			bool isOver(const touchPosition& p);
-			//Tells if user has stopped touching
-			bool released(const touchPosition& p);
-			//returns character in 'let;
-			char getLet();
+
 			//toUpper
 			void toCaps();
+
 			//toLower
 			void toLower();
 
-			//Return properties about key
-			unsigned getX();
-			unsigned getY();
-			unsigned getW();
-			unsigned getH();
+			void draw() { button::draw();}
+			void update(const touchPosition& p) { button::update(p);}
+			int getEvent() { return button::getEvent(); }
+			int getX() { return button::getX(); }
+			int getY() { return button::getY(); }
+			int getW() { return w; }
+			int getH() { return h; }
 
 		private:
-			bool pressed;
 			char let;
-			unsigned x, y, w, h;
-			unsigned tX, tY;
-			unsigned txtSz;
-			std::string text;
-			touchPosition prev;
 	};
 
 	class keyboard

@@ -29,7 +29,7 @@ namespace fs
 			if(r == -1)
 				return false;
 		}
-		else if(data::sysSave && open.getType() == FsSaveDataType_SystemSaveData)
+		else if(data::sysSave)
 		{
 			res = fsMount_SystemSaveData(&sv, open.getID());
 			if(R_FAILED(res))
@@ -294,5 +294,17 @@ namespace fs
 			ret = tmp;
 		}
 		return ret;
+	}
+
+	bool fileExists(const std::string& path)
+	{
+		std::fstream chk(path, std::ios::in);
+		if(chk.is_open())
+		{
+			chk.close();
+			return true;
+		}
+
+		return false;
 	}
 }

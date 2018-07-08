@@ -1,13 +1,20 @@
 #ifndef MISCUI_H
 #define MISCUI_H
 
-enum touchTracks
+enum buttonEvents
 {
-	TOUCH_SWIPE_UP,
-	TOUCH_SWIPE_DOWN,
-	TOUCH_SWIPE_LEFT,
-	TOUCH_SWIPE_RIGHT,
-	TOUCH_NOTHING
+	BUTTON_NOTHING,
+	BUTTON_PRESSED,
+	BUTTON_RELEASED
+};
+
+enum trackEvents
+{
+	TRACK_NOTHING,
+	TRACK_SWIPE_UP,
+	TRACK_SWIPE_DOWN,
+	TRACK_SWIPE_LEFT,
+	TRACK_SWIPE_RIGHT
 };
 
 //For smaller classes that aren't easy to get lost in and general functions
@@ -34,33 +41,37 @@ namespace ui
 	{
 		public:
 			button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h);
+			void update(const touchPosition& p);
+			bool isOver();
+			bool wasOver();
+			int getEvent() { return retEvent; }
+
 			void draw();
 
-			unsigned getX();
-			unsigned getY();
+			unsigned getX() { return x; }
+			unsigned getY() { return y; }
+			unsigned getTx() { return tx; }
+			unsigned getTy() { return ty; }
 
-			bool isOver(const touchPosition& p);
-			bool released(const touchPosition& p);
-
-		private:
-			bool pressed = false;
+		protected:
+			bool pressed = false, first = false;
+			int retEvent = BUTTON_NOTHING;
 			unsigned x, y, w, h;
 			unsigned tx, ty;
 			std::string text;
-			touchPosition prev;
+			touchPosition prev, cur;
 	};
 
-	//Not ready yet.
 	class touchTrack
 	{
 		public:
-			void trackTouch(const touchPosition& p);
+			void update(const touchPosition& p);
 
-			int getDifX();
-			int getDifY();
+			int getEvent() { return retTrack; }
 
 		private:
-			touchPosition prev, cur;
+			touchPosition pos[5];
+			int retTrack = TRACK_NOTHING;
 			int curPos = 0, avX = 0, avY = 0;
 	};
 
@@ -70,7 +81,6 @@ namespace ui
 	bool confirm(const std::string& q);
 	bool confirmTransfer(const std::string& f, const std::string& t);
 	bool confirmDelete(const std::string& p);
-	void debShowTex(gfx::tex tx);
 	void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h);
 }
 

@@ -2,9 +2,11 @@
 #include <vector>
 #include <fstream>
 #include <cstdio>
+#include <cstring>
 #include <switch.h>
 
 #include "ui.h"
+#include "clsui.h"
 #include "gfx.h"
 #include "util.h"
 #include "file.h"
@@ -14,25 +16,31 @@ enum menuState
 	USR_SEL,
 	TTL_SEL,
 	FLD_SEL,
-	ADV_MDE
+	ADV_MDE,
+	CLS_USR,
+	CLS_TTL
 };
 
-#define TITLE_TEXT "JKSV - 07/01/2018"
+#define TITLE_TEXT "JKSV - 07/08/2018"
 
 //Menu currently up
 int mstate = USR_SEL;
 
 //Button controlled menus
-static ui::menu folderMenu, devMenu, saveMenu, sdMenu, copyMenu;
+static ui::menu folderMenu, saveMenu, sdMenu, copyMenu;
 
-//Bar at top
-static gfx::tex buttonA, buttonB, buttonX, buttonY;
+//Shhhh
+static gfx::tex background;
 
 //Shown if someone tries to write to system saves
 static const std::string sysSaveMess = "No system saves until we get public NAND restore.";
 
 //Advanced mode paths
-static std::string savePath, sdPath, saveWrap, sdWrap, folderMenuInfo;
+static std::string savePath, sdPath, saveWrap, sdWrap;
+
+//This needs to be edited by clsui, so not static
+std::string folderMenuInfo;
+
 //Advanced mode directory listings
 static fs::dirList saveList(""), sdList("");
 //Current menu and previous menu for advanced mode.
@@ -42,12 +50,17 @@ static std::vector<ui::button> selButtons;
 
 namespace ui
 {
+	bool clsMode = false;
+
 	uint32_t clearClr = 0xFFFFFFFF, mnuTxt = 0xFF000000, txtClr = 0xFF000000, \
 	                    rectLt = 0xFFC0C0C0, rectSh = 0, tboxClr = 0xFFC0C0C0;
 
 	//textbox pieces
 	//I was going to flip them when I draw them, but then laziness kicked in.
-	gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight, horEdgeTop, horEdgeBot, vertEdgeLeft, vertEdgeRight;
+	gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight, \
+	horEdgeTop, horEdgeBot, vertEdgeLeft, vertEdgeRight;
+
+	gfx::tex buttonA, buttonB, buttonX, buttonY, buttonMin;
 
 	void init()
 	{
@@ -58,16 +71,23 @@ namespace ui
 		{
 			case ColorSetId_Light:
 				//Dark corners
-				cornerTopLeft.loadFromFile("romfs:/img/tbox/tboxCornerTopLeft_drk.png");
-				cornerTopRight.loadFromFile("romfs:/img/tbox/tboxCornerTopRight_drk.png");
-				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tboxCornerBotLeft_drk.png");
-				cornerBottomRight.loadFromFile("romfs:/img/tbox/tboxCornerBotRight_drk.png");
+				cornerTopLeft.loadPNGFile("romfs:/img/tbox/tboxCornerTopLeft_drk.png");
+				cornerTopRight.loadPNGFile("romfs:/img/tbox/tboxCornerTopRight_drk.png");
+				cornerBottomLeft.loadPNGFile("romfs:/img/tbox/tboxCornerBotLeft_drk.png");
+				cornerBottomRight.loadPNGFile("romfs:/img/tbox/tboxCornerBotRight_drk.png");
 
 				//Dark edges
-				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_drk.png");
-				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_drk.png");
-				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_drk.png");
-				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_drk.png");
+				horEdgeTop.loadPNGFile("romfs:/img/tbox/tboxHorEdgeTop_drk.png");
+				horEdgeBot.loadPNGFile("romfs:/img/tbox/tboxHorEdgeBot_drk.png");
+				vertEdgeLeft.loadPNGFile("romfs:/img/tbox/tboxVertEdgeLeft_drk.png");
+				vertEdgeRight.loadPNGFile("romfs:/img/tbox/tboxVertEdgeRight_drk.png");
+
+				//Dark buttons
+				buttonA.loadPNGFile("romfs:/img/button/buttonA_drk.png");
+				buttonB.loadPNGFile("romfs:/img/button/buttonB_drk.png");
+				buttonX.loadPNGFile("romfs:/img/button/buttonX_drk.png");
+				buttonY.loadPNGFile("romfs:/img/button/buttonY_drk.png");
+				buttonMin.loadPNGFile("romfs:/img/button/buttonMin_drk.png");
 
 				clearClr = 0xFFEBEBEB;
 				mnuTxt   = 0xFF000000;
@@ -80,16 +100,23 @@ namespace ui
 			default:
 			case ColorSetId_Dark:
 				//Light corners
-				cornerTopLeft.loadFromFile("romfs:/img/tbox/tboxCornerTopLeft_lght.png");
-				cornerTopRight.loadFromFile("romfs:/img/tbox/tboxCornerTopRight_lght.png");
-				cornerBottomLeft.loadFromFile("romfs:/img/tbox/tboxCornerBotLeft_lght.png");
-				cornerBottomRight.loadFromFile("romfs:/img/tbox/tboxCornerBotRight_lght.png");
+				cornerTopLeft.loadPNGFile("romfs:/img/tbox/tboxCornerTopLeft_lght.png");
+				cornerTopRight.loadPNGFile("romfs:/img/tbox/tboxCornerTopRight_lght.png");
+				cornerBottomLeft.loadPNGFile("romfs:/img/tbox/tboxCornerBotLeft_lght.png");
+				cornerBottomRight.loadPNGFile("romfs:/img/tbox/tboxCornerBotRight_lght.png");
 
 				//light edges
-				horEdgeTop.loadFromFile("romfs:/img/tbox/tboxHorEdgeTop_lght.png");
-				horEdgeBot.loadFromFile("romfs:/img/tbox/tboxHorEdgeBot_lght.png");
-				vertEdgeLeft.loadFromFile("romfs:/img/tbox/tboxVertEdgeLeft_lght.png");
-				vertEdgeRight.loadFromFile("romfs:/img/tbox/tboxVertEdgeRight_lght.png");
+				horEdgeTop.loadPNGFile("romfs:/img/tbox/tboxHorEdgeTop_lght.png");
+				horEdgeBot.loadPNGFile("romfs:/img/tbox/tboxHorEdgeBot_lght.png");
+				vertEdgeLeft.loadPNGFile("romfs:/img/tbox/tboxVertEdgeLeft_lght.png");
+				vertEdgeRight.loadPNGFile("romfs:/img/tbox/tboxVertEdgeRight_lght.png");
+
+				//Light buttons
+				buttonA.loadPNGFile("romfs:/img/button/buttonA_lght.png");
+				buttonB.loadPNGFile("romfs:/img/button/buttonB_lght.png");
+				buttonX.loadPNGFile("romfs:/img/button/buttonX_lght.png");
+				buttonY.loadPNGFile("romfs:/img/button/buttonY_lght.png");
+				buttonMin.loadPNGFile("romfs:/img/button/buttonMin_lght.png");
 
 				clearClr = 0xFF2D2D2D;
 				mnuTxt   = 0xFFFFFFFF;
@@ -100,12 +127,22 @@ namespace ui
 				break;
 		}
 
-		buttonA.loadFromFile("romfs:/img/buttonA.png");
-		buttonB.loadFromFile("romfs:/img/buttonB.png");
-		buttonX.loadFromFile("romfs:/img/buttonX.png");
-		buttonY.loadFromFile("romfs:/img/buttonY.png");
-
 		setupSelButtons();
+
+		folderMenu.setParams(308, 88, 956);
+		saveMenu.setParams(16, 88, 616);
+		sdMenu.setParams(648, 88, 616);
+		copyMenu.setParams(472, 278, 304);
+
+		if(fs::fileExists("back.jpg"))
+			background.loadJpegFile("back.jpg");
+
+		if(fs::fileExists("cls.txt"))
+		{
+			clsUserPrep();
+			clsMode = true;
+			mstate = CLS_USR;
+		}
 
 		copyMenu.addOpt("Copy From");
 		copyMenu.addOpt("Delete");
@@ -131,6 +168,8 @@ namespace ui
 		buttonB.deleteData();
 		buttonX.deleteData();
 		buttonY.deleteData();
+
+		background.deleteData();
 	}
 
 	void setupSelButtons()
@@ -163,7 +202,11 @@ namespace ui
 
 	void drawUI()
 	{
-		gfx::clearBufferColor(clearClr);
+		if(background.getDataPointer() == NULL)
+			gfx::clearBufferColor(clearClr);
+		else
+			background.drawNoBlend(0, 0);
+
 		gfx::drawText(TITLE_TEXT, 16, 16, 64, mnuTxt);
 
 		switch(mstate)
@@ -189,8 +232,23 @@ namespace ui
 				break;
 
 			case ADV_MDE:
+				gfx::drawRectangle(16, 64, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 65, 1248, 2, rectSh);
+
 				gfx::drawRectangle(640, 64, 1, 592, rectLt);
 				gfx::drawRectangle(641, 64, 2, 592, rectSh);
+
+				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
+				break;
+
+			case CLS_TTL:
+			case CLS_USR:
+				gfx::drawRectangle(16, 64, 1248, 1, rectLt);
+				gfx::drawRectangle(16, 65, 1248, 2, rectSh);
+
+				gfx::drawRectangle(448, 64, 1, 592, rectLt);
+				gfx::drawRectangle(449, 64, 2, 592, rectSh);
 
 				gfx::drawRectangle(16, 656, 1248, 1, rectLt);
 				gfx::drawRectangle(16, 657, 1248, 2, rectSh);
@@ -200,17 +258,21 @@ namespace ui
 		switch(mstate)
 		{
 			case USR_SEL:
+			case CLS_USR:
 				{
 					//Input guide
-					unsigned startX = 1010;
+					unsigned startX = 848;
 					buttonA.draw(startX, 672);
 					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
 					buttonY.draw(startX += 72, 672);
 					gfx::drawText("Dump All", startX += 38, 668, 32, mnuTxt);
+					buttonX.draw(startX += 96, 672);
+					gfx::drawText("Classic Mode", startX += 38, 668, 32, mnuTxt);
 				}
 				break;
 
 			case TTL_SEL:
+			case CLS_TTL:
 				{
 					unsigned startX = 914;
 					buttonA.draw(startX, 672);
@@ -224,11 +286,12 @@ namespace ui
 
 			case FLD_SEL:
 				{
-					folderMenu.print(308, 88, mnuTxt, 956);
+					folderMenu.draw(mnuTxt);
 					//Input guide
-					unsigned startX = 726;
-					gfx::drawText("- Adv. Mode", startX, 668, 32, mnuTxt);
-					buttonA.draw(startX += 110, 672);
+					unsigned startX = 690;
+					buttonMin.draw(startX, 672);
+					gfx::drawText("Adv. Mode", startX += 38, 668, 32, mnuTxt);
+					buttonA.draw(startX += 100, 672);
 					gfx::drawText("Backup", startX += 38, 668, 32, mnuTxt);
 					buttonY.draw(startX += 72, 672);
 					gfx::drawText("Restore", startX += 38, 668, 32, mnuTxt);
@@ -240,8 +303,8 @@ namespace ui
 				break;
 
 			case ADV_MDE:
-				saveMenu.print(16, 88, mnuTxt, 616);
-				sdMenu.print(648, 88, mnuTxt, 616);
+				saveMenu.draw(mnuTxt);
+				sdMenu.draw(mnuTxt);
 
 				gfx::drawText(saveWrap, 16, 652, 32, mnuTxt);
 				gfx::drawText(sdWrap, 656, 652, 32, mnuTxt);
@@ -251,6 +314,7 @@ namespace ui
 
 	void updateUserMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
 	{
+		//Static so they don't get reset every loop
 		static int start = 0, selected = 0;
 
 		static uint8_t clrShft = 0;
@@ -319,7 +383,7 @@ namespace ui
 					drawTextbox(userRectX, y - 50, userRectWidth, 38);
 					gfx::drawText(username, userRectX + 16, y - 50, 32, txtClr);
 				}
-				data::users[i].icn.drawNoBlendSkip(tX, y);
+				data::users[i].icn.drawNoBlendSkipSmooth(tX, y);
 			}
 		}
 
@@ -327,17 +391,21 @@ namespace ui
 		//Update invisible buttons
 		for(int i = 0; i < 32; i++)
 		{
-			if(selected == i && selButtons[i].released(p))
+			selButtons[i].update(p);
+			if(selected == i && selButtons[i].getEvent() == BUTTON_RELEASED)
 			{
 				data::curUser = data::users[selected];
 				mstate = TTL_SEL;
 			}
-			else if(selButtons[i].released(p))
+			else if(selButtons[i].getEvent() == BUTTON_RELEASED)
 			{
 				if(start + i < (int)data::users.size())
 					selected = start + i;
 			}
 		}
+
+		//Update touch tracking
+		track.update(p);
 
 		if(down & KEY_RIGHT)
 		{
@@ -387,6 +455,16 @@ namespace ui
 			for(unsigned i = 0; i < data::users.size(); i++)
 				fs::dumpAllUserSaves(data::users[i]);
 		}
+		else if(down & KEY_X)
+		{
+			//Just create file so user doesn't have to constantly enable
+			std::fstream cls("cls.txt", std::ios::out);
+			cls.close();
+			clsUserPrep();
+			mstate = CLS_USR;
+			clsMode = true;
+		}
+
 	}
 
 	void updateTitleMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -402,6 +480,8 @@ namespace ui
 
 		//Selected rectangle X and Y.
 		static unsigned selRectX = 64, selRectY = 74;
+
+		static ui::touchTrack track;
 
 		if(clrAdd)
 		{
@@ -472,7 +552,8 @@ namespace ui
 		//Buttons
 		for(int i = 0; i < 32; i++)
 		{
-			if(i == selected && selButtons[i].released(p))
+			selButtons[i].update(p);
+			if(i == selected - start && selButtons[i].getEvent() == BUTTON_RELEASED)
 			{
 				//Correct rectangle if it can't catch up. Buttons use same x, y as icons
 				selRectX = selButtons[i].getX() - 6;
@@ -483,14 +564,44 @@ namespace ui
 				{
 					util::makeTitleDir(data::curUser, data::curData);
 					folderMenuPrepare(data::curUser, data::curData);
+					folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 38, 256);
+
 					mstate = FLD_SEL;
 				}
 			}
-			else if(selButtons[i].released(p))
+			else if(selButtons[i].getEvent() == BUTTON_RELEASED)
 			{
 				if(start + i < (int)data::curUser.titles.size())
 					selected = start + i;
 			}
+		}
+
+		//Update touchtracking
+		track.update(p);
+
+		switch(track.getEvent())
+		{
+			case TRACK_SWIPE_UP:
+				{
+					if(start + 32 < (int)data::curUser.titles.size())
+					{
+						start += 8;
+						selected += 8;
+						if(selected > (int)data::curUser.titles.size() - 1)
+							selected = data::curUser.titles.size() - 1;
+					}
+				}
+				break;
+
+			case TRACK_SWIPE_DOWN:
+				{
+					if(start - 8 >= 0)
+					{
+						start -= 8;
+						selected -= 8;
+					}
+				}
+				break;
 		}
 
 		if(down & KEY_RIGHT)
@@ -534,12 +645,7 @@ namespace ui
 			{
 				util::makeTitleDir(data::curUser, data::curData);
 				folderMenuPrepare(data::curUser, data::curData);
-
-				char tmp[18];
-				sprintf(tmp, " %016lX", data::curData.getID());
-				folderMenuInfo = data::curData.getTitle() + tmp + util::retTypeString(data::curData);
-
-				folderMenuInfo = util::getWrappedString(folderMenuInfo, 38, 256);
+				folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 38, 256);
 
 				mstate = FLD_SEL;
 			}
@@ -559,14 +665,14 @@ namespace ui
 		}
 	}
 
-	void updateFolderMenu(const uint64_t& down, const uint64_t& held)
+	void updateFolderMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
 	{
-		folderMenu.handleInput(down, held);
+		folderMenu.handleInput(down, held, p);
 
 		data::curData.icon.draw(16, 88);
 		gfx::drawText(folderMenuInfo, 16, 344, 38, mnuTxt);
 
-		if(down & KEY_A)
+		if(down & KEY_A || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
 		{
 			if(folderMenu.getSelected() == 0)
 			{
@@ -662,7 +768,10 @@ namespace ui
 		else if(down & KEY_B)
 		{
 			fsdevUnmountDevice("sv");
-			mstate = TTL_SEL;
+			if(clsMode)
+				mstate = CLS_TTL;
+			else
+				mstate = TTL_SEL;
 		}
 	}
 
@@ -955,21 +1064,21 @@ namespace ui
 		util::copyDirListToMenu(saveList, saveMenu);
 	}
 
-	void updateAdvMode(const uint64_t& down, const uint64_t& held)
+	void updateAdvMode(const uint64_t& down, const uint64_t& held, const touchPosition& p)
 	{
 		//0 = save; 1 = sd; 2 = cpy
 		switch(advMenuCtrl)
 		{
 			case 0:
-				saveMenu.handleInput(down, held);
+				saveMenu.handleInput(down, held, p);
 				break;
 
 			case 1:
-				sdMenu.handleInput(down, held);
+				sdMenu.handleInput(down, held, p);
 				break;
 
 			case 2:
-				copyMenu.handleInput(down, held);
+				copyMenu.handleInput(down, held, p);
 				break;
 		}
 
@@ -1094,7 +1203,7 @@ namespace ui
 					break;
 			}
 
-			copyMenu.print(472, 278, txtClr, 304);
+			copyMenu.draw(txtClr);
 		}
 	}
 
@@ -1114,11 +1223,19 @@ namespace ui
 				break;
 
 			case FLD_SEL:
-				updateFolderMenu(down, held);
+				updateFolderMenu(down, held, p);
 				break;
 
 			case ADV_MDE:
-				updateAdvMode(down, held);
+				updateAdvMode(down, held, p);
+				break;
+
+			case CLS_USR:
+				classicUserMenuUpdate(down, held, p);
+				break;
+
+			case CLS_TTL:
+				classicTitleMenuUpdate(down, held, p);
 				break;
 		}
 	}

@@ -122,26 +122,30 @@ namespace util
 		return ret;
 	}
 
-	std::string retTypeString(data::titledata& d)
+	std::string getInfoString(data::user& u, data::titledata& d)
 	{
-		std::string ret = "???";
+		std::string ret = d.getTitle();
+
+		char id[18];
+		sprintf(id, " %016lX", d.getID());
+		ret += id;
 
 		switch(d.getType())
 		{
 			case FsSaveDataType_SystemSaveData:
-				ret = " System Save";
+				ret += " System Save";
 				break;
 
 			case FsSaveDataType_SaveData:
-				ret = " Save Data";
+				ret += " Save Data";
 				break;
 
 			case FsSaveDataType_BcatDeliveryCacheStorage:
-				ret = " Bcat Delivery Cache";
+				ret += " Bcat Delivery Cache";
 				break;
 
 			case FsSaveDataType_DeviceSaveData:
-				ret = " Device Save";
+				ret += " Device Save";
 				break;
 
 			case FsSaveDataType_TemporaryStorage:
@@ -149,9 +153,11 @@ namespace util
 				break;
 
 			case FsSaveDataType_CacheStorage:
-				ret = " Cache Storage";
+				ret+= " Cache Storage";
 				break;
 		}
+
+		ret += "\n" + u.getUsername();
 
 		return ret;
 	}

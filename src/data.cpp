@@ -47,12 +47,12 @@ namespace data
 	user      curUser;
 	std::vector<icn> icons;
 	std::vector<user> users;
-	bool sysSave = false, forceMountable = true;
+	bool sysSave = false, forceMountable = true, smoothIcns = false;
 
 	void loadDataInfo()
 	{
 		//Load default icon
-		defIcn.loadFromFile("romfs:/img/icn/icnDefault.png");
+		defIcn.loadPNGFile("romfs:/img/icn/icnDefault.png");
 
 		//Create icon for it
 		icn defIcnIcon;
@@ -95,7 +95,9 @@ namespace data
 						u = getUserIndex(info.userID);
 						titledata newData;
 						if(newData.init(info) && (!forceMountable || newData.isMountable(newUser.getUID())))
+						{
 							users[u].titles.push_back(newData);
+						}
 					}
 				}
 				else
@@ -146,13 +148,9 @@ namespace data
 
 	void icn::drawHalf(unsigned x, unsigned y)
 	{
-		iconTex.drawNoBlendSkip(x, y);
+		iconTex.drawNoBlendSkipSmooth(x, y);
 	}
 
-	uint64_t icn::getTitleID()
-	{
-		return titleID;
-	}
 
 	void icn::deleteData()
 	{
@@ -248,26 +246,6 @@ namespace data
 		return false;
 	}
 
-	std::string titledata::getTitle()
-	{
-		return title;
-	}
-
-	std::string titledata::getTitleSafe()
-	{
-		return titleSafe;
-	}
-
-	uint64_t titledata::getID()
-	{
-		return id;
-	}
-
-	FsSaveDataType titledata::getType()
-	{
-		return type;
-	}
-
 	bool user::init(const u128& _id)
 	{
 		Result res = 0;
@@ -331,20 +309,5 @@ namespace data
 		}
 
 		return true;
-	}
-
-	u128 user::getUID()
-	{
-		return userID;
-	}
-
-	std::string user::getUsername()
-	{
-		return username;
-	}
-
-	std::string user::getUsernameSafe()
-	{
-		return userSafe;
 	}
 }

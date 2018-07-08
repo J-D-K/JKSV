@@ -1,4 +1,5 @@
 #include <string>
+#include <cstring>
 #include <vector>
 #include <fstream>
 #include <switch.h>
@@ -8,6 +9,7 @@
 #include "gfx.h"
 #include "data.h"
 #include "ui.h"
+#include "file.h"
 
 extern "C"
 {
@@ -36,8 +38,10 @@ extern "C"
 int main(int argc, const char *argv[])
 {
 	gfx::init();
-	ui::init();
 	data::loadDataInfo();
+	ui::init();
+
+	appletSetScreenShotPermission(0);
 
 	bool run = true;
 	while(appletMainLoop() && run)

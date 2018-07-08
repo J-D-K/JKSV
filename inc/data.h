@@ -10,7 +10,7 @@
 
 namespace data
 {
-	extern bool sysSave, forceMountable;
+	extern bool sysSave, forceMountable, smoothIcns;
 
 	//Loads user + title info
 	void loadDataInfo();
@@ -20,11 +20,19 @@ namespace data
 	class icn
 	{
 		public:
+			//Loads jpeg icon from jpegData
 			void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
+
+			//Sets icon from image already loaded. Only used for default
 			void setIcon(const uint64_t& _id, const gfx::tex& _set);
+
+			//Draw
 			void draw(unsigned x, unsigned y);
+
+			//Draws skipping pixels for half size
 			void drawHalf(unsigned x, unsigned y);
-			uint64_t getTitleID();
+
+			uint64_t getTitleID() { return titleID;}
 
 			void deleteData();
 
@@ -44,16 +52,16 @@ namespace data
 			bool isMountable(const u128& uID);
 
 			//Returns title + title without forbidden chars
-			std::string getTitle();
-			std::string getTitleSafe();
+			std::string getTitle() { return title;}
+			std::string getTitleSafe() { return titleSafe;}
 
 			//Returns ID
-			uint64_t getID();
+			uint64_t getID() {return id;}
 
 			//Game icon
 			icn icon;
 
-			FsSaveDataType getType();
+			FsSaveDataType getType() { return type;}
 
 		private:
 			FsSaveDataType type;
@@ -73,11 +81,11 @@ namespace data
 			bool initNoChk(const u128& _id);
 
 			//Returns user ID
-			u128 getUID();
+			u128 getUID() {return userID;}
 
 			//Returns username
-			std::string getUsername();
-			std::string getUsernameSafe();
+			std::string getUsername() {return username;}
+			std::string getUsernameSafe() {return userSafe;}
 
 			//Vector for storing save data info for user
 			std::vector<titledata> titles;

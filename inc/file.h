@@ -31,6 +31,8 @@ namespace fs
 	//returns file properties as C++ string
 	std::string getFileProps(const std::string& _path);
 
+	bool fileExists(const std::string& _path);
+
 	//Just retrieves a listing for _path and stores it in item vector
 	class dirList
 	{

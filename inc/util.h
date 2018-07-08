@@ -27,6 +27,6 @@ namespace util
 
 	std::string safeString(const std::string& s);
 
-	std::string retTypeString(data::titledata& d);
+	std::string getInfoString(data::user& u, data::titledata& d);
 }
 #endif // UTIL_H
