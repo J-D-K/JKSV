@@ -74,7 +74,7 @@ namespace ui
 			{
 				util::makeTitleDir(data::curUser, data::curData);
 				folderMenuPrepare(data::curUser, data::curData);
-				folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 38, 256);
+				folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 18, 256);
 
 				mstate = 2; //FLD_SEL
 			}

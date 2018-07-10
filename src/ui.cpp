@@ -3,6 +3,7 @@
 #include <fstream>
 #include <cstdio>
 #include <cstring>
+#include <sys/stat.h>
 #include <switch.h>
 
 #include "ui.h"
@@ -21,7 +22,7 @@ enum menuState
 	CLS_TTL
 };
 
-#define TITLE_TEXT "JKSV - 07/08/2018"
+#define TITLE_TEXT "JKSV - 07/10/2018"
 
 //Menu currently up
 int mstate = USR_SEL;
@@ -207,7 +208,7 @@ namespace ui
 		else
 			background.drawNoBlend(0, 0);
 
-		gfx::drawText(TITLE_TEXT, 16, 16, 64, mnuTxt);
+		gfx::drawText(TITLE_TEXT, 16, 16, 32, mnuTxt);
 
 		switch(mstate)
 		{
@@ -263,11 +264,11 @@ namespace ui
 					//Input guide
 					unsigned startX = 848;
 					buttonA.draw(startX, 672);
-					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Select", startX += 38, 680, 14, mnuTxt);
 					buttonY.draw(startX += 72, 672);
-					gfx::drawText("Dump All", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Dump All", startX += 38, 680, 14, mnuTxt);
 					buttonX.draw(startX += 96, 672);
-					gfx::drawText("Classic Mode", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Classic Mode", startX += 38, 680, 14, mnuTxt);
 				}
 				break;
 
@@ -276,11 +277,11 @@ namespace ui
 				{
 					unsigned startX = 914;
 					buttonA.draw(startX, 672);
-					gfx::drawText("Select", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Select", startX += 38, 680, 14, mnuTxt);
 					buttonY.draw(startX += 72, 672);
-					gfx::drawText("Dump All", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Dump All", startX += 38, 680, 14, mnuTxt);
 					buttonB.draw(startX += 96, 672);
-					gfx::drawText("Back", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Back", startX += 38, 680, 14, mnuTxt);
 				}
 				break;
 
@@ -290,15 +291,15 @@ namespace ui
 					//Input guide
 					unsigned startX = 690;
 					buttonMin.draw(startX, 672);
-					gfx::drawText("Adv. Mode", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Adv. Mode", startX += 38, 680, 14, mnuTxt);
 					buttonA.draw(startX += 100, 672);
-					gfx::drawText("Backup", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Backup", startX += 38, 680, 14, mnuTxt);
 					buttonY.draw(startX += 72, 672);
-					gfx::drawText("Restore", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Restore", startX += 38, 680, 14, mnuTxt);
 					buttonX.draw(startX += 72, 672);
-					gfx::drawText("Delete", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Delete", startX += 38, 680, 14, mnuTxt);
 					buttonB.draw(startX += 72, 672);
-					gfx::drawText("Back", startX += 38, 668, 32, mnuTxt);
+					gfx::drawText("Back", startX += 38, 680, 14, mnuTxt);
 				}
 				break;
 
@@ -306,8 +307,8 @@ namespace ui
 				saveMenu.draw(mnuTxt);
 				sdMenu.draw(mnuTxt);
 
-				gfx::drawText(saveWrap, 16, 652, 32, mnuTxt);
-				gfx::drawText(sdWrap, 656, 652, 32, mnuTxt);
+				gfx::drawText(saveWrap, 16, 668, 14, mnuTxt);
+				gfx::drawText(sdWrap, 656, 668, 14, mnuTxt);
 				break;
 		}
 	}
@@ -372,7 +373,7 @@ namespace ui
 					}
 
 					std::string username = data::users[selected].getUsername();
-					unsigned userWidth = gfx::getTextWidth(username, 32);
+					unsigned userWidth = gfx::getTextWidth(username, 16);
 					int userRectWidth = userWidth + 32, userRectX = (tX + 64) - (userRectWidth  / 2);
 					if(userRectX < 16)
 						userRectX = 16;
@@ -381,7 +382,7 @@ namespace ui
 						userRectX = 1264 - userRectWidth;
 
 					drawTextbox(userRectX, y - 50, userRectWidth, 38);
-					gfx::drawText(username, userRectX + 16, y - 50, 32, txtClr);
+					gfx::drawText(username, userRectX + 16, y - 38, 16, txtClr);
 				}
 				data::users[i].icn.drawNoBlendSkipSmooth(tX, y);
 			}
@@ -534,7 +535,7 @@ namespace ui
 					}
 
 					std::string title = data::curUser.titles[selected].getTitle();
-					unsigned titleWidth = gfx::getTextWidth(title, 32);
+					unsigned titleWidth = gfx::getTextWidth(title, 16);
 					int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
 					if(rectX < 16)
 						rectX = 16;
@@ -543,7 +544,7 @@ namespace ui
 						rectX = 1264 - rectWidth;
 
 					drawTextbox(rectX, y - 50, rectWidth, 38);
-					gfx::drawText(title, rectX + 16, y - 50, 32, txtClr);
+					gfx::drawText(title, rectX + 16, y - 38, 16, txtClr);
 				}
 				data::curUser.titles[i].icon.drawHalf(tX, y);
 			}
@@ -564,7 +565,7 @@ namespace ui
 				{
 					util::makeTitleDir(data::curUser, data::curData);
 					folderMenuPrepare(data::curUser, data::curData);
-					folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 38, 256);
+					folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 18, 256);
 
 					mstate = FLD_SEL;
 				}
@@ -645,7 +646,7 @@ namespace ui
 			{
 				util::makeTitleDir(data::curUser, data::curData);
 				folderMenuPrepare(data::curUser, data::curData);
-				folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 38, 256);
+				folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 18, 256);
 
 				mstate = FLD_SEL;
 			}
@@ -670,7 +671,7 @@ namespace ui
 		folderMenu.handleInput(down, held, p);
 
 		data::curData.icon.draw(16, 88);
-		gfx::drawText(folderMenuInfo, 16, 344, 38, mnuTxt);
+		gfx::drawText(folderMenuInfo, 16, 360, 18, mnuTxt);
 
 		if(down & KEY_A || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
 		{
@@ -775,7 +776,7 @@ namespace ui
 		}
 	}
 
-	//Performs copy menu operations. To big to stuff into case IMO.
+//Performs copy menu operations. To big to stuff into case IMO.
 	void performCopyMenuOps()
 	{
 		switch(copyMenu.getSelected())
@@ -1094,7 +1095,7 @@ namespace ui
 						if(saveSel == 1 && savePath != "sv:/")
 						{
 							util::removeLastFolderFromString(savePath);
-							saveWrap = util::getWrappedString(savePath, 32, 600);
+							saveWrap = util::getWrappedString(savePath, 14, 600);
 
 							saveList.reassign(savePath);
 							util::copyDirListToMenu(saveList, saveMenu);
@@ -1102,7 +1103,7 @@ namespace ui
 						else if(saveSel > 1 && saveList.isDir(saveSel - 2))
 						{
 							savePath += saveList.getItem(saveSel - 2) + "/";
-							saveWrap = util::getWrappedString(savePath, 32, 600);
+							saveWrap = util::getWrappedString(savePath, 14, 600);
 
 							saveList.reassign(savePath);
 							util::copyDirListToMenu(saveList, saveMenu);
@@ -1117,7 +1118,7 @@ namespace ui
 						if(sdSel == 1 && sdPath != "sdmc:/")
 						{
 							util::removeLastFolderFromString(sdPath);
-							sdWrap = util::getWrappedString(sdPath, 32, 600);
+							sdWrap = util::getWrappedString(sdPath, 14, 600);
 
 							sdList.reassign(sdPath);
 							util::copyDirListToMenu(sdList, sdMenu);
@@ -1125,7 +1126,7 @@ namespace ui
 						else if(sdSel > 1 && sdList.isDir(sdSel - 2))
 						{
 							sdPath += sdList.getItem(sdSel - 2) + "/";
-							sdWrap  = util::getWrappedString(sdPath, 32, 600);
+							sdWrap  = util::getWrappedString(sdPath, 14, 600);
 
 							sdList.reassign(sdPath);
 							util::copyDirListToMenu(sdList, sdMenu);
@@ -1145,7 +1146,7 @@ namespace ui
 			if(advMenuCtrl == 0 && savePath != "sv:/")
 			{
 				util::removeLastFolderFromString(savePath);
-				saveWrap = util::getWrappedString(savePath, 32, 600);
+				saveWrap = util::getWrappedString(savePath, 14, 600);
 
 				saveList.reassign(savePath);
 				util::copyDirListToMenu(saveList, saveMenu);
@@ -1154,7 +1155,7 @@ namespace ui
 			else if(advMenuCtrl == 1 && sdPath != "sdmc:/")
 			{
 				util::removeLastFolderFromString(sdPath);
-				sdWrap = util::getWrappedString(sdPath, 32, 600);
+				sdWrap = util::getWrappedString(sdPath, 14, 600);
 
 				sdList.reassign(sdPath);
 				util::copyDirListToMenu(sdList, sdMenu);
@@ -1195,11 +1196,11 @@ namespace ui
 			switch(advPrev)
 			{
 				case 0:
-					gfx::drawText("SAVE", 472, 242, 32,txtClr);
+					gfx::drawText("SAVE", 472, 250, 18,txtClr);
 					break;
 
 				case 1:
-					gfx::drawText("SDMC", 472, 242, 32, txtClr);
+					gfx::drawText("SDMC", 472, 250, 18, txtClr);
 					break;
 			}
 

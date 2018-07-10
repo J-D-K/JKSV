@@ -41,7 +41,7 @@ int main(int argc, const char *argv[])
 	data::loadDataInfo();
 	ui::init();
 
-	appletSetScreenShotPermission(0);
+	appletSetScreenShotPermission(1);
 
 	bool run = true;
 	while(appletMainLoop() && run)
@@ -59,7 +59,6 @@ int main(int argc, const char *argv[])
 			if(ui::confirm("You are about to enable system save dumping and remove checks. Are you sure you want to continue?"))
 			{
 				data::sysSave = true;
-				data::forceMountable = false;
 				data::loadDataInfo();
 
 				//Just to be sure

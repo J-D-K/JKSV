@@ -10,35 +10,30 @@
 
 namespace data
 {
-	extern bool sysSave, forceMountable, smoothIcns;
+	extern bool sysSave;
 
 	//Loads user + title info
 	void loadDataInfo();
 	void exit();
 
 	//Class to help not load the same icons over and over
-	class icn
+	class icn : gfx::tex
 	{
 		public:
 			//Loads jpeg icon from jpegData
 			void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
+			//For loading default icon
+			void load(const uint64_t & _id, const std::string& _png);
 
-			//Sets icon from image already loaded. Only used for default
-			void setIcon(const uint64_t& _id, const gfx::tex& _set);
+			void draw(unsigned x, unsigned y) { gfx::tex::draw(x, y); }
+			void drawHalf(unsigned x, unsigned y) { gfx::tex::drawNoBlendSkipSmooth(x, y); }
 
-			//Draw
-			void draw(unsigned x, unsigned y);
+			uint64_t getTitleID() { return titleID; }
 
-			//Draws skipping pixels for half size
-			void drawHalf(unsigned x, unsigned y);
-
-			uint64_t getTitleID() { return titleID;}
-
-			void deleteData();
+			void deleteData() { gfx::tex::deleteData(); }
 
 		private:
 			uint64_t titleID;
-			gfx::tex iconTex;
 	};
 
 	//Class to store title info
@@ -53,15 +48,15 @@ namespace data
 
 			//Returns title + title without forbidden chars
 			std::string getTitle() { return title;}
-			std::string getTitleSafe() { return titleSafe;}
+			std::string getTitleSafe() { return titleSafe; }
 
 			//Returns ID
-			uint64_t getID() {return id;}
+			uint64_t getID() { return id; }
 
 			//Game icon
 			icn icon;
 
-			FsSaveDataType getType() { return type;}
+			FsSaveDataType getType() { return type; }
 
 		private:
 			FsSaveDataType type;
@@ -81,11 +76,11 @@ namespace data
 			bool initNoChk(const u128& _id);
 
 			//Returns user ID
-			u128 getUID() {return userID;}
+			u128 getUID() { return userID; }
 
 			//Returns username
-			std::string getUsername() {return username;}
-			std::string getUsernameSafe() {return userSafe;}
+			std::string getUsername() { return username; }
+			std::string getUsernameSafe() { return userSafe; }
 
 			//Vector for storing save data info for user
 			std::vector<titledata> titles;

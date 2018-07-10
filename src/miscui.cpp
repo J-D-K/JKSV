@@ -29,7 +29,7 @@ namespace ui
 
 		//char tmp[64];
 		//sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
-		gfx::drawText(text, 80, 256, 64, txtClr);
+		gfx::drawText(text, 80, 256, 24, txtClr);
 		//gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
 	}
 
@@ -41,8 +41,8 @@ namespace ui
 		h = _h;
 		text = _txt;
 
-		unsigned tw = gfx::getTextWidth(text, 48);
-		unsigned th = gfx::getTextHeight(48);
+		unsigned tw = gfx::getTextWidth(text, 24);
+		unsigned th = gfx::getTextHeight(24);
 
 		tx = x + (w / 2) - (tw / 2);
 		ty = y + (h / 2) - (th / 2);
@@ -91,7 +91,7 @@ namespace ui
 		else
 			ui::drawTextbox(x, y, w, h);
 
-		gfx::drawText(text, tx, ty, 48, txtClr);
+		gfx::drawText(text, tx, ty, 24, txtClr);
 	}
 
 	void touchTrack::update(const touchPosition& p)
@@ -140,7 +140,7 @@ namespace ui
 	void showMessage(const std::string& mess)
 	{
 		button ok("OK", 256, 496, 768, 96);
-		std::string wrapMess = util::getWrappedString(mess, 48, 752);
+		std::string wrapMess = util::getWrappedString(mess, 24, 752);
 		while(true)
 		{
 			hidScanInput();
@@ -155,9 +155,9 @@ namespace ui
 				break;
 
 			ui::drawTextbox(256, 128, 768, 464);
-			gfx::drawText(wrapMess, 272, 144, 48, txtClr);
+			gfx::drawText(wrapMess, 272, 144, 24, txtClr);
 			ok.draw();
-			ui::buttonA.drawInvert(ok.getTx() + 48, ok.getTy());
+			ui::buttonA.drawInvert(ok.getTx() + 56, ok.getTy() - 4);
 
 			gfx::handleBuffs();
 		}
@@ -195,10 +195,10 @@ namespace ui
 	{
 		bool ret = false;
 
-		button yes("Yes ", 256, 496, 384, 96);
-		button no("No ", 640, 496, 384, 96);
+		button yes("Yes   ", 256, 496, 384, 96);
+		button no("No   ", 640, 496, 384, 96);
 
-		std::string wrapMess = util::getWrappedString(mess, 48, 752);
+		std::string wrapMess = util::getWrappedString(mess, 24, 752);
 
 		while(true)
 		{
@@ -223,11 +223,11 @@ namespace ui
 			}
 
 			ui::drawTextbox(256, 128, 768, 464);
-			gfx::drawText(wrapMess, 272, 144, 48, txtClr);
+			gfx::drawText(wrapMess, 272, 144, 24, txtClr);
 			yes.draw();
-			ui::buttonA.drawInvert(yes.getTx() + 56, yes.getTy());
+			ui::buttonA.drawInvert(yes.getTx() + 64, yes.getTy() - 4);
 			no.draw();
-			ui::buttonB.drawInvert(no.getTx() + 48, no.getTy());
+			ui::buttonB.drawInvert(no.getTx() + 56, no.getTy() - 4);
 
 			gfx::handleBuffs();
 		}

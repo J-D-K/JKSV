@@ -145,7 +145,7 @@ namespace ui
 			if(i == selected)
 				gfx::drawRectangle(x, y + ((i - start) * 36), rW, 32, rectClr);
 
-			gfx::drawText(opt[i], x, y + ((i - start) * 36), 38, textClr);
+			gfx::drawText(opt[i], x, (y + 8) + ((i - start) * 36), 16, textClr);
 		}
 	}
 

@@ -3,6 +3,7 @@
 #include <switch.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <sys/stat.h>
 
 #include "file.h"
 #include "util.h"
@@ -121,7 +122,7 @@ namespace fs
 		ui::progBar prog(fileSize);
 
 		std::string copyString = "Copying " + from + "...";
-		copyString = util::getWrappedString(copyString, 64, 1136);
+		copyString = util::getWrappedString(copyString, 24, 1136);
 		for(unsigned i = 0; i < fileSize; )
 		{
 			f.read((char *)buff, BUFF_SIZE);
@@ -154,7 +155,7 @@ namespace fs
 		ui::progBar prog(fileSize);
 
 		std::string copyString = "Copying " + from + "...";
-		copyString = util::getWrappedString(copyString, 64, 1136);
+		copyString = util::getWrappedString(copyString, 24, 1136);
 		for(unsigned i = 0; i < fileSize; )
 		{
 			f.read((char *)buff, BUFF_SIZE);

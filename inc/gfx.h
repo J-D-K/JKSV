@@ -27,7 +27,6 @@ namespace gfx
 			uint8_t rgb[4];
 	};
 
-	//Old 3DS code for loading raw RGBA8 data
 	class tex
 	{
 		public:
@@ -41,9 +40,9 @@ namespace gfx
 			void loadJpegFile(const std::string& path);
 			//Frees memory used by data
 			void deleteData();
-			uint16_t getWidth() { return width;}
-			uint16_t getHeight() {return height;}
-			const uint32_t *getDataPointer() {return data;}
+			uint16_t getWidth() { return width; }
+			uint16_t getHeight() { return height; }
+			uint32_t *getDataPointer() { return data; }
 
 			void draw(uint32_t x, uint32_t y);
 			void drawInvert(uint32_t x, uint32_t y);
@@ -61,7 +60,7 @@ namespace gfx
 			void drawRepeatVert(uint32_t x, uint32_t y, uint32_t h);
 			void drawRepeatVertNoBlend(uint32_t x, uint32_t y, uint32_t h);
 
-		private:
+		protected:
 			uint32_t sz;
 			uint16_t width, height;
 			uint32_t *data = NULL;

@@ -103,7 +103,7 @@ namespace ui
 		for(unsigned i = 0; i < keys.size(); i++)
 			keys[i].draw();
 
-		gfx::drawText(str, 16, 192, 64, 0xFF000000);
+		gfx::drawText(str, 16, 192, 32, 0xFF000000);
 	}
 
 	std::string keyboard::getString(const std::string& def)

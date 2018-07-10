@@ -38,26 +38,19 @@ static int getUserIndex(const u128& id)
 	return -1;
 }
 
-//Default icon if one isn't found. For system saves
-gfx::tex defIcn;
-
 namespace data
 {
 	titledata curData;
 	user      curUser;
 	std::vector<icn> icons;
 	std::vector<user> users;
-	bool sysSave = false, forceMountable = true, smoothIcns = false;
+	bool sysSave = false;
 
 	void loadDataInfo()
 	{
-		//Load default icon
-		defIcn.loadPNGFile("romfs:/img/icn/icnDefault.png");
-
-		//Create icon for it
-		icn defIcnIcon;
-		defIcnIcon.setIcon((uint64_t)0, defIcn);
-		icons.push_back(defIcnIcon);
+		icn defIcon;
+		defIcon.load(0, "romfs:/img/icn/icnDefault.png");
+		icons.push_back(defIcon);
 
 		for(unsigned i = 0; i < users.size(); i++)
 			users[i].titles.clear();
@@ -94,7 +87,7 @@ namespace data
 
 						u = getUserIndex(info.userID);
 						titledata newData;
-						if(newData.init(info) && (!forceMountable || newData.isMountable(newUser.getUID())))
+						if(newData.init(info) && newData.isMountable(newUser.getUID()))
 						{
 							users[u].titles.push_back(newData);
 						}
@@ -103,7 +96,7 @@ namespace data
 				else
 				{
 					titledata newData;
-					if(newData.init(info) && (!forceMountable || newData.isMountable(users[u].getUID())))
+					if(newData.init(info) && newData.isMountable(users[u].getUID()))
 					{
 						users[u].titles.push_back(newData);
 					}
@@ -124,37 +117,20 @@ namespace data
 		for(unsigned i = 0; i < users.size(); i++)
 			users[i].icn.deleteData();
 
-		for(unsigned i = 1; i < icons.size(); i++)
+		for(unsigned i = 0; i < icons.size(); i++)
 			icons[i].deleteData();
 	}
 
 	void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
 	{
 		titleID = _id;
-
-		iconTex.loadJpegMem(jpegData, jpegSize);
+		gfx::tex::loadJpegMem(jpegData, jpegSize);
 	}
 
-	void icn::setIcon(const uint64_t& _id, const gfx::tex& _set)
+	void icn::load(const uint64_t& _id, const std::string& _png)
 	{
 		titleID = _id;
-		iconTex = _set;
-	}
-
-	void icn::draw(unsigned x, unsigned y)
-	{
-		iconTex.drawNoBlend(x, y);
-	}
-
-	void icn::drawHalf(unsigned x, unsigned y)
-	{
-		iconTex.drawNoBlendSkipSmooth(x, y);
-	}
-
-
-	void icn::deleteData()
-	{
-		iconTex.deleteData();
+		gfx::tex::loadPNGFile(_png);
 	}
 
 	int findIcnIndex(const uint64_t& titleID)
@@ -305,7 +281,8 @@ namespace data
 		{
 			username = "Unknown";
 			userSafe = "Unknown";
-			icn = defIcn;
+			//This shouldn't happen too much
+			icn.loadPNGFile("romfs:/img/icn/icnDefault.png");
 		}
 
 		return true;

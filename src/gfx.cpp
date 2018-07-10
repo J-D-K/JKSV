@@ -117,9 +117,9 @@ namespace gfx
 		uint32_t tmpChr;
 		ssize_t unitCount = 0;
 
-		y += 27;
-
-		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
+		//Set's font height to size. Easier to work with
+		FT_Set_Char_Size(face, 0, sz * 64, 90, 90);
+		unsigned height = sz;
 
 		uint32_t *fb = (uint32_t *)gfxGetFramebuffer(&fbw, NULL);
 
@@ -136,7 +136,7 @@ namespace gfx
 			if(tmpChr == '\n')
 			{
 				tmpX = x;
-				y += face->size->metrics.height / sz;
+				y += height + 8;
 				continue;
 			}
 
@@ -145,7 +145,9 @@ namespace gfx
 			if(ret)
 				return;
 
-			drawGlyph(slot->bitmap, fb, tmpX + slot->bitmap_left, y - slot->bitmap_top, textColor);
+			unsigned drawY = y + (height - slot->bitmap_top);
+
+			drawGlyph(slot->bitmap, fb, tmpX + slot->bitmap_left, drawY, textColor);
 			tmpX += slot->advance.x >> 6;
 		}
 	}
@@ -159,7 +161,7 @@ namespace gfx
 		FT_GlyphSlot slot = face->glyph;
 		FT_Error ret = 0;
 
-		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
+		FT_Set_Char_Size(face, 0, 64 * sz, 90, 90);
 
 		for(unsigned i = 0; i < str.length(); )
 		{
@@ -183,17 +185,8 @@ namespace gfx
 
 	unsigned getTextHeight(const uint32_t& sz)
 	{
-		FT_UInt glyphIndex = 0;
-		FT_Error error = 0;
-		uint32_t tChar = 'A';
-
-		FT_Set_Char_Size(face, 0, 8 * sz, 300, 300);
-		glyphIndex = FT_Get_Char_Index(face, tChar);
-		error = FT_Load_Glyph(face, glyphIndex, FT_LOAD_RENDER);
-		if(error)
-			return 0;
-
-		return face->size->metrics.height / sz;
+		//Pointless now, but keep
+		return sz;
 	}
 
 	void clearBufferColor(const uint32_t& clr)
@@ -307,9 +300,8 @@ namespace gfx
 			delete[] rows;
 
 			png_destroy_read_struct(&png, &pngInfo, NULL);
-
-			fclose(pngIn);
 		}
+		fclose(pngIn);
 	}
 
 	void tex::loadJpegMem(const uint8_t *txData, const size_t& jpegSz)
@@ -402,11 +394,11 @@ namespace gfx
 
 			jpeg_finish_decompress(&jpegInfo);
 			jpeg_destroy_decompress(&jpegInfo);
-			fclose(jpegFile);
 
 			delete row[0];
 			delete[] row;
 		}
+		fclose(jpegFile);
 	}
 
 	void tex::deleteData()
