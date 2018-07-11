@@ -32,13 +32,13 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	JKSV
 BUILD		:=	build
-SOURCES		:=	src
+SOURCES		:=	src src/ui
 DATA		:=	data
 INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK_
-APP_VERSION :=  07/10/2018
+APP_VERSION :=  07/11/2018
 ROMFS	    :=	romfs
 
 #---------------------------------------------------------------------------------

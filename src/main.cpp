@@ -41,7 +41,7 @@ int main(int argc, const char *argv[])
 	data::loadDataInfo();
 	ui::init();
 
-	appletSetScreenShotPermission(1);
+	appletSetScreenShotPermission(0);
 
 	bool run = true;
 	while(appletMainLoop() && run)

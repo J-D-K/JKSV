@@ -11,17 +11,41 @@
 #include "kb.h"
 #include "menu.h"
 #include "miscui.h"
+#include "clsui.h"
+#include "uiupdate.h"
+
+enum menuState
+{
+	USR_SEL,
+	TTL_SEL,
+	FLD_SEL,
+	ADV_MDE,
+	CLS_USR,
+	CLS_TTL
+};
+
 
 namespace ui
 {
+	//Classic mode/text menus
 	extern bool clsMode;
+
+	//Current menu/ui state
+	extern int mstate;
+
+	//Both UI modes need access to this
+	extern std::string folderMenuInfo;
+
 	//Colors to use now that I added theme detection
 	extern uint32_t clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
 
 	//Button tex
 	extern gfx::tex buttonA, buttonB, buttonX, buttonY, buttonMin;
 	//Textbox graphics
-	extern gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight, horEdgeTop, horEdgeBot, vertEdgeLeft, vertEdgeRight;
+	extern gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight,\
+	horEdgeTop, horEdgeBot, vertEdgeLeft, vertEdgeRight;
+
+	extern std::vector<ui::button> selButtons;
 
 	//Loads in the A, B, X, Y button graphics
 	void init();
@@ -30,16 +54,9 @@ namespace ui
 	//Prepares ui
 	//Sets up buttons for icon touchin
 	void setupSelButtons();
-	void folderMenuPrepare(data::user& usr, data::titledata& dat);
 
-	//Clears, draws UI + menus
+	//Clears and draws general stuff used by multiple screens
 	void drawUI();
-
-	//Handles input and actions for UI menus. Sometimes draw things specific to each
-	void updateUserMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
-	void updateTitleMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
-	void updateFolderMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
-	void updateAdvMode(const uint64_t& down, const uint64_t& held, const touchPosition& p);
 
 	//switch case so we don't have problems with multiple main loops like 3DS
 	void runApp(const uint64_t& down, const uint64_t& held, const touchPosition& p);
