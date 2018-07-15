@@ -49,7 +49,7 @@ namespace ui
         }
         else if(down & KEY_X)
         {
-            std::remove("cls.txt");
+            std::remove(std::string(fs::getWorkDir() + "cls.txt").c_str());
             clsMode = false;
             mstate = USR_SEL;
         }

@@ -154,7 +154,7 @@ namespace ui
         else if(down & KEY_X)
         {
             //Just create file so user doesn't have to constantly enable
-            std::fstream cls("cls.txt", std::ios::out);
+            std::fstream cls(fs::getWorkDir() + "cls.txt", std::ios::out);
             cls.close();
             clsUserPrep();
             mstate = CLS_USR;

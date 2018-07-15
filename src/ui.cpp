@@ -95,10 +95,10 @@ namespace ui
 
         setupSelButtons();
 
-        if(fs::fileExists("back.jpg"))
+        if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
             background.loadJpegFile("back.jpg");
 
-        if(fs::fileExists("cls.txt"))
+        if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
             clsUserPrep();
             clsMode = true;
