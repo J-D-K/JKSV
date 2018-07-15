@@ -10,47 +10,52 @@
 
 namespace fs
 {
-	//Mounts usr's save data for open. Returns false it fails
-	bool mountSave(data::user& usr, data::titledata& open);
+    void init();
 
-	void copyFile(const std::string& from, const std::string& to);
-	void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
+    //Mounts usr's save data for open. Returns false it fails
+    bool mountSave(data::user& usr, data::titledata& open);
 
-	//Recursively copies 'from' to 'to'
-	void copyDirToDir(const std::string& from, const std::string& to);
+    void copyFile(const std::string& from, const std::string& to);
+    void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
 
-	//Same as above, but commits data to 'dev' after every file is closed
-	void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
+    //Recursively copies 'from' to 'to'
+    void copyDirToDir(const std::string& from, const std::string& to);
 
-	//Recursively deletes 'path'
-	void delDir(const std::string& path);
+    //Same as above, but commits data to 'dev' after every file is closed
+    void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
 
-	//Dumps all titles for 'user'
-	void dumpAllUserSaves(data::user& u);
+    //Recursively deletes 'path'
+    void delDir(const std::string& path);
 
-	//returns file properties as C++ string
-	std::string getFileProps(const std::string& _path);
+    //Dumps all titles for 'user'
+    void dumpAllUserSaves(data::user& u);
 
-	bool fileExists(const std::string& _path);
+    //returns file properties as C++ string
+    std::string getFileProps(const std::string& _path);
 
-	//Just retrieves a listing for _path and stores it in item vector
-	class dirList
-	{
-		public:
-			dirList(const std::string& _path);
-			void reassign(const std::string& _path);
-			void rescan();
+    bool fileExists(const std::string& _path);
 
-			std::string getItem(int index);
-			bool isDir(int index);
-			unsigned getCount();
+    //Retrieves working dir string
+    std::string getWorkDir();
 
-		private:
-			DIR *d;
-			struct dirent *ent;
-			std::string path;
-			std::vector<std::string> item;
-	};
+    //Just retrieves a listing for _path and stores it in item vector
+    class dirList
+    {
+        public:
+            dirList(const std::string& _path);
+            void reassign(const std::string& _path);
+            void rescan();
+
+            std::string getItem(int index);
+            bool isDir(int index);
+            unsigned getCount();
+
+        private:
+            DIR *d;
+            struct dirent *ent;
+            std::string path;
+            std::vector<std::string> item;
+    };
 }
 
 #endif // FILE_H

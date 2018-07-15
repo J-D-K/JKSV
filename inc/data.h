@@ -10,94 +10,94 @@
 
 namespace data
 {
-	extern bool sysSave;
+    extern bool sysSave;
 
-	//Loads user + title info
-	void loadDataInfo();
-	void exit();
+    //Loads user + title info
+    void loadDataInfo();
+    void exit();
 
-	//Class to help not load the same icons over and over
-	class icn : gfx::tex
-	{
-		public:
-			//Loads jpeg icon from jpegData
-			void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
-			//For loading default icon
-			void load(const uint64_t & _id, const std::string& _png);
+    //Class to help not load the same icons over and over
+    class icn : gfx::tex
+    {
+        public:
+            //Loads jpeg icon from jpegData
+            void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
+            //For loading default icon
+            void load(const uint64_t & _id, const std::string& _png);
 
-			void draw(unsigned x, unsigned y) { gfx::tex::draw(x, y); }
-			void drawHalf(unsigned x, unsigned y) { gfx::tex::drawNoBlendSkipSmooth(x, y); }
+            void draw(unsigned x, unsigned y) { gfx::tex::draw(x, y); }
+            void drawHalf(unsigned x, unsigned y) { gfx::tex::drawNoBlendSkipSmooth(x, y); }
 
-			uint64_t getTitleID() { return titleID; }
+            uint64_t getTitleID() { return titleID; }
 
-			void deleteData() { gfx::tex::deleteData(); }
+            void deleteData() { gfx::tex::deleteData(); }
 
-		private:
-			uint64_t titleID;
-	};
+        private:
+            uint64_t titleID;
+    };
 
-	//Class to store title info
-	class titledata
-	{
-		public:
-			//Attempts to read title's info. Returns false if failed
-			bool init(const FsSaveDataInfo& inf);
+    //Class to store title info
+    class titledata
+    {
+        public:
+            //Attempts to read title's info. Returns false if failed
+            bool init(const FsSaveDataInfo& inf);
 
-			//Attempts to mount data with uID + id. Returns false if fails. For filtering.
-			bool isMountable(const u128& uID);
+            //Attempts to mount data with uID + id. Returns false if fails. For filtering.
+            bool isMountable(const u128& uID);
 
-			//Returns title + title without forbidden chars
-			std::string getTitle() { return title;}
-			std::string getTitleSafe() { return titleSafe; }
+            //Returns title + title without forbidden chars
+            std::string getTitle() { return title;}
+            std::string getTitleSafe() { return titleSafe; }
 
-			//Returns ID
-			uint64_t getID() { return id; }
+            //Returns ID
+            uint64_t getID() { return id; }
 
-			//Game icon
-			icn icon;
+            //Game icon
+            icn icon;
 
-			FsSaveDataType getType() { return type; }
+            FsSaveDataType getType() { return type; }
 
-		private:
-			FsSaveDataType type;
-			std::string title, titleSafe;
-			uint64_t id;
-			u128 uID;
-	};
+        private:
+            FsSaveDataType type;
+            std::string title, titleSafe;
+            uint64_t id;
+            u128 uID;
+    };
 
-	//Class to store user info + titles
-	class user
-	{
-		public:
-			//Attempts to read user data using _id
-			bool init(const u128& _id);
+    //Class to store user info + titles
+    class user
+    {
+        public:
+            //Attempts to read user data using _id
+            bool init(const u128& _id);
 
-			//Allows user to init without reading data. For fun.
-			bool initNoChk(const u128& _id);
+            //Allows user to init without reading data. For fun.
+            bool initNoChk(const u128& _id);
 
-			//Returns user ID
-			u128 getUID() { return userID; }
+            //Returns user ID
+            u128 getUID() { return userID; }
 
-			//Returns username
-			std::string getUsername() { return username; }
-			std::string getUsernameSafe() { return userSafe; }
+            //Returns username
+            std::string getUsername() { return username; }
+            std::string getUsernameSafe() { return userSafe; }
 
-			//Vector for storing save data info for user
-			std::vector<titledata> titles;
+            //Vector for storing save data info for user
+            std::vector<titledata> titles;
 
-			gfx::tex icn;
+            gfx::tex icn;
 
-		private:
-			u128 userID;
-			std::string username, userSafe;
-	};
+        private:
+            u128 userID;
+            std::string username, userSafe;
+    };
 
-	//User vector
-	extern std::vector<user> users;
+    //User vector
+    extern std::vector<user> users;
 
-	//Stores current data we're using so I don't have to type so much.
-	extern titledata curData;
-	extern user curUser;
+    //Stores current data we're using so I don't have to type so much.
+    extern titledata curData;
+    extern user curUser;
 }
 
 #endif // DATA_H
