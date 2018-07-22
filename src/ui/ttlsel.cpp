@@ -45,7 +45,7 @@ namespace ui
 
         //draw Rect so it's always behind icons
         uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
-        gfx::drawRectangle(selRectX, selRectY, 140, 140, rectClr);
+        drawRect(texGetFramebuffer(), selRectX, selRectY, 140, 140, colorCreateTemp(rectClr));
 
         for(unsigned i = start; i < endTitle; y += 144)
         {
@@ -75,7 +75,7 @@ namespace ui
                     }
 
                     std::string title = data::curUser.titles[selected].getTitle();
-                    unsigned titleWidth = gfx::getTextWidth(title, 16);
+                    unsigned titleWidth = textGetWidth(title.c_str(), ui::shared, 16);
                     int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
                     if(rectX < 16)
                         rectX = 16;
@@ -84,7 +84,7 @@ namespace ui
                         rectX = 1264 - rectWidth;
 
                     drawTextbox(rectX, y - 50, rectWidth, 38);
-                    gfx::drawText(title, rectX + 16, y - 38, 16, txtClr);
+                    drawText(title.c_str(), texGetFramebuffer(), ui::shared, rectX + 16, y - 38, 16, txtClr);
                 }
                 data::curUser.titles[i].icon.drawHalf(tX, y);
             }

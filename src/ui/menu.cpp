@@ -3,6 +3,7 @@
 
 #include "gfx.h"
 #include "menu.h"
+#include "ui.h"
 #include "miscui.h"
 
 namespace ui
@@ -24,7 +25,7 @@ namespace ui
 
     void menu::addOpt(const std::string& add)
     {
-        if(gfx::getTextWidth(add, 16) < rW || rW == 0)
+        if(textGetWidth(add.c_str(), ui::shared, 16) < rW || rW == 0)
             opt.push_back(add);
         else
         {
@@ -32,7 +33,7 @@ namespace ui
             for(unsigned i = 0; i < add.length(); i++)
             {
                 tmp += add[i];
-                if(gfx::getTextWidth(tmp, 16) >= rW)
+                if(textGetWidth(tmp.c_str(), ui::shared, 16) >= rW)
                 {
                     tmp.replace(i - 1, 2, "[]");
                     opt.push_back(tmp);
@@ -132,7 +133,7 @@ namespace ui
         }
     }
 
-    void menu::draw(const uint32_t& textClr)
+    void menu::draw(const color& textClr)
     {
         if(clrAdd)
         {
@@ -158,9 +159,9 @@ namespace ui
         for(int i = start; i < length; i++)
         {
             if(i == selected)
-                gfx::drawRectangle(x, y + ((i - start) * 36), rW, 32, rectClr);
+                drawRect(texGetFramebuffer(), x, y + ((i - start) * 36), rW, 32, colorCreateTemp(rectClr));
 
-            gfx::drawText(opt[i], x, (y + 8) + ((i - start) * 36), 16, textClr);
+            drawText(opt[i].c_str(), texGetFramebuffer(), shared, x, (y + 8) + ((i - start) * 36), 16, textClr);
         }
     }
 

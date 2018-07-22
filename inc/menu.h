@@ -4,6 +4,7 @@
 #include <string>
 #include <vector>
 
+#include "gfx.h"
 #include "miscui.h"
 
 enum menuTouch
@@ -33,7 +34,7 @@ namespace ui
             int getTouchEvent() { return retEvent; }
 
             //Draws the menu at x and y. rectWidth is the width of the rectangle drawn under the selected
-            void draw(const uint32_t& textClr);
+            void draw(const color& textClr);
 
             //Clears and resets menu
             void reset();

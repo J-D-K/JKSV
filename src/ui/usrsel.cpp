@@ -39,7 +39,7 @@ namespace ui
             endUser = data::users.size();
 
         uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
-        gfx::drawRectangle(selRectX, selRectY, 140, 140, rectClr);
+        drawRect(texGetFramebuffer(), selRectX, selRectY, 140, 140, colorCreateTemp(rectClr));
 
         for(unsigned i = start; i < endUser; y += 144)
         {
@@ -68,7 +68,7 @@ namespace ui
                     }
 
                     std::string username = data::users[selected].getUsername();
-                    unsigned userWidth = gfx::getTextWidth(username, 16);
+                    unsigned userWidth = textGetWidth(username.c_str(), ui::shared, 16);
                     int userRectWidth = userWidth + 32, userRectX = (tX + 64) - (userRectWidth  / 2);
                     if(userRectX < 16)
                         userRectX = 16;
@@ -77,9 +77,10 @@ namespace ui
                         userRectX = 1264 - userRectWidth;
 
                     drawTextbox(userRectX, y - 50, userRectWidth, 38);
-                    gfx::drawText(username, userRectX + 16, y - 38, 16, txtClr);
+                    drawText(username.c_str(), texGetFramebuffer(), ui::shared, userRectX + 16, y - 38, 16, txtClr);
                 }
-                data::users[i].icn.drawNoBlendSkipSmooth(tX, y);
+
+                texDrawSkipNoAlpha(data::users[i].userIcon, texGetFramebuffer(), tX, y);
             }
         }
 

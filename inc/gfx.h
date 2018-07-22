@@ -1,95 +1,160 @@
 #ifndef GFX_H
 #define GFX_H
 
-#include <string>
+#include <stdint.h>
+#include <stdbool.h>
+#include <ft2build.h>
+#include FT_FREETYPE_H
 
-namespace gfx
+#ifdef __cplusplus
+extern "C"
 {
-    class color
-    {
-        public:
-            void fromRGBA(const uint8_t& _r, const uint8_t& _g, const uint8_t& _b, const uint8_t& _a);
-            void fromU32(const uint32_t& _px);
-            void invert();
+#endif
 
-            void setR(const uint8_t& _r) { rgb[3] = _r; }
-            void setG(const uint8_t& _g) { rgb[2] = _g; }
-            void setB(const uint8_t& _b) { rgb[1] = _b; }
-            void setA(const uint8_t& _a) { rgb[0] = _a; }
+//Structs
+typedef struct
+{
+    uint8_t r, g, b, a;
+} color;
 
-            uint8_t r() { return rgb[3]; }
-            uint8_t g() { return rgb[2]; }
-            uint8_t b() { return rgb[1]; }
-            uint8_t a() { return rgb[0]; }
-            uint32_t clr() { return rgb[0] << 24 | rgb[1] << 16 | rgb[2] << 8 | rgb[3]; }
+typedef struct
+{
+    FT_Library lib;
+    FT_Face    face;
+    FT_Error libRet, faceRet;
+} font;
 
-        private:
-            uint8_t rgb[4];
-    };
+typedef struct
+{
+    size_t size;
+    unsigned width, height;
+    uint32_t *data;
+} tex;
 
-    class tex
-    {
-        public:
-            /*
-            Now uses libpng and png files
-            Only accepts RGBA8 PNGs
-            Others will have issues.
-            */
-            void loadPNGFile(const std::string& path);
-            void loadJpegMem(const uint8_t *txData, const size_t& jpegSz);
-            void loadJpegFile(const std::string& path);
-            //Frees memory used by data
-            void deleteData();
-            unsigned getWidth() { return width; }
-            unsigned getHeight() { return height; }
-            uint32_t *getDataPointer() { return data; }
+//Inits needed graphics stuff
+bool graphicsInit(int windowWidth, int windowHeight);
 
-            void draw(unsigned x, unsigned y);
-            void drawInvert(unsigned x, unsigned y);
-            void drawNoBlend(unsigned x, unsigned y);
+//Exits needed services
+bool graphicsExit();
 
-            //For lazy-scaling icons
-            //Skips every-other pixel and row, so 1/2 scale
-            void drawNoBlendSkip(unsigned x, unsigned y);
-            void drawNoBlendSkipSmooth(unsigned x, unsigned y);
+//Flush, swap buffers
+void gfxHandleBuffs();
 
-            //These only repeat pixels.
-            void drawRepeatHori(unsigned x, unsigned y, unsigned w);
-            void drawRepeatHoriNoBlend(unsigned x, unsigned y, unsigned w);
-
-            void drawRepeatVert(unsigned x, unsigned y, unsigned h);
-            void drawRepeatVertNoBlend(unsigned x, unsigned y, unsigned h);
-
-        protected:
-            size_t sz;
-            unsigned width, height;
-            uint32_t *data = NULL;
-    };
-
-
-    //Inits graphics and shared font. Code for shared font is from switch-portlibs examples
-    bool init();
-    bool exit();
-
-    //Changes gfx mode to linear double
-    void switchMode();
-
-    void handleBuffs();
-
-    //Clears framebuffer to clr. RGBA8
-    void clearBufferColor(const uint32_t& clr);
-
-    //Draws text using shared font.
-    void drawText(const std::string& str, unsigned x, unsigned y, const unsigned& sz, const uint32_t& clr);
-
-    //Returns width of str
-    unsigned getTextWidth(const std::string& str, const unsigned& sz);
-
-    //Returns height of text if using sz
-    unsigned getTextHeight(const unsigned& sz);
-
-    //Draws a rectangle. clr = RGBA8. Be careful not to go outside framebuffer
-    void drawRectangle(const unsigned& x, const unsigned& y, const unsigned& width, const unsigned& height, const uint32_t& clr);
+//Creates color from uint32_t
+inline void colorCreateFromU32(color *c, uint32_t clr)
+{
+    c->a = clr >> 24 & 0xFF;
+    c->b = clr >> 16 & 0xFF;
+    c->g = clr >>  8 & 0xFF;
+    c->r = clr & 0xFF;
 }
+
+//Sets color to [r], [g], [b], [a]
+inline void colorSetRGBA(color *c, uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
+{
+    c->r = _r;
+    c->g = _g;
+    c->b = _b;
+    c->a = _a;
+}
+
+//Inverts color
+inline void colorInvert(color *c)
+{
+    c->r = 0xFF - c->r;
+    c->g = 0xFF - c->g;
+    c->b = 0xFF - c->b;
+}
+
+//Returns uint32_t color
+inline uint32_t colorGetColor(const color c)
+{
+    return (c.a << 24 | c.b << 16 | c.g << 8 | c.r);
+}
+
+inline color colorCreateTemp(uint32_t clr)
+{
+    color ret;
+
+    ret.r = clr & 0xFF;
+    ret.g = clr >> 8 & 0xFF;
+    ret.b = clr >> 16 & 0xFF;
+    ret.a = clr >> 24 & 0xFF;
+
+    return ret;
+}
+
+//Draws text using f
+void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, color c);
+
+//Returns text width
+size_t textGetWidth(const char *str, const font *f, int sz);
+
+//Clears framebuffer to c
+void clearBufferColor(const color c);
+
+//Draws rectangle at x, y with w, h
+void drawRect(tex *target, int x, int y, int w, int h, const color c);
+
+/*
+TEX BEGIN
+*/
+//Inits empty tex
+tex *texCreate(int w, int h);
+
+//Loads PNG from path
+tex *texLoadPNGFile(const char *path);
+
+//Loads JPEG from path
+tex *texLoadJPEGFile(const char *path);
+
+//Loads jpeg from memory
+tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize);
+
+//Frees memory used by t
+void texDestroy(tex *t);
+
+//Clears tex completely with c
+void texClearColor(tex *in, const color c);
+
+//Draws t at x, y
+void texDraw(const tex *t, tex *target, int x, int y);
+
+//Draws without alpha blending, faster
+void texDrawNoAlpha(const tex *t, tex *target, int x, int y);
+
+//Draws skipping every other pixel + row
+void texDrawSkip(const tex *t, tex *target, int x, int y);
+
+//Same as above, no alpha
+void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y);
+
+//Draw t inverted at x, y
+void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha);
+
+//Scales tex * scale and writes to out. Can only multiply for now
+void texScaleToTex(const tex *in, tex *out, int scale);
+
+//Draws directly to Switch's framebuffer
+void texDrawDirect(const tex *in, int x, int y);
+
+//Loads and returns font with Switch shared font loaded
+font *fontLoadSharedFont(PlSharedFontType fontType);
+
+//Loads and returns TTF font
+font *fontLoadTTF(const char *path);
+
+//Frees font
+void fontDestroy(font *f);
+
+/*
+TEX END
+*/
+
+//returns framebuffer tex pointer
+tex *texGetFramebuffer();
+#ifdef __cplusplus
+}
+#endif
 
 #endif // GFX_H

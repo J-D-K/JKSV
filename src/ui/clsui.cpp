@@ -40,7 +40,7 @@ namespace ui
             data::curUser = data::users[userMenu.getSelected()];
             clsTitlePrep(data::curUser);
 
-            mstate = 5;
+            mstate = CLS_TTL;
         }
         else if(down & KEY_Y)
         {

@@ -17,7 +17,7 @@ namespace data
     void exit();
 
     //Class to help not load the same icons over and over
-    class icn : gfx::tex
+    class icn
     {
         public:
             //Loads jpeg icon from jpegData
@@ -25,15 +25,16 @@ namespace data
             //For loading default icon
             void load(const uint64_t & _id, const std::string& _png);
 
-            void draw(unsigned x, unsigned y) { gfx::tex::draw(x, y); }
-            void drawHalf(unsigned x, unsigned y) { gfx::tex::drawNoBlendSkipSmooth(x, y); }
+            void draw(unsigned x, unsigned y) { texDrawNoAlpha(iconTex, texGetFramebuffer(), x, y); }
+            void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, texGetFramebuffer(), x, y); }
 
             uint64_t getTitleID() { return titleID; }
 
-            void deleteData() { gfx::tex::deleteData(); }
+            void deleteData() { texDestroy(iconTex); }
 
         private:
             uint64_t titleID;
+            tex *iconTex;
     };
 
     //Class to store title info
@@ -85,7 +86,7 @@ namespace data
             //Vector for storing save data info for user
             std::vector<titledata> titles;
 
-            gfx::tex icn;
+            tex *userIcon;
 
         private:
             u128 userID;

@@ -11,10 +11,10 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 07/15/2018"
+#define TITLE_TEXT "JKSV - 07/21/2018"
 
-//Secret background that can be drawn from ".JKSV/back.jpg"
-static gfx::tex background;
+//Secret background that can be drawn from "/JKSV/back.jpg"
+static tex *background = NULL;
 
 namespace ui
 {
@@ -30,15 +30,18 @@ namespace ui
     //Touch button vector
     std::vector<ui::button> selButtons;
 
-    //UI colors 0xAABBGGRR
-    uint32_t clearClr = 0xFFFFFFFF, mnuTxt = 0xFF000000, txtClr = 0xFF000000, \
-                        rectLt = 0xFFC0C0C0, rectSh = 0, tboxClr = 0xFFC0C0C0;
+    //UI colors
+    color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
 
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
-    gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight;
+    tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
 
-    gfx::tex buttonA, buttonB, buttonX, buttonY, buttonMin;
+    tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
+
+    font *shared;
+
+    tex *fb;
 
     void init()
     {
@@ -49,54 +52,59 @@ namespace ui
         {
             case ColorSetId_Light:
                 //Dark corners
-                cornerTopLeft.loadPNGFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
-                cornerTopRight.loadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
-                cornerBottomLeft.loadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
-                cornerBottomRight.loadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
+                cornerTopRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
+                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
+                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
 
                 //Dark buttons
-                buttonA.loadPNGFile("romfs:/img/button/buttonA_drk.png");
-                buttonB.loadPNGFile("romfs:/img/button/buttonB_drk.png");
-                buttonX.loadPNGFile("romfs:/img/button/buttonX_drk.png");
-                buttonY.loadPNGFile("romfs:/img/button/buttonY_drk.png");
-                buttonMin.loadPNGFile("romfs:/img/button/buttonMin_drk.png");
+                buttonA = texLoadPNGFile("romfs:/img/button/buttonA_drk.png");
+                buttonB = texLoadPNGFile("romfs:/img/button/buttonB_drk.png");
+                buttonX = texLoadPNGFile("romfs:/img/button/buttonX_drk.png");
+                buttonY = texLoadPNGFile("romfs:/img/button/buttonY_drk.png");
+                buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_drk.png");
 
-                clearClr = 0xFFEBEBEB;
-                mnuTxt   = 0xFF000000;
-                txtClr   = 0xFFFFFFFF;
-                rectLt   = 0xFFDFDFDF;
-                rectSh   = 0xFFCACACA;
-                tboxClr  = 0xFF505050;
+                colorCreateFromU32(&clearClr, 0xFFEBEBEB);
+                colorCreateFromU32(&mnuTxt, 0xFF000000);
+                colorCreateFromU32(&txtClr, 0xFFFFFFFF);
+                colorCreateFromU32(&rectLt, 0xFFDFDFDF);
+                colorCreateFromU32(&rectSh, 0xFFCACACA);
+                colorCreateFromU32(&tboxClr, 0xFF505050);
                 break;
 
             default:
             case ColorSetId_Dark:
                 //Light corners
-                cornerTopLeft.loadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
-                cornerTopRight.loadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
-                cornerBottomLeft.loadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
-                cornerBottomRight.loadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
+                cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
+                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
+                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
 
                 //Light buttons
-                buttonA.loadPNGFile("romfs:/img/button/buttonA_lght.png");
-                buttonB.loadPNGFile("romfs:/img/button/buttonB_lght.png");
-                buttonX.loadPNGFile("romfs:/img/button/buttonX_lght.png");
-                buttonY.loadPNGFile("romfs:/img/button/buttonY_lght.png");
-                buttonMin.loadPNGFile("romfs:/img/button/buttonMin_lght.png");
+                buttonA = texLoadPNGFile("romfs:/img/button/buttonA_lght.png");
+                buttonB = texLoadPNGFile("romfs:/img/button/buttonB_lght.png");
+                buttonX = texLoadPNGFile("romfs:/img/button/buttonX_lght.png");
+                buttonY = texLoadPNGFile("romfs:/img/button/buttonY_lght.png");
+                buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_lght.png");
 
-                clearClr = 0xFF2D2D2D;
-                mnuTxt   = 0xFFFFFFFF;
-                txtClr   = 0xFF000000;
-                rectLt   = 0xFF505050;
-                rectSh   = 0xFF202020;
-                tboxClr  = 0xFFEBEBEB;
+                colorCreateFromU32(&clearClr, 0xFF2D2D2D);
+                colorCreateFromU32(&mnuTxt, 0xFFFFFFFF);
+                colorCreateFromU32(&txtClr, 0xFF000000);
+                colorCreateFromU32(&rectLt, 0xFF505050);
+                colorCreateFromU32(&rectSh, 0xFF202020);
+                colorCreateFromU32(&tboxClr, 0xFFEBEBEB);
                 break;
         }
+
+        if(fs::fileExists(fs::getWorkDir() + "font.ttf"))
+            shared = fontLoadTTF(std::string(fs::getWorkDir() + "font.ttf").c_str());
+        else
+            shared = fontLoadSharedFont(PlSharedFontType_KO);
 
         setupSelButtons();
 
         if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
-            background.loadJpegFile("back.jpg");
+            background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
 
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
@@ -106,21 +114,27 @@ namespace ui
         }
 
         advCopyMenuPrep();
+
+        fb = texGetFramebuffer();
     }
 
     void exit()
     {
-        cornerTopLeft.deleteData();
-        cornerTopRight.deleteData();
-        cornerBottomLeft.deleteData();
-        cornerBottomRight.deleteData();
+        texDestroy(cornerTopLeft);
+        texDestroy(cornerTopRight);
+        texDestroy(cornerBottomLeft);
+        texDestroy(cornerBottomRight);
 
-        buttonA.deleteData();
-        buttonB.deleteData();
-        buttonX.deleteData();
-        buttonY.deleteData();
+        texDestroy(buttonA);
+        texDestroy(buttonB);
+        texDestroy(buttonX);
+        texDestroy(buttonY);
+        texDestroy(buttonMin);
 
-        background.deleteData();
+        if(background != NULL)
+            texDestroy(background);
+
+        fontDestroy(shared);
     }
 
     void setupSelButtons()
@@ -140,56 +154,56 @@ namespace ui
 
     void drawUI()
     {
-        if(background.getDataPointer() == NULL)
-            gfx::clearBufferColor(clearClr);
+        if(background == NULL)
+            texClearColor(fb, clearClr);
         else
-            background.drawNoBlend(0, 0);
+            texDrawNoAlpha(background, fb, 0, 0);
 
-        gfx::drawText(TITLE_TEXT, 16, 16, 32, mnuTxt);
+        drawText(TITLE_TEXT, fb, shared, 16, 16, 32, mnuTxt);
 
         switch(mstate)
         {
             case FLD_SEL:
-                gfx::drawRectangle(16, 64, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 65, 1248, 2, rectSh);
+                drawRect(fb, 16, 64, 1248, 1, rectLt);
+                drawRect(fb, 16, 65, 1248, 2, rectSh);
 
-                gfx::drawRectangle(288, 65, 1, 592, rectLt);
-                gfx::drawRectangle(289, 65, 2, 592, rectSh);
+                drawRect(fb, 288, 65, 1, 592, rectLt);
+                drawRect(fb, 289, 65, 2, 592, rectSh);
 
-                gfx::drawRectangle(16, 656, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 657, 1248, 2, rectSh);
+                drawRect(fb, 16, 656, 1248, 1, rectLt);
+                drawRect(fb, 16, 657, 1248, 2, rectSh);
                 break;
 
             case USR_SEL:
             case TTL_SEL:
-                gfx::drawRectangle(16, 64, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 65, 1248, 2, rectSh);
+                drawRect(fb, 16, 64, 1248, 1, rectLt);
+                drawRect(fb, 16, 65, 1248, 2, rectSh);
 
-                gfx::drawRectangle(16, 656, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 657, 1248, 2, rectSh);
+                drawRect(fb, 16, 656, 1248, 1, rectLt);
+                drawRect(fb, 16, 657, 1248, 2, rectSh);
                 break;
 
             case ADV_MDE:
-                gfx::drawRectangle(16, 64, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 65, 1248, 2, rectSh);
+                drawRect(fb, 16, 64, 1248, 1, rectLt);
+                drawRect(fb, 16, 65, 1248, 2, rectSh);
 
-                gfx::drawRectangle(640, 64, 1, 592, rectLt);
-                gfx::drawRectangle(641, 64, 2, 592, rectSh);
+                drawRect(fb, 640, 64, 1, 592, rectLt);
+                drawRect(fb, 641, 64, 2, 592, rectSh);
 
-                gfx::drawRectangle(16, 656, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 657, 1248, 2, rectSh);
+                drawRect(fb, 16, 656, 1248, 1, rectLt);
+                drawRect(fb, 16, 657, 1248, 2, rectSh);
                 break;
 
             case CLS_TTL:
             case CLS_USR:
-                gfx::drawRectangle(16, 64, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 65, 1248, 2, rectSh);
+                drawRect(fb, 16, 64, 1248, 1, rectLt);
+                drawRect(fb, 16, 65, 1248, 2, rectSh);
 
-                gfx::drawRectangle(448, 64, 1, 592, rectLt);
-                gfx::drawRectangle(449, 64, 2, 592, rectSh);
+                drawRect(fb, 448, 64, 1, 592, rectLt);
+                drawRect(fb, 449, 64, 2, 592, rectSh);
 
-                gfx::drawRectangle(16, 656, 1248, 1, rectLt);
-                gfx::drawRectangle(16, 657, 1248, 2, rectSh);
+                drawRect(fb, 16, 656, 1248, 1, rectLt);
+                drawRect(fb, 16, 657, 1248, 2, rectSh);
                 break;
         }
 
@@ -200,12 +214,12 @@ namespace ui
                 {
                     //Input guide
                     unsigned startX = 848;
-                    buttonA.draw(startX, 672);
-                    gfx::drawText("Select", startX += 38, 680, 14, mnuTxt);
-                    buttonY.draw(startX += 72, 672);
-                    gfx::drawText("Dump All", startX += 38, 680, 14, mnuTxt);
-                    buttonX.draw(startX += 96, 672);
-                    gfx::drawText("Classic Mode", startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonA, fb, startX, 672);
+                    drawText("Select", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonY, fb, startX += 72, 672);
+                    drawText("Dump All", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonX, fb, startX += 96, 672);
+                    drawText("Classic Mode", fb, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
 
@@ -213,12 +227,12 @@ namespace ui
             case CLS_TTL:
                 {
                     unsigned startX = 914;
-                    buttonA.draw(startX, 672);
-                    gfx::drawText("Select", startX += 38, 680, 14, mnuTxt);
-                    buttonY.draw(startX += 72, 672);
-                    gfx::drawText("Dump All", startX += 38, 680, 14, mnuTxt);
-                    buttonB.draw(startX += 96, 672);
-                    gfx::drawText("Back", startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonA, fb, startX, 672);
+                    drawText("Select", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonY, fb, startX += 72, 672);
+                    drawText("Dump All", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonB, fb, startX += 96, 672);
+                    drawText("Back", fb, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
 
@@ -226,16 +240,16 @@ namespace ui
                 {
                     //Input guide
                     unsigned startX = 690;
-                    buttonMin.draw(startX, 672);
-                    gfx::drawText("Adv. Mode", startX += 38, 680, 14, mnuTxt);
-                    buttonA.draw(startX += 100, 672);
-                    gfx::drawText("Backup", startX += 38, 680, 14, mnuTxt);
-                    buttonY.draw(startX += 72, 672);
-                    gfx::drawText("Restore", startX += 38, 680, 14, mnuTxt);
-                    buttonX.draw(startX += 72, 672);
-                    gfx::drawText("Delete", startX += 38, 680, 14, mnuTxt);
-                    buttonB.draw(startX += 72, 672);
-                    gfx::drawText("Back", startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonMin, fb, startX, 672);
+                    drawText("Adv. Mode", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonA, fb, startX += 100, 672);
+                    drawText("Backup", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonY, fb, startX += 72, 672);
+                    drawText("Restore", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonX, fb, startX += 72, 672);
+                    drawText("Delete", fb, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonB, fb, startX += 72, 672);
+                    drawText("Back", fb, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
         }

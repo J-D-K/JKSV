@@ -32,7 +32,7 @@ namespace ui
         folderMenu.draw(mnuTxt);
 
         data::curData.icon.draw(16, 88);
-        gfx::drawText(folderMenuInfo, 16, 360, 18, mnuTxt);
+        drawText(folderMenuInfo.c_str(), texGetFramebuffer(), ui::shared, 16, 360, 18, ui::mnuTxt);
 
         if(down & KEY_A || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
         {

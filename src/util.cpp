@@ -39,7 +39,7 @@ namespace util
 
     std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth)
     {
-        if(gfx::getTextWidth(s, sz) < maxWidth)
+        if(textGetWidth(s.c_str(), ui::shared, sz) < maxWidth)
             return s;
 
         std::string ret = "", tmp = "";
@@ -53,7 +53,7 @@ namespace util
             if(s[i] == ' ' || s[i] == '/')
                 lastSpace = i;
 
-            if(gfx::getTextWidth(tmp, sz) >= maxWidth)
+            if(textGetWidth(tmp.c_str(), ui::shared, sz) >= maxWidth)
             {
                 tmp.assign(s, first, lastSpace - first);
 

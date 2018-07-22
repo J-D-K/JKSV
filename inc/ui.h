@@ -37,13 +37,16 @@ namespace ui
     extern std::string folderMenuInfo;
 
     //Colors to use now that I added theme detection
-    extern uint32_t clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
+    extern color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
 
     //Button tex
-    extern gfx::tex buttonA, buttonB, buttonX, buttonY, buttonMin;
+    extern tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
     //Textbox graphics
-    extern gfx::tex cornerTopLeft, cornerTopRight, cornerBottomLeft, cornerBottomRight,\
-    horEdgeTop, horEdgeBot, vertEdgeLeft, vertEdgeRight;
+    extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight,\
+    *horEdgeTop, *horEdgeBot, *vertEdgeLeft, *vertEdgeRight;
+
+    //Shared font
+    extern font *shared;
 
     extern std::vector<ui::button> selButtons;
 

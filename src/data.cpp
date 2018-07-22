@@ -115,7 +115,7 @@ namespace data
     void exit()
     {
         for(unsigned i = 0; i < users.size(); i++)
-            users[i].icn.deleteData();
+            texDestroy(users[i].userIcon);
 
         for(unsigned i = 0; i < icons.size(); i++)
             icons[i].deleteData();
@@ -124,13 +124,13 @@ namespace data
     void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
     {
         titleID = _id;
-        gfx::tex::loadJpegMem(jpegData, jpegSize);
+        iconTex = texLoadJPEGMem(jpegData, jpegSize);
     }
 
     void icn::load(const uint64_t& _id, const std::string& _png)
     {
         titleID = _id;
-        gfx::tex::loadPNGFile(_png);
+        iconTex = texLoadPNGFile(_png.c_str());
     }
 
     int findIcnIndex(const uint64_t& titleID)
@@ -248,7 +248,7 @@ namespace data
         uint8_t *profJpeg = new uint8_t[sz];
 
         accountProfileLoadImage(&prof, profJpeg, sz, &sz);
-        icn.loadJpegMem(profJpeg, sz);
+        userIcon = texLoadJPEGMem(profJpeg, sz);
 
         delete[] profJpeg;
 
@@ -282,7 +282,7 @@ namespace data
             username = "Unknown";
             userSafe = "Unknown";
             //This shouldn't happen too much
-            icn.loadPNGFile("romfs:/img/icn/icnDefault.png");
+            userIcon = texLoadPNGFile("romfs:/img/icn/icnDefault.png");
         }
 
         return true;

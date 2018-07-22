@@ -35,7 +35,7 @@ extern "C"
 int main(int argc, const char *argv[])
 {
     fs::init();
-    gfx::init();
+    graphicsInit(1280, 720);
     data::loadDataInfo();
     ui::init();
 
@@ -66,9 +66,9 @@ int main(int argc, const char *argv[])
 
         ui::runApp(down, held, p);
 
-        gfx::handleBuffs();
+        gfxHandleBuffs();
     }
-    gfx::exit();
+    graphicsExit();
     ui::exit();
     data::exit();
 }

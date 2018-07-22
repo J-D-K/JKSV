@@ -92,18 +92,18 @@ namespace ui
                 clrAdd = true;
         }
 
-        gfx::drawRectangle(0, 176, 1280, 64, 0xFFFFFFFF);
-        gfx::drawRectangle(0, 240, 1280, 480, 0xFF2D2D2D);
+        drawRect(texGetFramebuffer(), 0, 176, 1280, 64, colorCreateTemp(0xFFFFFFFF));
+        drawRect(texGetFramebuffer(), 0, 240, 1280, 480, colorCreateTemp(0xFF2D2D2D));
 
         uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x88 + clrSh) & 0xFF) << 8 | 0x00;
 
         //Draw sel rectangle around key for controller
-        gfx::drawRectangle(keys[selKey].getX() - 4, keys[selKey].getY() - 4, keys[selKey].getW() + 8, keys[selKey].getH() + 8, rectClr);
+        drawRect(texGetFramebuffer(), keys[selKey].getX() - 4, keys[selKey].getY() - 4, keys[selKey].getW() + 8, keys[selKey].getH() + 8, colorCreateTemp(rectClr));
 
         for(unsigned i = 0; i < keys.size(); i++)
             keys[i].draw();
 
-        gfx::drawText(str, 16, 192, 32, 0xFF000000);
+        drawText(str.c_str(), texGetFramebuffer(), ui::shared, 16, 192, 32, colorCreateTemp(0xFF000000));
     }
 
     std::string keyboard::getString(const std::string& def)
@@ -194,7 +194,7 @@ namespace ui
 
             draw();
 
-            gfx::handleBuffs();
+            gfxHandleBuffs();
         }
 
         return str;

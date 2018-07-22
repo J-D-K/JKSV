@@ -143,7 +143,7 @@ namespace fs
 
             prog.draw(copyString);
 
-            gfx::handleBuffs();
+            gfxHandleBuffs();
         }
 
         delete[] buff;
@@ -176,7 +176,7 @@ namespace fs
 
             prog.draw(copyString);
 
-            gfx::handleBuffs();
+            gfxHandleBuffs();
         }
 
         delete[] buff;
