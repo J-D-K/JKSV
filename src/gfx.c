@@ -50,8 +50,8 @@ bool graphicsInit(int windowWidth, int windowHeight)
 
     //Make a fake tex that points to framebuffer
     frameBuffer = malloc(sizeof(tex));
-    frameBuffer->width = 1280;
-    frameBuffer->height = 720;
+    frameBuffer->width = windowWidth;
+    frameBuffer->height = windowHeight;
     frameBuffer->data = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
 
     return true;
@@ -519,6 +519,8 @@ font *fontLoadSharedFont(PlSharedFontType fontType)
         return NULL;
     }
 
+    ret->fntData = NULL;
+
     return ret;
 }
 
@@ -531,7 +533,16 @@ font *fontLoadTTF(const char *path)
         return NULL;
     }
 
-    if((ret->faceRet = FT_New_Face(ret->lib, path, 0, &ret->face)))
+    FILE *ttf = fopen(path, "rb");
+    fseek(ttf, 0, SEEK_END);
+    size_t ttfSize = ftell(ttf);
+    fseek(ttf, 0, SEEK_SET);
+
+    ret->fntData = malloc(ttfSize);
+    fread(ret->fntData, 1, ttfSize, ttf);
+    fclose(ttf);
+
+    if((ret->faceRet = FT_New_Memory_Face(ret->lib, ret->fntData, ttfSize, 0, &ret->face)))
     {
         free(ret);
         return NULL;
@@ -546,6 +557,8 @@ void fontDestroy(font *f)
         FT_Done_Face(f->face);
     if(f->libRet == 0)
         FT_Done_FreeType(f->lib);
+    if(f->fntData != NULL)
+        free(f->fntData);
 
     free(f);
 }

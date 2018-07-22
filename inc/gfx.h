@@ -22,6 +22,8 @@ typedef struct
     FT_Library lib;
     FT_Face    face;
     FT_Error libRet, faceRet;
+    //Loads to buffer for speed
+    uint8_t *fntData;
 } font;
 
 typedef struct
