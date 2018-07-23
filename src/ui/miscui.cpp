@@ -24,12 +24,12 @@ namespace ui
     void progBar::draw(const std::string& text)
     {
         ui::drawTextbox(64, 240, 1152, 240);
-        drawRect(texGetFramebuffer(), 96, 400, 1088, 64, colorCreateTemp(0xFF000000));
-        drawRect(texGetFramebuffer(), 96, 400, (unsigned)width, 64, colorCreateTemp(0xFF00CC00));
+        drawRect(ui::fb, 96, 400, 1088, 64, colorCreateTemp(0xFF000000));
+        drawRect(ui::fb, 96, 400, (unsigned)width, 64, colorCreateTemp(0xFF00CC00));
 
         //char tmp[64];
         //sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
-        drawText(text.c_str(), texGetFramebuffer(), ui::shared, 80, 256, 24, txtClr);
+        drawText(text.c_str(), ui::fb, ui::shared, 80, 256, 24, txtClr);
         //gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
     }
 
@@ -87,11 +87,11 @@ namespace ui
     void button::draw()
     {
         if(pressed)
-            drawRect(texGetFramebuffer(), x, y, w, h, colorCreateTemp(0xFF0D0D0D));
+            drawRect(ui::fb, x, y, w, h, colorCreateTemp(0xFF0D0D0D));
         else
             ui::drawTextbox(x, y, w, h);
 
-        drawText(text.c_str(), texGetFramebuffer(), ui::shared, tx, ty, 24, txtClr);
+        drawText(text.c_str(), ui::fb, ui::shared, tx, ty, 24, txtClr);
     }
 
     void touchTrack::update(const touchPosition& p)
@@ -155,9 +155,9 @@ namespace ui
                 break;
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawText(wrapMess.c_str(), texGetFramebuffer(), ui::shared, 272, 144, 24, txtClr);
+            drawText(wrapMess.c_str(), ui::fb, ui::shared, 272, 144, 24, txtClr);
             ok.draw();
-            texDrawInvert(ui::buttonA, texGetFramebuffer(), ok.getTx() + 56, ok.getTy() - 4, true);
+            texDrawInvert(ui::buttonA, ui::fb, ok.getTx() + 56, ok.getTy() - 4, true);
 
             gfxHandleBuffs();
         }
@@ -184,7 +184,7 @@ namespace ui
                 break;
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawText(tmp, texGetFramebuffer(), shared, 272, 144, 48, txtClr);
+            drawText(tmp, ui::fb, shared, 272, 144, 48, txtClr);
             ok.draw();
 
             gfxHandleBuffs();
@@ -223,11 +223,11 @@ namespace ui
             }
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawText(wrapMess.c_str(), texGetFramebuffer(), ui::shared, 272, 144, 24, txtClr);
+            drawText(wrapMess.c_str(), ui::fb, ui::shared, 272, 144, 24, txtClr);
             yes.draw();
-            texDrawInvert(ui::buttonA, texGetFramebuffer(), yes.getTx() + 64, yes.getTy() - 4, true);
+            texDrawInvert(ui::buttonA, ui::fb, yes.getTx() + 64, yes.getTy() - 4, true);
             no.draw();
-            texDrawInvert(ui::buttonB, texGetFramebuffer(), no.getTx() + 56, no.getTy() - 4, true);
+            texDrawInvert(ui::buttonB, ui::fb, no.getTx() + 56, no.getTy() - 4, true);
 
             gfxHandleBuffs();
         }
@@ -252,17 +252,17 @@ namespace ui
     void drawTextbox(unsigned x, unsigned y, unsigned w, unsigned h)
     {
         //Top
-        texDraw(ui::cornerTopLeft, texGetFramebuffer(), x, y);
-        drawRect(texGetFramebuffer(), x + 32, y, w - 64, 32, ui::tboxClr);
-        texDraw(ui::cornerTopRight, texGetFramebuffer(), (x + w) - 32, y);
+        texDraw(ui::cornerTopLeft, ui::fb, x, y);
+        drawRect(ui::fb, x + 32, y, w - 64, 32, ui::tboxClr);
+        texDraw(ui::cornerTopRight, ui::fb, (x + w) - 32, y);
 
         //middle
-        drawRect(texGetFramebuffer(), x, y + 32,  w, h - 64, tboxClr);
+        drawRect(ui::fb, x, y + 32,  w, h - 64, tboxClr);
 
         //bottom
-        texDraw(ui::cornerBottomLeft, texGetFramebuffer(), x, (y + h) - 32);
-        drawRect(texGetFramebuffer(), x + 32, (y + h) - 32, w - 64, 32, tboxClr);
-        texDraw(ui::cornerBottomRight, texGetFramebuffer(), (x + w) - 32, (y + h) - 32);
+        texDraw(ui::cornerBottomLeft, ui::fb, x, (y + h) - 32);
+        drawRect(ui::fb, x + 32, (y + h) - 32, w - 64, 32, tboxClr);
+        texDraw(ui::cornerBottomRight, ui::fb, (x + w) - 32, (y + h) - 32);
 
     }
 }

@@ -261,6 +261,8 @@ tex *texLoadPNGFile(const char *path)
     return NULL;
 }
 
+
+
 tex *texLoadJPEGFile(const char *path)
 {
     FILE *jpegIn = fopen(path, "rb");

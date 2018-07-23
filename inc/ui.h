@@ -47,6 +47,9 @@ namespace ui
     //Selection box
     extern tex *selBox;
 
+    //Pointer to framebuffer so I can be lazy while I type
+    extern tex *fb;
+
     //Shared font
     extern font *shared;
 

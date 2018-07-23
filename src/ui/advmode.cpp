@@ -360,8 +360,8 @@ namespace ui
         saveMenu.draw(mnuTxt);
         sdMenu.draw(mnuTxt);
 
-        drawText(saveWrap.c_str(), texGetFramebuffer(), ui::shared, 16, 668, 14, mnuTxt);
-        drawText(sdWrap.c_str(), texGetFramebuffer(), ui::shared, 656, 668, 14, mnuTxt);
+        drawText(saveWrap.c_str(), ui::fb, ui::shared, 16, 668, 14, mnuTxt);
+        drawText(sdWrap.c_str(), ui::fb, ui::shared, 656, 668, 14, mnuTxt);
 
         //OH BOY HERE WE GO
         if(down & KEY_A)
@@ -476,11 +476,11 @@ namespace ui
             switch(advPrev)
             {
                 case 0:
-                    drawText("SAVE", texGetFramebuffer(), ui::shared, 472, 250, 18,txtClr);
+                    drawText("SAVE", ui::fb, ui::shared, 472, 250, 18,txtClr);
                     break;
 
                 case 1:
-                    drawText("SDMC", texGetFramebuffer(), ui::shared, 472, 250, 18, txtClr);
+                    drawText("SDMC", ui::fb, ui::shared, 472, 250, 18, txtClr);
                     break;
             }
             copyMenu.draw(txtClr);

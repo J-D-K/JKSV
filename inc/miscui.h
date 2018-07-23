@@ -68,11 +68,14 @@ namespace ui
             void update(const touchPosition& p);
 
             int getEvent() { return retTrack; }
+            int getOriginX() { return originX; }
+            int getOriginY() { return originY; }
 
         private:
             touchPosition pos[5];
             int retTrack = TRACK_NOTHING;
             int curPos = 0, avX = 0, avY = 0;
+            int originX = 0, originY = 0;
     };
 
     //General use

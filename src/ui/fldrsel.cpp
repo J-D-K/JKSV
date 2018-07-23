@@ -32,14 +32,14 @@ namespace ui
         folderMenu.draw(mnuTxt);
 
         data::curData.icon.draw(16, 88);
-        drawText(folderMenuInfo.c_str(), texGetFramebuffer(), ui::shared, 16, 360, 18, ui::mnuTxt);
+        drawText(folderMenuInfo.c_str(), ui::fb, ui::shared, 16, 360, 18, ui::mnuTxt);
 
         if(down & KEY_A || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
         {
             if(folderMenu.getSelected() == 0)
             {
                 ui::keyboard key;
-                std::string folder = key.getString("");
+                std::string folder = util::safeString(key.getString(""));
                 if(!folder.empty())
                 {
                     std::string path = util::getTitleDir(data::curUser, data::curData) + "/" + folder;

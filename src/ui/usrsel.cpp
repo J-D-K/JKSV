@@ -25,7 +25,7 @@ namespace ui
 
         if(clrAdd)
         {
-            clrShft += 4;
+            clrShft += 6;
             if(clrShft > 63)
                 clrAdd = false;
         }
@@ -48,7 +48,7 @@ namespace ui
         colorCreateFromU32(&selPrev, rectPrev);
         colorCreateFromU32(&selNew, rectClr);
         texSwapColors(ui::selBox, selPrev, selNew);
-        texDraw(ui::selBox, texGetFramebuffer(), selRectX, selRectY);
+        texDraw(ui::selBox, ui::fb, selRectX, selRectY);
 
         for(unsigned i = start; i < endUser; y += 144)
         {
@@ -86,10 +86,10 @@ namespace ui
                         userRectX = 1264 - userRectWidth;
 
                     drawTextbox(userRectX, y - 50, userRectWidth, 38);
-                    drawText(username.c_str(), texGetFramebuffer(), ui::shared, userRectX + 16, y - 38, 16, txtClr);
+                    drawText(username.c_str(), ui::fb, ui::shared, userRectX + 16, y - 38, 16, txtClr);
                 }
 
-                texDrawSkipNoAlpha(data::users[i].userIcon, texGetFramebuffer(), tX, y);
+                texDrawSkipNoAlpha(data::users[i].userIcon, ui::fb, tX, y);
             }
         }
 

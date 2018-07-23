@@ -91,7 +91,7 @@ namespace util
         _path.erase(last + 1, _path.length());
     }
 
-    bool isVerboten(char t)
+    bool isVerboten(uint32_t t)
     {
         for(unsigned i = 0; i < 11; i++)
         {
@@ -105,14 +105,21 @@ namespace util
     std::string safeString(const std::string& s)
     {
         std::string ret = "";
-        for(unsigned i = 0; i < s.length(); i++)
+        for(unsigned i = 0; i < s.length(); )
         {
-            if(isVerboten(s[i]))
+            uint32_t tmpChr = 0;
+            ssize_t untCnt = decode_utf8(&tmpChr, (uint8_t *)&s.data()[i]);
+
+            i += untCnt;
+
+            if(isVerboten(tmpChr))
             {
                 ret += ' ';
             }
+            else if(tmpChr > 255)
+                ret += '_'; //dafuq nintendo no utf8
             else
-                ret += s[i];
+                ret += (char)tmpChr;
         }
 
         //Check for spaces at end
