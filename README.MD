@@ -1,6 +1,12 @@
 # JKSV
 
-JKSV for Switch. Mostly to get familiar with libnx. **This is still a WIP. Nothing is final yet!** **You will have to build the newer UI yourself. I'm not providing binaries until I consider it usable**
+WIP save manager for Switch. Started to get familiar with libnx and test my basic, _mostly_ self written graphics drawing file. **This is still a WIP. Nothing is final yet!**
+
+** A custom 1280x720 background can be used by placing a JPEG named 'back.jpg' in the JKSV folder ex: "_sdmc:/JKSV/back.jpg_"**
+
+** A custom font can be loaded by placing a TTF file in the folder named 'font.ttf' ex: "_sdmc:/JKSV/font.ttf_"**
+
+More customization in the future, maybe.
 
 <img src="https://dl.dropboxusercontent.com/s/wk5igkkdt89ytob/JKSV.jpg" alt="JKSV" width="240"></img>
 <img src="https://dl.dropboxusercontent.com/s/xaqycf724p8ut2n/JKSV_3.jpg" alt="JKSV" width="240"></img>
