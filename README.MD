@@ -2,9 +2,9 @@
 
 WIP save manager for Switch. Started to get familiar with libnx and test my basic, _mostly_ self written graphics drawing file. **This is still a WIP. Nothing is final yet!**
 
-** A custom 1280x720 background can be used by placing a JPEG named 'back.jpg' in the JKSV folder ex: "_sdmc:/JKSV/back.jpg_"**
+**A custom 1280x720 background can be used by placing a JPEG named 'back.jpg' in the JKSV folder ex: "_sdmc:/JKSV/back.jpg_"**
 
-** A custom font can be loaded by placing a TTF file in the folder named 'font.ttf' ex: "_sdmc:/JKSV/font.ttf_"**
+**A custom font can be loaded by placing a TTF file in the folder named 'font.ttf' ex: "_sdmc:/JKSV/font.ttf_"**
 
 More customization in the future, maybe.
 
