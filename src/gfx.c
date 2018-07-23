@@ -84,13 +84,13 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
     for(int y = _y; y < _y + bmp->rows; y++)
     {
         if(y > fbh || y < 0)
-            break;
+            continue;
 
         uint32_t *rowPtr = &target->data[y * target->width + _x];
         for(int x = _x; x < _x + bmp->width; x++, bmpPtr++, rowPtr++)
         {
             if(x > fbw || x < 0)
-                break;
+                continue;
 
             if(*bmpPtr > 0)
             {
@@ -261,8 +261,6 @@ tex *texLoadPNGFile(const char *path)
     return NULL;
 }
 
-
-
 tex *texLoadJPEGFile(const char *path)
 {
     FILE *jpegIn = fopen(path, "rb");
@@ -375,13 +373,13 @@ void texDestroy(tex *t)
 void texClearColor(tex *in, const color c)
 {
     uint32_t *dataPtr = &in->data[0];
-    for(int i = 0; i < in->width * in->height; i++)
+    for(int i = 0; i < in->size; i++)
         *dataPtr++ = colorGetColor(c);
 }
 
 void texDraw(const tex *t, tex *target, int x, int y)
 {
-    if(t->data != NULL)
+    if(t != NULL)
     {
         color dataClr, fbClr;
         uint32_t *dataPtr = &t->data[0];
@@ -401,7 +399,7 @@ void texDraw(const tex *t, tex *target, int x, int y)
 
 void texDrawNoAlpha(const tex *t, tex *target, int x, int y)
 {
-    if(t->data != NULL)
+    if(t != NULL)
     {
         uint32_t *dataPtr = &t->data[0];
         for(int tY = y; tY < y + t->height; tY++)
@@ -417,7 +415,7 @@ void texDrawNoAlpha(const tex *t, tex *target, int x, int y)
 
 void texDrawSkip(const tex *t, tex *target, int x, int y)
 {
-    if(t->data != NULL)
+    if(t != NULL)
     {
         uint32_t *dataPtr = &t->data[0];
         color px1, px2, fbPx;
@@ -438,7 +436,7 @@ void texDrawSkip(const tex *t, tex *target, int x, int y)
 
 void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y)
 {
-    if(t->data != NULL)
+    if(t != NULL)
     {
         uint32_t *dataPtr = &t->data[0];
         color px1, px2;
@@ -458,7 +456,7 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y)
 
 void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha)
 {
-    if(t->data != NULL)
+    if(t != NULL)
     {
         color dataClr, fbClr;
         uint32_t *dataPtr = &t->data[0];

@@ -117,7 +117,7 @@ namespace util
                 ret += ' ';
             }
             else if(tmpChr > 255)
-                ret += '_'; //dafuq nintendo no utf8
+                return ""; //return empty string so titledata::init defaults to titleID
             else
                 ret += (char)tmpChr;
         }

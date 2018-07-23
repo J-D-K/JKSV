@@ -182,6 +182,12 @@ namespace data
         {
             title.assign(ent->name);
             titleSafe = util::safeString(ent->name);
+            if(titleSafe.empty())
+            {
+                char tmp[18];
+                sprintf(tmp, "%016lX", id);
+                titleSafe.assign(tmp);
+            }
 
             int iconIndex = findIcnIndex(id);
             if(iconIndex == -1)
