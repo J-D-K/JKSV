@@ -39,6 +39,8 @@ namespace ui
 
     tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
 
+    tex *selBox;
+
     font *shared;
 
     tex *fb;
@@ -103,6 +105,8 @@ namespace ui
 
         setupSelButtons();
 
+        selBox = texLoadPNGFile("romfs:/img/icn/icnSelBox.png");
+
         if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
             background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
 
@@ -130,6 +134,8 @@ namespace ui
         texDestroy(buttonX);
         texDestroy(buttonY);
         texDestroy(buttonMin);
+
+        texDestroy(selBox);
 
         if(background != NULL)
             texDestroy(background);

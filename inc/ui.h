@@ -44,6 +44,8 @@ namespace ui
     //Textbox graphics
     extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight,\
     *horEdgeTop, *horEdgeBot, *vertEdgeLeft, *vertEdgeRight;
+    //Selection box
+    extern tex *selBox;
 
     //Shared font
     extern font *shared;

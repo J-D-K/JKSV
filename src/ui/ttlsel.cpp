@@ -24,6 +24,9 @@ namespace ui
 
         static ui::touchTrack track;
 
+        //Palette swapping
+        uint32_t selPrevClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+
         if(clrAdd)
         {
             clrShft += 4;
@@ -37,6 +40,15 @@ namespace ui
                 clrAdd = true;
         }
 
+        //Updated sel
+        uint32_t curSelClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+
+        color selPrev, selCur;
+        colorCreateFromU32(&selPrev, selPrevClr);
+        colorCreateFromU32(&selCur, curSelClr);
+
+        texSwapColors(ui::selBox, selPrev, selCur);
+
         unsigned x = 70, y = 80;
 
         unsigned endTitle = start + 32;
@@ -44,8 +56,7 @@ namespace ui
             endTitle = data::curUser.titles.size();
 
         //draw Rect so it's always behind icons
-        uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
-        drawRect(texGetFramebuffer(), selRectX, selRectY, 140, 140, colorCreateTemp(rectClr));
+        texDraw(ui::selBox, texGetFramebuffer(), selRectX, selRectY);
 
         for(unsigned i = start; i < endTitle; y += 144)
         {

@@ -53,6 +53,7 @@ bool graphicsInit(int windowWidth, int windowHeight)
     frameBuffer->width = windowWidth;
     frameBuffer->height = windowHeight;
     frameBuffer->data = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
+    frameBuffer->size = windowWidth * windowHeight;
 
     return true;
 }
@@ -82,9 +83,15 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
     uint8_t *bmpPtr = bmp->buffer;
     for(int y = _y; y < _y + bmp->rows; y++)
     {
+        if(y > fbh || y < 0)
+            break;
+
         uint32_t *rowPtr = &target->data[y * target->width + _x];
         for(int x = _x; x < _x + bmp->width; x++, bmpPtr++, rowPtr++)
         {
+            if(x > fbw || x < 0)
+                break;
+
             if(*bmpPtr > 0)
             {
                 color txClr, tgtClr;
@@ -189,6 +196,7 @@ tex *texCreate(int w, int h)
 
     ret->data = (uint32_t *)malloc(w * h * sizeof(uint32_t));
     memset(ret->data, 0, w * h * sizeof(uint32_t));
+    ret->size = ret->width * ret->height;
 
     return ret;
 }
@@ -224,6 +232,7 @@ tex *texLoadPNGFile(const char *path)
         ret->height = png_get_image_height(png, pngInfo);
 
         ret->data = (uint32_t *)malloc((ret->width * ret->height) * sizeof(uint32_t));
+        ret->size = ret->width * ret->height;
 
         png_bytep *rows = malloc(sizeof(png_bytep) * ret->height);
         for(int i = 0; i < ret->height; i++)
@@ -275,6 +284,7 @@ tex *texLoadJPEGFile(const char *path)
         ret->height = jpegInfo.image_height;
 
         ret->data = (uint32_t *)malloc((ret->width * ret->height) * sizeof(uint32_t));
+        ret->size = ret->width * ret->height;
 
         jpeg_start_decompress(&jpegInfo);
 
@@ -324,6 +334,7 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
     ret->height = jpegInfo.image_height;
 
     ret->data = (uint32_t *)malloc((ret->width * ret->height) * sizeof(uint32_t));
+    ret->size = ret->width * ret->height;
 
     jpeg_start_decompress(&jpegInfo);
 
@@ -465,6 +476,19 @@ void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha)
     }
 }
 
+void texSwapColors(tex *t, const color old, const color newColor)
+{
+    uint32_t oldClr = colorGetColor(old), newClr = colorGetColor(newColor);
+
+    uint32_t *dataPtr = &t->data[0];
+    for(unsigned i = 0; i < t->size; i++, dataPtr++)
+    {
+        if(*dataPtr == oldClr)
+            *dataPtr = newClr;
+    }
+
+}
+
 void texScaleToTex(const tex *in, tex *out, int scale)
 {
     for(int y = 0; y < in->height; y++)
@@ -544,6 +568,7 @@ font *fontLoadTTF(const char *path)
 
     if((ret->faceRet = FT_New_Memory_Face(ret->lib, ret->fntData, ttfSize, 0, &ret->face)))
     {
+        free(ret->fntData);
         free(ret);
         return NULL;
     }

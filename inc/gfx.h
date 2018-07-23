@@ -134,6 +134,9 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y);
 //Draw t inverted at x, y
 void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha);
 
+//Replaces old with newColor
+void texSwapColors(tex *t, const color old, const color newColor);
+
 //Scales tex * scale and writes to out. Can only multiply for now
 void texScaleToTex(const tex *in, tex *out, int scale);
 

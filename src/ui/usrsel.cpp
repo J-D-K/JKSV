@@ -20,6 +20,9 @@ namespace ui
 
         static ui::touchTrack track;
 
+        //Palette swapping selBox
+        uint32_t rectPrev = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+
         if(clrAdd)
         {
             clrShft += 4;
@@ -33,13 +36,19 @@ namespace ui
                 clrAdd = true;
         }
 
+        //Update selBox color
+        uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+
         unsigned x = 70, y = 80;
         unsigned endUser = start + 32;
         if(start + 32 > (int)data::users.size())
             endUser = data::users.size();
 
-        uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
-        drawRect(texGetFramebuffer(), selRectX, selRectY, 140, 140, colorCreateTemp(rectClr));
+        color selPrev, selNew;
+        colorCreateFromU32(&selPrev, rectPrev);
+        colorCreateFromU32(&selNew, rectClr);
+        texSwapColors(ui::selBox, selPrev, selNew);
+        texDraw(ui::selBox, texGetFramebuffer(), selRectX, selRectY);
 
         for(unsigned i = start; i < endUser; y += 144)
         {
