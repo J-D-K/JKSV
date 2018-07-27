@@ -92,18 +92,18 @@ namespace ui
                 clrAdd = true;
         }
 
-        drawRect(ui::fb, 0, 176, 1280, 64, colorCreateTemp(0xFFFFFFFF));
-        drawRect(ui::fb, 0, 240, 1280, 480, colorCreateTemp(0xFF2D2D2D));
+        drawRect(ui::fb, 0, 176, 1280, 64, colorCreateU32(0xFFFFFFFF));
+        drawRect(ui::fb, 0, 240, 1280, 480, colorCreateU32(0xFF2D2D2D));
 
-        uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x88 + clrSh) & 0xFF) << 8 | 0x00;
+        color rectClr = colorCreateRGBA(0x00, 0x60 + clrSh, 0xBB + clrSh, 0xFF);
 
         //Draw sel rectangle around key for controller
-        drawRect(ui::fb, keys[selKey].getX() - 4, keys[selKey].getY() - 4, keys[selKey].getW() + 8, keys[selKey].getH() + 8, colorCreateTemp(rectClr));
+        drawRect(ui::fb, keys[selKey].getX() - 4, keys[selKey].getY() - 4, keys[selKey].getW() + 8, keys[selKey].getH() + 8, rectClr);
 
         for(unsigned i = 0; i < keys.size(); i++)
             keys[i].draw();
 
-        drawText(str.c_str(), ui::fb, ui::shared, 16, 192, 32, colorCreateTemp(0xFF000000));
+        drawText(str.c_str(), ui::fb, ui::shared, 16, 192, 32, colorCreateU32(0xFF000000));
     }
 
     std::string keyboard::getString(const std::string& def)

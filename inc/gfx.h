@@ -22,7 +22,7 @@ typedef struct
     FT_Library lib;
     FT_Face    face;
     FT_Error libRet, faceRet;
-    //Loads to buffer for speed
+    //Loads to buffer for speed for TTF
     uint8_t *fntData;
 } font;
 
@@ -43,21 +43,25 @@ bool graphicsExit();
 void gfxHandleBuffs();
 
 //Creates color from uint32_t
-inline void colorCreateFromU32(color *c, uint32_t clr)
+inline color colorCreateU32(uint32_t clr)
 {
-    c->a = clr >> 24 & 0xFF;
-    c->b = clr >> 16 & 0xFF;
-    c->g = clr >>  8 & 0xFF;
-    c->r = clr & 0xFF;
+    color ret;
+    ret.a = clr >> 24 & 0xFF;
+    ret.b = clr >> 16 & 0xFF;
+    ret.g = clr >>  8 & 0xFF;
+    ret.r = clr & 0xFF;
+    return ret;
 }
 
 //Sets color to [r], [g], [b], [a]
-inline void colorSetRGBA(color *c, uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
+inline color colorCreateRGBA(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
 {
-    c->r = _r;
-    c->g = _g;
-    c->b = _b;
-    c->a = _a;
+    color ret;
+    ret.r = _r;
+    ret.g = _g;
+    ret.b = _b;
+    ret.a = _a;
+    return ret;
 }
 
 //Inverts color
@@ -72,18 +76,6 @@ inline void colorInvert(color *c)
 inline uint32_t colorGetColor(const color c)
 {
     return (c.a << 24 | c.b << 16 | c.g << 8 | c.r);
-}
-
-inline color colorCreateTemp(uint32_t clr)
-{
-    color ret;
-
-    ret.r = clr & 0xFF;
-    ret.g = clr >> 8 & 0xFF;
-    ret.b = clr >> 16 & 0xFF;
-    ret.a = clr >> 24 & 0xFF;
-
-    return ret;
 }
 
 //Draws text using f

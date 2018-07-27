@@ -20,8 +20,8 @@ namespace ui
 
         static ui::touchTrack track;
 
-        //Palette swapping selBox
-        uint32_t rectPrev = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+        //Color swapping selBox
+        color clrPrev = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         if(clrAdd)
         {
@@ -37,17 +37,14 @@ namespace ui
         }
 
         //Update selBox color
-        uint32_t rectClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+        color clrUpdt = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         unsigned x = 70, y = 80;
         unsigned endUser = start + 32;
         if(start + 32 > (int)data::users.size())
             endUser = data::users.size();
 
-        color selPrev, selNew;
-        colorCreateFromU32(&selPrev, rectPrev);
-        colorCreateFromU32(&selNew, rectClr);
-        texSwapColors(ui::selBox, selPrev, selNew);
+        texSwapColors(ui::selBox, clrPrev, clrUpdt);
         texDraw(ui::selBox, ui::fb, selRectX, selRectY);
 
         for(unsigned i = start; i < endUser; y += 144)

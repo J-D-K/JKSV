@@ -24,8 +24,8 @@ namespace ui
     void progBar::draw(const std::string& text)
     {
         ui::drawTextbox(64, 240, 1152, 240);
-        drawRect(ui::fb, 96, 400, 1088, 64, colorCreateTemp(0xFF000000));
-        drawRect(ui::fb, 96, 400, (unsigned)width, 64, colorCreateTemp(0xFF00CC00));
+        drawRect(ui::fb, 96, 400, 1088, 64, colorCreateU32(0xFF000000));
+        drawRect(ui::fb, 96, 400, (unsigned)width, 64, colorCreateU32(0xFF00CC00));
 
         //char tmp[64];
         //sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
@@ -87,7 +87,7 @@ namespace ui
     void button::draw()
     {
         if(pressed)
-            drawRect(ui::fb, x, y, w, h, colorCreateTemp(0xFF0D0D0D));
+            drawRect(ui::fb, x, y, w, h, colorCreateU32(0xFF0D0D0D));
         else
             ui::drawTextbox(x, y, w, h);
 

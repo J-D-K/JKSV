@@ -4,6 +4,7 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
+#include <pthread.h>
 #include <switch.h>
 
 #include "ui.h"
@@ -11,7 +12,7 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 07/21/2018"
+#define TITLE_TEXT "JKSV - 07/27/2018"
 
 //Secret background that can be drawn from "/JKSV/back.jpg"
 static tex *background = NULL;
@@ -66,12 +67,12 @@ namespace ui
                 buttonY = texLoadPNGFile("romfs:/img/button/buttonY_drk.png");
                 buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_drk.png");
 
-                colorCreateFromU32(&clearClr, 0xFFEBEBEB);
-                colorCreateFromU32(&mnuTxt, 0xFF000000);
-                colorCreateFromU32(&txtClr, 0xFFFFFFFF);
-                colorCreateFromU32(&rectLt, 0xFFDFDFDF);
-                colorCreateFromU32(&rectSh, 0xFFCACACA);
-                colorCreateFromU32(&tboxClr, 0xFF505050);
+                clearClr = colorCreateU32(0xFFEBEBEB);
+                mnuTxt = colorCreateU32(0xFF000000);
+                txtClr = colorCreateU32(0xFFFFFFFF);
+                rectLt = colorCreateU32(0xFFDFDFDF);
+                rectSh = colorCreateU32(0xFFCACACA);
+                tboxClr = colorCreateU32(0xFF505050);
                 break;
 
             default:
@@ -89,12 +90,12 @@ namespace ui
                 buttonY = texLoadPNGFile("romfs:/img/button/buttonY_lght.png");
                 buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_lght.png");
 
-                colorCreateFromU32(&clearClr, 0xFF2D2D2D);
-                colorCreateFromU32(&mnuTxt, 0xFFFFFFFF);
-                colorCreateFromU32(&txtClr, 0xFF000000);
-                colorCreateFromU32(&rectLt, 0xFF505050);
-                colorCreateFromU32(&rectSh, 0xFF202020);
-                colorCreateFromU32(&tboxClr, 0xFFEBEBEB);
+                clearClr = colorCreateU32(0xFF2D2D2D);
+                mnuTxt = colorCreateU32(0xFFFFFFFF);
+                txtClr = colorCreateU32(0xFF000000);
+                rectLt = colorCreateU32(0xFF505050);
+                rectSh = colorCreateU32(0xFF202020);
+                tboxClr = colorCreateU32(0xFFEBEBEB);
                 break;
         }
 

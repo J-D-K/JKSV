@@ -24,8 +24,8 @@ namespace ui
 
         static ui::touchTrack track;
 
-        //Palette swapping
-        uint32_t selPrevClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+        //Color swapping
+        color clrPrev = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         if(clrAdd)
         {
@@ -41,13 +41,9 @@ namespace ui
         }
 
         //Updated sel
-        uint32_t curSelClr = 0xFF << 24 | ((0xBB + clrShft) & 0xFF) << 16 | ((0x60 + clrShft)) << 8 | 0x00;
+        color clrUpdt = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
-        color selPrev, selCur;
-        colorCreateFromU32(&selPrev, selPrevClr);
-        colorCreateFromU32(&selCur, curSelClr);
-
-        texSwapColors(ui::selBox, selPrev, selCur);
+        texSwapColors(ui::selBox, clrPrev, clrUpdt);
 
         unsigned x = 70, y = 80;
 

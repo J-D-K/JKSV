@@ -3,8 +3,6 @@
 #include <vector>
 #include <fstream>
 #include <switch.h>
-#include <unistd.h>
-#include <sys/stat.h>
 
 #include "gfx.h"
 #include "data.h"

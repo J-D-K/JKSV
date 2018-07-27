@@ -154,12 +154,12 @@ namespace ui
         else
             length = start + 15;
 
-        uint32_t rectClr = 0xFF << 24 | ((0xBB + clrSh) & 0xFF) << 16 | ((0x60 + clrSh)) << 8 | 0x00;
+        color rectClr = colorCreateRGBA(0x00, 0x60 + clrSh, 0xBB + clrSh, 0xFF);
 
         for(int i = start; i < length; i++)
         {
             if(i == selected)
-                drawRect(ui::fb, x, y + ((i - start) * 36), rW, 32, colorCreateTemp(rectClr));
+                drawRect(ui::fb, x, y + ((i - start) * 36), rW, 32, rectClr);
 
             drawText(opt[i].c_str(), ui::fb, shared, x, (y + 8) + ((i - start) * 36), 16, textClr);
         }

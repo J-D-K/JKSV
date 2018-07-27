@@ -94,9 +94,8 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
 
             if(*bmpPtr > 0)
             {
-                color txClr, tgtClr;
-                colorSetRGBA(&txClr, c.r, c.g, c.b, *bmpPtr);
-                colorCreateFromU32(&tgtClr, *rowPtr);
+                color txClr = colorCreateRGBA(c.r, c.g, c.b, *bmpPtr);
+                color tgtClr = colorCreateU32(*rowPtr);
 
                 *rowPtr = blend(txClr, tgtClr);
             }
@@ -373,23 +372,23 @@ void texDestroy(tex *t)
 void texClearColor(tex *in, const color c)
 {
     uint32_t *dataPtr = &in->data[0];
+    uint32_t clr = colorGetColor(c);
     for(int i = 0; i < in->size; i++)
-        *dataPtr++ = colorGetColor(c);
+        *dataPtr++ = clr;
 }
 
 void texDraw(const tex *t, tex *target, int x, int y)
 {
     if(t != NULL)
     {
-        color dataClr, fbClr;
         uint32_t *dataPtr = &t->data[0];
         for(int tY = y; tY < y + t->height; tY++)
         {
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + t->width; tX++, rowPtr++)
             {
-                colorCreateFromU32(&dataClr, *dataPtr++);
-                colorCreateFromU32(&fbClr, *rowPtr);
+                color dataClr = colorCreateU32(*dataPtr++);
+                color fbClr   = colorCreateU32(*rowPtr);
 
                 *rowPtr = blend(dataClr, fbClr);
             }
@@ -418,17 +417,16 @@ void texDrawSkip(const tex *t, tex *target, int x, int y)
     if(t != NULL)
     {
         uint32_t *dataPtr = &t->data[0];
-        color px1, px2, fbPx;
         for(int tY = y; tY < y + (t->height / 2); tY++, dataPtr += t->width)
         {
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + (t->width / 2); tX++, rowPtr++)
             {
-                colorCreateFromU32(&px1, *dataPtr++);
-                colorCreateFromU32(&px2, *dataPtr++);
-                colorCreateFromU32(&fbPx, *rowPtr);
+                color px1 = colorCreateU32(*dataPtr++);
+                color px2 = colorCreateU32(*dataPtr++);
+                color fbPx = colorCreateU32(*rowPtr);
 
-                *rowPtr = blend(colorCreateTemp(smooth(px1, px2)), fbPx);
+                *rowPtr = blend(colorCreateU32(smooth(px1, px2)), fbPx);
             }
         }
     }
@@ -439,14 +437,13 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y)
     if(t != NULL)
     {
         uint32_t *dataPtr = &t->data[0];
-        color px1, px2;
         for(int tY = y; tY < y + (t->height / 2); tY++, dataPtr += t->width)
         {
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + (t->width / 2); tX++, rowPtr++)
             {
-                colorCreateFromU32(&px1, *dataPtr++);
-                colorCreateFromU32(&px2, *dataPtr++);
+                color px1 = colorCreateU32(*dataPtr++);
+                color px2 = colorCreateU32(*dataPtr++);
 
                 *rowPtr = smooth(px1, px2);
             }
@@ -458,17 +455,15 @@ void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha)
 {
     if(t != NULL)
     {
-        color dataClr, fbClr;
         uint32_t *dataPtr = &t->data[0];
         for(int tY = y; tY < y + t->height; tY++)
         {
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + t->width; tX++, rowPtr++)
             {
-                colorCreateFromU32(&dataClr, *dataPtr++);
+                color dataClr = colorCreateU32(*dataPtr);
                 colorInvert(&dataClr);
-                if(alpha)
-                    colorCreateFromU32(&fbClr, *rowPtr);
+                color fbClr = colorCreateU32(*rowPtr);
 
                 *rowPtr = alpha ? blend(dataClr, fbClr) : colorGetColor(dataClr);
             }
