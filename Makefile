@@ -46,12 +46,12 @@ ROMFS	    :=	romfs
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 
-CFLAGS	:=	-g -Wall -O2 -ffunction-sections \
+override CFLAGS	+=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
+override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
 
-CXXFLAGS	:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
@@ -141,7 +141,7 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) clean all debug
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)
@@ -159,6 +159,9 @@ clean:
 #---------------------------------------------------------------------------------
 send: $(BUILD)
 	@nxlink $(TARGET).nro
+
+debug: $(BUILD)
+	@nxlink -s $(TARGET).nro
 
 
 else

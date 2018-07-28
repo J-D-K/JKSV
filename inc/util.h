@@ -28,5 +28,7 @@ namespace util
     std::string safeString(const std::string& s);
 
     std::string getInfoString(data::user& u, data::titledata& d);
+
+    void debugPrintf(const char *format, ...);
 }
 #endif // UTIL_H

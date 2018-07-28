@@ -4,7 +4,6 @@
 #include <cstdio>
 #include <cstring>
 #include <sys/stat.h>
-#include <pthread.h>
 #include <switch.h>
 
 #include "ui.h"

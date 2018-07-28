@@ -168,4 +168,15 @@ namespace util
 
         return ret;
     }
+
+    void debugPrintf(const char *format, ...)
+    {
+        #ifdef __debug__
+        char buff[512];
+        va_list args;
+        va_start(args, format);
+        vsnprintf(buff, 512, format, args);
+        va_end(args);
+        #endif
+    }
 }
