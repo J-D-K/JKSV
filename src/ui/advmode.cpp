@@ -466,7 +466,12 @@ namespace ui
             }
         }
         else if(down & KEY_MINUS)
-            mstate = FLD_SEL;
+        {
+            if(ui::clsMode)
+                mstate = CLS_FLD;
+            else
+                mstate = FLD_SEL;
+        }
 
         //draw copy menu if it's supposed to be up
         if(advMenuCtrl == 2)

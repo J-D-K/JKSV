@@ -67,9 +67,9 @@ inline color colorCreateRGBA(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
 //Inverts color
 inline void colorInvert(color *c)
 {
-    c->r = 0xFF - c->r;
-    c->g = 0xFF - c->g;
-    c->b = 0xFF - c->b;
+    c->r = (0xFF - c->r);
+    c->g = (0xFF - c->g);
+    c->b = (0xFF - c->b);
 }
 
 //Returns uint32_t color
@@ -124,7 +124,7 @@ void texDrawSkip(const tex *t, tex *target, int x, int y);
 void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y);
 
 //Draw t inverted at x, y
-void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha);
+void texDrawInvert(const tex *t, tex *target, int x, int y);
 
 //Replaces old with newColor
 void texSwapColors(tex *t, const color old, const color newColor);

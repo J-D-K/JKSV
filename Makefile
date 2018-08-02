@@ -38,7 +38,7 @@ INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK_
-APP_VERSION :=  07/27/2018
+APP_VERSION :=  08/02/2018
 ROMFS	    :=	romfs
 
 #---------------------------------------------------------------------------------
@@ -141,7 +141,7 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all debug
+.PHONY: $(BUILD) clean all
 
 #---------------------------------------------------------------------------------
 all: $(BUILD)

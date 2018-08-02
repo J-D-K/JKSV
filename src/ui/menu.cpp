@@ -35,7 +35,8 @@ namespace ui
                 tmp += add[i];
                 if(textGetWidth(tmp.c_str(), ui::shared, 16) >= rW)
                 {
-                    tmp.replace(i - 1, 2, "[]");
+                    tmp.erase(i - 2, 2);
+                    tmp += "[]";
                     opt.push_back(tmp);
                     break;
                 }

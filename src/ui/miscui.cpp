@@ -157,7 +157,7 @@ namespace ui
             ui::drawTextbox(256, 128, 768, 464);
             drawText(wrapMess.c_str(), ui::fb, ui::shared, 272, 144, 24, txtClr);
             ok.draw();
-            texDrawInvert(ui::buttonA, ui::fb, ok.getTx() + 56, ok.getTy() - 4, true);
+            texDrawInvert(ui::buttonA, ui::fb, ok.getTx() + 56, ok.getTy() - 4);
 
             gfxHandleBuffs();
         }
@@ -225,9 +225,9 @@ namespace ui
             ui::drawTextbox(256, 128, 768, 464);
             drawText(wrapMess.c_str(), ui::fb, ui::shared, 272, 144, 24, txtClr);
             yes.draw();
-            texDrawInvert(ui::buttonA, ui::fb, yes.getTx() + 64, yes.getTy() - 4, true);
+            texDrawInvert(ui::buttonA, ui::fb, yes.getTx() + 64, yes.getTy() - 4);
             no.draw();
-            texDrawInvert(ui::buttonB, ui::fb, no.getTx() + 56, no.getTy() - 4, true);
+            texDrawInvert(ui::buttonB, ui::fb, no.getTx() + 56, no.getTy() - 4);
 
             gfxHandleBuffs();
         }

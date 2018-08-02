@@ -63,6 +63,9 @@ int main(int argc, const char *argv[])
 
                 //Just to be sure
                 fsdevUnmountDevice("sv");
+
+                //Kick back to user
+                ui::mstate = USR_SEL;
             }
         }
         else if(down & KEY_PLUS)

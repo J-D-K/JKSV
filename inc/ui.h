@@ -21,7 +21,8 @@ enum menuState
     FLD_SEL,
     ADV_MDE,
     CLS_USR,
-    CLS_TTL
+    CLS_TTL,
+    CLS_FLD
 };
 
 

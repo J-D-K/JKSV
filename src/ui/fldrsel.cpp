@@ -6,7 +6,7 @@
 #include "uiupdate.h"
 #include "util.h"
 
-static ui::menu folderMenu;
+ui::menu folderMenu;
 
 namespace ui
 {

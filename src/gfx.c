@@ -113,7 +113,8 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
 
     FT_Set_Char_Size(f->face, 0, sz * 64, 90, 90);
 
-    for(unsigned i = 0; i < strlen(str); )
+    size_t length = strlen(str);
+    for(unsigned i = 0; i < length; )
     {
         unitCnt = decode_utf8(&tmpChr, (uint8_t *)&str[i]);
         if(unitCnt <= 0)
@@ -148,7 +149,8 @@ size_t textGetWidth(const char *str, const font *f, int sz)
 
     FT_Set_Char_Size(f->face, 0, 64 * sz, 90, 90);
 
-    for(unsigned i = 0; i < strlen(str); )
+    size_t length = strlen(str);
+    for(unsigned i = 0; i < length; )
     {
         untCnt = decode_utf8(&tmpChr, (uint8_t *)&str[i]);
 
@@ -451,7 +453,7 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y)
     }
 }
 
-void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha)
+void texDrawInvert(const tex *t, tex *target, int x, int y)
 {
     if(t != NULL)
     {
@@ -461,11 +463,11 @@ void texDrawInvert(const tex *t, tex *target, int x, int y, bool alpha)
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + t->width; tX++, rowPtr++)
             {
-                color dataClr = colorCreateU32(*dataPtr);
+                color dataClr = colorCreateU32(*dataPtr++);
                 colorInvert(&dataClr);
                 color fbClr = colorCreateU32(*rowPtr);
 
-                *rowPtr = alpha ? blend(dataClr, fbClr) : colorGetColor(dataClr);
+                *rowPtr = blend(dataClr, fbClr);
             }
         }
     }

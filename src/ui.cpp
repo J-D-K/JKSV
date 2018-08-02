@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 07/27/2018"
+#define TITLE_TEXT "JKSV - 08/02/2018"
 
 //Secret background that can be drawn from "/JKSV/back.jpg"
 static tex *background = NULL;
@@ -202,6 +202,7 @@ namespace ui
 
             case CLS_TTL:
             case CLS_USR:
+            case CLS_FLD:
                 drawRect(fb, 16, 64, 1248, 1, rectLt);
                 drawRect(fb, 16, 65, 1248, 2, rectSh);
 
@@ -243,6 +244,7 @@ namespace ui
                 break;
 
             case FLD_SEL:
+            case CLS_FLD:
                 {
                     //Input guide
                     unsigned startX = 690;
@@ -290,6 +292,10 @@ namespace ui
 
             case CLS_TTL:
                 classicTitleMenuUpdate(down, held, p);
+                break;
+
+            case CLS_FLD:
+                classicFolderMenuUpdate(down, held, p);
                 break;
         }
     }
