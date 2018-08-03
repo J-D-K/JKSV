@@ -17,7 +17,7 @@ namespace ui
     {
         userMenu.reset();
 
-        userMenu.setParams(16, 88, 424);
+        userMenu.setParams(28, 88, 424);
 
         for(unsigned i = 0; i < data::users.size(); i++)
             userMenu.addOpt(data::users[i].getUsername());
@@ -26,7 +26,7 @@ namespace ui
     void clsTitlePrep(data::user& u)
     {
         titleMenu.reset();
-        titleMenu.setParams(16, 88, 424);
+        titleMenu.setParams(28, 88, 424);
 
         for(unsigned i = 0; i < u.titles.size(); i++)
             titleMenu.addOpt(u.titles[i].getTitle());
@@ -34,7 +34,7 @@ namespace ui
 
     void clsFolderPrep(data::user& usr, data::titledata& dat)
     {
-        folderMenu.setParams(458, 88, 806);
+        folderMenu.setParams(472, 88, 790);
         folderMenu.reset();
 
         util::makeTitleDir(usr, dat);

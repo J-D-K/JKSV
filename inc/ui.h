@@ -38,7 +38,7 @@ namespace ui
     extern std::string folderMenuInfo;
 
     //Colors to use now that I added theme detection
-    extern color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
+    extern color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
 
     //Button tex
     extern tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;

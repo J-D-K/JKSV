@@ -31,7 +31,7 @@ namespace ui
     std::vector<ui::button> selButtons;
 
     //UI colors
-    color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr;
+    color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
 
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
@@ -72,6 +72,7 @@ namespace ui
                 rectLt = colorCreateU32(0xFFDFDFDF);
                 rectSh = colorCreateU32(0xFFCACACA);
                 tboxClr = colorCreateU32(0xFF505050);
+                sideRect = colorCreateU32(0xFFDCDCDC);
                 break;
 
             default:
@@ -95,6 +96,7 @@ namespace ui
                 rectLt = colorCreateU32(0xFF505050);
                 rectSh = colorCreateU32(0xFF202020);
                 tboxClr = colorCreateU32(0xFFEBEBEB);
+                sideRect = colorCreateU32(0xFF373737);
                 break;
         }
 
@@ -103,19 +105,19 @@ namespace ui
         else
             shared = fontLoadSharedFont(PlSharedFontType_KO);
 
-        setupSelButtons();
-
-        selBox = texLoadPNGFile("romfs:/img/icn/icnSelBox.png");
-
-        if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
-            background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
-
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
             clsUserPrep();
             clsMode = true;
             mstate = CLS_USR;
         }
+
+        setupSelButtons();
+
+        selBox = texLoadPNGFile("romfs:/img/icn/icnSelBox.png");
+
+        if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
+            background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
 
         advCopyMenuPrep();
 
@@ -206,8 +208,7 @@ namespace ui
                 drawRect(fb, 16, 64, 1248, 1, rectLt);
                 drawRect(fb, 16, 65, 1248, 2, rectSh);
 
-                drawRect(fb, 448, 64, 1, 592, rectLt);
-                drawRect(fb, 449, 64, 2, 592, rectSh);
+                drawRect(fb, 16, 67, 448, 589, sideRect);
 
                 drawRect(fb, 16, 656, 1248, 1, rectLt);
                 drawRect(fb, 16, 657, 1248, 2, rectSh);
