@@ -13,7 +13,7 @@
 
 #define TITLE_TEXT "JKSV - 08/05/2018"
 
-//Secret background that can be drawn from "/JKSV/back.jpg"
+//background that can be drawn from "/JKSV/back.jpg"
 static tex *background = NULL;
 
 //Nav buttons
@@ -164,28 +164,28 @@ namespace ui
     {
         //User Select
         int startX = 848;
-        ui::button sel("", startX, 672, 110, 32);
-        ui::button dmp("", startX += 110, 672, 110, 32);
-        ui::button cls("", startX += 110, 672, 110, 32);
+        ui::button sel("", startX, 656, 110, 64);
+        ui::button dmp("", startX += 110, 656, 110, 64);
+        ui::button cls("", startX += 110, 656, 110, 64);
         usrNav.push_back(sel);
         usrNav.push_back(dmp);
         usrNav.push_back(cls);
 
         //Title
         startX = 914;
-        ui::button ttlSel("", startX, 672, 110, 32);
-        ui::button ttlDmp("", startX += 110, 672, 110, 32);
-        ui::button ttlBck("", startX += 110, 672, 110, 32);
+        ui::button ttlSel("", startX, 656, 110, 64);
+        ui::button ttlDmp("", startX += 110, 656, 110, 64);
+        ui::button ttlBck("", startX += 110, 656, 110, 64);
         ttlNav.push_back(ttlSel);
         ttlNav.push_back(ttlDmp);
         ttlNav.push_back(ttlBck);
 
         //Folder. Skip adv since it can't be touch controlled
         startX = 800;
-        ui::button fldBackup("", startX, 672, 110, 32);
-        ui::button fldRestor("", startX += 110, 672, 110, 32);
-        ui::button fldDelete("", startX += 110, 672, 110, 32);
-        ui::button fldBack("", startX += 110, 672, 110, 32);
+        ui::button fldBackup("", startX, 656, 110, 64);
+        ui::button fldRestor("", startX += 110, 656, 110, 64);
+        ui::button fldDelete("", startX += 110, 656, 110, 64);
+        ui::button fldBack("", startX += 110, 672, 110, 64);
         fldNav.push_back(fldBackup);
         fldNav.push_back(fldRestor);
         fldNav.push_back(fldDelete);

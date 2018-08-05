@@ -55,7 +55,7 @@ namespace util
 
             if(textGetWidth(tmp.c_str(), ui::shared, sz) >= maxWidth)
             {
-                tmp.assign(s, first, lastSpace - first);
+                tmp.assign(s, first, (lastSpace + 1) - first);
 
                 ret += tmp + "\n";
 
@@ -169,14 +169,10 @@ namespace util
         return ret;
     }
 
-    void debugPrintf(const char *format, ...)
+    void debugPrintf(const char *out)
     {
         #ifdef __debug__
-        char buff[512];
-        va_list args;
-        va_start(args, format);
-        vsnprintf(buff, 512, format, args);
-        va_end(args);
+        printf("%s", out);
         #endif
     }
 }

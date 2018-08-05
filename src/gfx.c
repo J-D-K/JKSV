@@ -116,7 +116,7 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
     size_t length = strlen(str);
     for(unsigned i = 0; i < length; )
     {
-        unitCnt = decode_utf8(&tmpChr, (uint8_t *)&str[i]);
+        unitCnt = decode_utf8(&tmpChr, (const uint8_t *)&str[i]);
         if(unitCnt <= 0)
             break;
 
@@ -152,7 +152,7 @@ size_t textGetWidth(const char *str, const font *f, int sz)
     size_t length = strlen(str);
     for(unsigned i = 0; i < length; )
     {
-        untCnt = decode_utf8(&tmpChr, (uint8_t *)&str[i]);
+        untCnt = decode_utf8(&tmpChr, (const uint8_t *)&str[i]);
 
         if(untCnt <= 0)
             break;

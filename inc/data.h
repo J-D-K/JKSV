@@ -51,6 +51,9 @@ namespace data
             std::string getTitle() { return title;}
             std::string getTitleSafe() { return titleSafe; }
 
+            //Just for testing to make sure only ASCII folders
+            void debugCreate(const uint64_t& _id, const std::string& t);
+
             //Returns ID
             uint64_t getID() { return id; }
 

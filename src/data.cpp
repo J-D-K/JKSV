@@ -15,11 +15,17 @@ static struct
 {
     bool operator()(data::titledata& a, data::titledata& b)
     {
-        for(unsigned i = 0; i < a.getTitle().length(); i++)
+        uint32_t tmpA, tmpB;
+        for(unsigned i = 0; i < a.getTitle().length(); )
         {
-            int charA = tolower(a.getTitle().c_str()[i]), charB = tolower(b.getTitle().c_str()[i]);
-            if(charA != charB)
-                return charA < charB;
+            ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&a.getTitle().data()[i]);
+            decode_utf8(&tmpB, (const uint8_t *)&b.getTitle().data()[i]);
+            tmpA = tolower(tmpA);
+            tmpB = tolower(tmpB);
+            if(tmpA != tmpB)
+                return tmpA < tmpB;
+
+            i += uCnt;
         }
 
         return false;
@@ -226,6 +232,21 @@ namespace data
             return true;
         }
         return false;
+    }
+
+    //ASCII Testing
+    void titledata::debugCreate(const uint64_t& _id, const std::string& t)
+    {
+        id = _id;
+        title = t;
+
+        titleSafe = util::safeString(t);
+        if(titleSafe.empty())
+        {
+            char tmp[18];
+            sprintf(tmp, "%016lX", id);
+            titleSafe.assign(tmp);
+        }
     }
 
     bool user::init(const u128& _id)

@@ -159,7 +159,7 @@ namespace ui
                 }
             }
 
-            for(unsigned i = 41; i < 44; i++)
+            for(unsigned i = 41; i < 45; i++)
                 keys[i].update(p);
 
             //shift

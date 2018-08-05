@@ -29,6 +29,6 @@ namespace util
 
     std::string getInfoString(data::user& u, data::titledata& d);
 
-    void debugPrintf(const char *format, ...);
+    void debugPrintf(const char *out);
 }
 #endif // UTIL_H

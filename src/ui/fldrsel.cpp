@@ -74,6 +74,10 @@ namespace ui
                 if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?"))
                 {
                     std::string toPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+                    //Delete and recreate
+                    fs::delDir(toPath);
+                    mkdir(toPath.c_str(), 777);
+
                     std::string root = "sv:/";
 
                     fs::copyDirToDir(root, toPath);
