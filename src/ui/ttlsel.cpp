@@ -6,6 +6,8 @@
 #include "file.h"
 #include "util.h"
 
+extern std::vector<ui::button> ttlNav;
+
 namespace ui
 {
     void updateTitleMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -25,7 +27,7 @@ namespace ui
         static ui::touchTrack track;
 
         //Color swapping
-        color clrPrev = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
+        clr clrPrev = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         if(clrAdd)
         {
@@ -41,7 +43,7 @@ namespace ui
         }
 
         //Updated sel
-        color clrUpdt = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
+        clr clrUpdt = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
 
@@ -52,7 +54,7 @@ namespace ui
             endTitle = data::curUser.titles.size();
 
         //draw Rect so it's always behind icons
-        texDraw(ui::selBox, ui::fb, selRectX, selRectY);
+        texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
 
         for(unsigned i = start; i < endTitle; y += 144)
         {
@@ -91,7 +93,7 @@ namespace ui
                         rectX = 1264 - rectWidth;
 
                     drawTextbox(rectX, y - 50, rectWidth, 38);
-                    drawText(title.c_str(), ui::fb, ui::shared, rectX + 16, y - 38, 16, txtClr);
+                    drawText(title.c_str(), frameBuffer, ui::shared, rectX + 16, y - 38, 16, txtClr);
                 }
                 data::curUser.titles[i].icon.drawHalf(tX, y);
             }
@@ -123,6 +125,10 @@ namespace ui
                     selected = start + i;
             }
         }
+
+        //Nav
+        for(unsigned i = 0; i < ttlNav.size(); i++)
+            ttlNav[i].update(p);
 
         //Update touchtracking
         track.update(p);
@@ -186,7 +192,7 @@ namespace ui
             if(selected - start >= 32)
                 start += 8;
         }
-        else if(down & KEY_A)
+        else if(down & KEY_A || ttlNav[0].getEvent() == BUTTON_RELEASED)
         {
             data::curData = data::curUser.titles[selected];
             if(fs::mountSave(data::curUser, data::curData))
@@ -198,11 +204,11 @@ namespace ui
                 mstate = FLD_SEL;
             }
         }
-        else if(down & KEY_Y)
+        else if(down & KEY_Y || ttlNav[1].getEvent() == BUTTON_RELEASED)
         {
             fs::dumpAllUserSaves(data::curUser);
         }
-        else if(down & KEY_B)
+        else if(down & KEY_B || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
             start = 0;
             selected = 0;

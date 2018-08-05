@@ -10,6 +10,7 @@
 
 static ui::menu userMenu, titleMenu;
 extern ui::menu folderMenu;
+extern std::vector<ui::button> usrNav, ttlNav, fldNav;
 
 namespace ui
 {
@@ -51,19 +52,22 @@ namespace ui
         userMenu.handleInput(down, held, p);
         userMenu.draw(mnuTxt);
 
-        if(down & KEY_A)
+        for(unsigned i = 0; i < usrNav.size(); i++)
+            usrNav[i].update(p);
+
+        if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
             data::curUser = data::users[userMenu.getSelected()];
             clsTitlePrep(data::curUser);
 
             mstate = CLS_TTL;
         }
-        else if(down & KEY_Y)
+        else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {
             for(unsigned i = 0; i < data::users.size(); i++)
                 fs::dumpAllUserSaves(data::users[i]);
         }
-        else if(down & KEY_X)
+        else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
         {
             std::remove(std::string(fs::getWorkDir() + "cls.txt").c_str());
             clsMode = false;
@@ -76,7 +80,10 @@ namespace ui
         titleMenu.handleInput(down, held, p);
         titleMenu.draw(mnuTxt);
 
-        if(down & KEY_A)
+        for(unsigned i = 0; i < ttlNav.size(); i++)
+            ttlNav[i].update(p);
+
+        if(down & KEY_A || ttlNav[0].getEvent() == BUTTON_RELEASED)
         {
             data::curData = data::curUser.titles[titleMenu.getSelected()];
 
@@ -89,11 +96,11 @@ namespace ui
                 mstate = CLS_FLD;
             }
         }
-        else if(down & KEY_Y)
+        else if(down & KEY_Y || ttlNav[1].getEvent() == BUTTON_RELEASED)
         {
             fs::dumpAllUserSaves(data::curUser);
         }
-        else if(down & KEY_B)
+        else if(down & KEY_B || ttlNav[2].getEvent() == BUTTON_RELEASED)
             mstate = CLS_USR;
     }
 
@@ -103,12 +110,22 @@ namespace ui
         folderMenu.handleInput(down, held, p);
         folderMenu.draw(mnuTxt);
 
-        if(down & KEY_A || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
+        for(unsigned i = 0; i < fldNav.size(); i++)
+            fldNav[i].update(p);
+
+        if(down & KEY_A || fldNav[0].getEvent() == BUTTON_RELEASED || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
         {
             if(folderMenu.getSelected() == 0)
             {
-                ui::keyboard key;
-                std::string folder = util::safeString(key.getString(""));
+                std::string folder;
+                //Add back 3DS shortcut thing
+                if(held & KEY_R || held & KEY_L)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime();
+                else
+                {
+                    ui::keyboard key;
+                    folder = util::safeString(key.getString(""));
+                }
                 if(!folder.empty())
                 {
                     std::string path = util::getTitleDir(data::curUser, data::curData) + "/" + folder;
@@ -118,7 +135,7 @@ namespace ui
                     std::string root = "sv:/";
                     fs::copyDirToDir(root, path);
 
-                    folderMenuPrepare(data::curUser, data::curData);
+                    clsFolderPrep(data::curUser, data::curData);
                 }
             }
             else
@@ -136,7 +153,7 @@ namespace ui
                 }
             }
         }
-        else if(down & KEY_Y)
+        else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
             if(data::curData.getType() != FsSaveDataType_SystemSaveData)
             {
@@ -161,7 +178,7 @@ namespace ui
             else
                 ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.");
         }
-        else if(down & KEY_X)
+        else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
         {
             if(folderMenu.getSelected() > 0)
             {
@@ -175,7 +192,7 @@ namespace ui
                     fs::delDir(delPath);
                 }
 
-                folderMenuPrepare(data::curUser, data::curData);
+                clsFolderPrep(data::curUser, data::curData);
             }
         }
         else if(down & KEY_MINUS)
@@ -183,11 +200,10 @@ namespace ui
             advModePrep();
             mstate = ADV_MDE;
         }
-        else if(down & KEY_B)
+        else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
         {
             fsdevUnmountDevice("sv");
-            if(clsMode)
-                mstate = CLS_TTL;
+            mstate = CLS_TTL;
         }
     }
 }

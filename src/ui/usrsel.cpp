@@ -1,10 +1,13 @@
 #include <string>
 #include <fstream>
+#include <vector>
 #include <switch.h>
 
 #include "ui.h"
 #include "uiupdate.h"
 #include "file.h"
+
+extern std::vector<ui::button> usrNav;
 
 namespace ui
 {
@@ -21,7 +24,7 @@ namespace ui
         static ui::touchTrack track;
 
         //Color swapping selBox
-        color clrPrev = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
+        clr clrPrev = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         if(clrAdd)
         {
@@ -37,7 +40,7 @@ namespace ui
         }
 
         //Update selBox color
-        color clrUpdt = colorCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
+        clr clrUpdt = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         unsigned x = 70, y = 80;
         unsigned endUser = start + 32;
@@ -45,7 +48,7 @@ namespace ui
             endUser = data::users.size();
 
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
-        texDraw(ui::selBox, ui::fb, selRectX, selRectY);
+        texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
 
         for(unsigned i = start; i < endUser; y += 144)
         {
@@ -83,10 +86,10 @@ namespace ui
                         userRectX = 1264 - userRectWidth;
 
                     drawTextbox(userRectX, y - 50, userRectWidth, 38);
-                    drawText(username.c_str(), ui::fb, ui::shared, userRectX + 16, y - 38, 16, txtClr);
+                    drawText(username.c_str(), frameBuffer, ui::shared, userRectX + 16, y - 38, 16, txtClr);
                 }
 
-                texDrawSkipNoAlpha(data::users[i].userIcon, ui::fb, tX, y);
+                texDrawSkipNoAlpha(data::users[i].userIcon, frameBuffer, tX, y);
             }
         }
 
@@ -106,6 +109,10 @@ namespace ui
                     selected = start + i;
             }
         }
+
+        //Update nav
+        for(unsigned i = 0; i < usrNav.size(); i++)
+            usrNav[i].update(p);
 
         //Update touch tracking
         track.update(p);
@@ -144,7 +151,7 @@ namespace ui
             if(selected - start >= 32)
                 start += 8;
         }
-        else if(down & KEY_A)
+        else if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
             data::curUser = data::users[selected];
             //Reset this
@@ -153,12 +160,12 @@ namespace ui
             selRectX = 64, selRectY = 74;
             mstate = TTL_SEL;
         }
-        else if(down & KEY_Y)
+        else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {
             for(unsigned i = 0; i < data::users.size(); i++)
                 fs::dumpAllUserSaves(data::users[i]);
         }
-        else if(down & KEY_X)
+        else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
         {
             //Just create file so user doesn't have to constantly enable
             std::fstream cls(fs::getWorkDir() + "cls.txt", std::ios::out);
@@ -167,6 +174,5 @@ namespace ui
             mstate = CLS_USR;
             clsMode = true;
         }
-
     }
 }

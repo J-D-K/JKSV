@@ -8,14 +8,14 @@
 #include "gfx.h"
 
 static uint32_t fbw = 0, fbh = 0;
-static tex *frameBuffer;
+tex *frameBuffer;
 
-static inline uint32_t blend(const color px, const color fb)
+static inline uint32_t blend(const clr px, const clr fb)
 {
     if(px.a == 0x00)
-        return colorGetColor(fb);
+        return clrGetColor(fb);
     else if(px.a == 0xFF)
-        return colorGetColor(px);
+        return clrGetColor(px);
 
     uint8_t subAl = 0xFF - px.a;
 
@@ -26,7 +26,7 @@ static inline uint32_t blend(const color px, const color fb)
     return (0xFF << 24 | fB << 16 | fG << 8 | fR);
 }
 
-static inline uint32_t smooth(const color px1, const color px2)
+static inline uint32_t smooth(const clr px1, const clr px2)
 {
     uint8_t fR = (px1.r + px2.r) / 2;
     uint8_t fG = (px1.g + px2.g) / 2;
@@ -75,7 +75,7 @@ void gfxHandleBuffs()
     gfxWaitForVsync();
 }
 
-static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const color c)
+static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const clr c)
 {
     if(bmp->pixel_mode != FT_PIXEL_MODE_GRAY)
         return;
@@ -94,8 +94,8 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
 
             if(*bmpPtr > 0)
             {
-                color txClr = colorCreateRGBA(c.r, c.g, c.b, *bmpPtr);
-                color tgtClr = colorCreateU32(*rowPtr);
+                clr txClr = clrCreateRGBA(c.r, c.g, c.b, *bmpPtr);
+                clr tgtClr = clrCreateU32(*rowPtr);
 
                 *rowPtr = blend(txClr, tgtClr);
             }
@@ -103,7 +103,7 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
     }
 }
 
-void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, color c)
+void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, clr c)
 {
     int tmpX = x;
     FT_Error ret = 0;
@@ -168,17 +168,17 @@ size_t textGetWidth(const char *str, const font *f, int sz)
     return width;
 }
 
-void clearBufferColor(const color clr)
+void clearBufferColor(const clr clr)
 {
     uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
-    uint32_t clearClr = colorGetColor(clr);
+    uint32_t clearClr = clrGetColor(clr);
     for(unsigned i = 0; i < gfxGetFramebufferSize() / 4; i++, fb++)
         *fb = clearClr;
 }
 
-void drawRect(tex *target, int x, int y, int w,  int h, const color c)
+void drawRect(tex *target, int x, int y, int w,  int h, const clr c)
 {
-    uint32_t clr = colorGetColor(c);
+    uint32_t clr = clrGetColor(c);
 
     for(int tY = y; tY < y + h; tY++)
     {
@@ -371,12 +371,12 @@ void texDestroy(tex *t)
         free(t);
 }
 
-void texClearColor(tex *in, const color c)
+void texClearColor(tex *in, const clr c)
 {
     uint32_t *dataPtr = &in->data[0];
-    uint32_t clr = colorGetColor(c);
+    uint32_t color = clrGetColor(c);
     for(int i = 0; i < in->size; i++)
-        *dataPtr++ = clr;
+        *dataPtr++ = color;
 }
 
 void texDraw(const tex *t, tex *target, int x, int y)
@@ -389,8 +389,8 @@ void texDraw(const tex *t, tex *target, int x, int y)
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + t->width; tX++, rowPtr++)
             {
-                color dataClr = colorCreateU32(*dataPtr++);
-                color fbClr   = colorCreateU32(*rowPtr);
+                clr dataClr = clrCreateU32(*dataPtr++);
+                clr fbClr   = clrCreateU32(*rowPtr);
 
                 *rowPtr = blend(dataClr, fbClr);
             }
@@ -424,11 +424,11 @@ void texDrawSkip(const tex *t, tex *target, int x, int y)
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + (t->width / 2); tX++, rowPtr++)
             {
-                color px1 = colorCreateU32(*dataPtr++);
-                color px2 = colorCreateU32(*dataPtr++);
-                color fbPx = colorCreateU32(*rowPtr);
+                clr px1 = clrCreateU32(*dataPtr++);
+                clr px2 = clrCreateU32(*dataPtr++);
+                clr fbPx = clrCreateU32(*rowPtr);
 
-                *rowPtr = blend(colorCreateU32(smooth(px1, px2)), fbPx);
+                *rowPtr = blend(clrCreateU32(smooth(px1, px2)), fbPx);
             }
         }
     }
@@ -444,8 +444,8 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y)
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + (t->width / 2); tX++, rowPtr++)
             {
-                color px1 = colorCreateU32(*dataPtr++);
-                color px2 = colorCreateU32(*dataPtr++);
+                clr px1 = clrCreateU32(*dataPtr++);
+                clr px2 = clrCreateU32(*dataPtr++);
 
                 *rowPtr = smooth(px1, px2);
             }
@@ -463,9 +463,9 @@ void texDrawInvert(const tex *t, tex *target, int x, int y)
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + t->width; tX++, rowPtr++)
             {
-                color dataClr = colorCreateU32(*dataPtr++);
-                colorInvert(&dataClr);
-                color fbClr = colorCreateU32(*rowPtr);
+                clr dataClr = clrCreateU32(*dataPtr++);
+                clrInvert(&dataClr);
+                clr fbClr = clrCreateU32(*rowPtr);
 
                 *rowPtr = blend(dataClr, fbClr);
             }
@@ -473,9 +473,9 @@ void texDrawInvert(const tex *t, tex *target, int x, int y)
     }
 }
 
-void texSwapColors(tex *t, const color old, const color newColor)
+void texSwapColors(tex *t, const clr old, const clr newColor)
 {
-    uint32_t oldClr = colorGetColor(old), newClr = colorGetColor(newColor);
+    uint32_t oldClr = clrGetColor(old), newClr = clrGetColor(newColor);
 
     uint32_t *dataPtr = &t->data[0];
     for(unsigned i = 0; i < t->size; i++, dataPtr++)
@@ -583,9 +583,4 @@ void fontDestroy(font *f)
         free(f->fntData);
 
     free(f);
-}
-
-tex *texGetFramebuffer()
-{
-    return frameBuffer;
 }

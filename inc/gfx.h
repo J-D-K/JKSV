@@ -15,7 +15,7 @@ extern "C"
 typedef struct
 {
     uint8_t r, g, b, a;
-} color;
+} clr;
 
 typedef struct
 {
@@ -43,20 +43,20 @@ bool graphicsExit();
 void gfxHandleBuffs();
 
 //Creates color from uint32_t
-inline color colorCreateU32(uint32_t clr)
+inline clr clrCreateU32(uint32_t color)
 {
-    color ret;
-    ret.a = clr >> 24 & 0xFF;
-    ret.b = clr >> 16 & 0xFF;
-    ret.g = clr >>  8 & 0xFF;
-    ret.r = clr & 0xFF;
+    clr ret;
+    ret.a = color >> 24 & 0xFF;
+    ret.b = color >> 16 & 0xFF;
+    ret.g = color >>  8 & 0xFF;
+    ret.r = color & 0xFF;
     return ret;
 }
 
-//Sets color to [r], [g], [b], [a]
-inline color colorCreateRGBA(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
+//Sets clr to [r], [g], [b], [a]
+inline clr clrCreateRGBA(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
 {
-    color ret;
+    clr ret;
     ret.r = _r;
     ret.g = _g;
     ret.b = _b;
@@ -65,7 +65,7 @@ inline color colorCreateRGBA(uint8_t _r, uint8_t _g, uint8_t _b, uint8_t _a)
 }
 
 //Inverts color
-inline void colorInvert(color *c)
+inline void clrInvert(clr *c)
 {
     c->r = (0xFF - c->r);
     c->g = (0xFF - c->g);
@@ -73,22 +73,22 @@ inline void colorInvert(color *c)
 }
 
 //Returns uint32_t color
-inline uint32_t colorGetColor(const color c)
+inline uint32_t clrGetColor(const clr c)
 {
     return (c.a << 24 | c.b << 16 | c.g << 8 | c.r);
 }
 
 //Draws text using f
-void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, color c);
+void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, clr c);
 
 //Returns text width
 size_t textGetWidth(const char *str, const font *f, int sz);
 
 //Clears framebuffer to c
-void clearBufferColor(const color c);
+void clearBufferColor(const clr c);
 
 //Draws rectangle at x, y with w, h
-void drawRect(tex *target, int x, int y, int w, int h, const color c);
+void drawRect(tex *target, int x, int y, int w, int h, const clr c);
 
 /*
 TEX BEGIN
@@ -109,7 +109,7 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize);
 void texDestroy(tex *t);
 
 //Clears tex completely with c
-void texClearColor(tex *in, const color c);
+void texClearColor(tex *in, const clr c);
 
 //Draws t at x, y
 void texDraw(const tex *t, tex *target, int x, int y);
@@ -127,7 +127,7 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y);
 void texDrawInvert(const tex *t, tex *target, int x, int y);
 
 //Replaces old with newColor
-void texSwapColors(tex *t, const color old, const color newColor);
+void texSwapColors(tex *t, const clr old, const clr newColor);
 
 //Scales tex * scale and writes to out. Can only multiply for now
 void texScaleToTex(const tex *in, tex *out, int scale);
@@ -149,7 +149,7 @@ TEX END
 */
 
 //returns framebuffer tex pointer
-tex *texGetFramebuffer();
+extern tex *frameBuffer;
 #ifdef __cplusplus
 }
 #endif

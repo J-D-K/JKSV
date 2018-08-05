@@ -38,7 +38,7 @@ namespace ui
     extern std::string folderMenuInfo;
 
     //Colors to use now that I added theme detection
-    extern color clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
+    extern clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
 
     //Button tex
     extern tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
@@ -47,9 +47,6 @@ namespace ui
     *horEdgeTop, *horEdgeBot, *vertEdgeLeft, *vertEdgeRight;
     //Selection box
     extern tex *selBox;
-
-    //Pointer to framebuffer so I can be lazy while I type
-    extern tex *fb;
 
     //Shared font
     extern font *shared;
@@ -63,6 +60,7 @@ namespace ui
     //Prepares ui
     //Sets up buttons for icon touchin
     void setupSelButtons();
+    void setupNavButtons();
 
     //Clears and draws general stuff used by multiple screens
     void drawUI();

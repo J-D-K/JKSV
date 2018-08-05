@@ -25,8 +25,8 @@ namespace data
             //For loading default icon
             void load(const uint64_t & _id, const std::string& _png);
 
-            void draw(unsigned x, unsigned y) { texDrawNoAlpha(iconTex, texGetFramebuffer(), x, y); }
-            void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, texGetFramebuffer(), x, y); }
+            void draw(unsigned x, unsigned y) { texDrawNoAlpha(iconTex, frameBuffer, x, y); }
+            void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, frameBuffer, x, y); }
 
             uint64_t getTitleID() { return titleID; }
 

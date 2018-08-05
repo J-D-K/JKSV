@@ -116,7 +116,7 @@ namespace util
             {
                 ret += ' ';
             }
-            else if(tmpChr > 255)
+            else if(tmpChr < 31 || tmpChr > 126)
                 return ""; //return empty string so titledata::init defaults to titleID
             else
                 ret += (char)tmpChr;
