@@ -14,6 +14,7 @@ namespace data
 
     //Loads user + title info
     void loadDataInfo();
+    void loadBlacklist();
     void exit();
 
     //Class to help not load the same icons over and over
@@ -95,13 +96,15 @@ namespace data
             u128 userID;
             std::string username, userSafe;
     };
+    //Adds title to blacklist
+    void blacklistAdd(titledata& t);
 
     //User vector
     extern std::vector<user> users;
 
     //Stores current data we're using so I don't have to type so much.
     extern titledata curData;
-    extern user curUser;
+    extern user      curUser;
 }
 
 #endif // DATA_H

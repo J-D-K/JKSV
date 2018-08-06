@@ -44,6 +44,19 @@ static int getUserIndex(const u128& id)
     return -1;
 }
 
+static std::vector<uint64_t> blacklist;
+
+bool blacklisted(const uint64_t& id)
+{
+    for(unsigned i = 0; i < blacklist.size(); i++)
+    {
+        if(id == blacklist[i])
+            return true;
+    }
+
+    return false;
+}
+
 namespace data
 {
     titledata curData;
@@ -54,6 +67,9 @@ namespace data
 
     void loadDataInfo()
     {
+        blacklist.clear();
+        loadBlacklist();
+
         icn defIcon;
         defIcon.load(0, "romfs:/img/icn/icnDefault.png");
         icons.push_back(defIcon);
@@ -81,7 +97,7 @@ namespace data
             if(R_FAILED(res) || total == 0)
                 break;
 
-            if((info.SaveDataType == FsSaveDataType_SaveData) || sysSave)
+            if((info.SaveDataType == FsSaveDataType_SaveData && !blacklisted(info.titleID)) || sysSave)
             {
                 int u = getUserIndex(info.userID);
                 if(u == -1)
@@ -313,5 +329,47 @@ namespace data
         }
 
         return true;
+    }
+
+    void loadBlacklist()
+    {
+        if(fs::fileExists(fs::getWorkDir() + "blacklist.txt"))
+        {
+            std::string line;
+            std::fstream bl(fs::getWorkDir() + "blacklist.txt", std::ios::in);
+
+            while(std::getline(bl, line))
+            {
+                if(line[0] == '#' || line[0] == '\n')
+                    continue;
+
+                uint64_t pushID = std::strtoull(line.c_str(), NULL, 16);
+
+                blacklist.push_back(pushID);
+            }
+        }
+    }
+
+    void blacklistAdd(titledata& t)
+    {
+        std::fstream bl(fs::getWorkDir() + "blacklist.txt", std::ios::app);
+
+        std::string titleLine = "#" + t.getTitle() + "\n";
+        char idLine[32];
+        sprintf(idLine, "0x%016lX\n", t.getID());
+
+        bl.write(titleLine.c_str(), titleLine.length());
+        bl.write(idLine, std::strlen(idLine));
+        bl.close();
+
+        //Remove it from every user
+        for(unsigned i = 0; i < users.size(); i++)
+        {
+            for(unsigned j = 0; j < users[i].titles.size(); j++)
+            {
+                if(users[i].titles[j].getID() == t.getID())
+                    users[i].titles.erase(users[i].titles.begin() + j);
+            }
+        }
     }
 }

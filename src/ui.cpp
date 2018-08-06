@@ -165,19 +165,21 @@ namespace ui
         //User Select
         int startX = 848;
         ui::button sel("", startX, 656, 110, 64);
-        ui::button dmp("", startX += 110, 656, 110, 64);
-        ui::button cls("", startX += 110, 656, 110, 64);
+        ui::button dmp("", startX += 110, 656, 134, 64);
+        ui::button cls("", startX += 134, 656, 110, 64);
         usrNav.push_back(sel);
         usrNav.push_back(dmp);
         usrNav.push_back(cls);
 
         //Title
-        startX = 914;
+        startX = 804;
         ui::button ttlSel("", startX, 656, 110, 64);
-        ui::button ttlDmp("", startX += 110, 656, 110, 64);
+        ui::button ttlDmp("", startX += 110, 656, 134, 64);
+        ui::button ttlBlk("", startX += 134, 656, 110, 64);
         ui::button ttlBck("", startX += 110, 656, 110, 64);
         ttlNav.push_back(ttlSel);
         ttlNav.push_back(ttlDmp);
+        ttlNav.push_back(ttlBlk);
         ttlNav.push_back(ttlBck);
 
         //Folder. Skip adv since it can't be touch controlled
@@ -265,12 +267,14 @@ namespace ui
             case TTL_SEL:
             case CLS_TTL:
                 {
-                    unsigned startX = 914;
+                    unsigned startX = 804;
                     texDraw(buttonA, frameBuffer, startX, 672);
                     drawText("Select", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     texDraw(buttonY, frameBuffer, startX += 72, 672);
                     drawText("Dump All", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonB, frameBuffer, startX += 96, 672);
+                    texDraw(buttonX, frameBuffer, startX += 96, 672);
+                    drawText("Blacklist", frameBuffer, shared, startX += 38, 682, 12, mnuTxt);
+                    texDraw(buttonB, frameBuffer, startX += 72, 672);
                     drawText("Back", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
