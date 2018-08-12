@@ -7,7 +7,6 @@
 
 #include "gfx.h"
 
-static uint32_t fbw = 0, fbh = 0;
 tex *frameBuffer;
 
 static inline uint32_t blend(const clr px, const clr fb)
@@ -45,9 +44,6 @@ bool graphicsInit(int windowWidth, int windowHeight)
 
     gfxSetMode(GfxMode_LinearDouble);
 
-    fbw = windowWidth;
-    fbh = windowHeight;
-
     //Make a fake tex that points to framebuffer
     frameBuffer = malloc(sizeof(tex));
     frameBuffer->width = windowWidth;
@@ -83,13 +79,13 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
     uint8_t *bmpPtr = bmp->buffer;
     for(int y = _y; y < _y + bmp->rows; y++)
     {
-        if(y > fbh || y < 0)
+        if(y > target->height || y < 0)
             continue;
 
         uint32_t *rowPtr = &target->data[y * target->width + _x];
         for(int x = _x; x < _x + bmp->width; x++, bmpPtr++, rowPtr++)
         {
-            if(x > fbw || x < 0)
+            if(x > target->width || x < 0)
                 continue;
 
             if(*bmpPtr > 0)
@@ -298,9 +294,7 @@ tex *texLoadJPEGFile(const char *path)
             jpeg_read_scanlines(&jpegInfo, row, 1);
             uint8_t *jpegPtr = row[0];
             for(int x = 0; x < ret->width; x++, jpegPtr += 3)
-            {
                 *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
-            }
         }
 
         jpeg_finish_decompress(&jpegInfo);
@@ -348,9 +342,7 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
         jpeg_read_scanlines(&jpegInfo, row, 1);
         uint8_t *jpegPtr = row[0];
         for(int x = 0; x < ret->width; x++, jpegPtr += 3)
-        {
             *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
-        }
     }
 
     jpeg_finish_decompress(&jpegInfo);
@@ -407,9 +399,7 @@ void texDrawNoAlpha(const tex *t, tex *target, int x, int y)
         {
             uint32_t *rowPtr = &target->data[tY * target->width + x];
             for(int tX = x; tX < x + t->width; tX++)
-            {
                 *rowPtr++ = *dataPtr++;
-            }
         }
     }
 }
@@ -500,21 +490,6 @@ void texScaleToTex(const tex *in, tex *out, int scale)
                     out->data[tY * (in->width * scale) + tX] = *inPtr;
                 }
             }
-        }
-    }
-}
-
-void texDrawDirect(const tex *in, int x, int y)
-{
-    uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
-
-    uint32_t *dataPtr = &in->data[0];
-    for(int _y = y; _y < y + in->height; _y++)
-    {
-        uint32_t *rowPtr = &fb[_y * fbw + x];
-        for(int _x = x; _x < x + in->width; _x++)
-        {
-            *rowPtr++ = *dataPtr++;
         }
     }
 }

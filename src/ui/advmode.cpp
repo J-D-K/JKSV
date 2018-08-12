@@ -476,16 +476,20 @@ namespace ui
         //draw copy menu if it's supposed to be up
         if(advMenuCtrl == 2)
         {
-            ui::drawTextbox(464, 236, 320, 268);
-
             switch(advPrev)
             {
                 case 0:
-                    drawText("SAVE", frameBuffer, ui::shared, 472, 250, 18,txtClr);
+                    copyMenu.setParams(176, 278, 304);
+                    copyMenu.editOpt(0, "Copy to SD");
+                    ui::drawTextbox(168, 236, 320, 268);
+                    drawText("SAVE", frameBuffer, ui::shared, 176, 250, 18,txtClr);
                     break;
 
                 case 1:
-                    drawText("SDMC", frameBuffer, ui::shared, 472, 250, 18, txtClr);
+                    copyMenu.setParams(816, 278, 304);
+                    copyMenu.editOpt(0, "Copy to Save");
+                    ui::drawTextbox(808, 236, 320, 268);
+                    drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, txtClr);
                     break;
             }
             copyMenu.draw(txtClr);

@@ -21,6 +21,8 @@ namespace ui
             void setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW);
             //Adds option
             void addOpt(const std::string& add);
+            //Changes opt text
+            void editOpt(int ind, const std::string& ch);
             //Clears menu stuff
             ~menu();
 

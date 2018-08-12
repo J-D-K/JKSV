@@ -100,7 +100,11 @@ namespace ui
         {
             fs::dumpAllUserSaves(data::curUser);
         }
-        else if(down & KEY_B || ttlNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
+        {
+            data::blacklistAdd(data::curUser.titles[titleMenu.getSelected()]);
+        }
+        else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
             mstate = CLS_USR;
     }
 

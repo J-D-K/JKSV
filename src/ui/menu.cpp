@@ -43,6 +43,11 @@ namespace ui
         }
     }
 
+    void menu::editOpt(int ind, const std::string& ch)
+    {
+        opt[ind] = ch;
+    }
+
     menu::~menu()
     {
         opt.clear();

@@ -58,11 +58,11 @@ int main(int argc, const char *argv[])
         {
             if(ui::confirm("You are about to enable system save dumping and remove checks. Are you sure you want to continue?"))
             {
-                data::sysSave = true;
-                data::loadDataInfo();
-
                 //Just to be sure
                 fsdevUnmountDevice("sv");
+
+                data::sysSave = true;
+                data::loadDataInfo();
 
                 //Kick back to user
                 ui::mstate = USR_SEL;
