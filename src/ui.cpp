@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 08/05/2018"
+#define TITLE_TEXT "JKSV - 08/15/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
 static tex *background = NULL;

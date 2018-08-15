@@ -210,7 +210,10 @@ namespace ui
         }
         else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
-            data::blacklistAdd(data::curUser.titles[selected]);
+            std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[selected].getTitle() + \
+                                  "\" to your blacklist?";
+            if(ui::confirm(confStr))
+                data::blacklistAdd(data::curUser.titles[selected]);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
         {

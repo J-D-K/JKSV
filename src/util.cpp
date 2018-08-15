@@ -171,8 +171,8 @@ namespace util
 
     void debugPrintf(const char *out)
     {
-        #ifdef __debug__
+#ifdef __debug__
         printf("%s", out);
-        #endif
+#endif
     }
 }

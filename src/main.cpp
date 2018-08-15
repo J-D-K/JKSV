@@ -38,10 +38,10 @@ int main(int argc, const char *argv[])
     ui::init();
 
     //built with 'make debug CFLAGS:=-D__debug__'
-    #ifdef __debug__
+#ifdef __debug__
     socketInitializeDefault();
     nxlinkStdio();
-    #endif
+#endif
 
     bool run = true;
     while(appletMainLoop() && run)
@@ -75,9 +75,9 @@ int main(int argc, const char *argv[])
 
         gfxHandleBuffs();
     }
-    #ifdef __debug__
+#ifdef __debug__
     socketExit();
-    #endif
+#endif
 
     graphicsExit();
     ui::exit();
