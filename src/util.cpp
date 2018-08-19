@@ -49,6 +49,8 @@ namespace util
             else
                 m.addOpt("F " + d.getItem(i));
         }
+
+        m.adjust();
     }
 
     void removeLastFolderFromString(std::string& _path)

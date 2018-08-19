@@ -45,6 +45,8 @@ namespace ui
         folderMenu.addOpt("New");
         for(unsigned i = 0; i < list.getCount(); i++)
             folderMenu.addOpt(list.getItem(i));
+
+        folderMenu.adjust();
     }
 
     void classicUserMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)

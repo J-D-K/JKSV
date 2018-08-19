@@ -41,6 +41,9 @@ namespace ui
             //Clears and resets menu
             void reset();
 
+            //Adjusts things after changes are made
+            void adjust();
+
         private:
             //drawing x and y + rectangle width
             unsigned x = 0, y = 0, rW = 0, rY = 0;

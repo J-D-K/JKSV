@@ -133,7 +133,6 @@ static inline FT_GlyphSlot loadGlyph(const uint32_t c, const font *f)
 void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, clr c)
 {
     int tmpX = x;
-    FT_Error ret = 0;
     uint32_t tmpChr = 0;
     ssize_t unitCnt = 0;
 
@@ -155,7 +154,7 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
         }
 
         FT_GlyphSlot slot = loadGlyph(tmpChr, f);
-        if(ret == 0)
+        if(slot != NULL)
         {
             int drawY = y + (sz - slot->bitmap_top);
             drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY, c);

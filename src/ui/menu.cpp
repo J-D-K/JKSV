@@ -177,8 +177,17 @@ namespace ui
     {
         opt.clear();
 
-        selected = 0;
         fc = 0;
-        start = 0;
+    }
+
+    void menu::adjust()
+    {
+        if(selected > (int)opt.size() - 1)
+            selected = opt.size() - 1;
+
+        if(opt.size() < 14)
+            start = 0;
+        else if(opt.size() > 14 && start + 14 > (int)opt.size() - 1)
+            start--;
     }
 }

@@ -225,11 +225,5 @@ namespace ui
             mstate = USR_SEL;
             return;
         }
-        else if(down & KEY_MINUS)
-        {
-            std::fstream bin("/JKSV/ttl.bin", std::ios::out | std::ios::binary);
-            bin.write(data::curUser.titles[selected].getTitle().c_str(), data::curUser.titles[selected].getTitle().length());
-            bin.close();
-        }
     }
 }
