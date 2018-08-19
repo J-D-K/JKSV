@@ -91,7 +91,7 @@ namespace ui
             {
                 util::makeTitleDir(data::curUser, data::curData);
                 clsFolderPrep(data::curUser, data::curData);
-                folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 18, 256);
+                folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
                 mstate = CLS_FLD;
             }

@@ -12,7 +12,7 @@
 static ui::menu saveMenu, sdMenu, copyMenu;
 
 //Paths + wrapped string paths
-static std::string savePath, sdPath, saveWrap, sdWrap;
+static std::string savePath, sdPath;
 
 //Adv Ctrl mode
 static int advMenuCtrl, advPrev;
@@ -327,9 +327,6 @@ namespace ui
         savePath = "sv:/";
         sdPath   = "sdmc:/";
 
-        saveWrap = "sv:/";
-        sdWrap   = "sdmc:/";
-
         saveList.reassign(savePath);
         sdList.reassign(sdPath);
 
@@ -360,8 +357,8 @@ namespace ui
         saveMenu.draw(mnuTxt);
         sdMenu.draw(mnuTxt);
 
-        drawText(saveWrap.c_str(), frameBuffer, ui::shared, 16, 668, 14, mnuTxt);
-        drawText(sdWrap.c_str(), frameBuffer, ui::shared, 656, 668, 14, mnuTxt);
+        drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 16, 668, 14, mnuTxt, 600);
+        drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 656, 668, 14, mnuTxt, 600);
 
         //OH BOY HERE WE GO
         if(down & KEY_A)
@@ -375,7 +372,6 @@ namespace ui
                         if(saveSel == 1 && savePath != "sv:/")
                         {
                             util::removeLastFolderFromString(savePath);
-                            saveWrap = util::getWrappedString(savePath, 14, 600);
 
                             saveList.reassign(savePath);
                             util::copyDirListToMenu(saveList, saveMenu);
@@ -383,7 +379,6 @@ namespace ui
                         else if(saveSel > 1 && saveList.isDir(saveSel - 2))
                         {
                             savePath += saveList.getItem(saveSel - 2) + "/";
-                            saveWrap = util::getWrappedString(savePath, 14, 600);
 
                             saveList.reassign(savePath);
                             util::copyDirListToMenu(saveList, saveMenu);
@@ -398,7 +393,6 @@ namespace ui
                         if(sdSel == 1 && sdPath != "sdmc:/")
                         {
                             util::removeLastFolderFromString(sdPath);
-                            sdWrap = util::getWrappedString(sdPath, 14, 600);
 
                             sdList.reassign(sdPath);
                             util::copyDirListToMenu(sdList, sdMenu);
@@ -406,7 +400,6 @@ namespace ui
                         else if(sdSel > 1 && sdList.isDir(sdSel - 2))
                         {
                             sdPath += sdList.getItem(sdSel - 2) + "/";
-                            sdWrap  = util::getWrappedString(sdPath, 14, 600);
 
                             sdList.reassign(sdPath);
                             util::copyDirListToMenu(sdList, sdMenu);
@@ -426,7 +419,6 @@ namespace ui
             if(advMenuCtrl == 0 && savePath != "sv:/")
             {
                 util::removeLastFolderFromString(savePath);
-                saveWrap = util::getWrappedString(savePath, 14, 600);
 
                 saveList.reassign(savePath);
                 util::copyDirListToMenu(saveList, saveMenu);
@@ -435,7 +427,6 @@ namespace ui
             else if(advMenuCtrl == 1 && sdPath != "sdmc:/")
             {
                 util::removeLastFolderFromString(sdPath);
-                sdWrap = util::getWrappedString(sdPath, 14, 600);
 
                 sdList.reassign(sdPath);
                 util::copyDirListToMenu(sdList, sdMenu);

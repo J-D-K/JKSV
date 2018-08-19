@@ -99,15 +99,45 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
     }
 }
 
+static inline void resizeFont(const font *f, int sz)
+{
+    if(f->external)
+        FT_Set_Char_Size(f->face[0], 0, sz * 64, 90, 90);
+    else
+    {
+        for(int i = 0; i < 6; i++)
+            FT_Set_Char_Size(f->face[i], 0, sz * 64, 90, 90);
+    }
+}
+
+static inline FT_GlyphSlot loadGlyph(const uint32_t c, const font *f)
+{
+    if(f->external)
+    {
+        FT_Load_Glyph(f->face[0], FT_Get_Char_Index(f->face[0], c), FT_LOAD_RENDER);
+        return f->face[0]->glyph;
+    }
+    for(int i = 0; i < 6; i++)
+    {
+        FT_UInt cInd = 0;
+        if( (cInd = FT_Get_Char_Index(f->face[i], c)) != 0 && \
+           FT_Load_Glyph(f->face[i], cInd, FT_LOAD_RENDER) == 0)
+        {
+            return f->face[i]->glyph;
+        }
+    }
+
+    return NULL;
+}
+
 void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, clr c)
 {
     int tmpX = x;
     FT_Error ret = 0;
-    FT_GlyphSlot slot = f->face->glyph;
     uint32_t tmpChr = 0;
     ssize_t unitCnt = 0;
 
-    FT_Set_Char_Size(f->face, 0, sz * 64, 90, 90);
+    resizeFont(f, sz);
 
     size_t length = strlen(str);
     for(unsigned i = 0; i < length; )
@@ -124,26 +154,60 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
             continue;
         }
 
-        ret = FT_Load_Glyph(f->face, FT_Get_Char_Index(f->face, tmpChr), FT_LOAD_RENDER);
-        if(ret)
-            return;
+        FT_GlyphSlot slot = loadGlyph(tmpChr, f);
+        if(ret == 0)
+        {
+            int drawY = y + (sz - slot->bitmap_top);
+            drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY, c);
 
-        int drawY = y + (sz - slot->bitmap_top);
-        drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY, c);
+            tmpX += slot->advance.x >> 6;
+        }
+    }
+}
 
-        tmpX += slot->advance.x >> 6;
+void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int sz, clr c, int maxWidth)
+{
+    char wordBuf[128];
+    size_t nextbreak = 0;
+    size_t strLength = strlen(str);
+    int tmpX = x;
+    for(unsigned i = 0; i < strLength; )
+    {
+        nextbreak = strcspn(&str[i], " /");
+
+        if(nextbreak == strLength)
+        {
+            drawText(&str[i], target, f, tmpX, y, sz, c);
+            break;
+        }
+        else
+        {
+            memset(wordBuf, 0, 128);
+            memcpy(wordBuf, &str[i], nextbreak + 1);
+
+            size_t width = textGetWidth(wordBuf, f, sz);
+
+            if(tmpX + width >= x + maxWidth)
+            {
+                tmpX = x;
+                y += sz + 8;
+            }
+
+            drawText(wordBuf, target, f, tmpX, y, sz, c);
+            tmpX += width;
+
+            i += strlen(wordBuf);
+        }
     }
 }
 
 size_t textGetWidth(const char *str, const font *f, int sz)
 {
     size_t width = 0;
-
     uint32_t untCnt = 0, tmpChr = 0;
-    FT_GlyphSlot slot = f->face->glyph;
     FT_Error ret = 0;
 
-    FT_Set_Char_Size(f->face, 0, 64 * sz, 90, 90);
+    resizeFont(f, sz);
 
     size_t length = strlen(str);
     for(unsigned i = 0; i < length; )
@@ -154,7 +218,7 @@ size_t textGetWidth(const char *str, const font *f, int sz)
             break;
 
         i += untCnt;
-        ret = FT_Load_Glyph(f->face, FT_Get_Char_Index(f->face, tmpChr), FT_LOAD_RENDER);
+        FT_GlyphSlot slot = loadGlyph(tmpChr, f);
         if(ret)
             return 0;
 
@@ -162,14 +226,6 @@ size_t textGetWidth(const char *str, const font *f, int sz)
     }
 
     return width;
-}
-
-void clearBufferColor(const clr clr)
-{
-    uint32_t *fb = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
-    uint32_t clearClr = clrGetColor(clr);
-    for(unsigned i = 0; i < gfxGetFramebufferSize() / 4; i++, fb++)
-        *fb = clearClr;
 }
 
 void drawRect(tex *target, int x, int y, int w,  int h, const clr c)
@@ -494,27 +550,33 @@ void texScaleToTex(const tex *in, tex *out, int scale)
     }
 }
 
-font *fontLoadSharedFont(PlSharedFontType fontType)
+font *fontLoadSharedFonts()
 {
-    PlFontData plFont;
-
-    if(R_FAILED(plGetSharedFontByType(&plFont, fontType)))
-        return NULL;
-
     font *ret = malloc(sizeof(font));
-
     if((ret->libRet = FT_Init_FreeType(&ret->lib)))
     {
         free(ret);
         return NULL;
     }
 
-    if((ret->faceRet = FT_New_Memory_Face(ret->lib, plFont.address, plFont.size, 0, &ret->face)))
+
+    for(int i = 0; i < 6; i++)
     {
-        free(ret);
-        return NULL;
+        PlFontData plFont;
+        if(R_FAILED(plGetSharedFontByType(&plFont, i)))
+        {
+            free(ret);
+            return NULL;
+        }
+
+        if((ret->faceRet = FT_New_Memory_Face(ret->lib, plFont.address, plFont.size, 0, &ret->face[i])))
+        {
+            free(ret);
+            return NULL;
+        }
     }
 
+    ret->external = false;
     ret->fntData = NULL;
 
     return ret;
@@ -538,20 +600,27 @@ font *fontLoadTTF(const char *path)
     fread(ret->fntData, 1, ttfSize, ttf);
     fclose(ttf);
 
-    if((ret->faceRet = FT_New_Memory_Face(ret->lib, ret->fntData, ttfSize, 0, &ret->face)))
+    if((ret->faceRet = FT_New_Memory_Face(ret->lib, ret->fntData, ttfSize, 0, &ret->face[0])))
     {
         free(ret->fntData);
         free(ret);
         return NULL;
     }
 
+    ret->external = true;
+
     return ret;
 }
 
 void fontDestroy(font *f)
 {
-    if(f->faceRet == 0)
-        FT_Done_Face(f->face);
+    if(f->external && f->faceRet == 0)
+        FT_Done_Face(f->face[0]);
+    else if(!f->external && f->faceRet == 0)
+    {
+        for(int i = 0; i < 6; i++)
+            FT_Done_Face(f->face[i]);
+    }
     if(f->libRet == 0)
         FT_Done_FreeType(f->lib);
     if(f->fntData != NULL)

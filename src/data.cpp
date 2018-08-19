@@ -203,7 +203,7 @@ namespace data
         if(R_SUCCEEDED(res))
         {
             title.assign(ent->name);
-            titleSafe = util::safeString(ent->name);
+            titleSafe = util::safeString(title);
             if(titleSafe.empty())
             {
                 char tmp[18];

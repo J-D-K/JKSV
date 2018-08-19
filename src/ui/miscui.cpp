@@ -29,7 +29,7 @@ namespace ui
 
         //char tmp[64];
         //sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
-        drawText(text.c_str(), frameBuffer, ui::shared, 80, 256, 24, txtClr);
+        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 256, 24, txtClr, 752);
         //gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
     }
 
@@ -144,7 +144,6 @@ namespace ui
     void showMessage(const std::string& mess)
     {
         button ok("OK", 256, 496, 768, 96);
-        std::string wrapMess = util::getWrappedString(mess, 24, 752);
         while(true)
         {
             hidScanInput();
@@ -159,7 +158,7 @@ namespace ui
                 break;
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawText(wrapMess.c_str(), frameBuffer, ui::shared, 272, 144, 24, txtClr);
+            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 144, 24, txtClr, 752);
             ok.draw();
             texDrawInvert(ui::buttonA, frameBuffer, ok.getTx() + 56, ok.getTy() - 4);
 
@@ -171,9 +170,7 @@ namespace ui
     {
         button ok("OK (A)", 256, 496, 768, 96);
         char tmp[512];
-        std::string wrapMess = util::getWrappedString(mess, 48, 752);
         sprintf(tmp, "%s\n0x%08X", mess.c_str(), (unsigned)r);
-
         while(true)
         {
             hidScanInput();
@@ -188,7 +185,7 @@ namespace ui
                 break;
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawText(tmp, frameBuffer, shared, 272, 144, 48, txtClr);
+            drawTextWrap(tmp, frameBuffer, shared, 272, 144, 48, txtClr, 752);
             ok.draw();
 
             gfxHandleBuffs();
@@ -201,8 +198,6 @@ namespace ui
 
         button yes("Yes   ", 256, 496, 384, 96);
         button no("No   ", 640, 496, 384, 96);
-
-        std::string wrapMess = util::getWrappedString(mess, 24, 752);
 
         while(true)
         {
@@ -227,7 +222,7 @@ namespace ui
             }
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawText(wrapMess.c_str(), frameBuffer, ui::shared, 272, 144, 24, txtClr);
+            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 144, 24, txtClr, 752);
             yes.draw();
             texDrawInvert(ui::buttonA, frameBuffer, yes.getTx() + 64, yes.getTy() - 4);
             no.draw();

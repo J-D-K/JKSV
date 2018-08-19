@@ -37,40 +37,6 @@ namespace util
         return std::string(fs::getWorkDir() + t.getTitleSafe() + "/");
     }
 
-    std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth)
-    {
-        if(textGetWidth(s.c_str(), ui::shared, sz) < maxWidth)
-            return s;
-
-        std::string ret = "", tmp = "";
-        unsigned first = 0, lastSpace = 0;
-
-        for(unsigned i = 0; i < s.length(); i++)
-        {
-            tmp += s[i];
-
-            // slash for really long file paths with no spaces.
-            if(s[i] == ' ' || s[i] == '/')
-                lastSpace = i;
-
-            if(textGetWidth(tmp.c_str(), ui::shared, sz) >= maxWidth)
-            {
-                tmp.assign(s, first, (lastSpace + 1) - first);
-
-                ret += tmp + "\n";
-
-                first = lastSpace + 1;
-                i = lastSpace;
-
-                tmp.clear();
-            }
-        }
-        if(!tmp.empty())
-            ret += tmp;
-
-        return ret;
-    }
-
     void copyDirListToMenu(fs::dirList& d, ui::menu& m)
     {
         m.reset();

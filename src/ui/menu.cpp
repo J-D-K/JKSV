@@ -30,12 +30,15 @@ namespace ui
         else
         {
             std::string tmp;
-            for(unsigned i = 0; i < add.length(); i++)
+            for(unsigned i = 0; i < add.length(); )
             {
-                tmp += add[i];
+                uint32_t tmpChr = 0;
+                ssize_t untCnt = decode_utf8(&tmpChr, (uint8_t *)&add.c_str()[i]);
+
+                tmp += add.substr(i, untCnt);
+                i += untCnt;
                 if(textGetWidth(tmp.c_str(), ui::shared, 18) >= rW - 16)
                 {
-                    tmp.replace(i - 2, 3, "...");
                     opt.push_back(tmp);
                     break;
                 }

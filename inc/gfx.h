@@ -20,10 +20,11 @@ typedef struct
 typedef struct
 {
     FT_Library lib;
-    FT_Face    face;
+    FT_Face    face[6];
     FT_Error libRet, faceRet;
     //Loads to buffer for speed for TTF
     uint8_t *fntData;
+    bool external;
 } font;
 
 typedef struct
@@ -81,11 +82,11 @@ inline uint32_t clrGetColor(const clr c)
 //Draws text using f
 void drawText(const char *str, tex *target, const font *f, int x, int y, int sz, clr c);
 
+//Draws text wrapping lines
+void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int sz, clr c, int maxWidth);
+
 //Returns text width
 size_t textGetWidth(const char *str, const font *f, int sz);
-
-//Clears framebuffer to c
-void clearBufferColor(const clr c);
 
 //Draws rectangle at x, y with w, h
 void drawRect(tex *target, int x, int y, int w, int h, const clr c);
@@ -131,22 +132,18 @@ void texSwapColors(tex *t, const clr old, const clr newColor);
 
 //Scales tex * scale and writes to out. Can only multiply for now
 void texScaleToTex(const tex *in, tex *out, int scale);
-
-//Draws directly to Switch's framebuffer
-void texDrawDirect(const tex *in, int x, int y);
+/*
+TEX END
+*/
 
 //Loads and returns font with Switch shared font loaded
-font *fontLoadSharedFont(PlSharedFontType fontType);
+font *fontLoadSharedFonts();
 
 //Loads and returns TTF font
 font *fontLoadTTF(const char *path);
 
 //Frees font
 void fontDestroy(font *f);
-
-/*
-TEX END
-*/
 
 //returns framebuffer tex pointer
 extern tex *frameBuffer;

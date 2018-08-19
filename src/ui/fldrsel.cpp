@@ -38,7 +38,7 @@ namespace ui
         folderMenu.draw(mnuTxt);
 
         data::curData.icon.draw(48, 88);
-        drawText(folderMenuInfo.c_str(), frameBuffer, ui::shared, 32, 360, 18, ui::mnuTxt);
+        drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 32, 360, 18, ui::mnuTxt, 224);
 
         if(down & KEY_A || fldNav[0].getEvent() == BUTTON_RELEASED || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
         {

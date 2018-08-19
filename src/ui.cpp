@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 08/15/2018"
+#define TITLE_TEXT "JKSV - 08/18/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
 static tex *background = NULL;
@@ -104,7 +104,7 @@ namespace ui
         if(fs::fileExists(fs::getWorkDir() + "font.ttf"))
             shared = fontLoadTTF(std::string(fs::getWorkDir() + "font.ttf").c_str());
         else
-            shared = fontLoadSharedFont(PlSharedFontType_KO);
+            shared = fontLoadSharedFonts();
 
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
@@ -260,7 +260,7 @@ namespace ui
                     texDraw(buttonY, frameBuffer, startX += 72, 672);
                     drawText("Dump All", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     texDraw(buttonX, frameBuffer, startX += 96, 672);
-                    drawText("Classic Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
+                    drawText("Text Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
 

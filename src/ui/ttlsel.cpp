@@ -1,6 +1,8 @@
 #include <string>
 #include <vector>
 
+#include <fstream>
+
 #include "ui.h"
 #include "uiupdate.h"
 #include "file.h"
@@ -114,7 +116,6 @@ namespace ui
                 {
                     util::makeTitleDir(data::curUser, data::curData);
                     folderMenuPrepare(data::curUser, data::curData);
-                    folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 18, 256);
 
                     mstate = FLD_SEL;
                 }
@@ -199,7 +200,7 @@ namespace ui
             {
                 util::makeTitleDir(data::curUser, data::curData);
                 folderMenuPrepare(data::curUser, data::curData);
-                folderMenuInfo = util::getWrappedString(util::getInfoString(data::curUser, data::curData), 18, 256);
+                folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
                 mstate = FLD_SEL;
             }
@@ -223,6 +224,12 @@ namespace ui
             selRectY = 74;
             mstate = USR_SEL;
             return;
+        }
+        else if(down & KEY_MINUS)
+        {
+            std::fstream bin("/JKSV/ttl.bin", std::ios::out | std::ios::binary);
+            bin.write(data::curUser.titles[selected].getTitle().c_str(), data::curUser.titles[selected].getTitle().length());
+            bin.close();
         }
     }
 }
