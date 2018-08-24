@@ -99,40 +99,40 @@ namespace util
 
     std::string getInfoString(data::user& u, data::titledata& d)
     {
-        std::string ret = d.getTitle();
+        std::string ret = d.getTitle() + "\n";
 
         char id[18];
         sprintf(id, " %016lX", d.getID());
-        ret += id;
+        ret += std::string(id) + "\n\n";
 
         switch(d.getType())
         {
             case FsSaveDataType_SystemSaveData:
-                ret += " System Save";
+                ret += "System Save\n\n";
                 break;
 
             case FsSaveDataType_SaveData:
-                ret += " Save Data";
+                ret += "Save Data\n\n";
                 break;
 
             case FsSaveDataType_BcatDeliveryCacheStorage:
-                ret += " Bcat Delivery Cache";
+                ret += "Bcat Delivery Cache\n\n";
                 break;
 
             case FsSaveDataType_DeviceSaveData:
-                ret += " Device Save";
+                ret += "Device Save\n\n";
                 break;
 
             case FsSaveDataType_TemporaryStorage:
-                ret = " Temp Storage";
+                ret = "Temp Storage\n\n";
                 break;
 
             case FsSaveDataType_CacheStorage:
-                ret+= " Cache Storage";
+                ret+= "Cache Storage\n\n";
                 break;
         }
 
-        ret += "\n" + u.getUsername();
+        ret += u.getUsername();
 
         return ret;
     }

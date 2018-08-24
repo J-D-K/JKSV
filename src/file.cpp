@@ -60,9 +60,7 @@ namespace fs
         d = opendir(path.c_str());
 
         while((ent = readdir(d)))
-        {
             item.push_back(ent->d_name);
-        }
 
         closedir(d);
     }
@@ -76,9 +74,7 @@ namespace fs
         item.clear();
 
         while((ent = readdir(d)))
-        {
             item.push_back(ent->d_name);
-        }
 
         closedir(d);
     }
@@ -89,9 +85,7 @@ namespace fs
         d = opendir(path.c_str());
 
         while((ent = readdir(d)))
-        {
             item.push_back(ent->d_name);
-        }
 
         closedir(d);
     }
@@ -105,11 +99,8 @@ namespace fs
     {
         std::string fullPath = path + item[index];
         struct stat s;
-        if(stat(fullPath.c_str(), &s) == 0)
-        {
-            if(S_ISDIR(s.st_mode))
-                return true;
-        }
+        if(stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode))
+            return true;
 
         return false;
     }

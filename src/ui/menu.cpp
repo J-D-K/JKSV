@@ -15,6 +15,8 @@ namespace ui
         rW = _rW;
         rY = _y;
 
+        optButtons.clear();
+
         for(unsigned i = 0; i < 15; i++)
         {
             //Init + push invisible options buttons

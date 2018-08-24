@@ -27,10 +27,12 @@ namespace ui
         drawRect(frameBuffer, 96, 400, 1088, 64, clrCreateU32(0xFF000000));
         drawRect(frameBuffer, 96, 400, (unsigned)width, 64, clrCreateU32(0xFF00CC00));
 
-        //char tmp[64];
-        //sprintf(tmp, "%u / %u", (unsigned)prog, (unsigned)max);
-        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 256, 24, txtClr, 752);
-        //gfx::drawText(tmp, 80, 320, 64, 0x000000FF);
+        char tmp[128];
+        sprintf(tmp, "%u KB/%u KB", (unsigned)prog / 1024, (unsigned)max / 1024);
+        int szX = 640 - (textGetWidth(tmp, shared, 24) / 2);
+
+        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 256, 18, txtClr, 752);
+        drawText(tmp, frameBuffer, shared, szX, 416, 24, clrCreateU32(0xFFFFFFFF));
     }
 
     button::button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h)

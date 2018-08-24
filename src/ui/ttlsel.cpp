@@ -214,7 +214,7 @@ namespace ui
             std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[selected].getTitle() + \
                                   "\" to your blacklist?";
             if(ui::confirm(confStr))
-                data::blacklistAdd(data::curUser.titles[selected]);
+                data::blacklistAdd(data::curUser, data::curUser.titles[selected]);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
         {

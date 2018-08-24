@@ -110,18 +110,18 @@ static inline void resizeFont(const font *f, int sz)
     }
 }
 
-static inline FT_GlyphSlot loadGlyph(const uint32_t c, const font *f)
+static inline FT_GlyphSlot loadGlyph(const uint32_t c, const font *f, FT_Int32 flags)
 {
     if(f->external)
     {
-        FT_Load_Glyph(f->face[0], FT_Get_Char_Index(f->face[0], c), FT_LOAD_RENDER);
+        FT_Load_Glyph(f->face[0], FT_Get_Char_Index(f->face[0], c), flags);
         return f->face[0]->glyph;
     }
     for(int i = 0; i < 6; i++)
     {
         FT_UInt cInd = 0;
         if( (cInd = FT_Get_Char_Index(f->face[i], c)) != 0 && \
-           FT_Load_Glyph(f->face[i], cInd, FT_LOAD_RENDER) == 0)
+                FT_Load_Glyph(f->face[i], cInd, flags) == 0)
         {
             return f->face[i]->glyph;
         }
@@ -153,7 +153,7 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
             continue;
         }
 
-        FT_GlyphSlot slot = loadGlyph(tmpChr, f);
+        FT_GlyphSlot slot = loadGlyph(tmpChr, f, FT_LOAD_RENDER);
         if(slot != NULL)
         {
             int drawY = y + (sz - slot->bitmap_top);
@@ -174,29 +174,44 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
     {
         nextbreak = strcspn(&str[i], " /");
 
-        if(nextbreak == strLength)
+        memset(wordBuf, 0, 128);
+        memcpy(wordBuf, &str[i], nextbreak + 1);
+
+        size_t width = textGetWidth(wordBuf, f, sz);
+
+        if(tmpX + width >= x + maxWidth)
         {
-            drawText(&str[i], target, f, tmpX, y, sz, c);
-            break;
+            tmpX = x;
+            y += sz + 8;
         }
-        else
+
+        size_t wLength = strlen(wordBuf);
+        uint32_t tmpChr = 0;
+        for(unsigned j = 0; j < wLength; )
         {
-            memset(wordBuf, 0, 128);
-            memcpy(wordBuf, &str[i], nextbreak + 1);
+            ssize_t unitCnt = decode_utf8(&tmpChr, (const uint8_t *)&wordBuf[j]);
+            if(unitCnt <= 0)
+                break;
 
-            size_t width = textGetWidth(wordBuf, f, sz);
-
-            if(tmpX + width >= x + maxWidth)
+            j += unitCnt;
+            if(tmpChr == '\n')
             {
                 tmpX = x;
                 y += sz + 8;
+                continue;
             }
 
-            drawText(wordBuf, target, f, tmpX, y, sz, c);
-            tmpX += width;
+            FT_GlyphSlot slot = loadGlyph(tmpChr, f, FT_LOAD_RENDER);
+            if(slot != NULL)
+            {
+                int drawY = y + (sz - slot->bitmap_top);
+                drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY, c);
 
-            i += strlen(wordBuf);
+                tmpX += slot->advance.x >> 6;
+            }
         }
+
+        i += strlen(wordBuf);
     }
 }
 
@@ -217,7 +232,7 @@ size_t textGetWidth(const char *str, const font *f, int sz)
             break;
 
         i += untCnt;
-        FT_GlyphSlot slot = loadGlyph(tmpChr, f);
+        FT_GlyphSlot slot = loadGlyph(tmpChr, f, FT_LOAD_DEFAULT);
         if(ret)
             return 0;
 

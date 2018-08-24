@@ -63,7 +63,7 @@ namespace data
     user      curUser;
     std::vector<icn> icons;
     std::vector<user> users;
-    bool sysSave = false;
+    bool sysSave = false, forceMount = true;
 
     void loadDataInfo()
     {
@@ -109,7 +109,7 @@ namespace data
 
                         u = getUserIndex(info.userID);
                         titledata newData;
-                        if(newData.init(info) && newData.isMountable(newUser.getUID()))
+                        if(newData.init(info) && (newData.isMountable(newUser.getUID()) || !forceMount))
                         {
                             users[u].titles.push_back(newData);
                         }
@@ -118,7 +118,7 @@ namespace data
                 else
                 {
                     titledata newData;
-                    if(newData.init(info) && newData.isMountable(users[u].getUID()))
+                    if(newData.init(info) && (newData.isMountable(users[u].getUID()) || !forceMount))
                     {
                         users[u].titles.push_back(newData);
                     }
@@ -347,10 +347,11 @@ namespace data
 
                 blacklist.push_back(pushID);
             }
+            bl.close();
         }
     }
 
-    void blacklistAdd(titledata& t)
+    void blacklistAdd(user& u, titledata& t)
     {
         std::fstream bl(fs::getWorkDir() + "blacklist.txt", std::ios::app);
 
@@ -371,5 +372,8 @@ namespace data
                     users[i].titles.erase(users[i].titles.begin() + j);
             }
         }
+
+        int uInd = getUserIndex(u.getUID());
+        u = users[uInd];
     }
 }

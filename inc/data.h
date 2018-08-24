@@ -10,7 +10,7 @@
 
 namespace data
 {
-    extern bool sysSave;
+    extern bool sysSave, forceMount;
 
     //Loads user + title info
     void loadDataInfo();
@@ -97,7 +97,7 @@ namespace data
             std::string username, userSafe;
     };
     //Adds title to blacklist
-    void blacklistAdd(titledata& t);
+    void blacklistAdd(user& u, titledata& t);
 
     //User vector
     extern std::vector<user> users;

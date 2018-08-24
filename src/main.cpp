@@ -61,7 +61,7 @@ int main(int argc, const char *argv[])
                 //Just to be sure
                 fsdevUnmountDevice("sv");
 
-                data::sysSave = true;
+                data::sysSave = true, data::forceMount = false;
                 data::loadDataInfo();
 
                 //Kick back to user
