@@ -11,10 +11,11 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 08/23/2018"
+#define TITLE_TEXT "JKSV - 08/26/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
-static tex *background = NULL;
+//txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
+static tex *background = NULL, *txtSide = NULL, *fldSide = NULL;
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -119,7 +120,17 @@ namespace ui
         selBox = texLoadPNGFile("romfs:/img/icn/icnSelBox.png");
 
         if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
+        {
             background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
+            //Fake alpha Rects
+            fldSide = texCreateFromPart(background, 16, 66, 320, 592);
+            clr tempRect = sideRect;
+            tempRect.a = 0xAA;
+            drawRectAlpha(fldSide, 0, 0, 320, 592, tempRect);
+
+            txtSide = texCreateFromPart(background, 16, 66, 448, 592);
+            drawRectAlpha(txtSide, 0, 0, 448, 592, tempRect);
+        }
 
         advCopyMenuPrep();
     }
@@ -141,6 +152,10 @@ namespace ui
 
         if(background != NULL)
             texDestroy(background);
+        if(fldSide != NULL)
+            texDestroy(fldSide);
+        if(txtSide != NULL)
+            texDestroy(txtSide);
 
         fontDestroy(shared);
     }
@@ -209,7 +224,10 @@ namespace ui
                 drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
                 drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
 
-                drawRect(frameBuffer, 16, 66, 320, 592, sideRect);
+                if(fldSide == NULL)
+                    drawRect(frameBuffer, 16, 66, 320, 592, sideRect);
+                else
+                    texDraw(fldSide, frameBuffer, 16, 66);
 
                 drawRect(frameBuffer, 16, 656, 1248, 1, rectLt);
                 drawRect(frameBuffer, 16, 657, 1248, 2, rectSh);
@@ -241,7 +259,10 @@ namespace ui
                 drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
                 drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
 
-                drawRect(frameBuffer, 16, 67, 448, 589, sideRect);
+                if(txtSide == NULL)
+                    drawRect(frameBuffer, 16, 67, 448, 592, sideRect);
+                else
+                    texDraw(txtSide, frameBuffer, 16, 66);
 
                 drawRect(frameBuffer, 16, 656, 1248, 1, rectLt);
                 drawRect(frameBuffer, 16, 657, 1248, 2, rectSh);

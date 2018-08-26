@@ -91,6 +91,9 @@ size_t textGetWidth(const char *str, const font *f, int sz);
 //Draws rectangle at x, y with w, h
 void drawRect(tex *target, int x, int y, int w, int h, const clr c);
 
+//Draws rect with alpha.
+void drawRectAlpha(tex *target, int x, int y, int w, int h, const clr c);
+
 /*
 TEX BEGIN
 */
@@ -132,6 +135,9 @@ void texSwapColors(tex *t, const clr old, const clr newColor);
 
 //Scales tex * scale and writes to out. Can only multiply for now
 void texScaleToTex(const tex *in, tex *out, int scale);
+
+//Creates and copies data from another image returns tex
+tex *texCreateFromPart(const tex *src, int x, int y, int w, int h);
 /*
 TEX END
 */

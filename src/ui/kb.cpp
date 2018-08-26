@@ -62,8 +62,8 @@ namespace ui
         //Space bar needs to be trimmed back so we don't try to draw off buffer
         key space(" ", ' ', 240, 640, 800, 72);
         key bckSpc("Back", ' ', 1120, 256, 128, 80);
-        key enter("Entr", ' ', 1120, 352, 128, 80);
-        key cancel("Cancl", ' ', 1120, 448, 128, 80);
+        key enter("Enter", ' ', 1120, 352, 128, 80);
+        key cancel("Cancel", ' ', 1120, 448, 128, 80);
 
         keys.push_back(space);
         keys.push_back(shift);
@@ -92,8 +92,7 @@ namespace ui
                 clrAdd = true;
         }
 
-        drawRect(frameBuffer, 0, 176, 1280, 64, clrCreateU32(0xFFFFFFFF));
-        drawRect(frameBuffer, 0, 240, 1280, 480, clrCreateU32(0xFF2D2D2D));
+        texDraw(backTemp, frameBuffer, 0, 0);
 
         clr rectClr = clrCreateRGBA(0x00, 0x60 + clrSh, 0xBB + clrSh, 0xFF);
 
@@ -103,12 +102,24 @@ namespace ui
         for(unsigned i = 0; i < keys.size(); i++)
             keys[i].draw();
 
-        drawText(str.c_str(), frameBuffer, ui::shared, 16, 192, 32, clrCreateU32(0xFF000000));
+        drawText(str.c_str(), frameBuffer, ui::shared, 16, 104, 32, ui::mnuTxt);
     }
 
     std::string keyboard::getString(const std::string& def)
     {
         str = def;
+
+        //Trick to not kill framerate
+        backTemp = texCreate(1280, 720);
+        memcpy(backTemp->data, frameBuffer->data, 1280 * 720 * sizeof(uint32_t));
+        //draw alpha rect over top
+        clr topRect = ui::rectSh;
+        clr botRect = ui::clearClr;
+        topRect.a = 0xDD;
+        botRect.a = 0xDD;
+        drawRectAlpha(backTemp, 0, 0, 1280, 240, topRect);
+        drawRectAlpha(backTemp, 0, 240, 1280, 480, botRect);
+
         while(true)
         {
             hidScanInput();
@@ -196,6 +207,8 @@ namespace ui
 
             gfxHandleBuffs();
         }
+
+        texDestroy(backTemp);
 
         return str;
     }

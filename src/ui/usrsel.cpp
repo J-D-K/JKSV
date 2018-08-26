@@ -88,8 +88,7 @@ namespace ui
                     drawTextbox(userRectX, y - 50, userRectWidth, 38);
                     drawText(username.c_str(), frameBuffer, ui::shared, userRectX + 16, y - 38, 16, txtClr);
                 }
-
-                texDrawSkipNoAlpha(data::users[i].userIcon, frameBuffer, tX, y);
+                data::users[i].drawIconHalf(tX, y);
             }
         }
 

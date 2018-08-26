@@ -55,6 +55,7 @@ namespace ui
             int selKey = 0;
             uint8_t clrSh = 0;
             bool clrAdd = true;
+            tex *backTemp = NULL;
     };
 }
 

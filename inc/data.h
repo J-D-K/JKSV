@@ -90,11 +90,15 @@ namespace data
             //Vector for storing save data info for user
             std::vector<titledata> titles;
 
-            tex *userIcon;
+            void drawIcon(int x, int y){ texDrawNoAlpha(userIcon, frameBuffer, x, y); }
+            void drawIconHalf(int x, int y){ texDrawSkipNoAlpha(userIcon, frameBuffer, x, y); }
+            void delIcon(){ texDestroy(userIcon); }
 
         private:
             u128 userID;
             std::string username, userSafe;
+            //User icon
+            tex *userIcon;
     };
     //Adds title to blacklist
     void blacklistAdd(user& u, titledata& t);

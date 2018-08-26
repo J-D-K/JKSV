@@ -137,7 +137,7 @@ namespace data
     void exit()
     {
         for(unsigned i = 0; i < users.size(); i++)
-            texDestroy(users[i].userIcon);
+            users[i].delIcon();
 
         for(unsigned i = 0; i < icons.size(); i++)
             icons[i].deleteData();

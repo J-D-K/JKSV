@@ -254,6 +254,16 @@ void drawRect(tex *target, int x, int y, int w,  int h, const clr c)
     }
 }
 
+void drawRectAlpha(tex *target, int x, int y, int w, int h, const clr c)
+{
+    for(int tY = y; tY < y + h; tY++)
+    {
+        uint32_t *rowPtr = &target->data[tY * target->width + x];
+        for(int tX = x; tX < x + w; tX++, rowPtr++)
+            *rowPtr = blend(c, clrCreateU32(*rowPtr));
+    }
+}
+
 tex *texCreate(int w, int h)
 {
     tex *ret = malloc(sizeof(tex));
@@ -544,6 +554,21 @@ void texSwapColors(tex *t, const clr old, const clr newColor)
             *dataPtr = newClr;
     }
 
+}
+
+tex *texCreateFromPart(const tex *src, int x, int y, int w, int h)
+{
+    tex *ret = texCreate(w, h);
+
+    uint32_t *retPtr = &ret->data[0];
+    for(int tY = y; tY < y + h; tY++)
+    {
+        uint32_t *srcPtr = &src->data[tY * src->width + x];
+        for(int tX = x; tX < x + w; tX++)
+            *retPtr++ = *srcPtr++;
+    }
+
+    return ret;
 }
 
 void texScaleToTex(const tex *in, tex *out, int scale)
