@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define TITLE_TEXT "JKSV - 08/26/2018"
+static std::string TITLE_TEXT = "JKSV - 08/27/2018";
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
@@ -26,7 +26,7 @@ namespace ui
     bool clsMode = false;
 
     //Current menu state
-    int mstate = USR_SEL;
+    int mstate = USR_SEL, prevState = USR_SEL;
 
     //Info printed on folder menu
     std::string folderMenuInfo;
@@ -216,7 +216,7 @@ namespace ui
         else
             texDrawNoAlpha(background, frameBuffer, 0, 0);
 
-        drawText(TITLE_TEXT, frameBuffer, shared, 16, 16, 32, mnuTxt);
+        drawText(TITLE_TEXT.c_str(), frameBuffer, shared, 16, 16, 32, mnuTxt);
 
         switch(mstate)
         {
@@ -256,6 +256,7 @@ namespace ui
             case CLS_TTL:
             case CLS_USR:
             case CLS_FLD:
+            case DEV_MNU:
                 drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
                 drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
 
@@ -353,6 +354,10 @@ namespace ui
 
             case CLS_FLD:
                 classicFolderMenuUpdate(down, held, p);
+                break;
+
+            case DEV_MNU:
+                updateDevMenu(down, held, p);
                 break;
         }
     }

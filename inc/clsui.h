@@ -12,6 +12,9 @@ namespace ui
     void classicTitleMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p);
     //I don't think this matched very well
     void classicFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p);
+
+    void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
+    void devMenuPrep();
 }
 
 #endif // CLSUI_H

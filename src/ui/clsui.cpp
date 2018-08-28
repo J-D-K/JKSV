@@ -8,7 +8,7 @@
 #include "file.h"
 #include "util.h"
 
-static ui::menu userMenu, titleMenu;
+static ui::menu userMenu, titleMenu, devMenu;
 extern ui::menu folderMenu;
 extern std::vector<ui::button> usrNav, ttlNav, fldNav;
 
@@ -218,5 +218,68 @@ namespace ui
             fsdevUnmountDevice("sv");
             mstate = CLS_TTL;
         }
+    }
+
+    void devMenuPrep()
+    {
+        devMenu.reset();
+        devMenu.setParams(28, 88, 424);
+        devMenu.addOpt("Bis: PRODINFOF");
+        devMenu.addOpt("Bis: SAFE");
+        devMenu.addOpt("Bis: SYSTEM");
+        devMenu.addOpt("Bis: USER");
+    }
+
+    void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    {
+        devMenu.handleInput(down, held, p);
+
+        if(down & KEY_A)
+        {
+            FsFileSystem sv;
+            data::curData.setType(FsSaveDataType_SystemSaveData);
+            switch(devMenu.getSelected())
+            {
+                case 0:
+                    fsdevUnmountDevice("sv");
+                    fsOpenBisFileSystem(&sv, 28, "");
+                    fsdevMountDevice("sv", sv);
+                    break;
+
+                case 1:
+                    fsdevUnmountDevice("sv");
+                    fsOpenBisFileSystem(&sv, 29, "");
+                    fsdevMountDevice("sv", sv);
+                    break;
+
+                case 2:
+                    fsdevUnmountDevice("sv");
+                    fsOpenBisFileSystem(&sv, 31, "");
+                    fsdevMountDevice("sv", sv);
+                    break;
+
+                case 3:
+                    fsdevUnmountDevice("sv");
+                    fsOpenBisFileSystem(&sv, 30, "");
+                    fsdevMountDevice("sv", sv);
+                    break;
+            }
+
+            advModePrep();
+            mstate = ADV_MDE;
+            prevState = DEV_MNU;
+        }
+        else if(down & KEY_B)
+        {
+            fsdevUnmountDevice("sv");
+            if(ui::clsMode)
+                mstate = CLS_USR;
+            else
+                mstate = USR_SEL;
+
+            prevState = USR_SEL;
+        }
+
+        devMenu.draw(mnuTxt);
     }
 }

@@ -458,7 +458,9 @@ namespace ui
         }
         else if(down & KEY_MINUS)
         {
-            if(ui::clsMode)
+            if(prevState == DEV_MNU)
+                mstate = DEV_MNU;
+            else if(ui::clsMode)
                 mstate = CLS_FLD;
             else
                 mstate = FLD_SEL;

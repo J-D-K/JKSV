@@ -22,7 +22,8 @@ enum menuState
     ADV_MDE,
     CLS_USR,
     CLS_TTL,
-    CLS_FLD
+    CLS_FLD,
+    DEV_MNU
 };
 
 
@@ -32,7 +33,7 @@ namespace ui
     extern bool clsMode;
 
     //Current menu/ui state
-    extern int mstate;
+    extern int mstate, prevState;
 
     //Both UI modes need access to this
     extern std::string folderMenuInfo;
