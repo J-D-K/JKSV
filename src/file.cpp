@@ -115,6 +115,13 @@ namespace fs
         std::fstream f(from, std::ios::in | std::ios::binary);
         std::fstream t(to, std::ios::out | std::ios::binary);
 
+        if(!f.is_open() || !t.is_open())
+        {
+            f.close();
+            t.close();
+            return;
+        }
+
         f.seekg(0, f.end);
         size_t fileSize = f.tellg();
         f.seekg(0, f.beg);
@@ -146,6 +153,13 @@ namespace fs
     {
         std::fstream f(from, std::ios::in | std::ios::binary);
         std::fstream t(to, std::ios::out | std::ios::binary);
+
+        if(!f.is_open() || !t.is_open())
+        {
+            f.close();
+            t.close();
+            return;
+        }
 
         f.seekg(0, f.end);
         size_t fileSize = f.tellg();

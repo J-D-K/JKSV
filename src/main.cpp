@@ -65,7 +65,7 @@ int main(int argc, const char *argv[])
                 data::loadDataInfo();
 
                 //Kick back to user
-                ui::mstate = USR_SEL;
+                ui::mstate = ui::clsMode ? CLS_USR : USR_SEL;
             }
         }
         else if((held & KEY_ZL) && (held & KEY_ZR) && (held & KEY_Y) && ui::confirm("You are using this mode at your own risk."))

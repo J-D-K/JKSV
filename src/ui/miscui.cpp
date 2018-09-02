@@ -8,16 +8,17 @@
 
 namespace ui
 {
-    progBar::progBar(const unsigned& _max)
+    progBar::progBar(const uint64_t& _max)
     {
-        max = (float)_max;
+        max = _max;
     }
 
-    void progBar::update(const unsigned& _prog)
+    void progBar::update(const uint64_t& _prog)
     {
-        prog = (float)_prog;
+        prog = _prog;
 
-        float percent = (float)(prog / max) * 100;
+        float divProg = prog / max;
+        float percent = (float)(divProg * 100);
         width = (float)(percent * 1088) / 100;
     }
 
@@ -28,7 +29,7 @@ namespace ui
         drawRect(frameBuffer, 96, 400, (unsigned)width, 64, clrCreateU32(0xFF00CC00));
 
         char tmp[128];
-        sprintf(tmp, "%u KB/%u KB", (unsigned)prog / 1024, (unsigned)max / 1024);
+        sprintf(tmp, "%lu KB/%lu KB", prog / 1024, max / 1024);
         int szX = 640 - (textGetWidth(tmp, shared, 24) / 2);
 
         drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 256, 18, txtClr, 752);

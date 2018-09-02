@@ -1,17 +1,16 @@
 # JKSV
 
-WIP save manager for Switch. Started to get familiar with libnx and test my basic, _mostly_ self written graphics drawing file. **This is still a WIP. Nothing is final yet!**
+WIP tool/whatever I want for Switch.
 
-**A custom 1280x720 background can be used by placing a JPEG named 'back.jpg' in the JKSV folder ex: "_sdmc:/JKSV/back.jpg_"**
+## Info
+JKSV started as a small project to test some things and get familiar with libnx. A list of what it currently can do:
+1. Dump and restore save data
+2. Dump system save data (Pressing all four shoulder buttons will activate this)
+3. Open and explore bis storage partitions via the dev menu and Adv Mode (Press L + R + Y to activate)
+    * ^This requires you to build JKSV yourself for the time being. I'm not ready to update the release yet.
+4. JKSV also has a basic built in filebrowser that allows you to copy data to and from any location on your SD card to your saves. This is available in the folder selection screen.
 
-**A custom font can be loaded by placing a TTF file in the folder named 'font.ttf' ex: "_sdmc:/JKSV/font.ttf_"**
-
-More customization in the future, maybe.
-
-<img src="https://dl.dropboxusercontent.com/s/wk5igkkdt89ytob/JKSV.jpg" alt="JKSV" width="240"></img>
-<img src="https://dl.dropboxusercontent.com/s/xaqycf724p8ut2n/JKSV_3.jpg" alt="JKSV" width="240"></img>
-<img src="https://dl.dropboxusercontent.com/s/e5qvbiz88hsrtbc/JKSV_2.jpg" alt="JKSV" width="240"></img>
-
+I have a few things I would like to add that never made it to 3DS, but I don't like making promises I might not be able to keep.
 
 # Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)

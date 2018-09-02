@@ -25,16 +25,17 @@ namespace ui
     {
         public:
             //Constructor. _max is the maximum value
-            progBar(const unsigned& _max);
+            progBar(const uint64_t& _max);
 
             //Updates progress
-            void update(const unsigned& _prog);
+            void update(const uint64_t& _prog);
 
             //Draws with text at top
             void draw(const std::string& text);
 
         private:
-            float max, prog, width;
+            uint64_t max, prog;
+            float width;
     };
 
     class button
