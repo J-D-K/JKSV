@@ -17,9 +17,7 @@ namespace ui
     {
         prog = _prog;
 
-        float divProg = prog / max;
-        float percent = (float)(divProg * 100);
-        width = (float)(percent * 1088) / 100;
+        width = (float)(((float)prog / (float)max) * 1088);
     }
 
     void progBar::draw(const std::string& text)

@@ -116,6 +116,7 @@ namespace ui
                 {
                     util::makeTitleDir(data::curUser, data::curData);
                     folderMenuPrepare(data::curUser, data::curData);
+                    folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
                     mstate = FLD_SEL;
                 }

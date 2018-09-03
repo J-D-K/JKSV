@@ -61,7 +61,9 @@ int main(int argc, const char *argv[])
                 //Just to be sure
                 fsdevUnmountDevice("sv");
 
-                data::sysSave = true, data::forceMount = false;
+                data::sysSave = true;
+                if(ui::confirm("Do you want to disable isMountable Checks?"))
+                    data::forceMount = false;
                 data::loadDataInfo();
 
                 //Kick back to user

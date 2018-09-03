@@ -229,7 +229,7 @@ namespace ui
         devMenu.addOpt("Bis: SAFE");
         devMenu.addOpt("Bis: SYSTEM");
         devMenu.addOpt("Bis: USER");
-        devMenu.addOpt("NAND Backup");
+        devMenu.addOpt("NAND Backup (exFat only)");
     }
 
     void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -246,75 +246,89 @@ namespace ui
                     fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, 28, "");
                     fsdevMountDevice("sv", sv);
+
+                    advModePrep();
+                    mstate = ADV_MDE;
+                    prevState = DEV_MNU;
                     break;
 
                 case 1:
                     fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, 29, "");
                     fsdevMountDevice("sv", sv);
+
+                    advModePrep();
+                    mstate = ADV_MDE;
+                    prevState = DEV_MNU;
                     break;
 
                 case 2:
                     fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, 31, "");
                     fsdevMountDevice("sv", sv);
+
+                    advModePrep();
+                    mstate = ADV_MDE;
+                    prevState = DEV_MNU;
                     break;
 
                 case 3:
                     fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, 30, "");
                     fsdevMountDevice("sv", sv);
+
+                    advModePrep();
+                    mstate = ADV_MDE;
+                    prevState = DEV_MNU;
                     break;
 
                 case 4:
-                    fsdevUnmountDevice("sv");
-
-                    FsStorage nand;
-                    fsOpenBisStorage(&nand, 20);
-                    uint64_t nandSize = 0, offset = 0;
-                    fsStorageGetSize(&nand, &nandSize);
-
-                    std::fstream nandOut("sdmc:/nand.bin", std::ios::out | std::ios::binary);
-
-                    size_t nandBuffSize = 1024 * 1024 * 6;
-                    uint8_t *nandBuff = new uint8_t[nandBuffSize];
-
-                    progBar nandProg(nandSize);
-
-                    while(offset < nandSize)
                     {
-                        size_t readLen = 0;
-                        if(offset + nandBuffSize < nandSize)
-                            readLen = nandBuffSize;
-                        else
-                            readLen = nandSize - offset;
+                        fsdevUnmountDevice("sv");
 
-                        if(R_SUCCEEDED(fsStorageRead(&nand, offset, nandBuff, readLen)))
+                        FsStorage nand;
+                        fsOpenBisStorage(&nand, 20);
+                        uint64_t nandSize = 0, offset = 0;
+                        fsStorageGetSize(&nand, &nandSize);
+
+                        std::fstream nandOut("sdmc:/JKSV/nand.bin", std::ios::out | std::ios::binary);
+
+                        size_t nandBuffSize = 1024 * 1024 * 4;
+                        uint8_t *nandBuff = new uint8_t[nandBuffSize];
+
+                        progBar nandProg(nandSize);
+
+                        while(offset < nandSize)
                         {
-                            fsStorageFlush(&nand);
-                            nandOut.write((char *)nandBuff, readLen);
-                            offset += readLen;
-                        }
-                        else
-                        {
-                            ui::showMessage("Something went wrong while dumping your NAND.");
-                            break;
+                            size_t readLen = 0;
+                            if(offset + nandBuffSize < nandSize)
+                                readLen = nandBuffSize;
+                            else
+                                readLen = nandSize - offset;
+
+                            if(R_SUCCEEDED(fsStorageRead(&nand, offset, nandBuff, readLen)))
+                            {
+                                fsStorageFlush(&nand);
+                                nandOut.write((char *)nandBuff, readLen);
+                                offset += readLen;
+                            }
+                            else
+                            {
+                                ui::showMessage("Something went wrong while dumping your NAND.");
+                                break;
+                            }
+
+                            nandProg.update(offset);
+                            nandProg.draw("Backing up NAND...");
+                            gfxHandleBuffs();
                         }
 
-                        nandProg.update(offset);
-                        nandProg.draw("Backing up NAND...");
-                        gfxHandleBuffs();
+                        delete[] nandBuff;
+                        nandOut.close();
+                        fsStorageClose(&nand);
                     }
-
-                    delete[] nandBuff;
-                    nandOut.close();
-                    fsStorageClose(&nand);
                     break;
             }
-
-            advModePrep();
-            mstate = ADV_MDE;
-            prevState = DEV_MNU;
         }
         else if(down & KEY_B)
         {
