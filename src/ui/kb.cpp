@@ -126,7 +126,11 @@ namespace ui
 
             uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
             if(down & KEY_R)
-                str += util::getDateTime();
+                str += util::getDateTime(util::DATE_FMT_YMD);
+            else if(down & KEY_L)
+                str += util::getDateTime(util::DATE_FMT_YDM);
+            else if(down & KEY_ZL)
+                str += util::getDateTime(util::DATE_FMT_HOYSTE);
 
             touchPosition p;
             hidTouchRead(&p, 0);

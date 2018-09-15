@@ -7,8 +7,15 @@
 
 namespace util
 {
+    enum
+    {
+        DATE_FMT_YMD,
+        DATE_FMT_YDM,
+        DATE_FMT_HOYSTE
+    };
+
     //Returns string with date + time
-    std::string getDateTime();
+    std::string getDateTime(int fmt);
 
     //Creates Dir 'JKSV/[title]
     void makeTitleDir(data::user& u, data::titledata& t);

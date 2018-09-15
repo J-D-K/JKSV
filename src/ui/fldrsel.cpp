@@ -48,8 +48,12 @@ namespace ui
             {
                 std::string folder;
                 //Add back 3DS shortcut thing
-                if(held & KEY_R || held & KEY_L)
-                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime();
+                if(held & KEY_R)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                else if(held & KEY_L)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
+                else if(held & KEY_ZL)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
                 else
                 {
                     ui::keyboard key;

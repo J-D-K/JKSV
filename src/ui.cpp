@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-static std::string TITLE_TEXT = "JKSV - 09/03/2018";
+static std::string TITLE_TEXT = "JKSV - 09/15/2018";
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
@@ -35,7 +35,7 @@ namespace ui
     std::vector<ui::button> selButtons;
 
     //UI colors
-    clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
+    clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect, divClr;
 
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
@@ -75,6 +75,7 @@ namespace ui
                 rectSh = clrCreateU32(0xFFCACACA);
                 tboxClr = clrCreateU32(0xFF505050);
                 sideRect = clrCreateU32(0xFFDCDCDC);
+                divClr = clrCreateU32(0xFF000000);
                 break;
 
             default:
@@ -99,6 +100,7 @@ namespace ui
                 rectSh = clrCreateU32(0xFF202020);
                 tboxClr = clrCreateU32(0xFFEBEBEB);
                 sideRect = clrCreateU32(0xFF373737);
+                divClr = clrCreateU32(0xFFFFFFFF);
                 break;
         }
 
@@ -216,57 +218,48 @@ namespace ui
         else
             texDrawNoAlpha(background, frameBuffer, 0, 0);
 
-        drawText(TITLE_TEXT.c_str(), frameBuffer, shared, 16, 16, 32, mnuTxt);
+        drawText(TITLE_TEXT.c_str(), frameBuffer, shared, 32, 20, 24, mnuTxt);
 
         switch(mstate)
         {
             case FLD_SEL:
-                drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
 
                 if(fldSide == NULL)
                     drawRect(frameBuffer, 16, 66, 320, 592, sideRect);
                 else
                     texDraw(fldSide, frameBuffer, 16, 66);
 
-                drawRect(frameBuffer, 16, 656, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 657, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
                 break;
 
             case USR_SEL:
             case TTL_SEL:
-                drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
 
-                drawRect(frameBuffer, 16, 656, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 657, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
                 break;
 
             case ADV_MDE:
-                drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
 
-                drawRect(frameBuffer, 640, 64, 1, 592, rectLt);
-                drawRect(frameBuffer, 641, 64, 2, 592, rectSh);
+                drawRect(frameBuffer, 640, 64, 1, 592, divClr);
 
-                drawRect(frameBuffer, 16, 656, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 657, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
                 break;
 
             case CLS_TTL:
             case CLS_USR:
             case CLS_FLD:
             case DEV_MNU:
-                drawRect(frameBuffer, 16, 64, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 65, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
 
                 if(txtSide == NULL)
-                    drawRect(frameBuffer, 16, 67, 448, 592, sideRect);
+                    drawRect(frameBuffer, 16, 65, 448, 592, sideRect);
                 else
                     texDraw(txtSide, frameBuffer, 16, 66);
 
-                drawRect(frameBuffer, 16, 656, 1248, 1, rectLt);
-                drawRect(frameBuffer, 16, 657, 1248, 2, rectSh);
+                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
                 break;
         }
 

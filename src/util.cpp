@@ -9,19 +9,32 @@
 #include "file.h"
 #include "ui.h"
 
-static const char verboten[] = { '.', ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
+static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
 
 namespace util
 {
-    std::string getDateTime()
+    std::string getDateTime(int fmt)
     {
-        char ret[48];
+        char ret[64];
 
         time_t raw;
         time(&raw);
         tm *Time = localtime(&raw);
 
-        sprintf(ret, "%04d-%02d-%02d@%02d-%02d-%02d", Time->tm_year + 1900, Time->tm_mon + 1, Time->tm_mday, Time->tm_hour, Time->tm_min, Time->tm_sec);
+        switch(fmt)
+        {
+            case DATE_FMT_YMD:
+                sprintf(ret, "%04d.%02d.%02d @ %02d.%02d.%02d", Time->tm_year + 1900, Time->tm_mon + 1, Time->tm_mday, Time->tm_hour, Time->tm_min, Time->tm_sec);
+                break;
+
+            case DATE_FMT_YDM:
+                sprintf(ret, "%04d.%02d.%02d @ %02d.%02d.%02d", Time->tm_year + 1900, Time->tm_mday, Time->tm_mon + 1, Time->tm_hour, Time->tm_min, Time->tm_sec);
+                break;
+
+            case DATE_FMT_HOYSTE:
+                sprintf(ret, "%02d.%02d.%04d", Time->tm_mday, Time->tm_mon + 1, Time->tm_year + 1900);
+                break;
+        }
 
         return std::string(ret);
     }
@@ -61,7 +74,7 @@ namespace util
 
     bool isVerboten(uint32_t t)
     {
-        for(unsigned i = 0; i < 11; i++)
+        for(unsigned i = 0; i < 10; i++)
         {
             if(t == verboten[i])
                 return true;

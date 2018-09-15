@@ -129,8 +129,12 @@ namespace ui
             {
                 std::string folder;
                 //Add back 3DS shortcut thing
-                if(held & KEY_R || held & KEY_L)
-                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime();
+                if(held & KEY_R)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                else if(held & KEY_L)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
+                else if(held & KEY_ZL)
+                    folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
                 else
                 {
                     ui::keyboard key;
@@ -229,7 +233,8 @@ namespace ui
         devMenu.addOpt("Bis: SAFE");
         devMenu.addOpt("Bis: SYSTEM");
         devMenu.addOpt("Bis: USER");
-        devMenu.addOpt("NAND Backup (exFat only)");
+        devMenu.addOpt("NAND Backup (exFat)");
+        devMenu.addOpt("NAND Backup (FAT32)");
     }
 
     void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -308,7 +313,60 @@ namespace ui
 
                             if(R_SUCCEEDED(fsStorageRead(&nand, offset, nandBuff, readLen)))
                             {
-                                fsStorageFlush(&nand);
+                                nandOut.write((char *)nandBuff, readLen);
+                                offset += readLen;
+                            }
+                            else
+                            {
+                                ui::showMessage("Something went wrong while dumping your NAND.");
+                                break;
+                            }
+
+                            nandProg.update(offset);
+                            nandProg.draw("Backing up NAND...");
+                            gfxHandleBuffs();
+                        }
+
+                        delete[] nandBuff;
+                        nandOut.close();
+                        fsStorageClose(&nand);
+                    }
+                    break;
+
+                case 5:
+                    {
+                        unsigned fcount = 1;
+                        fsdevUnmountDevice("sv");
+
+                        FsStorage nand;
+                        fsOpenBisStorage(&nand, 20);
+                        uint64_t nandSize = 0, offset = 0;
+                        fsStorageGetSize(&nand, &nandSize);
+
+                        std::fstream nandOut("sdmc:/JKSV/nand.bin.00", std::ios::out | std::ios::binary);
+
+                        size_t nandBuffSize = 1024 * 1024 * 3;
+                        uint8_t *nandBuff = new uint8_t[nandBuffSize];
+
+                        progBar nandProg(nandSize);
+
+                        while(offset < nandSize)
+                        {
+                            size_t readLen = 0;
+                            if(offset + nandBuffSize < nandSize)
+                                readLen = nandBuffSize;
+                            else
+                                readLen = nandSize - offset;
+
+                            if(R_SUCCEEDED(fsStorageRead(&nand, offset, nandBuff, readLen)))
+                            {
+                                if((size_t)nandOut.tellp() + readLen >= 0x100000000)
+                                {
+                                    nandOut.close();
+                                    char newPath[128];
+                                    sprintf(newPath, "sdmc:/JKSV/nand.bin.%02d", fcount++);
+                                    nandOut.open(newPath, std::ios::out | std::ios::binary);
+                                }
                                 nandOut.write((char *)nandBuff, readLen);
                                 offset += readLen;
                             }

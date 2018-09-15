@@ -274,7 +274,7 @@ namespace fs
                 util::makeTitleDir(u, u.titles[i]);
 
                 //sdmc:/JKSV/[title]/[user] - [date]/
-                std::string outPath = util::getTitleDir(u, u.titles[i]) + u.getUsernameSafe() + " - " + util::getDateTime();
+                std::string outPath = util::getTitleDir(u, u.titles[i]) + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
                 mkdir(outPath.c_str(), 777);
                 outPath += "/";
 
