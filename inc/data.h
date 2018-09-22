@@ -52,9 +52,6 @@ namespace data
             std::string getTitle() { return title;}
             std::string getTitleSafe() { return titleSafe; }
 
-            //Just for testing to make sure only ASCII folders
-            void debugCreate(const uint64_t& _id, const std::string& t);
-
             //for disabling certain things
             void setType(FsSaveDataType _type){ type = _type; }
 

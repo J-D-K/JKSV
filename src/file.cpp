@@ -28,26 +28,21 @@ namespace fs
     bool mountSave(data::user& usr, data::titledata& open)
     {
         FsFileSystem sv;
-        Result res = 0;
 
         if(open.getType() == FsSaveDataType_SaveData)
         {
-            res = fsMount_SaveData(&sv, open.getID(), usr.getUID());
-            if(R_FAILED(res))
-                return false;
+            if(R_FAILED(fsMount_SaveData(&sv, open.getID(), usr.getUID())))
+               return false;
 
-            int r = fsdevMountDevice("sv", sv);
-            if(r == -1)
+            if(fsdevMountDevice("sv", sv) == -1)
                 return false;
         }
         else if(data::sysSave)
         {
-            res = fsMount_SystemSaveData(&sv, open.getID());
-            if(R_FAILED(res))
+            if(R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
                 return false;
 
-            int r = fsdevMountDevice("sv", sv);
-            if(r == -1)
+            if(fsdevMountDevice("sv", sv) == -1)
                 return false;
         }
 
@@ -99,10 +94,7 @@ namespace fs
     {
         std::string fullPath = path + item[index];
         struct stat s;
-        if(stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode))
-            return true;
-
-        return false;
+        return stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
     }
 
     unsigned dirList::getCount()
@@ -187,9 +179,8 @@ namespace fs
         f.close();
         t.close();
 
-        Result res = fsdevCommitDevice(dev.c_str());
-        if(R_FAILED(res))
-            ui::showError("Error committing file to device", res);
+        if(R_FAILED(fsdevCommitDevice(dev.c_str())))
+            ui::showMessage("Error committing file to device!");
     }
 
     void copyDirToDir(const std::string& from, const std::string& to)
@@ -249,7 +240,7 @@ namespace fs
         {
             if(list.isDir(i))
             {
-                std::string newPath = path + list.getItem(i) + "/";s
+                std::string newPath = path + list.getItem(i) + "/";
                 delDir(newPath);
 
                 std::string delPath = path + list.getItem(i);

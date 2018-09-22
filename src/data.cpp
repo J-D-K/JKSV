@@ -46,7 +46,7 @@ static int getUserIndex(const u128& id)
 
 static std::vector<uint64_t> blacklist;
 
-bool blacklisted(const uint64_t& id)
+static bool blacklisted(const uint64_t& id)
 {
     for(unsigned i = 0; i < blacklist.size(); i++)
     {
@@ -67,7 +67,6 @@ namespace data
 
     void loadDataInfo()
     {
-        blacklist.clear();
         loadBlacklist();
 
         icn defIcon;
@@ -79,13 +78,11 @@ namespace data
 
         users.clear();
 
-        Result res = 0;
         FsSaveDataIterator saveIt;
         size_t total = 0;
         FsSaveDataInfo info;
 
-        res = fsOpenSaveDataIterator(&saveIt, FsSaveDataSpaceId_All);
-        if(R_FAILED(res))
+        if(R_FAILED(fsOpenSaveDataIterator(&saveIt, FsSaveDataSpaceId_All)))
         {
             printf("SaveDataIterator Failed\n");
             return;
@@ -93,10 +90,10 @@ namespace data
 
         while(true)
         {
-            res = fsSaveDataIteratorRead(&saveIt, &info, 1, &total);
-            if(R_FAILED(res) || total == 0)
+            if(R_FAILED(fsSaveDataIteratorRead(&saveIt, &info, 1, &total)) || total == 0)
                 break;
 
+            //If save data, not black listed or just ignore
             if((info.SaveDataType == FsSaveDataType_SaveData && !blacklisted(info.titleID)) || sysSave)
             {
                 int u = getUserIndex(info.userID);
@@ -250,21 +247,6 @@ namespace data
         return false;
     }
 
-    //ASCII Testing
-    void titledata::debugCreate(const uint64_t& _id, const std::string& t)
-    {
-        id = _id;
-        title = t;
-
-        titleSafe = util::safeString(t);
-        if(titleSafe.empty())
-        {
-            char tmp[18];
-            sprintf(tmp, "%016lX", id);
-            titleSafe.assign(tmp);
-        }
-    }
-
     bool user::init(const u128& _id)
     {
         Result res = 0;
@@ -333,6 +315,7 @@ namespace data
 
     void loadBlacklist()
     {
+        blacklist.clear();
         if(fs::fileExists(fs::getWorkDir() + "blacklist.txt"))
         {
             std::string line;
