@@ -249,8 +249,7 @@ namespace fs
         {
             if(list.isDir(i))
             {
-                std::string newPath = path + list.getItem(i) + "/";
-                ui::showMessage(newPath);
+                std::string newPath = path + list.getItem(i) + "/";s
                 delDir(newPath);
 
                 std::string delPath = path + list.getItem(i);
