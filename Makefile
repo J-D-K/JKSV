@@ -38,7 +38,7 @@ INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK_
-APP_VERSION :=  09/15/2018
+APP_VERSION :=  09/22/2018
 ROMFS	    :=	romfs
 
 #---------------------------------------------------------------------------------
