@@ -67,16 +67,17 @@ namespace data
 
     void loadDataInfo()
     {
+        //Clear titles + users just in case
+        for(unsigned i = 0; i < users.size(); i++)
+            users[i].titles.clear();
+
+        users.clear();
+
         loadBlacklist();
 
         icn defIcon;
         defIcon.load(0, "romfs:/img/icn/icnDefault.png");
         icons.push_back(defIcon);
-
-        for(unsigned i = 0; i < users.size(); i++)
-            users[i].titles.clear();
-
-        users.clear();
 
         FsSaveDataIterator saveIt;
         size_t total = 0;
@@ -106,19 +107,17 @@ namespace data
 
                         u = getUserIndex(info.userID);
                         titledata newData;
-                        if(newData.init(info) && (newData.isMountable(newUser.getUID()) || !forceMount))
-                        {
+                        newData.init(info);
+                        if(newData.isMountable(newUser.getUID()) || !forceMount)
                             users[u].titles.push_back(newData);
-                        }
                     }
                 }
                 else
                 {
                     titledata newData;
-                    if(newData.init(info) && (newData.isMountable(users[u].getUID()) || !forceMount))
-                    {
+                    newData.init(info);
+                    if(newData.isMountable(users[u].getUID()) || !forceMount)
                         users[u].titles.push_back(newData);
-                    }
                 }
             }
         }
@@ -163,9 +162,8 @@ namespace data
         return -1;
     }
 
-    bool titledata::init(const FsSaveDataInfo& inf)
+    void titledata::init(const FsSaveDataInfo& inf)
     {
-        Result res = 0;
         NsApplicationControlData *dat = new NsApplicationControlData;
         std::memset(dat, 0, sizeof(NsApplicationControlData));
         NacpLanguageEntry *ent = NULL;
@@ -179,28 +177,11 @@ namespace data
         type = (FsSaveDataType)inf.SaveDataType;
         size_t outSz = 0;
 
-        res = nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz);
-        if(R_FAILED(res) || outSz < sizeof(dat->nacp))
-        {
-            if(!sysSave)
-                printf("nsGetAppCtrlData Failed: 0x%08X\n", (unsigned)res);
-            delete dat;
-        }
-
-        if(R_SUCCEEDED(res))
-        {
-            res = nacpGetLanguageEntry(&dat->nacp, &ent);
-            if(R_FAILED(res) || ent == NULL)
-            {
-                printf("nacpGetLanguageEntry Failed\n");
-                delete dat;
-            }
-        }
-
-        if(R_SUCCEEDED(res))
+        if(R_SUCCEEDED(nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
+                && R_SUCCEEDED(nacpGetLanguageEntry(&dat->nacp, &ent)) && ent != NULL)
         {
             title.assign(ent->name);
-            titleSafe = util::safeString(title);
+            titleSafe.assign(util::safeString(title));
             if(titleSafe.empty())
             {
                 char tmp[18];
@@ -208,31 +189,28 @@ namespace data
                 titleSafe.assign(tmp);
             }
 
-            int iconIndex = findIcnIndex(id);
-            if(iconIndex == -1)
+            int icnInd = findIcnIndex(id);
+            if(icnInd == -1)
             {
-                uint32_t icnSize = outSz - sizeof(dat->nacp);
-                icn newIcon;
-                newIcon.load(id, dat->icon, icnSize);
-                icons.push_back(newIcon);
+                size_t icnSize = outSz - sizeof(dat->nacp);
+                icn newIcn;
+                newIcn.load(id, dat->icon, icnSize);
+                icons.push_back(newIcn);
 
                 icon = icons[findIcnIndex(id)];
             }
             else
-                icon = icons[iconIndex];
-
-            delete dat;
+                icon = icons[icnInd];
         }
         else
         {
-            char tmp[32];
-            sprintf(tmp, "%016lX", (u64)id);
+            char tmp[18];
+            sprintf(tmp, "%016lX", id);
             title.assign(tmp);
-            titleSafe = util::safeString(tmp);
+            titleSafe.assign(tmp);
             icon = icons[0];
         }
-
-        return true;
+        delete dat;
     }
 
     bool titledata::isMountable(const u128& uID)
@@ -249,18 +227,15 @@ namespace data
 
     bool user::init(const u128& _id)
     {
-        Result res = 0;
         userID = _id;
 
         AccountProfile prof;
         AccountProfileBase base;
 
-        res = accountGetProfile(&prof, userID);
-        if(R_FAILED(res))
+        if(R_FAILED(accountGetProfile(&prof, userID)))
             return false;
 
-        res = accountProfileGet(&prof, NULL, &base);
-        if(R_FAILED(res))
+        if(R_FAILED(accountProfileGet(&prof, NULL, &base)))
             return false;
 
         username.assign(base.username);
@@ -284,19 +259,12 @@ namespace data
 
     bool user::initNoChk(const u128& _id)
     {
-        Result res = 0;
         userID = _id;
 
         AccountProfile prof;
         AccountProfileBase base;
 
-        res = accountGetProfile(&prof, userID);
-        if(R_SUCCEEDED(res))
-        {
-            res = accountProfileGet(&prof, NULL, &base);
-        }
-
-        if(R_SUCCEEDED(res))
+        if(R_SUCCEEDED(accountGetProfile(&prof, userID)) && R_SUCCEEDED(accountProfileGet(&prof, NULL, &base)))
         {
             username.assign(base.username);
             userSafe = util::safeString(username);
@@ -326,9 +294,7 @@ namespace data
                 if(line[0] == '#' || line[0] == '\n')
                     continue;
 
-                uint64_t pushID = std::strtoull(line.c_str(), NULL, 16);
-
-                blacklist.push_back(pushID);
+                blacklist.push_back(std::strtoull(line.c_str(), NULL, 16));
             }
             bl.close();
         }

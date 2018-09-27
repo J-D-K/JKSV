@@ -36,15 +36,12 @@ int main(int argc, const char *argv[])
     graphicsInit(1280, 720);
     data::loadDataInfo();
     ui::init();
-
     //built with 'make debug CFLAGS:=-D__debug__'
 #ifdef __debug__
     socketInitializeDefault();
     nxlinkStdio();
 #endif
-
-    bool run = true;
-    while(appletMainLoop() && run)
+    while(appletMainLoop())
     {
         hidScanInput();
 
@@ -87,8 +84,7 @@ int main(int argc, const char *argv[])
 #ifdef __debug__
     socketExit();
 #endif
-
-    graphicsExit();
     ui::exit();
     data::exit();
+    graphicsExit();
 }
