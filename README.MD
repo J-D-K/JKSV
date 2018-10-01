@@ -19,3 +19,4 @@ I have a few things I would like to add that never made it to 3DS, but I don't l
 # Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8
 * Authors of switch-examples for account and save mounting code.
+* [Iguniisu](https://github.com/igniscitrinus) for the icon.
