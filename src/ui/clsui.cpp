@@ -235,6 +235,7 @@ namespace ui
         devMenu.addOpt("Bis: USER");
         devMenu.addOpt("NAND Backup (exFat)");
         devMenu.addOpt("NAND Backup (FAT32)");
+        devMenu.addOpt("Remove Downloaded Update");
     }
 
     void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -386,6 +387,29 @@ namespace ui
                         fsStorageClose(&nand);
                     }
                     break;
+
+                case 6:
+                {
+                    fsdevUnmountDevice("sv");
+                    fsOpenBisFileSystem(&sv, 31, "");
+                    fsdevMountDevice("sv", sv);
+                    std::string delPath = "sv:/Contents/placehld/";
+
+                    fs::dirList plcHld(delPath);
+                    for(unsigned i = 0; i <plcHld.getCount(); i++)
+                    {
+                        std::string fullPath = delPath + plcHld.getItem(i);
+                        std::remove(fullPath.c_str());
+                    }
+                    fsdevUnmountDevice("sv");
+
+                    if(ui::confirm("System needs to be restarted for nag to go away. Reboot now?"))
+                    {
+                        bpcInitialize();
+                        bpcRebootSystem();
+                    }
+                }
+                break;
             }
         }
         else if(down & KEY_B)

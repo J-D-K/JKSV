@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-static std::string TITLE_TEXT = "JKSV - 09/22/2018";
+static std::string TITLE_TEXT = "JKSV - 10/14/2018";
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
