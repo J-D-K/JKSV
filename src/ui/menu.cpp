@@ -27,7 +27,7 @@ namespace ui
 
     void menu::addOpt(const std::string& add)
     {
-        if(textGetWidth(add.c_str(), ui::shared, 18) < rW - 16 || rW == 0)
+        if(textGetWidth(add.c_str(), ui::shared, 18) < rW - 32 || rW == 0)
             opt.push_back(add);
         else
         {
@@ -39,7 +39,7 @@ namespace ui
 
                 tmp += add.substr(i, untCnt);
                 i += untCnt;
-                if(textGetWidth(tmp.c_str(), ui::shared, 18) >= rW - 16)
+                if(textGetWidth(tmp.c_str(), ui::shared, 18) >= rW - 32)
                 {
                     opt.push_back(tmp);
                     break;

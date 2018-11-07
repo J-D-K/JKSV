@@ -19,7 +19,7 @@ namespace ui
         static uint8_t clrShft = 0;
         static bool clrAdd = true;
 
-        static unsigned selRectX = 64, selRectY = 74;
+        static unsigned selRectX = 64, selRectY = 92;
 
         static ui::touchTrack track;
 
@@ -42,7 +42,7 @@ namespace ui
         //Update selBox color
         clr clrUpdt = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
-        unsigned x = 70, y = 80;
+        unsigned x = 70, y = 98;
         unsigned endUser = start + 32;
         if(start + 32 > (int)data::users.size())
             endUser = data::users.size();
@@ -50,7 +50,7 @@ namespace ui
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
         texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
 
-        for(unsigned i = start; i < endUser; y += 144)
+        for(unsigned i = start; i < endUser; y += 136)
         {
             unsigned endRow = i + 8;
             for(unsigned tX = x; i < endRow; i++, tX += 144)
@@ -60,20 +60,10 @@ namespace ui
 
                 if((int)i == selected)
                 {
-                    if(selRectX != tX - 6)
+                    if(selRectX != tX - 6 || selRectY != y - 6)
                     {
-                        if(selRectX < tX - 6)
-                            selRectX += 24;
-                        else
-                            selRectX -= 24;
-                    }
-
-                    if(selRectY != y - 6)
-                    {
-                        if(selRectY < y - 6)
-                            selRectY += 24;
-                        else
-                            selRectX -= 24;
+                        selRectX = tX - 6;
+                        selRectY = y - 6;
                     }
 
                     std::string username = data::users[selected].getUsername();
@@ -156,7 +146,7 @@ namespace ui
             //Reset this
             start = 0;
             selected = 0;
-            selRectX = 64, selRectY = 74;
+            selRectX = 64, selRectY = 90;
             mstate = TTL_SEL;
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)

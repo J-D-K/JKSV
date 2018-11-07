@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-static std::string TITLE_TEXT = "JKSV - 10/14/2018";
+#define VER_STRING "v. 11/7/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
@@ -43,7 +43,7 @@ namespace ui
 
     tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
 
-    tex *selBox;
+    tex *selBox, *icn;
 
     font *shared;
 
@@ -67,6 +67,8 @@ namespace ui
                 buttonX = texLoadPNGFile("romfs:/img/button/buttonX_drk.png");
                 buttonY = texLoadPNGFile("romfs:/img/button/buttonY_drk.png");
                 buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_drk.png");
+
+                icn = texLoadPNGFile("romfs:/img/icn/icnDrk.png");
 
                 clearClr = clrCreateU32(0xFFEBEBEB);
                 mnuTxt = clrCreateU32(0xFF000000);
@@ -92,6 +94,7 @@ namespace ui
                 buttonX = texLoadPNGFile("romfs:/img/button/buttonX_lght.png");
                 buttonY = texLoadPNGFile("romfs:/img/button/buttonY_lght.png");
                 buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_lght.png");
+                icn = texLoadPNGFile("romfs:/img/icn/icnLght.png");
 
                 clearClr = clrCreateU32(0xFF2D2D2D);
                 mnuTxt = clrCreateU32(0xFFFFFFFF);
@@ -125,13 +128,13 @@ namespace ui
         {
             background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
             //Fake alpha Rects
-            fldSide = texCreateFromPart(background, 16, 66, 320, 592);
+            fldSide = texCreateFromPart(background, 30, 88, 320, 560);
             clr tempRect = sideRect;
             tempRect.a = 0xAA;
-            drawRectAlpha(fldSide, 0, 0, 320, 592, tempRect);
+            drawRectAlpha(fldSide, 0, 0, 320, 560, tempRect);
 
-            txtSide = texCreateFromPart(background, 16, 66, 448, 592);
-            drawRectAlpha(txtSide, 0, 0, 448, 592, tempRect);
+            txtSide = texCreateFromPart(background, 30, 88, 448, 560);
+            drawRectAlpha(txtSide, 0, 0, 448, 560, tempRect);
         }
 
         advCopyMenuPrep();
@@ -164,7 +167,7 @@ namespace ui
 
     void setupSelButtons()
     {
-        int x = 70, y = 80;
+        int x = 70, y = 98;
         for(int i = 0; i < 32; y += 144)
         {
             int endRow = i + 8;
@@ -218,48 +221,33 @@ namespace ui
         else
             texDrawNoAlpha(background, frameBuffer, 0, 0);
 
-        drawText(TITLE_TEXT.c_str(), frameBuffer, shared, 32, 20, 24, mnuTxt);
+        texDraw(icn, frameBuffer, 66, 27);
+        drawText("JKSV", frameBuffer, shared, 130, 38, 24, mnuTxt);
+        drawText(VER_STRING, frameBuffer, shared, 8, 702, 12, mnuTxt);
+        drawRect(frameBuffer, 30, 87, 1220, 1, divClr);
+        drawRect(frameBuffer, 30, 648, 1220, 1, divClr);
 
         switch(mstate)
         {
             case FLD_SEL:
-                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
-
                 if(fldSide == NULL)
-                    drawRect(frameBuffer, 16, 66, 320, 592, sideRect);
+                    drawRect(frameBuffer, 30, 88, 320, 560, sideRect);
                 else
-                    texDraw(fldSide, frameBuffer, 16, 66);
-
-                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
-                break;
-
-            case USR_SEL:
-            case TTL_SEL:
-                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
-
-                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
+                    texDraw(fldSide, frameBuffer, 30, 88);
                 break;
 
             case ADV_MDE:
-                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
-
-                drawRect(frameBuffer, 640, 64, 1, 592, divClr);
-
-                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
+                drawRect(frameBuffer, 640, 87, 1, 560, divClr);
                 break;
 
             case CLS_TTL:
             case CLS_USR:
             case CLS_FLD:
             case DEV_MNU:
-                drawRect(frameBuffer, 16, 64, 1248, 1, divClr);
-
                 if(txtSide == NULL)
-                    drawRect(frameBuffer, 16, 65, 448, 592, sideRect);
+                    drawRect(frameBuffer, 30, 88, 448, 560, sideRect);
                 else
-                    texDraw(txtSide, frameBuffer, 16, 66);
-
-                drawRect(frameBuffer, 16, 656, 1248, 1, divClr);
+                    texDraw(txtSide, frameBuffer, 30, 88);
                 break;
         }
 
@@ -275,7 +263,10 @@ namespace ui
                     texDraw(buttonY, frameBuffer, startX += 72, 672);
                     drawText("Dump All", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     texDraw(buttonX, frameBuffer, startX += 96, 672);
-                    drawText("Text Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
+                    if(ui::clsMode)
+                        drawText("GUI Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
+                    else
+                        drawText("Text Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
 

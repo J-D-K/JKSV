@@ -320,8 +320,8 @@ namespace ui
 
     void advModePrep()
     {
-        saveMenu.setParams(16, 88, 616);
-        sdMenu.setParams(648, 88, 616);
+        saveMenu.setParams(30, 98, 602);
+        sdMenu.setParams(648, 98, 602);
         copyMenu.setParams(472, 278, 304);
 
         savePath = "sv:/";
@@ -357,8 +357,8 @@ namespace ui
         saveMenu.draw(mnuTxt);
         sdMenu.draw(mnuTxt);
 
-        drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 16, 668, 14, mnuTxt, 600);
-        drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 656, 668, 14, mnuTxt, 600);
+        drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, mnuTxt, 600);
+        drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, mnuTxt, 600);
 
         //OH BOY HERE WE GO
         if(down & KEY_A)

@@ -19,7 +19,7 @@ namespace ui
     {
         userMenu.reset();
 
-        userMenu.setParams(28, 88, 424);
+        userMenu.setParams(42, 98, 424);
 
         for(unsigned i = 0; i < data::users.size(); i++)
             userMenu.addOpt(data::users[i].getUsername());
@@ -28,7 +28,7 @@ namespace ui
     void clsTitlePrep(data::user& u)
     {
         titleMenu.reset();
-        titleMenu.setParams(28, 88, 424);
+        titleMenu.setParams(42, 98, 424);
 
         for(unsigned i = 0; i < u.titles.size(); i++)
             titleMenu.addOpt(u.titles[i].getTitle());
@@ -36,7 +36,7 @@ namespace ui
 
     void clsFolderPrep(data::user& usr, data::titledata& dat)
     {
-        folderMenu.setParams(472, 88, 790);
+        folderMenu.setParams(488, 98, 762);
         folderMenu.reset();
 
         util::makeTitleDir(usr, dat);
@@ -228,7 +228,7 @@ namespace ui
     void devMenuPrep()
     {
         devMenu.reset();
-        devMenu.setParams(28, 88, 424);
+        devMenu.setParams(42, 98, 424);
         devMenu.addOpt("Bis: PRODINFOF");
         devMenu.addOpt("Bis: SAFE");
         devMenu.addOpt("Bis: SYSTEM");
@@ -396,7 +396,7 @@ namespace ui
                     std::string delPath = "sv:/Contents/placehld/";
 
                     fs::dirList plcHld(delPath);
-                    for(unsigned i = 0; i <plcHld.getCount(); i++)
+                    for(unsigned i = 0; i < plcHld.getCount(); i++)
                     {
                         std::string fullPath = delPath + plcHld.getItem(i);
                         std::remove(fullPath.c_str());

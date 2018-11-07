@@ -24,7 +24,7 @@ namespace ui
         static bool clrAdd = true;
 
         //Selected rectangle X and Y.
-        static unsigned selRectX = 64, selRectY = 74;
+        static unsigned selRectX = 64, selRectY = 92;
 
         static ui::touchTrack track;
 
@@ -49,7 +49,7 @@ namespace ui
 
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
 
-        unsigned x = 70, y = 80;
+        unsigned x = 70, y = 98;
 
         unsigned endTitle = start + 32;
         if(start + 32 > (int)data::curUser.titles.size())
@@ -58,7 +58,7 @@ namespace ui
         //draw Rect so it's always behind icons
         texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
 
-        for(unsigned i = start; i < endTitle; y += 144)
+        for(unsigned i = start; i < endTitle; y += 136)
         {
             unsigned endRow = i + 8;
             for(unsigned tX = x; i < endRow; i++, tX += 144)
@@ -68,21 +68,10 @@ namespace ui
 
                 if((int)i == selected)
                 {
-                    //Most Switch icons seem to be 256x256, we're drawing them 128x128
-                    if(selRectX != tX - 6)
+                    if(selRectX != tX - 6 || selRectY != y - 6)
                     {
-                        if(selRectX < tX - 6)
-                            selRectX += 24;
-                        else
-                            selRectX -= 24;
-                    }
-
-                    if(selRectY != y - 6)
-                    {
-                        if(selRectY < y - 6)
-                            selRectY += 24;
-                        else
-                            selRectY -= 24;
+                        selRectX = tX - 6;
+                        selRectY = y - 6;
                     }
 
                     std::string title = data::curUser.titles[selected].getTitle();
@@ -107,10 +96,6 @@ namespace ui
             selButtons[i].update(p);
             if(i == selected - start && selButtons[i].getEvent() == BUTTON_RELEASED)
             {
-                //Correct rectangle if it can't catch up. Buttons use same x, y as icons
-                selRectX = selButtons[i].getX() - 6;
-                selRectY = selButtons[i].getY() - 6;
-
                 data::curData = data::curUser.titles[selected];
                 if(fs::mountSave(data::curUser, data::curData))
                 {
@@ -222,7 +207,7 @@ namespace ui
             start = 0;
             selected = 0;
             selRectX = 64;
-            selRectY = 74;
+            selRectY = 90;
             mstate = USR_SEL;
             return;
         }
