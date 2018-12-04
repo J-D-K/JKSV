@@ -13,8 +13,8 @@ namespace ui
     //I don't think this matched very well
     void classicFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p);
 
-    void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
-    void devMenuPrep();
+    void updateExMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p);
+    void exMenuPrep();
 }
 
 #endif // CLSUI_H

@@ -1,5 +1,7 @@
 #include <fstream>
 #include <cstdio>
+#include <algorithm>
+#include <cstring>
 #include <switch.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -14,6 +16,21 @@
 #define BUFF_SIZE 512 * 1024
 
 static std::string wd;
+
+static struct
+{
+    bool operator()(fs::dirItem& a, fs::dirItem& b)
+    {
+        for(unsigned i = 0; i < a.getItm().length(); i++)
+        {
+            char charA = tolower(a.getItm()[i]);
+            char charB = tolower(b.getItm()[i]);
+            if(charA != charB)
+                return charA < charB;
+        }
+        return false;
+    }
+} sortListAlpha;
 
 namespace fs
 {
@@ -49,15 +66,49 @@ namespace fs
         return true;
     }
 
+    dirItem::dirItem(const std::string& pathTo, const std::string& sItem)
+    {
+        itm = sItem;
+
+        std::string fullPath = pathTo + sItem;
+        struct stat s;
+        if(stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode))
+            dir = true;
+    }
+
+    std::string dirItem::getItm()
+    {
+        return itm;
+    }
+
+    bool dirItem::isDir()
+    {
+        return dir;
+    }
+
     dirList::dirList(const std::string& _path)
     {
         path = _path;
         d = opendir(path.c_str());
 
+        std::vector<dirItem> dirVect, filVect;
+
         while((ent = readdir(d)))
-            item.push_back(ent->d_name);
+        {
+            dirItem add(path, ent->d_name);
+            if(add.isDir())
+                dirVect.push_back(add);
+            else
+                filVect.push_back(add);
+        }
 
         closedir(d);
+
+        std::sort(dirVect.begin(), dirVect.end(), sortListAlpha);
+        std::sort(filVect.begin(), filVect.end(), sortListAlpha);
+
+        item.assign(dirVect.begin(), dirVect.end());
+        item.insert(item.end(), filVect.begin(), filVect.end());
     }
 
     void dirList::reassign(const std::string& _path)
@@ -68,10 +119,24 @@ namespace fs
 
         item.clear();
 
+        std::vector<dirItem> dirVect, filVect;
+
         while((ent = readdir(d)))
-            item.push_back(ent->d_name);
+        {
+            dirItem add(path, ent->d_name);
+            if(add.isDir())
+                dirVect.push_back(add);
+            else
+                filVect.push_back(add);
+        }
 
         closedir(d);
+
+        std::sort(dirVect.begin(), dirVect.end(), sortListAlpha);
+        std::sort(filVect.begin(), filVect.end(), sortListAlpha);
+
+        item.assign(dirVect.begin(), dirVect.end());
+        item.insert(item.end(), filVect.begin(), filVect.end());
     }
 
     void dirList::rescan()
@@ -79,22 +144,34 @@ namespace fs
         item.clear();
         d = opendir(path.c_str());
 
+        std::vector<dirItem> dirVect, filVect;
+
         while((ent = readdir(d)))
-            item.push_back(ent->d_name);
+        {
+            dirItem add(path, ent->d_name);
+            if(add.isDir())
+                dirVect.push_back(add);
+            else
+                filVect.push_back(add);
+        }
 
         closedir(d);
+
+        std::sort(dirVect.begin(), dirVect.end(), sortListAlpha);
+        std::sort(filVect.begin(), filVect.end(), sortListAlpha);
+
+        item.assign(dirVect.begin(), dirVect.end());
+        item.insert(item.end(), filVect.begin(), filVect.end());
     }
 
     std::string dirList::getItem(int index)
     {
-        return item[index];
+        return item[index].getItm();
     }
 
     bool dirList::isDir(int index)
     {
-        std::string fullPath = path + item[index];
-        struct stat s;
-        return stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
+        return item[index].isDir();
     }
 
     unsigned dirList::getCount()

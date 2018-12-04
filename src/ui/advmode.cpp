@@ -103,8 +103,8 @@ void performCopyMenuOps()
                                         fs::copyFileCommit(fromPath, toPath, "sv");
                                 }
                             }
+                            break;
                         }
-                        break;
                 }
             }
             break;
@@ -181,18 +181,21 @@ void performCopyMenuOps()
                 //save
                 case 0:
                     {
-                        if(saveMenu.getSelected() > 1 && data::curData.getType() != FsSaveDataType_SystemSaveData)
+                        if(data::curData.getType() != FsSaveDataType_SystemSaveData)
                         {
-                            int selSave = saveMenu.getSelected() - 2;
-                            ui::keyboard getName;
-                            std::string newName = getName.getString(saveList.getItem(selSave));
-                            if(!newName.empty())
+                            if(saveMenu.getSelected() > 1)
                             {
-                                std::string b4Path = savePath + saveList.getItem(selSave);
-                                std::string newPath = savePath + newName;
+                                int selSave = saveMenu.getSelected() - 2;
+                                ui::keyboard getName;
+                                std::string newName = getName.getString(saveList.getItem(selSave));
+                                if(!newName.empty())
+                                {
+                                    std::string b4Path = savePath + saveList.getItem(selSave);
+                                    std::string newPath = savePath + newName;
 
-                                std::rename(b4Path.c_str(), newPath.c_str());
-                                fsdevCommitDevice("sv");
+                                    std::rename(b4Path.c_str(), newPath.c_str());
+                                    fsdevCommitDevice("sv");
+                                }
                             }
                         }
                     }
@@ -458,8 +461,8 @@ namespace ui
         }
         else if(down & KEY_MINUS)
         {
-            if(prevState == DEV_MNU)
-                mstate = DEV_MNU;
+            if(prevState == EX_MNU)
+                mstate = EX_MNU;
             else if(ui::clsMode)
                 mstate = CLS_FLD;
             else

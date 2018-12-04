@@ -225,7 +225,7 @@ namespace ui
         }
     }
 
-    void devMenuPrep()
+    void exMenuPrep()
     {
         devMenu.reset();
         devMenu.setParams(42, 98, 424);
@@ -238,7 +238,7 @@ namespace ui
         devMenu.addOpt("Remove Downloaded Update");
     }
 
-    void updateDevMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateExMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
         devMenu.handleInput(down, held, p);
 
@@ -255,7 +255,7 @@ namespace ui
 
                     advModePrep();
                     mstate = ADV_MDE;
-                    prevState = DEV_MNU;
+                    prevState = EX_MNU;
                     break;
 
                 case 1:
@@ -265,7 +265,7 @@ namespace ui
 
                     advModePrep();
                     mstate = ADV_MDE;
-                    prevState = DEV_MNU;
+                    prevState = EX_MNU;
                     break;
 
                 case 2:
@@ -275,7 +275,7 @@ namespace ui
 
                     advModePrep();
                     mstate = ADV_MDE;
-                    prevState = DEV_MNU;
+                    prevState = EX_MNU;
                     break;
 
                 case 3:
@@ -285,7 +285,7 @@ namespace ui
 
                     advModePrep();
                     mstate = ADV_MDE;
-                    prevState = DEV_MNU;
+                    prevState = EX_MNU;
                     break;
 
                 case 4:

@@ -23,7 +23,7 @@ enum menuState
     CLS_USR,
     CLS_TTL,
     CLS_FLD,
-    DEV_MNU
+    EX_MNU
 };
 
 

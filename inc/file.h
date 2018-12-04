@@ -38,6 +38,18 @@ namespace fs
     //Retrieves working dir string
     std::string getWorkDir();
 
+    class dirItem
+    {
+        public:
+            dirItem(const std::string& pathTo, const std::string& sItem);
+            std::string getItm();
+            bool isDir();
+
+        private:
+            std::string itm;
+            bool dir = false;
+    };
+
     //Just retrieves a listing for _path and stores it in item vector
     class dirList
     {
@@ -54,7 +66,7 @@ namespace fs
             DIR *d;
             struct dirent *ent;
             std::string path;
-            std::vector<std::string> item;
+            std::vector<dirItem> item;
     };
 }
 

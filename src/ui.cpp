@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 11/7/2018"
+#define VER_STRING "v. 12/03/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
@@ -183,13 +183,15 @@ namespace ui
     void setupNavButtons()
     {
         //User Select
-        int startX = 848;
+        int startX = 878;
         ui::button sel("", startX, 656, 110, 64);
         ui::button dmp("", startX += 110, 656, 134, 64);
         ui::button cls("", startX += 134, 656, 110, 64);
+        ui::button ex("", startX += 110, 656, 110, 64);
         usrNav.push_back(sel);
         usrNav.push_back(dmp);
         usrNav.push_back(cls);
+        usrNav.push_back(ex);
 
         //Title
         startX = 804;
@@ -243,7 +245,7 @@ namespace ui
             case CLS_TTL:
             case CLS_USR:
             case CLS_FLD:
-            case DEV_MNU:
+            case EX_MNU:
                 if(txtSide == NULL)
                     drawRect(frameBuffer, 30, 88, 448, 560, sideRect);
                 else
@@ -257,7 +259,7 @@ namespace ui
             case CLS_USR:
                 {
                     //Input guide
-                    unsigned startX = 848;
+                    unsigned startX = 754;
                     texDraw(buttonA, frameBuffer, startX, 672);
                     drawText("Select", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     texDraw(buttonY, frameBuffer, startX += 72, 672);
@@ -267,6 +269,8 @@ namespace ui
                         drawText("GUI Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     else
                         drawText("Text Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
+                    texDraw(buttonMin, frameBuffer, startX += 110, 672);
+                    drawText("Extras", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                 }
                 break;
 
@@ -340,8 +344,8 @@ namespace ui
                 classicFolderMenuUpdate(down, held, p);
                 break;
 
-            case DEV_MNU:
-                updateDevMenu(down, held, p);
+            case EX_MNU:
+                updateExMenu(down, held, p);
                 break;
         }
     }

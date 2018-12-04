@@ -92,28 +92,23 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+            if(folderMenu.getSelected() > 0)
             {
-                if(folderMenu.getSelected() > 0)
+                std::string scanPath = util::getTitleDir(data::curUser, data::curData);
+                fs::dirList list(scanPath);
+
+                std::string folderName = list.getItem(folderMenu.getSelected() - 1);
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?"))
                 {
-                    std::string scanPath = util::getTitleDir(data::curUser, data::curData);
-                    fs::dirList list(scanPath);
+                    std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+                    std::string root = "sv:/";
 
-                    std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                    if(confirm("Are you sure you want to restore \"" + folderName + "\"?"))
-                    {
-                        std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
-                        std::string root = "sv:/";
+                    fs::delDir(root);
+                    fsdevCommitDevice("sv");
 
-                        fs::delDir(root);
-                        fsdevCommitDevice("sv");
-
-                        fs::copyDirToDirCommit(fromPath, root, "sv");
-                    }
+                    fs::copyDirToDirCommit(fromPath, root, "sv");
                 }
             }
-            else
-                ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.");
         }
         else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
         {

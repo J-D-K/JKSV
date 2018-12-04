@@ -67,13 +67,6 @@ int main(int argc, const char *argv[])
                 ui::mstate = ui::clsMode ? CLS_USR : USR_SEL;
             }
         }
-        else if((held & KEY_ZL) && (held & KEY_ZR) && (held & KEY_MINUS) && ui::confirm("You are using this mode at your own risk."))
-        {
-            fsdevUnmountDevice("sv");
-            data::curData.setType(FsSaveDataType_SystemSaveData);
-            ui::devMenuPrep();
-            ui::mstate = DEV_MNU;
-        }
         else if(down & KEY_PLUS)
             break;
 

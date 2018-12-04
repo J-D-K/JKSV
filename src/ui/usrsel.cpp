@@ -163,5 +163,11 @@ namespace ui
             mstate = CLS_USR;
             clsMode = true;
         }
+        else if(down & KEY_MINUS || usrNav[3].getEvent() == BUTTON_RELEASED)
+        {
+            fsdevUnmountDevice("sv");
+            ui::exMenuPrep();
+            ui::mstate = EX_MNU;
+        }
     }
 }
