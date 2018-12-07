@@ -183,7 +183,7 @@ namespace ui
     void setupNavButtons()
     {
         //User Select
-        int startX = 878;
+        int startX = 754;
         ui::button sel("", startX, 656, 110, 64);
         ui::button dmp("", startX += 110, 656, 134, 64);
         ui::button cls("", startX += 134, 656, 110, 64);

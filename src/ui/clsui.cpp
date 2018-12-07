@@ -1,6 +1,7 @@
 #include <string>
 #include <fstream>
 #include <vector>
+#include <cstdlib>
 #include <switch.h>
 #include <sys/stat.h>
 
@@ -215,7 +216,7 @@ namespace ui
         }
         else if(down & KEY_MINUS)
         {
-            advModePrep();
+            advModePrep("sv:/");
             mstate = ADV_MDE;
         }
         else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
@@ -229,6 +230,7 @@ namespace ui
     {
         devMenu.reset();
         devMenu.setParams(42, 98, 424);
+        devMenu.addOpt("SD to SD Browser");
         devMenu.addOpt("Bis: PRODINFOF");
         devMenu.addOpt("Bis: SAFE");
         devMenu.addOpt("Bis: SYSTEM");
@@ -236,6 +238,8 @@ namespace ui
         devMenu.addOpt("NAND Backup (exFat)");
         devMenu.addOpt("NAND Backup (FAT32)");
         devMenu.addOpt("Remove Downloaded Update");
+        devMenu.addOpt("Terminate Process ID");
+        devMenu.addOpt("Mount System Save ID");
     }
 
     void updateExMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -249,46 +253,54 @@ namespace ui
             switch(devMenu.getSelected())
             {
                 case 0:
+                    data::curData.setType(FsSaveDataType_SaveData);
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 28, "");
-                    fsdevMountDevice("sv", sv);
-
-                    advModePrep();
+                    advModePrep("sdmc:/");
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
 
                 case 1:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 29, "");
-                    fsdevMountDevice("sv", sv);
+                    fsOpenBisFileSystem(&sv, 28, "");
+                    fsdevMountDevice("prodInfo-f", sv);
 
-                    advModePrep();
+                    advModePrep("profInfo-f:/");
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
 
                 case 2:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 31, "");
-                    fsdevMountDevice("sv", sv);
+                    fsOpenBisFileSystem(&sv, 29, "");
+                    fsdevMountDevice("safe", sv);
 
-                    advModePrep();
+                    advModePrep("safe:/");
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
 
                 case 3:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 30, "");
-                    fsdevMountDevice("sv", sv);
+                    fsOpenBisFileSystem(&sv, 31, "");
+                    fsdevMountDevice("sys", sv);
 
-                    advModePrep();
+                    advModePrep("sys:/");
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
 
                 case 4:
+                    fsdevUnmountDevice("sv");
+                    fsOpenBisFileSystem(&sv, 30, "");
+                    fsdevMountDevice("user", sv);
+
+                    advModePrep("user:/");
+                    mstate = ADV_MDE;
+                    prevState = EX_MNU;
+                    break;
+
+                case 5:
                     {
                         fsdevUnmountDevice("sv");
 
@@ -334,7 +346,7 @@ namespace ui
                     }
                     break;
 
-                case 5:
+                case 6:
                     {
                         unsigned fcount = 1;
                         fsdevUnmountDevice("sv");
@@ -388,28 +400,60 @@ namespace ui
                     }
                     break;
 
-                case 6:
-                {
-                    fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 31, "");
-                    fsdevMountDevice("sv", sv);
-                    std::string delPath = "sv:/Contents/placehld/";
-
-                    fs::dirList plcHld(delPath);
-                    for(unsigned i = 0; i < plcHld.getCount(); i++)
+                case 7:
                     {
-                        std::string fullPath = delPath + plcHld.getItem(i);
-                        std::remove(fullPath.c_str());
-                    }
-                    fsdevUnmountDevice("sv");
+                        fsdevUnmountDevice("sv");
+                        fsOpenBisFileSystem(&sv, 31, "");
+                        fsdevMountDevice("sv", sv);
+                        std::string delPath = "sv:/Contents/placehld/";
 
-                    if(ui::confirm("System needs to be restarted for nag to go away. Reboot now?"))
-                    {
-                        bpcInitialize();
-                        bpcRebootSystem();
+                        fs::dirList plcHld(delPath);
+                        for(unsigned i = 0; i < plcHld.getCount(); i++)
+                        {
+                            std::string fullPath = delPath + plcHld.getItem(i);
+                            std::remove(fullPath.c_str());
+                        }
+                        fsdevUnmountDevice("sv");
+
+                        if(ui::confirm("System needs to be restarted for nag to go away. Reboot now?"))
+                        {
+                            bpcInitialize();
+                            bpcRebootSystem();
+                        }
                     }
-                }
-                break;
+                    break;
+
+                case 8:
+                    {
+                        fsdevUnmountDevice("sv");
+                        ui::keyboard getID;
+                        std::string idStr = getID.getString("0100000000000000");
+                        if(!idStr.empty())
+                        {
+                            uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
+                            pmshellInitialize();
+                            if(R_SUCCEEDED(pmshellTerminateProcessByTitleId(termID)))
+                                ui::showMessage("Process " + idStr + " successfully shutdown.");
+                            pmshellExit();
+                        }
+                    }
+                    break;
+
+                case 9:
+                    {
+                        fsdevUnmountDevice("sv");
+                        ui::keyboard getID;
+                        std::string idStr = getID.getString("8000000000000000");
+                        uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
+                        if(R_SUCCEEDED(fsMount_SystemSaveData(&sv, mountID)))
+                        {
+                            fsdevMountDevice("sv", sv);
+                            advModePrep("sv:/");
+                            prevState = EX_MNU;
+                            mstate = ADV_MDE;
+                        }
+                    }
+                    break;
             }
         }
         else if(down & KEY_B)

@@ -12,7 +12,7 @@
 static ui::menu saveMenu, sdMenu, copyMenu;
 
 //Paths + wrapped string paths
-static std::string savePath, sdPath;
+static std::string savePath, sdPath, dev;
 
 //Adv Ctrl mode
 static int advMenuCtrl, advPrev;
@@ -321,13 +321,13 @@ namespace ui
         copyMenu.addOpt("Back");
     }
 
-    void advModePrep()
+    void advModePrep(const std::string& svDev)
     {
         saveMenu.setParams(30, 98, 602);
         sdMenu.setParams(648, 98, 602);
         copyMenu.setParams(472, 278, 304);
 
-        savePath = "sv:/";
+        savePath = svDev, dev = svDev;
         sdPath   = "sdmc:/";
 
         saveList.reassign(savePath);
@@ -372,7 +372,7 @@ namespace ui
                 case 0:
                     {
                         int saveSel = saveMenu.getSelected();
-                        if(saveSel == 1 && savePath != "sv:/")
+                        if(saveSel == 1 && savePath != dev)
                         {
                             util::removeLastFolderFromString(savePath);
 
@@ -419,7 +419,7 @@ namespace ui
         else if(down & KEY_B)
         {
             //save
-            if(advMenuCtrl == 0 && savePath != "sv:/")
+            if(advMenuCtrl == 0 && savePath != dev)
             {
                 util::removeLastFolderFromString(savePath);
 

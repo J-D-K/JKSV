@@ -13,7 +13,7 @@ namespace ui
     //needed here since it uses static menu
     void folderMenuPrepare(data::user& usr, data::titledata& dat);
     void advCopyMenuPrep();
-    void advModePrep();
+    void advModePrep(const std::string& svDev);
 }
 
 #endif // USRSEL_H
