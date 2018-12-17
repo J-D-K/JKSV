@@ -459,10 +459,6 @@ namespace ui
                     advMenuCtrl = 0;
             }
         }
-        else if(down & KEY_L)
-        {
-            data::curData.setType(FsSaveDataType_SaveData);
-        }
         else if(down & KEY_MINUS)
         {
             if(prevState == EX_MNU)

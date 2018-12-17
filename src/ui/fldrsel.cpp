@@ -92,7 +92,7 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(folderMenu.getSelected() > 0)
+            if(data::curData.getType() != FsSaveDataType_SystemSaveData && folderMenu.getSelected() > 0)
             {
                 std::string scanPath = util::getTitleDir(data::curUser, data::curData);
                 fs::dirList list(scanPath);
@@ -109,6 +109,8 @@ namespace ui
                     fs::copyDirToDirCommit(fromPath, root, "sv");
                 }
             }
+            else
+                ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.", "Sorry, bro:");
         }
         else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
         {
