@@ -274,7 +274,7 @@ void performCopyMenuOps()
                                 std::string fullPath = savePath + saveList.getItem(sel);
                                 std::string props = fs::getFileProps(fullPath);
                                 if(!props.empty())
-                                    ui::showMessage(props);
+                                    ui::showMessage(props, "File Properties:");
                             }
                         }
                         break;
@@ -287,7 +287,7 @@ void performCopyMenuOps()
                                 std::string fullPath = sdPath + sdList.getItem(sel);
                                 std::string props = fs::getFileProps(fullPath);
                                 if(!props.empty())
-                                    ui::showMessage(props);
+                                    ui::showMessage(props, "File Properties:");
                             }
                         }
                         break;
@@ -458,6 +458,10 @@ namespace ui
                 else
                     advMenuCtrl = 0;
             }
+        }
+        else if(down & KEY_L)
+        {
+            data::curData.setType(FsSaveDataType_SaveData);
         }
         else if(down & KEY_MINUS)
         {

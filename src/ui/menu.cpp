@@ -6,8 +6,57 @@
 #include "ui.h"
 #include "miscui.h"
 
+static tex *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
+
+static void drawBoundBox(int x, int y, int w, int h, int clrSh)
+{
+    clr rectClr = clrCreateRGBA(0x00, 0x60 + clrSh, 0xBB + clrSh, 0xFF);
+
+    texSwapColors(mnuTopLeft, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF), rectClr);
+    texSwapColors(mnuTopRight, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF), rectClr);
+    texSwapColors(mnuBotLeft, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF), rectClr);
+    texSwapColors(mnuBotRight, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF), rectClr);
+
+    //top
+    texDraw(mnuTopLeft, frameBuffer, x, y);
+    drawRect(frameBuffer, x + 8, y, w - 16, 2, rectClr);
+    texDraw(mnuTopRight, frameBuffer, (x + w) - 8, y);
+
+    //mid
+    drawRect(frameBuffer, x, y + 8, 2, h - 16, rectClr);
+    drawRect(frameBuffer, (x + w) - 2, y + 8, 2, h - 16, rectClr);
+
+    //bottom
+    texDraw(mnuBotLeft, frameBuffer, x, (y + h) - 8);
+    drawRect(frameBuffer, x + 8, (y + h) - 2, w - 16, 2, rectClr);
+    texDraw(mnuBotRight, frameBuffer, (x + w) - 8, (y + h) - 8);
+
+    texSwapColors(mnuTopLeft, rectClr, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF));
+    texSwapColors(mnuTopRight, rectClr, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF));
+    texSwapColors(mnuBotLeft, rectClr, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF));
+    texSwapColors(mnuBotRight, rectClr, clrCreateRGBA(0x00, 0x60, 0xBB, 0xFF));
+}
+
 namespace ui
 {
+    void menuPrepGfx()
+    {
+        tex *temp = texLoadPNGFile("romfs:/img/mnu/msel.png");
+        mnuTopLeft = texCreateFromPart(temp, 0, 0, 8, 8);
+        mnuTopRight = texCreateFromPart(temp, 8, 0, 8, 8);
+        mnuBotLeft = texCreateFromPart(temp, 0, 8, 8, 8);
+        mnuBotRight = texCreateFromPart(temp, 8, 8, 8, 8);
+        texDestroy(temp);
+    }
+
+    void menuDestGfx()
+    {
+        texDestroy(mnuTopLeft);
+        texDestroy(mnuTopRight);
+        texDestroy(mnuBotLeft);
+        texDestroy(mnuBotRight);
+    }
+
     void menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW)
     {
         x = _x;
@@ -164,12 +213,10 @@ namespace ui
         else
             length = start + 15;
 
-        clr rectClr = clrCreateRGBA(0x00, 0x60 + clrSh, 0xBB + clrSh, 0xFF);
-
         for(int i = start; i < length; i++)
         {
             if(i == selected)
-                drawRect(frameBuffer, x, y + ((i - start) * 36), rW, 32, rectClr);
+                drawBoundBox(x, y + ((i - start) * 36), rW, 36, clrSh);
 
             drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, textClr);
         }

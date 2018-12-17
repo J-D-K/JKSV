@@ -31,7 +31,7 @@ namespace ui
             void update(const uint64_t& _prog);
 
             //Draws with text at top
-            void draw(const std::string& text);
+            void draw(const std::string& text, const std::string& head);
 
         private:
             uint64_t max, prog;
@@ -80,7 +80,7 @@ namespace ui
     };
 
     //General use
-    void showMessage(const std::string& mess);
+    void showMessage(const std::string& mess, const std::string& head);
     void showError(const std::string& mess, const Result& r);
     bool confirm(const std::string& q);
     bool confirmTransfer(const std::string& f, const std::string& t);

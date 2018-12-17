@@ -8,6 +8,7 @@
 #include "gfx.h"
 
 tex *frameBuffer;
+clr textClr;
 
 static inline uint32_t blend(const clr px, const clr fb)
 {
@@ -71,7 +72,7 @@ void gfxHandleBuffs()
     gfxWaitForVsync();
 }
 
-static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const clr c)
+static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y)
 {
     if(bmp->pixel_mode != FT_PIXEL_MODE_GRAY)
         return;
@@ -90,7 +91,7 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y, const c
 
             if(*bmpPtr > 0)
             {
-                clr txClr = clrCreateRGBA(c.r, c.g, c.b, *bmpPtr);
+                clr txClr = clrCreateRGBA(textClr.r, textClr.g, textClr.b, *bmpPtr);
                 clr tgtClr = clrCreateU32(*rowPtr);
 
                 *rowPtr = blend(txClr, tgtClr);
@@ -135,6 +136,7 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
     int tmpX = x;
     uint32_t tmpChr = 0;
     ssize_t unitCnt = 0;
+    textClr = c;
 
     resizeFont(f, sz);
 
@@ -146,18 +148,37 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
             break;
 
         i += unitCnt;
-        if(tmpChr == '\n')
+        switch(tmpChr)
         {
-            tmpX = x;
-            y += sz + 8;
-            continue;
+            case '\n':
+                tmpX = x;
+                y += sz + 8;
+                continue;
+                break;
+
+            case '"':
+            case '#':
+                if(clrGetColor(textClr) == 0xFFEE9900)
+                    textClr = c;
+                else
+                    textClr = clrCreateU32(0xFFEE9900);
+                continue;
+                break;
+
+            case '*':
+                if(clrGetColor(textClr) == 0xFF0000FF)
+                    textClr = c;
+                else
+                    textClr = clrCreateU32(0xFF0000FF);
+                continue;
+                break;
         }
 
         FT_GlyphSlot slot = loadGlyph(tmpChr, f, FT_LOAD_RENDER);
         if(slot != NULL)
         {
             int drawY = y + (sz - slot->bitmap_top);
-            drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY, c);
+            drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY);
 
             tmpX += slot->advance.x >> 6;
         }
@@ -194,18 +215,37 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
                 break;
 
             j += unitCnt;
-            if(tmpChr == '\n')
+            switch(tmpChr)
             {
-                tmpX = x;
-                y += sz + 8;
-                continue;
+                case '\n':
+                    tmpX = x;
+                    y += sz + 8;
+                    continue;
+                    break;
+
+                case '"':
+                case '#':
+                    if(clrGetColor(textClr) == 0xFFEE9900)
+                        textClr = c;
+                    else
+                        textClr = clrCreateU32(0xFFEE9900);
+                    continue;
+                    break;
+
+                case '*':
+                    if(clrGetColor(textClr) == 0xFF0000FF)
+                        textClr = c;
+                    else
+                        textClr = clrCreateU32(0xFF0000FF);
+                    continue;
+                    break;
             }
 
             FT_GlyphSlot slot = loadGlyph(tmpChr, f, FT_LOAD_RENDER);
             if(slot != NULL)
             {
                 int drawY = y + (sz - slot->bitmap_top);
-                drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY, c);
+                drawGlyph(&slot->bitmap, target, tmpX + slot->bitmap_left, drawY);
 
                 tmpX += slot->advance.x >> 6;
             }

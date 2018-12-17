@@ -20,9 +20,13 @@ namespace ui
         width = (float)(((float)prog / (float)max) * 1088);
     }
 
-    void progBar::draw(const std::string& text)
+    void progBar::draw(const std::string& text, const std::string& head)
     {
+        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 24);
+        unsigned headX = (1280 / 2) - (headWidth / 2);
+
         ui::drawTextbox(64, 240, 1152, 240);
+        drawRect(frameBuffer, 64, 296, 1152, 2, clrCreateU32(0xFF6D6D6D));
         drawRect(frameBuffer, 96, 400, 1088, 64, clrCreateU32(0xFF000000));
         drawRect(frameBuffer, 96, 400, (unsigned)width, 64, clrCreateU32(0xFF00CC00));
 
@@ -30,7 +34,8 @@ namespace ui
         sprintf(tmp, "%lu KB/%lu KB", prog / 1024, max / 1024);
         int szX = 640 - (textGetWidth(tmp, shared, 24) / 2);
 
-        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 256, 18, txtClr, 752);
+        drawText(head.c_str(), frameBuffer, ui::shared, headX, 256, 24, txtClr);
+        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 312, 18, txtClr, 752);
         drawText(tmp, frameBuffer, shared, szX, 416, 24, clrCreateU32(0xFFFFFFFF));
     }
 
@@ -142,9 +147,14 @@ namespace ui
 
     }
 
-    void showMessage(const std::string& mess)
+    void showMessage(const std::string& mess, const std::string& head)
     {
         button ok("OK", 256, 496, 768, 96);
+
+        //center head text width
+        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 24);
+        unsigned headX = (1280 / 2) - (headWidth / 2);
+
         while(true)
         {
             hidScanInput();
@@ -159,7 +169,9 @@ namespace ui
                 break;
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 144, 24, txtClr, 752);
+            drawText(head.c_str(), frameBuffer, ui::shared, headX, 144, 24, txtClr);
+            drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
+            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
             ok.draw();
             texDrawInvert(ui::buttonA, frameBuffer, ok.getTx() + 56, ok.getTy() - 4);
 
@@ -200,6 +212,9 @@ namespace ui
         button yes("Yes   ", 256, 496, 384, 96);
         button no("No   ", 640, 496, 384, 96);
 
+        size_t headWidth = textGetWidth("Confirm", ui::shared, 24);
+        unsigned headX = (1280 / 2) - (headWidth / 2);
+
         while(true)
         {
             hidScanInput();
@@ -223,7 +238,9 @@ namespace ui
             }
 
             ui::drawTextbox(256, 128, 768, 464);
-            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 144, 24, txtClr, 752);
+            drawText("Confirm", frameBuffer, ui::shared, headX, 144, 24, txtClr);
+            drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
+            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
             yes.draw();
             texDrawInvert(ui::buttonA, frameBuffer, yes.getTx() + 64, yes.getTy() - 4);
             no.draw();
@@ -237,14 +254,14 @@ namespace ui
 
     bool confirmTransfer(const std::string& f, const std::string& t)
     {
-        std::string confMess = "Are you sure you want to copy \"" + f + "\" to \"" + t +"\"?";
+        std::string confMess = "Are you sure you want to copy #" + f + "# to #" + t +"#?";
 
         return confirm(confMess);
     }
 
     bool confirmDelete(const std::string& p)
     {
-        std::string confMess = "Are you 100% sure you want to delete \"" + p + "\"? This is permanent!";
+        std::string confMess = "Are you 100% sure you want to delete #" + p + "#? *This is permanent*!";
 
         return confirm(confMess);
     }

@@ -15,6 +15,9 @@ enum menuTouch
 
 namespace ui
 {
+    void menuPrepGfx();
+    void menuDestGfx();
+
     class menu
     {
         public:
@@ -40,6 +43,9 @@ namespace ui
 
             //Clears and resets menu
             void reset();
+
+            //Resets selected + start
+            void resetSel(){ selected = 0; start = 0; }
 
             //Adjusts things after changes are made
             void adjust();

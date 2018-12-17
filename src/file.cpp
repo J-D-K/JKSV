@@ -198,7 +198,6 @@ namespace fs
         uint8_t *buff = new uint8_t[BUFF_SIZE];
         ui::progBar prog(fileSize);
 
-        std::string copyString = "Copying " + from + "...";
         for(unsigned i = 0; i < fileSize; )
         {
             f.read((char *)buff, BUFF_SIZE);
@@ -207,7 +206,7 @@ namespace fs
             i += f.gcount();
             prog.update(i);
 
-            prog.draw(copyString);
+            prog.draw(from, "Copying File:");
 
             gfxHandleBuffs();
         }
@@ -237,7 +236,6 @@ namespace fs
         uint8_t *buff = new uint8_t[BUFF_SIZE];
         ui::progBar prog(fileSize);
 
-        std::string copyString = "Copying " + from + "...";
         for(unsigned i = 0; i < fileSize; )
         {
             f.read((char *)buff, BUFF_SIZE);
@@ -246,7 +244,7 @@ namespace fs
             i += f.gcount();
             prog.update(i);
 
-            prog.draw(copyString);
+            prog.draw(from, "Copying File:");
 
             gfxHandleBuffs();
         }
@@ -257,7 +255,7 @@ namespace fs
         t.close();
 
         if(R_FAILED(fsdevCommitDevice(dev.c_str())))
-            ui::showMessage("Error committing file to device!");
+            ui::showMessage("Error committing file to device!", "*ERROR*");
     }
 
     void copyDirToDir(const std::string& from, const std::string& to)

@@ -77,6 +77,12 @@ namespace ui
             clsMode = false;
             mstate = USR_SEL;
         }
+        else if(down & KEY_MINUS || usrNav[3].getEvent() == BUTTON_RELEASED)
+        {
+            fsdevUnmountDevice("sv");
+            ui::exMenuPrep();
+            ui::mstate = EX_MNU;
+        }
     }
 
     void classicTitleMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -195,7 +201,7 @@ namespace ui
                 }
             }
             else
-                ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.");
+                ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.", "Sorry, bro:");
         }
         else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
         {
@@ -331,12 +337,12 @@ namespace ui
                             }
                             else
                             {
-                                ui::showMessage("Something went wrong while dumping your NAND.");
+                                ui::showMessage("Something went wrong while dumping your NAND.", "*ERROR*");
                                 break;
                             }
 
                             nandProg.update(offset);
-                            nandProg.draw("Backing up NAND...");
+                            nandProg.draw("", "Copying NAND");
                             gfxHandleBuffs();
                         }
 
@@ -385,12 +391,12 @@ namespace ui
                             }
                             else
                             {
-                                ui::showMessage("Something went wrong while dumping your NAND.");
+                                ui::showMessage("Something went wrong while dumping your NAND.", "*ERROR*");
                                 break;
                             }
 
                             nandProg.update(offset);
-                            nandProg.draw("Backing up NAND...");
+                            nandProg.draw("", "Copying NAND");
                             gfxHandleBuffs();
                         }
 
@@ -433,7 +439,7 @@ namespace ui
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
                             pmshellInitialize();
                             if(R_SUCCEEDED(pmshellTerminateProcessByTitleId(termID)))
-                                ui::showMessage("Process " + idStr + " successfully shutdown.");
+                                ui::showMessage("Process " + idStr + " successfully shutdown.", "FUCK YES");
                             pmshellExit();
                         }
                     }

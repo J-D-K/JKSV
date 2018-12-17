@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 12/03/2018"
+#define VER_STRING "v. 12/16/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
@@ -136,6 +136,7 @@ namespace ui
             txtSide = texCreateFromPart(background, 30, 88, 448, 560);
             drawRectAlpha(txtSide, 0, 0, 448, 560, tempRect);
         }
+        menuPrepGfx();
 
         advCopyMenuPrep();
     }
@@ -154,6 +155,8 @@ namespace ui
         texDestroy(buttonMin);
 
         texDestroy(selBox);
+
+        menuDestGfx();
 
         if(background != NULL)
             texDestroy(background);
@@ -239,7 +242,7 @@ namespace ui
                 break;
 
             case ADV_MDE:
-                drawRect(frameBuffer, 640, 87, 1, 560, divClr);
+                drawRect(frameBuffer, 640, 87, 1, 561, divClr);
                 break;
 
             case CLS_TTL:
