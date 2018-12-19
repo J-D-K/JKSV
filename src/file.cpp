@@ -376,6 +376,39 @@ namespace fs
         return ret;
     }
 
+    void getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize)
+    {
+        fs::dirList list(_path);
+
+        for(unsigned i = 0; i < list.getCount(); i++)
+        {
+            if(list.isDir(i))
+            {
+                dirCount++;
+                std::string newPath = _path + list.getItem(i) + "/";
+                uint32_t dirAdd = 0, fileAdd = 0;
+                uint64_t sizeAdd = 0;
+
+                getDirProps(newPath, dirAdd, fileAdd, sizeAdd);
+                dirCount += dirAdd;
+                fileCount += fileAdd;
+                totalSize += sizeAdd;
+            }
+            else
+            {
+                fileCount++;
+                std::string filePath = _path + list.getItem(i);
+
+                std::fstream gSize(filePath.c_str(), std::ios::in | std::ios::binary);
+                gSize.seekg(0, gSize.end);
+                size_t fSize = gSize.tellg();
+                gSize.close();
+
+                totalSize += fSize;
+            }
+        }
+    }
+
     bool fileExists(const std::string& path)
     {
         std::fstream chk(path, std::ios::in);
@@ -386,6 +419,12 @@ namespace fs
         }
 
         return false;
+    }
+
+    bool isDir(const std::string& _path)
+    {
+        struct stat s;
+        return stat(_path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
     }
 
     std::string getWorkDir()

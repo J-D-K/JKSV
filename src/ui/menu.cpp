@@ -237,6 +237,6 @@ namespace ui
         if(opt.size() < 14)
             start = 0;
         else if(opt.size() > 14 && start + 14 > (int)opt.size() - 1)
-            start--;
+            start = opt.size() - 15;
     }
 }

@@ -33,7 +33,11 @@ namespace fs
     //returns file properties as C++ string
     std::string getFileProps(const std::string& _path);
 
+    //Recursively retrieves info about dir _path
+    void getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize);
+
     bool fileExists(const std::string& _path);
+    bool isDir(const std::string& _path);
 
     //Retrieves working dir string
     std::string getWorkDir();
