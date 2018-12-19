@@ -439,7 +439,7 @@ namespace ui
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
                             pmshellInitialize();
                             if(R_SUCCEEDED(pmshellTerminateProcessByTitleId(termID)))
-                                ui::showMessage("Process " + idStr + " successfully shutdown.", "FUCK YES");
+                                ui::showMessage("Process " + idStr + " successfully shutdown.", "Success!");
                             pmshellExit();
                         }
                     }
