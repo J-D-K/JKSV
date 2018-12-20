@@ -20,6 +20,8 @@ static int advMenuCtrl, advPrev;
 //Dir listings
 fs::dirList saveList(""), sdList("sdmc:/");
 
+static bool commit = false;
+
 //Performs copy menu operations. To big to stuff into case IMO.
 void performCopyMenuOps()
 {
@@ -75,7 +77,7 @@ void performCopyMenuOps()
                             if(sdMenu.getSelected() == 0)
                             {
                                 if(ui::confirmTransfer(sdPath, savePath))
-                                    fs::copyDirToDirCommit(sdPath, savePath, "sv");
+                                    commit ? fs::copyDirToDirCommit(sdPath, savePath, dev) : fs::copyDirToDir(sdPath, savePath);
                             }
                             else if(sdMenu.getSelected() > 1)
                             {
@@ -92,7 +94,7 @@ void performCopyMenuOps()
                                         mkdir(toPath.c_str(), 777);
                                         toPath += "/";
 
-                                        fs::copyDirToDirCommit(fromPath, toPath, "sv");
+                                        commit ? fs::copyDirToDirCommit(fromPath, toPath, dev) : fs::copyDirToDir(fromPath, toPath);
                                     }
                                 }
                                 else
@@ -100,7 +102,7 @@ void performCopyMenuOps()
                                     std::string fromPath = sdPath + sdList.getItem(sdSel);
                                     std::string toPath = savePath + sdList.getItem(sdSel);
                                     if(ui::confirmTransfer(fromPath, toPath))
-                                        fs::copyFileCommit(fromPath, toPath, "sv");
+                                        commit ? fs::copyFileCommit(fromPath, toPath, dev) : fs::copyFile(fromPath, toPath);
                                 }
                             }
                             break;
@@ -123,7 +125,7 @@ void performCopyMenuOps()
                                 if(ui::confirmDelete(savePath))
                                 {
                                     fs::delDir(savePath);
-                                    fsdevCommitDevice("sv");
+                                    fsdevCommitDevice(dev.c_str());
                                 }
                             }
                             else if(saveMenu.getSelected() > 1)
@@ -141,7 +143,7 @@ void performCopyMenuOps()
                                     if(ui::confirmDelete(delPath))
                                         std::remove(delPath.c_str());
                                 }
-                                fsdevCommitDevice("sv");
+                                if(commit){ fsdevCommitDevice(dev.c_str()); };
                             }
                         }
                         break;
@@ -194,7 +196,7 @@ void performCopyMenuOps()
                                     std::string newPath = savePath + newName;
 
                                     std::rename(b4Path.c_str(), newPath.c_str());
-                                    fsdevCommitDevice("sv");
+                                    if(commit){ fsdevCommitDevice(dev.c_str()); }
                                 }
                             }
                         }
@@ -238,7 +240,7 @@ void performCopyMenuOps()
                                 {
                                     std::string folderPath = savePath + newFolder;
                                     mkdir(folderPath.c_str(), 777);
-                                    fsdevCommitDevice("sv");
+                                    if(commit){ fsdevCommitDevice(dev.c_str()); }
                                 }
                             }
                         }
@@ -349,8 +351,9 @@ namespace ui
         copyMenu.addOpt("Back");
     }
 
-    void advModePrep(const std::string& svDev)
+    void advModePrep(const std::string& svDev, bool commitOnWrite)
     {
+        commit = commitOnWrite;
         saveMenu.setParams(30, 98, 602);
         sdMenu.setParams(648, 98, 602);
         copyMenu.setParams(472, 278, 304);

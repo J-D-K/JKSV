@@ -222,7 +222,7 @@ namespace ui
         }
         else if(down & KEY_MINUS)
         {
-            advModePrep("sv:/");
+            advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
         else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
@@ -261,7 +261,7 @@ namespace ui
                 case 0:
                     data::curData.setType(FsSaveDataType_SaveData);
                     fsdevUnmountDevice("sv");
-                    advModePrep("sdmc:/");
+                    advModePrep("sdmc:/", false);
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
@@ -271,7 +271,7 @@ namespace ui
                     fsOpenBisFileSystem(&sv, 28, "");
                     fsdevMountDevice("prodInfo-f", sv);
 
-                    advModePrep("profInfo-f:/");
+                    advModePrep("profInfo-f:/", false);
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
@@ -281,7 +281,7 @@ namespace ui
                     fsOpenBisFileSystem(&sv, 29, "");
                     fsdevMountDevice("safe", sv);
 
-                    advModePrep("safe:/");
+                    advModePrep("safe:/", false);
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
@@ -291,7 +291,7 @@ namespace ui
                     fsOpenBisFileSystem(&sv, 31, "");
                     fsdevMountDevice("sys", sv);
 
-                    advModePrep("sys:/");
+                    advModePrep("sys:/", false);
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
@@ -301,7 +301,7 @@ namespace ui
                     fsOpenBisFileSystem(&sv, 30, "");
                     fsdevMountDevice("user", sv);
 
-                    advModePrep("user:/");
+                    advModePrep("user:/", false);
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
                     break;
@@ -454,7 +454,8 @@ namespace ui
                         if(R_SUCCEEDED(fsMount_SystemSaveData(&sv, mountID)))
                         {
                             fsdevMountDevice("sv", sv);
-                            advModePrep("sv:/");
+                            advModePrep("sv:/", true);
+                            data::curData.setType(FsSaveDataType_SystemSaveData);
                             prevState = EX_MNU;
                             mstate = ADV_MDE;
                         }

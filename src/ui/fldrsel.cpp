@@ -131,7 +131,7 @@ namespace ui
         }
         else if(down & KEY_MINUS)
         {
-            advModePrep("sv:/");
+            advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
         else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
