@@ -206,9 +206,9 @@ namespace fs
             i += f.gcount();
             prog.update(i);
 
+            gfxBeginFrame();
             prog.draw(from, "Copying File:");
-
-            gfxHandleBuffs();
+            gfxEndFrame();
         }
 
         delete[] buff;
@@ -244,9 +244,9 @@ namespace fs
             i += f.gcount();
             prog.update(i);
 
+            gfxBeginFrame();
             prog.draw(from, "Copying File:");
-
-            gfxHandleBuffs();
+            gfxEndFrame();
         }
 
         delete[] buff;

@@ -188,8 +188,7 @@ void performCopyMenuOps()
                             if(saveMenu.getSelected() > 1)
                             {
                                 int selSave = saveMenu.getSelected() - 2;
-                                ui::keyboard getName;
-                                std::string newName = getName.getString(saveList.getItem(selSave));
+                                std::string newName = util::getStringInput(saveList.getItem(selSave), "Rename", 256, 0, NULL);
                                 if(!newName.empty())
                                 {
                                     std::string b4Path = savePath + saveList.getItem(selSave);
@@ -209,8 +208,7 @@ void performCopyMenuOps()
                         if(sdMenu.getSelected() > 1)
                         {
                             int sdSel = sdMenu.getSelected() - 2;
-                            ui::keyboard getName;
-                            std::string newName = getName.getString(sdList.getItem(sdSel));
+                            std::string newName = util::getStringInput(sdList.getItem(sdSel), "Rename", 256, 0, NULL);
                             if(!newName.empty())
                             {
                                 std::string b4Path = sdPath + sdList.getItem(sdSel);
@@ -234,8 +232,7 @@ void performCopyMenuOps()
                         {
                             if(data::curData.getType() != FsSaveDataType_SystemSaveData)
                             {
-                                ui::keyboard getFolder;
-                                std::string newFolder = util::safeString(getFolder.getString(""));
+                                std::string newFolder = util::getStringInput("", "New Folder", 256, 0, NULL);
                                 if(!newFolder.empty())
                                 {
                                     std::string folderPath = savePath + newFolder;
@@ -249,8 +246,7 @@ void performCopyMenuOps()
                     //sd
                     case 1:
                         {
-                            ui::keyboard getFolder;
-                            std::string newFolder = getFolder.getString("");
+                            std::string newFolder = util::getStringInput("", "New Folder", 256, 0, NULL);
                             if(!newFolder.empty())
                             {
                                 std::string folderPath = sdPath + newFolder;
@@ -499,6 +495,8 @@ namespace ui
             else
                 mstate = FLD_SEL;
         }
+        else if(down & KEY_L)
+            data::curData.setType(FsSaveDataType_SaveData);
 
         //draw copy menu if it's supposed to be up
         if(advMenuCtrl == 2)

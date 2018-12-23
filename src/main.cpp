@@ -69,10 +69,11 @@ int main(int argc, const char *argv[])
         }
         else if(down & KEY_PLUS)
             break;
+        gfxBeginFrame();
 
         ui::runApp(down, held, p);
 
-        gfxHandleBuffs();
+        gfxEndFrame();
     }
 #ifdef __debug__
     socketExit();

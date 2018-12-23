@@ -14,7 +14,7 @@ namespace util
         DATE_FMT_HOYSTE
     };
 
-    //Returns string with date + time
+    //Returns string with date S+ time
     std::string getDateTime(int fmt);
 
     //Creates Dir 'JKSV/[title]
@@ -36,6 +36,6 @@ namespace util
 
     std::string getInfoString(data::user& u, data::titledata& d);
 
-    void debugPrintf(const char *out);
+    std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 }
 #endif // UTIL_H

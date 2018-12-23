@@ -40,8 +40,8 @@ bool graphicsInit(int windowWidth, int windowHeight);
 //Exits needed services
 bool graphicsExit();
 
-//Flush, swap buffers
-void gfxHandleBuffs();
+void gfxBeginFrame();
+void gfxEndFrame();
 
 //Creates color from uint32_t
 inline clr clrCreateU32(uint32_t color)

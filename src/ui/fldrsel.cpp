@@ -56,8 +56,15 @@ namespace ui
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
                 else
                 {
-                    ui::keyboard key;
-                    folder = util::safeString(key.getString(""));
+                    const std::string dict[] =
+                    {
+                        util::getDateTime(util::DATE_FMT_YMD),
+                        util::getDateTime(util::DATE_FMT_YDM),
+                        util::getDateTime(util::DATE_FMT_HOYSTE),
+                        data::curUser.getUsernameSafe(),
+                        data::curData.getTitleSafe()
+                    };
+                    folder = util::getStringInput("", "Enter a folder name", 64, 5, dict);
                 }
                 if(!folder.empty())
                 {

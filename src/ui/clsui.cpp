@@ -144,8 +144,7 @@ namespace ui
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
                 else
                 {
-                    ui::keyboard key;
-                    folder = util::safeString(key.getString(""));
+                    folder = util::getStringInput("", "New Folder", 256, 0, NULL);
                 }
                 if(!folder.empty())
                 {
@@ -340,10 +339,10 @@ namespace ui
                                 ui::showMessage("Something went wrong while dumping your NAND.", "*ERROR*");
                                 break;
                             }
-
+                            gfxBeginFrame();
                             nandProg.update(offset);
                             nandProg.draw("", "Copying NAND");
-                            gfxHandleBuffs();
+                            gfxEndFrame();
                         }
 
                         delete[] nandBuff;
@@ -395,9 +394,10 @@ namespace ui
                                 break;
                             }
 
+                            gfxBeginFrame();
                             nandProg.update(offset);
                             nandProg.draw("", "Copying NAND");
-                            gfxHandleBuffs();
+                            gfxEndFrame();
                         }
 
                         delete[] nandBuff;
@@ -432,8 +432,7 @@ namespace ui
                 case 8:
                     {
                         fsdevUnmountDevice("sv");
-                        ui::keyboard getID;
-                        std::string idStr = getID.getString("0100000000000000");
+                        std::string idStr = util::getStringInput("0100000000000000", "Enter Process ID", 18, 0, NULL);
                         if(!idStr.empty())
                         {
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
@@ -448,8 +447,7 @@ namespace ui
                 case 9:
                     {
                         fsdevUnmountDevice("sv");
-                        ui::keyboard getID;
-                        std::string idStr = getID.getString("8000000000000000");
+                        std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
                         uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
                         if(R_SUCCEEDED(fsMount_SystemSaveData(&sv, mountID)))
                         {

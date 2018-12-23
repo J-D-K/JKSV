@@ -8,7 +8,6 @@
 #include "gfx.h"
 
 //ui headers - split up to keep a bit more organized
-#include "kb.h"
 #include "menu.h"
 #include "miscui.h"
 #include "clsui.h"

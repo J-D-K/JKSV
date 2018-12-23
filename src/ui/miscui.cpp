@@ -168,40 +168,14 @@ namespace ui
             if(down & KEY_A || down & KEY_B || ok.getEvent() == BUTTON_RELEASED)
                 break;
 
+            gfxBeginFrame();
             ui::drawTextbox(256, 128, 768, 464);
             drawText(head.c_str(), frameBuffer, ui::shared, headX, 144, 24, txtClr);
             drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
             drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
             ok.draw();
             texDrawInvert(ui::buttonA, frameBuffer, ok.getTx() + 56, ok.getTy() - 4);
-
-            gfxHandleBuffs();
-        }
-    }
-
-    void showError(const std::string& mess, const Result& r)
-    {
-        button ok("OK (A)", 256, 496, 768, 96);
-        char tmp[512];
-        sprintf(tmp, "%s\n0x%08X", mess.c_str(), (unsigned)r);
-        while(true)
-        {
-            hidScanInput();
-
-            uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-            touchPosition p;
-            hidTouchRead(&p, 0);
-
-            ok.update(p);
-
-            if(down & KEY_A || down & KEY_B || ok.getEvent() == BUTTON_RELEASED)
-                break;
-
-            ui::drawTextbox(256, 128, 768, 464);
-            drawTextWrap(tmp, frameBuffer, shared, 272, 144, 48, txtClr, 752);
-            ok.draw();
-
-            gfxHandleBuffs();
+            gfxEndFrame();
         }
     }
 
@@ -237,6 +211,7 @@ namespace ui
                 break;
             }
 
+            gfxBeginFrame();
             ui::drawTextbox(256, 128, 768, 464);
             drawText("Confirm", frameBuffer, ui::shared, headX, 144, 24, txtClr);
             drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
@@ -245,8 +220,7 @@ namespace ui
             texDrawInvert(ui::buttonA, frameBuffer, yes.getTx() + 64, yes.getTy() - 4);
             no.draw();
             texDrawInvert(ui::buttonB, frameBuffer, no.getTx() + 56, no.getTy() - 4);
-
-            gfxHandleBuffs();
+            gfxEndFrame();
         }
 
         return ret;

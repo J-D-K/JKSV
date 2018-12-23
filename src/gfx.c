@@ -10,6 +10,10 @@
 tex *frameBuffer;
 clr textClr;
 
+static NWindow *window;
+static Framebuffer fb;
+static bool framestarted = false;
+
 static inline uint32_t blend(const clr px, const clr fb)
 {
     if(px.a == 0x00)
@@ -38,18 +42,17 @@ static inline uint32_t smooth(const clr px1, const clr px2)
 
 bool graphicsInit(int windowWidth, int windowHeight)
 {
-    gfxInitResolution((uint32_t)windowWidth, (uint32_t)windowHeight);
-    gfxInitDefault();
-    plInitialize();
-    consoleInit(NULL);
+    window = nwindowGetDefault();
+    nwindowSetDimensions(window, windowWidth, windowHeight);
 
-    gfxSetMode(GfxMode_LinearDouble);
+    framebufferCreate(&fb, window, windowWidth, windowHeight, PIXEL_FORMAT_RGBA_8888, 2);
+    framebufferMakeLinear(&fb);
+    plInitialize();
 
     //Make a fake tex that points to framebuffer
     frameBuffer = malloc(sizeof(tex));
     frameBuffer->width = windowWidth;
     frameBuffer->height = windowHeight;
-    frameBuffer->data = (uint32_t *)gfxGetFramebuffer(NULL, NULL);
     frameBuffer->size = windowWidth * windowHeight;
 
     return true;
@@ -60,16 +63,28 @@ bool graphicsExit()
     free(frameBuffer);
 
     plExit();
-    gfxExit();
+    framebufferClose(&fb);
+    nwindowClose(window);
 
     return true;
 }
 
-void gfxHandleBuffs()
+void gfxBeginFrame()
 {
-    gfxFlushBuffers();
-    gfxSwapBuffers();
-    gfxWaitForVsync();
+    if(!framestarted)
+    {
+        frameBuffer->data = (uint32_t *)framebufferBegin(&fb, NULL);
+        framestarted = true;
+    }
+}
+
+void gfxEndFrame()
+{
+    if(framestarted)
+    {
+        framebufferEnd(&fb);
+        framestarted = false;
+    }
 }
 
 static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y)

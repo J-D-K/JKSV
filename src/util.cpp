@@ -150,10 +150,23 @@ namespace util
         return ret;
     }
 
-    void debugPrintf(const char *out)
+    std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[])
     {
-#ifdef __debug__
-        printf("%s", out);
-#endif
+        SwkbdConfig swkbd;
+        swkbdCreate(&swkbd, dictCnt);
+        swkbdConfigMakePresetDefault(&swkbd);
+        swkbdConfigSetInitialText(&swkbd, def.c_str());
+        swkbd.arg.arg.type = SwkbdType_QWERTY;
+        swkbdConfigSetHeaderText(&swkbd, head.c_str());
+        swkbdConfigSetOkButtonText(&swkbd, "Done");
+        swkbd.arg.arg.initialCursorPos = 1;
+        swkbd.arg.arg.stringLenMax = maxLength;
+
+        char out[maxLength];
+        memset(out, 0, maxLength);
+        swkbdShow(&swkbd, out, maxLength);
+        swkbdClose(&swkbd);
+
+        return std::string(out);
     }
 }
