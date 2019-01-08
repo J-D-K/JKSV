@@ -232,4 +232,24 @@ namespace util
 
         return std::string(out);
     }
+
+    std::string generateAbbrev(data::titledata& dat)
+    {
+        size_t titleLength = dat.getTitle().length();
+
+        char temp[titleLength + 1];
+        memset(temp, 0, titleLength + 1);
+        memcpy(temp, dat.getTitle().c_str(), titleLength);
+
+        std::string ret;
+        char *tok = strtok(temp, " ");
+        while(tok)
+        {
+            ret += tok[0];
+            tok = strtok(NULL, " ");
+        }
+
+        return ret;
+    }
 }
+

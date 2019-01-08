@@ -37,5 +37,7 @@ namespace util
     std::string getInfoString(data::user& u, data::titledata& d);
 
     std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
+
+    std::string generateAbbrev(data::titledata& dat);
 }
 #endif // UTIL_H

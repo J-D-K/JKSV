@@ -144,7 +144,15 @@ namespace ui
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
                 else
                 {
-                    folder = util::getStringInput("", "New Folder", 256, 0, NULL);
+                    const std::string dict[] =
+                    {
+                        util::getDateTime(util::DATE_FMT_YMD).c_str(),
+                        util::getDateTime(util::DATE_FMT_YDM).c_str(),
+                        util::getDateTime(util::DATE_FMT_HOYSTE).c_str(),
+                        data::curUser.getUsernameSafe().c_str(),
+                        util::generateAbbrev(data::curData)
+                    };
+                    folder = util::getStringInput("", "New Folder", 64, 5, dict);
                 }
                 if(!folder.empty())
                 {
