@@ -150,7 +150,7 @@ namespace ui
                         util::getDateTime(util::DATE_FMT_YDM).c_str(),
                         util::getDateTime(util::DATE_FMT_HOYSTE).c_str(),
                         data::curUser.getUsernameSafe().c_str(),
-                        util::generateAbbrev(data::curData)
+                        data::curData.getTitle().length() < 24 ? data::curData.getTitleSafe() : util::generateAbbrev(data::curData)
                     };
                     folder = util::getStringInput("", "New Folder", 64, 5, dict);
                 }

@@ -495,8 +495,6 @@ namespace ui
             else
                 mstate = FLD_SEL;
         }
-        else if(down & KEY_L)
-            data::curData.setType(FsSaveDataType_SaveData);
 
         //draw copy menu if it's supposed to be up
         if(advMenuCtrl == 2)
