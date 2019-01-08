@@ -58,11 +58,11 @@ namespace ui
                 {
                     const std::string dict[] =
                     {
-                        util::getDateTime(util::DATE_FMT_YMD),
-                        util::getDateTime(util::DATE_FMT_YDM),
-                        util::getDateTime(util::DATE_FMT_HOYSTE),
-                        data::curUser.getUsernameSafe(),
-                        data::curData.getTitleSafe()
+                        util::getDateTime(util::DATE_FMT_YMD).c_str(),
+                        util::getDateTime(util::DATE_FMT_YDM).c_str(),
+                        util::getDateTime(util::DATE_FMT_HOYSTE).c_str(),
+                        data::curUser.getUsernameSafe().c_str(),
+                        data::curData.getTitleSafe(),
                     };
                     folder = util::getStringInput("", "Enter a folder name", 64, 5, dict);
                 }

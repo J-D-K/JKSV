@@ -11,6 +11,59 @@
 
 static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
 
+//Missing swkbd config funcs for now
+typedef enum
+{
+    SwkbdPosStart = 0,
+    SwkbdPosEnd   = 1
+} SwkbdInitPos;
+
+void swkbdConfigSetMaxLength(SwkbdConfig *c, unsigned int maxLength)
+{
+    c->arg.arg.stringLenMax = maxLength;
+}
+
+void swkbdConfigSetType(SwkbdConfig *c, SwkbdType type)
+{
+    c->arg.arg.type = type;
+}
+
+void swkbdConfigSetInitialPos(SwkbdConfig *c, SwkbdInitPos pos)
+{
+    c->arg.arg.initialCursorPos = pos;
+}
+
+void swkbdConfigSetDisableBitmask(SwkbdConfig *c, uint32_t bits)
+{
+    c->arg.arg.keySetDisableBitmask = bits;
+}
+
+void swkbdConfigBlurBackground(SwkbdConfig *c, bool blur)
+{
+    c->arg.arg.blurBackground = blur;
+}
+
+typedef struct
+{
+    uint16_t read[0x32 / sizeof(uint16_t)];
+    uint16_t word[0x32 / sizeof(uint16_t)];
+} dictWord;
+
+void swkbdDictWordCreate(dictWord *w, const char *read, const char *word)
+{
+    memset(w->read, 0, 0x32);
+    memset(w->word, 0, 0x32);
+
+    uint16_t tmp[0x32 / sizeof(uint16_t)];
+    memset(tmp, 0, 0x32);
+
+    utf8_to_utf16(tmp, (uint8_t *)read, 0x30);
+    memcpy(w->read, tmp, 0x30);
+
+    utf8_to_utf16(tmp, (uint8_t *)word, 0x30);
+    memcpy(w->word, tmp, 0x30);
+}
+
 namespace util
 {
     std::string getDateTime(int fmt)
@@ -154,13 +207,23 @@ namespace util
     {
         SwkbdConfig swkbd;
         swkbdCreate(&swkbd, dictCnt);
-        swkbdConfigMakePresetDefault(&swkbd);
+        swkbdConfigBlurBackground(&swkbd, true);
         swkbdConfigSetInitialText(&swkbd, def.c_str());
-        swkbd.arg.arg.type = SwkbdType_QWERTY;
         swkbdConfigSetHeaderText(&swkbd, head.c_str());
-        swkbdConfigSetOkButtonText(&swkbd, "Done");
-        swkbd.arg.arg.initialCursorPos = 1;
-        swkbd.arg.arg.stringLenMax = maxLength;
+        swkbdConfigSetGuideText(&swkbd, head.c_str());
+        swkbdConfigSetInitialPos(&swkbd, SwkbdPosEnd);
+        swkbdConfigSetType(&swkbd, SwkbdType_QWERTY);
+        swkbdConfigSetMaxLength(&swkbd, maxLength);
+        swkbdConfigSetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Percent);
+
+        if(dictCnt > 0)
+        {
+            dictWord words[dictCnt];
+            for(unsigned i = 0; i < dictCnt; i++)
+                swkbdDictWordCreate(&words[i], dictWords[i].c_str(), dictWords[i].c_str());
+
+            swkbdConfigSetDictionary(&swkbd, (SwkbdDictWord *)words, dictCnt);
+        }
 
         char out[maxLength];
         memset(out, 0, maxLength);

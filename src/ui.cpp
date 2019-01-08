@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 12/22/2018"
+#define VER_STRING "v. 01/08/2018"
 
 //background that can be drawn from "/JKSV/back.jpg"
 //txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer

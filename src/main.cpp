@@ -13,15 +13,20 @@ extern "C"
 {
     void userAppInit(void)
     {
+        appletInitialize();
         romfsInit();
         hidInitialize();
         nsInitialize();
         setsysInitialize();
         accountInitialize();
+
+        void *add = NULL;
+        svcSetHeapSize(&add, 0x12000000);
     }
 
     void userAppExit(void)
     {
+        appletExit();
         romfsExit();
         hidExit();
         nsExit();
