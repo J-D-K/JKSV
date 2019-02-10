@@ -53,6 +53,7 @@ namespace ui
 
     void classicUserMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
+		static bool separate = false;
         userMenu.handleInput(down, held, p);
         userMenu.draw(mnuTxt);
 
@@ -242,7 +243,7 @@ namespace ui
     void exMenuPrep()
     {
         devMenu.reset();
-        devMenu.setParams(42, 98, 424);
+        devMenu.setParams(80, 120, 310);
         devMenu.addOpt("SD to SD Browser");
         devMenu.addOpt("Bis: PRODINFOF");
         devMenu.addOpt("Bis: SAFE");

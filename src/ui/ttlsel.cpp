@@ -51,27 +51,27 @@ namespace ui
 
         unsigned x = 70, y = 98;
 
-        unsigned endTitle = start + 32;
-        if(start + 32 > (int)data::curUser.titles.size())
+        unsigned endTitle = start + 18;
+        if(start + 18 > (int)data::curUser.titles.size())
             endTitle = data::curUser.titles.size();
 
         //draw Rect so it's always behind icons
         texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
 
-        for(unsigned i = start; i < endTitle; y += 136)
+        for(unsigned i = start; i < endTitle; y += 184)
         {
-            unsigned endRow = i + 8;
-            for(unsigned tX = x; i < endRow; i++, tX += 144)
+            unsigned endRow = i + 6;
+            for(unsigned tX = x; i < endRow; i++, tX += 184)
             {
                 if(i == endTitle)
                     break;
 
                 if((int)i == selected)
                 {
-                    if(selRectX != tX - 6 || selRectY != y - 6)
+                    if(selRectX != tX - 7 || selRectY != y - 7)
                     {
-                        selRectX = tX - 6;
-                        selRectY = y - 6;
+                        selRectX = tX - 7;
+                        selRectY = y - 7;
                     }
 
                     std::string title = data::curUser.titles[selected].getTitle();
@@ -91,7 +91,7 @@ namespace ui
         }
 
         //Buttons
-        for(int i = 0; i < 32; i++)
+        for(int i = 0; i < 18; i++)
         {
             selButtons[i].update(p);
             if(i == selected - start && selButtons[i].getEvent() == BUTTON_RELEASED)
@@ -124,10 +124,10 @@ namespace ui
         {
             case TRACK_SWIPE_UP:
                 {
-                    if(start + 32 < (int)data::curUser.titles.size())
+                    if(start + 18 < (int)data::curUser.titles.size())
                     {
-                        start += 8;
-                        selected += 8;
+                        start += 6;
+                        selected += 6;
                         if(selected > (int)data::curUser.titles.size() - 1)
                             selected = data::curUser.titles.size() - 1;
                     }
@@ -136,10 +136,10 @@ namespace ui
 
             case TRACK_SWIPE_DOWN:
                 {
-                    if(start - 8 >= 0)
+                    if(start - 6 >= 0)
                     {
-                        start -= 8;
-                        selected -= 8;
+                        start -= 6;
+                        selected -= 6;
                     }
                 }
                 break;
@@ -150,8 +150,8 @@ namespace ui
             if(selected < (int)data::curUser.titles.size() - 1)
                 selected++;
 
-            if(selected >= (int)start + 32)
-                start += 8;
+            if(selected >= (int)start + 18)
+                start += 6;
         }
         else if(down & KEY_LEFT)
         {
@@ -159,25 +159,25 @@ namespace ui
                 selected--;
 
             if(selected < (int)start)
-                start -= 8;
+                start -= 6;
         }
         else if(down & KEY_UP)
         {
-            selected -= 8;
+            selected -= 6;
             if(selected < 0)
                 selected = 0;
 
             if(selected < start)
-                start -= 8;
+                start -= 6;
         }
         else if(down & KEY_DOWN)
         {
-            selected += 8;
+            selected += 6;
             if(selected > (int)data::curUser.titles.size() - 1)
                 selected = data::curUser.titles.size() - 1;
 
-            if(selected - start >= 32)
-                start += 8;
+            if(selected - start >= 18)
+                start += 6;
         }
         else if(down & KEY_A || ttlNav[0].getEvent() == BUTTON_RELEASED)
         {

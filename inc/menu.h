@@ -60,6 +60,7 @@ namespace ui
             //How much we shift the color of the rectangle
             uint8_t clrSh = 0;
             bool clrAdd = true;
+            bool separate = true;
 
             ui::touchTrack track;
             std::vector<ui::button> optButtons;
