@@ -120,6 +120,7 @@ void texDraw(const tex *t, tex *target, int x, int y);
 
 //Draws without alpha blending, faster
 void texDrawNoAlpha(const tex *t, tex *target, int x, int y);
+void texDrawNoAlphaResize(const tex *t, tex *target, int x, int y);
 
 //Draws skipping every other pixel + row
 void texDrawSkip(const tex *t, tex *target, int x, int y);

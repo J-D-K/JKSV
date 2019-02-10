@@ -49,7 +49,7 @@ namespace ui
 
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
 
-        unsigned x = 70, y = 98;
+        unsigned x = 93, y = 98;
 
         unsigned endTitle = start + 18;
         if(start + 18 > (int)data::curUser.titles.size())
@@ -74,17 +74,7 @@ namespace ui
                         selRectY = y - 7;
                     }
 
-                    std::string title = data::curUser.titles[selected].getTitle();
-                    unsigned titleWidth = textGetWidth(title.c_str(), ui::shared, 16);
-                    int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
-                    if(rectX < 16)
-                        rectX = 16;
-
-                    if(rectX + rectWidth > 1264)
-                        rectX = 1264 - rectWidth;
-
-                    drawTextbox(rectX, y - 50, rectWidth, 38);
-                    drawText(title.c_str(), frameBuffer, ui::shared, rectX + 16, y - 38, 16, txtClr);
+                    drawTitlebox(selected, tX, y - 63, 48);
                 }
                 data::curUser.titles[i].icon.drawHalf(tX, y);
             }

@@ -39,7 +39,7 @@ namespace ui
 
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
-    tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
+    tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight, *tip;
 
     tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
 
@@ -56,10 +56,11 @@ namespace ui
         {
             case ColorSetId_Light:
                 //Dark corners
-                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
-                cornerTopRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
-                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
-                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
+                cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
+                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
+                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+                tip = texLoadPNGFile("romfs:/img/tboxLght/tboxTip.png");
 
                 //Dark buttons
                 buttonA = texLoadPNGFile("romfs:/img/button/buttonA_drk.png");
@@ -73,10 +74,10 @@ namespace ui
 
                 clearClr = clrCreateU32(0xFFEBEBEB);
                 mnuTxt = clrCreateU32(0xFF282828);
-                txtClr = clrCreateU32(0xFFFFFFFF);
+                txtClr = clrCreateU32(0xFFCBC000);
                 rectLt = clrCreateU32(0xFFDFDFDF);
                 rectSh = clrCreateU32(0xFFCACACA);
-                tboxClr = clrCreateU32(0xFF505050);
+                tboxClr = clrCreateU32(0xF0FFFFFF);
                 sideRect = clrCreateU32(0xFFDCDCDC);
                 divClr = clrCreateU32(0xFF2D2D2D);
                 break;
@@ -84,10 +85,11 @@ namespace ui
             default:
             case ColorSetId_Dark:
                 //Light corners
-                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
-                cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
-                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
-                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
+                cornerTopRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
+                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
+                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+                tip = texLoadPNGFile("romfs:/img/tboxDrk/tboxTip.png");
 
                 //Light buttons
                 buttonA = texLoadPNGFile("romfs:/img/button/buttonA_lght.png");
@@ -101,10 +103,10 @@ namespace ui
 
                 clearClr = clrCreateU32(0xFF2D2D2D);
                 mnuTxt = clrCreateU32(0xFFFFFFFF);
-                txtClr = clrCreateU32(0xFF000000);
+                txtClr = clrCreateU32(0xFFFDBD1B);
                 rectLt = clrCreateU32(0xFF505050);
                 rectSh = clrCreateU32(0xFF202020);
-                tboxClr = clrCreateU32(0xFFEBEBEB);
+                tboxClr = clrCreateU32(0xF04F4F4F);
                 sideRect = clrCreateU32(0xFF373737);
                 divClr = clrCreateU32(0xFFFFFFFF);
                 break;
@@ -150,6 +152,7 @@ namespace ui
         texDestroy(cornerTopRight);
         texDestroy(cornerBottomLeft);
         texDestroy(cornerBottomRight);
+        texDestroy(tip);
 
         texDestroy(buttonA);
         texDestroy(buttonB);

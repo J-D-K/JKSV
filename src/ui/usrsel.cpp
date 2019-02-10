@@ -42,7 +42,7 @@ namespace ui
         //Update selBox color
         clr clrUpdt = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
-        unsigned x = 70, y = 98;
+        unsigned x = 93, y = 98;
         unsigned endUser = start + 32;
         if(start + 32 > (int)data::users.size())
             endUser = data::users.size();
