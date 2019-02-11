@@ -19,7 +19,7 @@ namespace ui
         static uint8_t clrShft = 0;
         static bool clrAdd = true;
 
-        static unsigned selRectX = 64, selRectY = 92;
+        static unsigned selRectX = 86, selRectY = 91;
 
         static ui::touchTrack track;
 
@@ -43,27 +43,27 @@ namespace ui
         clr clrUpdt = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         unsigned x = 93, y = 98;
-        unsigned endUser = start + 32;
-        if(start + 32 > (int)data::users.size())
+        unsigned endUser = start + 18;
+        if(start + 18 > (int)data::users.size())
             endUser = data::users.size();
 
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
         texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
 
-        for(unsigned i = start; i < endUser; y += 136)
+        for(unsigned i = start; i < endUser; y += 184)
         {
             unsigned endRow = i + 8;
-            for(unsigned tX = x; i < endRow; i++, tX += 144)
+            for(unsigned tX = x; i < endRow; i++, tX += 184)
             {
                 if(i == endUser)
                     break;
 
                 if((int)i == selected)
                 {
-                    if(selRectX != tX - 6 || selRectY != y - 6)
+                    if(selRectX != tX - 7 || selRectY != y - 7)
                     {
-                        selRectX = tX - 6;
-                        selRectY = y - 6;
+                        selRectX = tX - 7;
+                        selRectY = y - 7;
                     }
 
                     std::string username = data::users[selected].getUsername();
@@ -84,7 +84,7 @@ namespace ui
 
 
         //Update invisible buttons
-        for(int i = 0; i < 32; i++)
+        for(int i = 0; i < 18; i++)
         {
             selButtons[i].update(p);
             if(selected == i && selButtons[i].getEvent() == BUTTON_RELEASED)
@@ -111,8 +111,8 @@ namespace ui
             if(selected < (int)data::users.size() - 1)
                 selected++;
 
-            if(selected >= (int)start + 32)
-                start += 8;
+            if(selected >= (int)start + 18)
+                start += 6;
         }
         else if(down & KEY_LEFT)
         {
@@ -120,25 +120,25 @@ namespace ui
                 selected--;
 
             if(selected < start)
-                start -= 8;
+                start -= 6;
         }
         else if(down & KEY_UP)
         {
-            selected -= 8;
+            selected -= 6;
             if(selected < 0)
                 selected = 0;
 
-            if(selected - start >= 32)
-                start -= 8;
+            if(selected - start >= 18)
+                start -= 6;
         }
         else if(down & KEY_DOWN)
         {
-            selected += 8;
+            selected += 6;
             if(selected > (int)data::users.size() - 1)
                 selected = data::users.size() - 1;
 
-            if(selected - start >= 32)
-                start += 8;
+            if(selected - start >= 18)
+                start += 6;
         }
         else if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
@@ -146,7 +146,7 @@ namespace ui
             //Reset this
             start = 0;
             selected = 0;
-            selRectX = 64, selRectY = 90;
+            selRectX = 86, selRectY = 91;
             mstate = TTL_SEL;
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)

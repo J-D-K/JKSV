@@ -24,7 +24,7 @@ static void drawBoundBox(int x, int y, int w, int h, int clrSh)
 
     //mid
     drawRect(frameBuffer, x - 5, y + 3, 5, h - 7, rectClr);
-    drawRect(frameBuffer, x, y, w - 10, 70, clrCreateU32(0xFFFCFCFC));
+    drawRect(frameBuffer, x, y, w - 10, 70, ui::boundClr);
     drawRect(frameBuffer, (x + w) - 10, y + 3, 5, h - 7, rectClr);
 
     //bottom
@@ -218,14 +218,14 @@ namespace ui
         {
 			//Don't draw separator on top and bottom of selected item
 			if(i - 1 != selected && i != selected && separate)
-			    drawRect(frameBuffer, x, y - 1 + ((i - start) * 71), rW - 10, 1, clrCreateU32(0xFFCDCDCD));
+			    drawRect(frameBuffer, x, y - 1 + ((i - start) * 71), rW - 10, 1, ui::sepClr);
             if(i == selected)
                 drawBoundBox(x, y + ((i - start) * 71), rW, 71, clrSh);
 
             drawText(opt[i].c_str(), frameBuffer, shared, x + 16, (y + 26) + ((i - start) * 71), 19, textClr);
 
 			if(i != selected && separate)
-			    drawRect(frameBuffer, x, y - 1 + ((i - start +1) * 71), rW - 10, 1, clrCreateU32(0xFFCDCDCD));
+			    drawRect(frameBuffer, x, y - 1 + ((i - start +1) * 71), rW - 10, 1, ui::sepClr);
         }
     }
 

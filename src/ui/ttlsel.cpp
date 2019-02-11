@@ -24,7 +24,7 @@ namespace ui
         static bool clrAdd = true;
 
         //Selected rectangle X and Y.
-        static unsigned selRectX = 64, selRectY = 92;
+        static unsigned selRectX = 86, selRectY = 91;
 
         static ui::touchTrack track;
 
@@ -50,7 +50,6 @@ namespace ui
         texSwapColors(ui::selBox, clrPrev, clrUpdt);
 
         unsigned x = 93, y = 98;
-
         unsigned endTitle = start + 18;
         if(start + 18 > (int)data::curUser.titles.size())
             endTitle = data::curUser.titles.size();
@@ -196,8 +195,8 @@ namespace ui
         {
             start = 0;
             selected = 0;
-            selRectX = 64;
-            selRectY = 90;
+            selRectX = 86;
+            selRectY = 91;
             mstate = USR_SEL;
             return;
         }

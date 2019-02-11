@@ -1,3 +1,7 @@
 build/
 *.cbp
 *.layout
+JKSV.elf
+JKSV.nacp
+JKSV.nso
+JKSV.pfs0

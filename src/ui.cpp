@@ -35,7 +35,7 @@ namespace ui
     std::vector<ui::button> selButtons;
 
     //UI colors
-    clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect, divClr;
+    clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect, divClr, sepClr, boundClr;
 
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
@@ -80,6 +80,8 @@ namespace ui
                 tboxClr = clrCreateU32(0xF0FFFFFF);
                 sideRect = clrCreateU32(0xFFDCDCDC);
                 divClr = clrCreateU32(0xFF2D2D2D);
+				sepClr = clrCreateU32(0xFFCDCDCD);
+				boundClr = clrCreateU32(0xFFFCFCFC);
                 break;
 
             default:
@@ -109,6 +111,8 @@ namespace ui
                 tboxClr = clrCreateU32(0xF04F4F4F);
                 sideRect = clrCreateU32(0xFF373737);
                 divClr = clrCreateU32(0xFFFFFFFF);
+				sepClr = clrCreateU32(0xFFCDCDCD);
+				boundClr = clrCreateU32(0xFF27221F);
                 break;
         }
 
@@ -177,7 +181,7 @@ namespace ui
 
     void setupSelButtons()
     {
-        int x = 70, y = 98;
+        int x = 93, y = 98;
         for(int i = 0; i < 18; y += 184)
         {
             int endRow = i + 8;
