@@ -7,6 +7,7 @@
 #include "uiupdate.h"
 #include "file.h"
 #include "util.h"
+#include "ex.h"
 
 extern std::vector<ui::button> ttlNav;
 

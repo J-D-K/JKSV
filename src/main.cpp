@@ -19,9 +19,6 @@ extern "C"
         nsInitialize();
         setsysInitialize();
         accountInitialize();
-
-        void *add = NULL;
-        svcSetHeapSize(&add, 0x12000000);
     }
 
     void userAppExit(void)

@@ -9,6 +9,7 @@
 #include "data.h"
 #include "file.h"
 #include "util.h"
+#include "ex.h"
 
 static ui::menu userMenu, titleMenu, devMenu;
 extern ui::menu folderMenu;
@@ -253,6 +254,7 @@ namespace ui
         devMenu.addOpt("Remove Downloaded Update");
         devMenu.addOpt("Terminate Process ID");
         devMenu.addOpt("Mount System Save ID");
+        devMenu.addOpt("Mount Process RomFS");
     }
 
     void updateExMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -467,6 +469,21 @@ namespace ui
                         }
                     }
                     break;
+
+                case 10:
+                    {
+                        fsdevUnmountDevice("sv");
+                        FsFileSystem tromfs;
+                        Result res = fsOpenDataFileSystemByCurrentProcess(&tromfs);
+                        if(R_SUCCEEDED(res))
+                        {
+                            fsdevMountDevice("tromfs", tromfs);
+                            advModePrep("tromfs:/", false);
+                            data::curData.setType(FsSaveDataType_SystemSaveData);
+                            ui::mstate = ADV_MDE;
+                            ui::prevState = EX_MNU;
+                        }
+                    }
             }
         }
         else if(down & KEY_B)
