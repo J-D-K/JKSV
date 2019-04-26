@@ -43,8 +43,7 @@ namespace ui
     //Button tex
     extern tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
     //Textbox graphics
-    extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight,\
-    *horEdgeTop, *horEdgeBot, *vertEdgeLeft, *vertEdgeRight;
+    extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
     //Selection box
     extern tex *selBox;
 

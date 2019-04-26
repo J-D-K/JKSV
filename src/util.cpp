@@ -18,31 +18,6 @@ typedef enum
     SwkbdPosEnd   = 1
 } SwkbdInitPos;
 
-void swkbdConfigSetMaxLength(SwkbdConfig *c, unsigned int maxLength)
-{
-    c->arg.arg.stringLenMax = maxLength;
-}
-
-void swkbdConfigSetType(SwkbdConfig *c, SwkbdType type)
-{
-    c->arg.arg.type = type;
-}
-
-void swkbdConfigSetInitialPos(SwkbdConfig *c, SwkbdInitPos pos)
-{
-    c->arg.arg.initialCursorPos = pos;
-}
-
-void swkbdConfigSetDisableBitmask(SwkbdConfig *c, uint32_t bits)
-{
-    c->arg.arg.keySetDisableBitmask = bits;
-}
-
-void swkbdConfigBlurBackground(SwkbdConfig *c, bool blur)
-{
-    c->arg.arg.blurBackground = blur;
-}
-
 typedef struct
 {
     uint16_t read[0x32 / sizeof(uint16_t)];
@@ -207,14 +182,14 @@ namespace util
     {
         SwkbdConfig swkbd;
         swkbdCreate(&swkbd, dictCnt);
-        swkbdConfigBlurBackground(&swkbd, true);
+        swkbdConfigSetBlurBackground(&swkbd, true);
         swkbdConfigSetInitialText(&swkbd, def.c_str());
         swkbdConfigSetHeaderText(&swkbd, head.c_str());
         swkbdConfigSetGuideText(&swkbd, head.c_str());
-        swkbdConfigSetInitialPos(&swkbd, SwkbdPosEnd);
+        swkbdConfigSetInitialCursorPos(&swkbd, SwkbdPosEnd);
         swkbdConfigSetType(&swkbd, SwkbdType_QWERTY);
-        swkbdConfigSetMaxLength(&swkbd, maxLength);
-        swkbdConfigSetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Percent);
+        swkbdConfigSetStringLenMax(&swkbd, maxLength);
+        swkbdConfigSetKeySetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Percent);
 
         if(dictCnt > 0)
         {

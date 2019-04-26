@@ -11,14 +11,13 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.18.2019"
-
-//background that can be drawn from "/JKSV/back.jpg"
-//txtSide and fldSide are to fake alpha blending so the framerate doesn't suffer
-static tex *background = NULL, *txtSide = NULL, *fldSide = NULL;
+#define VER_STRING "v. 04.26.2019"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
+
+//Don't waste time drawing top and bottom over and over
+static tex *top, *bot;
 
 namespace ui
 {
@@ -41,16 +40,22 @@ namespace ui
     //I was going to flip them when I draw them, but then laziness kicked in.
     tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
 
+    //Button GFX
     tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
 
+    //Select box + top left icon
     tex *selBox, *icn;
 
+    //Shared font
     font *shared;
 
     void init()
     {
         ColorSetId gthm;
         setsysGetColorSetId(&gthm);
+
+        top = texCreate(1280, 88);
+        bot = texCreate(1280, 72);
 
         switch(gthm)
         {
@@ -107,10 +112,7 @@ namespace ui
                 break;
         }
 
-        if(fs::fileExists(fs::getWorkDir() + "font.ttf"))
-            shared = fontLoadTTF(std::string(fs::getWorkDir() + "font.ttf").c_str());
-        else
-            shared = fontLoadSharedFonts();
+        shared = fontLoadSharedFonts();
 
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
@@ -124,19 +126,20 @@ namespace ui
 
         selBox = texLoadPNGFile("romfs:/img/icn/icnSelBox.png");
 
-        if(fs::fileExists(fs::getWorkDir() + "back.jpg"))
-        {
-            background = texLoadJPEGFile(std::string(fs::getWorkDir() + "back.jpg").c_str());
-            //Fake alpha Rects
-            fldSide = texCreateFromPart(background, 30, 88, 320, 560);
-            clr tempRect = sideRect;
-            tempRect.a = 0xAA;
-            drawRectAlpha(fldSide, 0, 0, 320, 560, tempRect);
-
-            txtSide = texCreateFromPart(background, 30, 88, 448, 560);
-            drawRectAlpha(txtSide, 0, 0, 448, 560, tempRect);
-        }
         menuPrepGfx();
+
+        //Setup top and bottom gfx
+        texClearColor(top, clearClr);
+        texDraw(icn, top, 66, 27);
+        drawText("JKSV", top, shared, 130, 38, 24, mnuTxt);
+        drawRect(top, 30, 87, 1220, 1, mnuTxt);
+
+        texClearColor(bot, clearClr);
+        drawRect(bot, 30, 0, 1220, 1, mnuTxt);
+        drawText(VER_STRING, bot, shared, 8, 56, 12, mnuTxt);
+
+        //Not needed anymore
+        texDestroy(icn);
 
         advCopyMenuPrep();
     }
@@ -157,13 +160,6 @@ namespace ui
         texDestroy(selBox);
 
         menuDestGfx();
-
-        if(background != NULL)
-            texDestroy(background);
-        if(fldSide != NULL)
-            texDestroy(fldSide);
-        if(txtSide != NULL)
-            texDestroy(txtSide);
 
         fontDestroy(shared);
     }
@@ -221,24 +217,14 @@ namespace ui
 
     void drawUI()
     {
-        if(background == NULL)
-            texClearColor(frameBuffer, clearClr);
-        else
-            texDrawNoAlpha(background, frameBuffer, 0, 0);
-
-        texDraw(icn, frameBuffer, 66, 27);
-        drawText("JKSV", frameBuffer, shared, 130, 38, 24, mnuTxt);
-        drawText(VER_STRING, frameBuffer, shared, 8, 702, 12, mnuTxt);
-        drawRect(frameBuffer, 30, 87, 1220, 1, divClr);
-        drawRect(frameBuffer, 30, 648, 1220, 1, divClr);
+        texClearColor(frameBuffer, clearClr);
+        texDrawNoAlpha(top, frameBuffer, 0, 0);
+        texDrawNoAlpha(bot, frameBuffer, 0, 648);
 
         switch(mstate)
         {
             case FLD_SEL:
-                if(fldSide == NULL)
-                    drawRect(frameBuffer, 30, 88, 320, 560, sideRect);
-                else
-                    texDraw(fldSide, frameBuffer, 30, 88);
+                drawRect(frameBuffer, 30, 88, 320, 560, sideRect);
                 break;
 
             case ADV_MDE:
@@ -249,10 +235,7 @@ namespace ui
             case CLS_USR:
             case CLS_FLD:
             case EX_MNU:
-                if(txtSide == NULL)
-                    drawRect(frameBuffer, 30, 88, 448, 560, sideRect);
-                else
-                    texDraw(txtSide, frameBuffer, 30, 88);
+                drawRect(frameBuffer, 30, 88, 448, 560, sideRect);
                 break;
         }
 
@@ -301,7 +284,7 @@ namespace ui
                     drawText("Adv. Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     texDraw(buttonA, frameBuffer, startX += 100, 672);
                     drawText("Backup", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonY, frameBuffer, startX += 72, 672);
+                    texDraw(buttonY, frameBuffer, startX += 72, 672);//Setup top and bottom gfx
                     drawText("Restore", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
                     texDraw(buttonX, frameBuffer, startX += 72, 672);
                     drawText("Delete", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
