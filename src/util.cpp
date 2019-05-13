@@ -39,6 +39,18 @@ void swkbdDictWordCreate(dictWord *w, const char *read, const char *word)
     memcpy(w->word, tmp, 0x30);
 }
 
+uint32_t replaceIfAccent(uint32_t c)
+{
+    switch(c)
+    {
+        case 'é':
+            return 'e';
+            break;
+    }
+
+    return c;
+}
+
 namespace util
 {
     std::string getDateTime(int fmt)
@@ -120,6 +132,8 @@ namespace util
             ssize_t untCnt = decode_utf8(&tmpChr, (uint8_t *)&s.data()[i]);
 
             i += untCnt;
+
+            tmpChr = replaceIfAccent(tmpChr);
 
             if(isVerboten(tmpChr))
             {
