@@ -58,24 +58,15 @@ namespace fs
     {
         FsFileSystem sv;
 
-        if(open.getType() == FsSaveDataType_SaveData)
-        {
-            if(R_FAILED(fsMount_SaveData(&sv, open.getID(), usr.getUID())))
-               return false;
+        if(open.getType() == FsSaveDataType_SaveData && R_FAILED(fsMount_SaveData(&sv, open.getID(), usr.getUID())))
+            return false;
+        else if(open.getType() == FsSaveDataType_SystemSaveData && R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
+            return false;
+        else if(open.getType() == FsSaveDataType_BcatDeliveryCacheStorage && R_FAILED(fsMountBCAT(&sv, open.getID())))
+            return false;
 
-            if(fsdevMountDevice("sv", sv) == -1)
-                return false;
-        }
-        else if(data::sysSave)
-        {
-            if(open.getType() == FsSaveDataType_SystemSaveData && R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
-                return false;
-            else if(open.getType() == FsSaveDataType_BcatDeliveryCacheStorage && R_FAILED(fsMountBCAT(&sv, open.getID())))
-                return false;
-
-            if(fsdevMountDevice("sv", sv) == -1)
-                return false;
-        }
+        if(fsdevMountDevice("sv", sv) == -1)
+            return false;
 
         return true;
     }

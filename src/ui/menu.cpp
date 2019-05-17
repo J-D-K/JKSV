@@ -225,6 +225,8 @@ namespace ui
     void menu::reset()
     {
         opt.clear();
+        start = 0;
+        selected = 0;
 
         fc = 0;
     }

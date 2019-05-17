@@ -4,6 +4,7 @@
 #include "data.h"
 #include "ui.h"
 #include "file.h"
+#include "gfx.h"
 
 namespace util
 {
@@ -39,5 +40,8 @@ namespace util
     std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 
     std::string generateAbbrev(data::titledata& dat);
+
+    //Creates a basic generic icon for stuff without one
+    tex *createIconGeneric(const char *txt);
 }
 #endif // UTIL_H

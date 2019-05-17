@@ -1,4 +1,5 @@
 #include <string>
+#include <fstream>
 #include <cstdio>
 #include <ctime>
 #include <sys/stat.h>
@@ -216,7 +217,11 @@ namespace util
 
         char out[maxLength];
         memset(out, 0, maxLength);
-        swkbdShow(&swkbd, out, maxLength);
+        if(R_FAILED(swkbdShow(&swkbd, out, maxLength)))
+        {
+            ui::showMessage("Keyboard failed to open. Please use a different title for the homebrew menu.", "KB Failed");
+            return "";
+        }
         swkbdClose(&swkbd);
 
         return std::string(out);
@@ -238,6 +243,15 @@ namespace util
             tok = strtok(NULL, " ");
         }
 
+        return ret;
+    }
+
+    tex *createIconGeneric(const char *txt)
+    {
+        tex *ret = texCreate(256, 256);
+        texClearColor(ret, ui::rectLt);
+        unsigned int x = 128 - (textGetWidth(txt, ui::shared, 32) / 2);
+        drawText(txt, ret, ui::shared, x, 112, 32, ui::mnuTxt);
         return ret;
     }
 }

@@ -72,41 +72,39 @@ void performCopyMenuOps()
                         break;
 
                     case 1:
-                        if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+                        if(sdMenu.getSelected() == 0)
                         {
-                            if(sdMenu.getSelected() == 0)
-                            {
-                                if(ui::confirmTransfer(sdPath, savePath))
-                                    commit ? fs::copyDirToDirCommit(sdPath, savePath, dev) : fs::copyDirToDir(sdPath, savePath);
-                            }
-                            else if(sdMenu.getSelected() > 1)
-                            {
-                                //Same as above, but reverse
-                                int sdSel = sdMenu.getSelected() - 2;
-                                if(sdList.isDir(sdSel))
-                                {
-                                    std::string fromPath = sdPath + sdList.getItem(sdSel) + "/";
-
-                                    std::string toPath = savePath + sdList.getItem(sdSel);
-
-                                    if(ui::confirmTransfer(fromPath, toPath))
-                                    {
-                                        mkdir(toPath.c_str(), 777);
-                                        toPath += "/";
-
-                                        commit ? fs::copyDirToDirCommit(fromPath, toPath, dev) : fs::copyDirToDir(fromPath, toPath);
-                                    }
-                                }
-                                else
-                                {
-                                    std::string fromPath = sdPath + sdList.getItem(sdSel);
-                                    std::string toPath = savePath + sdList.getItem(sdSel);
-                                    if(ui::confirmTransfer(fromPath, toPath))
-                                        commit ? fs::copyFileCommit(fromPath, toPath, dev) : fs::copyFile(fromPath, toPath);
-                                }
-                            }
-                            break;
+                            if(ui::confirmTransfer(sdPath, savePath))
+                                commit ? fs::copyDirToDirCommit(sdPath, savePath, dev) : fs::copyDirToDir(sdPath, savePath);
                         }
+                        else if(sdMenu.getSelected() > 1)
+                        {
+                            //Same as above, but reverse
+                            int sdSel = sdMenu.getSelected() - 2;
+                            if(sdList.isDir(sdSel))
+                            {
+                                std::string fromPath = sdPath + sdList.getItem(sdSel) + "/";
+
+                                std::string toPath = savePath + sdList.getItem(sdSel);
+
+                                if(ui::confirmTransfer(fromPath, toPath))
+                                {
+                                    mkdir(toPath.c_str(), 777);
+                                    toPath += "/";
+
+                                    commit ? fs::copyDirToDirCommit(fromPath, toPath, dev) : fs::copyDirToDir(fromPath, toPath);
+                                }
+                            }
+                            else
+                            {
+                                std::string fromPath = sdPath + sdList.getItem(sdSel);
+                                std::string toPath = savePath + sdList.getItem(sdSel);
+                                if(ui::confirmTransfer(fromPath, toPath))
+                                    commit ? fs::copyFileCommit(fromPath, toPath, dev) : fs::copyFile(fromPath, toPath);
+                            }
+                        }
+                        break;
+
                 }
             }
             break;
@@ -143,7 +141,10 @@ void performCopyMenuOps()
                                     if(ui::confirmDelete(delPath))
                                         std::remove(delPath.c_str());
                                 }
-                                if(commit){ fsdevCommitDevice(dev.c_str()); };
+                                if(commit)
+                                {
+                                    fsdevCommitDevice(dev.c_str());
+                                };
                             }
                         }
                         break;
@@ -183,22 +184,23 @@ void performCopyMenuOps()
                 //save
                 case 0:
                     {
-                        if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+                        if(saveMenu.getSelected() > 1)
                         {
-                            if(saveMenu.getSelected() > 1)
+                            int selSave = saveMenu.getSelected() - 2;
+                            std::string newName = util::getStringInput(saveList.getItem(selSave), "Rename", 256, 0, NULL);
+                            if(!newName.empty())
                             {
-                                int selSave = saveMenu.getSelected() - 2;
-                                std::string newName = util::getStringInput(saveList.getItem(selSave), "Rename", 256, 0, NULL);
-                                if(!newName.empty())
-                                {
-                                    std::string b4Path = savePath + saveList.getItem(selSave);
-                                    std::string newPath = savePath + newName;
+                                std::string b4Path = savePath + saveList.getItem(selSave);
+                                std::string newPath = savePath + newName;
 
-                                    std::rename(b4Path.c_str(), newPath.c_str());
-                                    if(commit){ fsdevCommitDevice(dev.c_str()); }
+                                std::rename(b4Path.c_str(), newPath.c_str());
+                                if(commit)
+                                {
+                                    fsdevCommitDevice(dev.c_str());
                                 }
                             }
                         }
+
                     }
                     break;
 
@@ -230,14 +232,14 @@ void performCopyMenuOps()
                     //save
                     case 0:
                         {
-                            if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+                            std::string newFolder = util::getStringInput("", "New Folder", 256, 0, NULL);
+                            if(!newFolder.empty())
                             {
-                                std::string newFolder = util::getStringInput("", "New Folder", 256, 0, NULL);
-                                if(!newFolder.empty())
+                                std::string folderPath = savePath + newFolder;
+                                mkdir(folderPath.c_str(), 777);
+                                if(commit)
                                 {
-                                    std::string folderPath = savePath + newFolder;
-                                    mkdir(folderPath.c_str(), 777);
-                                    if(commit){ fsdevCommitDevice(dev.c_str()); }
+                                    fsdevCommitDevice(dev.c_str());
                                 }
                             }
                         }

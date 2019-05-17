@@ -10,7 +10,7 @@
 
 namespace data
 {
-    extern bool sysSave, forceMount;
+    extern bool forceMount;
 
     //Loads user + title info
     void loadDataInfo();
@@ -25,6 +25,8 @@ namespace data
             void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
             //For loading default icon
             void load(const uint64_t & _id, const std::string& _png);
+            //Creates a generic icon for stuff with no icon
+            void create(const uint64_t& _id, const std::string& _txt);
 
             void draw(unsigned x, unsigned y) { texDrawNoAlpha(iconTex, frameBuffer, x, y); }
             void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, frameBuffer, x, y); }
@@ -78,7 +80,10 @@ namespace data
             bool init(const u128& _id);
 
             //Allows user to init without reading data. For fun.
-            bool initNoChk(const u128& _id);
+            bool initNoChk(const u128& _id, const std::string& _backupName);
+
+            //Sets ID
+            void setUID(const u128& _id){ userID = _id; }
 
             //Returns user ID
             u128 getUID() { return userID; }
@@ -98,7 +103,7 @@ namespace data
             u128 userID;
             std::string username, userSafe;
             //User icon
-            tex *userIcon;
+            tex* userIcon;
     };
     //Adds title to blacklist
     void blacklistAdd(user& u, titledata& t);

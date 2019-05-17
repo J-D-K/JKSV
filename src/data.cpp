@@ -63,7 +63,7 @@ namespace data
     user      curUser;
     std::vector<icn> icons;
     std::vector<user> users;
-    bool sysSave = false, forceMount = true;
+    bool forceMount = true;
 
     void loadDataInfo()
     {
@@ -75,10 +75,6 @@ namespace data
 
         loadBlacklist();
 
-        icn defIcon;
-        defIcon.load(0, "romfs:/img/icn/icnDefault.png");
-        icons.push_back(defIcon);
-
         FsSaveDataIterator saveIt;
         size_t total = 0;
         FsSaveDataInfo info;
@@ -89,21 +85,37 @@ namespace data
             return;
         }
 
+        //Push System and BCAT user
+        user sys;
+        sys.initNoChk(1, "System");
+        user bcat;
+        bcat.initNoChk(2, "BCAT");
+
+        users.push_back(sys);
+        users.push_back(bcat);
+
         while(true)
         {
             if(R_FAILED(fsSaveDataIteratorRead(&saveIt, &info, 1, &total)) || total == 0)
                 break;
 
+            //For getting sorted/assigned correctly
+            if(info.SaveDataType == FsSaveDataType_SystemSaveData)
+                info.userID = 1;
+            else if(info.SaveDataType == FsSaveDataType_BcatDeliveryCacheStorage)
+                info.userID = 2;
+
             //If save data, not black listed or just ignore
-            if((info.SaveDataType == FsSaveDataType_SaveData && !blacklisted(info.titleID)) || sysSave)
+            if(!blacklisted(info.titleID))
             {
                 int u = getUserIndex(info.userID);
                 if(u == -1)
                 {
                     user newUser;
-                    if(newUser.init(info.userID) || (sysSave && newUser.initNoChk(info.userID)))
+                    if(newUser.init(info.userID))
                     {
-                        users.push_back(newUser);
+                        //Always insert new users to beginning
+                        users.insert(users.begin(), newUser);
 
                         u = getUserIndex(info.userID);
                         titledata newData;
@@ -149,6 +161,21 @@ namespace data
     {
         titleID = _id;
         iconTex = texLoadPNGFile(_png.c_str());
+    }
+
+    void icn::create(const uint64_t& _id, const std::string& _txt)
+    {
+        titleID = _id;
+
+        if(_txt.empty())
+        {
+            //use last 4 bytes of ID
+            char tmp[10];
+            sprintf(tmp, "%08X", (unsigned int)(_id & 0xFFFFFFFF));
+            iconTex = util::createIconGeneric(tmp);
+        }
+        else
+            iconTex = util::createIconGeneric(_txt.c_str());
     }
 
     int findIcnIndex(const uint64_t& titleID)
@@ -208,7 +235,7 @@ namespace data
             sprintf(tmp, "%016lX", id);
             title.assign(tmp);
             titleSafe.assign(tmp);
-            icon = icons[0];
+            icon.create(id, "");
         }
         delete dat;
     }
@@ -216,7 +243,7 @@ namespace data
     bool titledata::isMountable(const u128& uID)
     {
         data::user tmpUser;
-        tmpUser.initNoChk(uID);
+        tmpUser.setUID(uID);
         if(fs::mountSave(tmpUser, *this))
         {
             fsdevUnmountDevice("sv");
@@ -257,26 +284,16 @@ namespace data
         return true;
     }
 
-    bool user::initNoChk(const u128& _id)
+    bool user::initNoChk(const u128& _id, const std::string& _backupName)
     {
         userID = _id;
 
-        AccountProfile prof;
-        AccountProfileBase base;
+        username = _backupName;
+        userSafe = util::safeString(_backupName);
 
-        if(R_SUCCEEDED(accountGetProfile(&prof, userID)) && R_SUCCEEDED(accountProfileGet(&prof, NULL, &base)))
-        {
-            username.assign(base.username);
-            userSafe = util::safeString(username);
-            accountProfileClose(&prof);
-        }
-        else
-        {
-            username = "Unknown";
-            userSafe = "Unknown";
-            //This shouldn't happen too much
-            userIcon = texLoadPNGFile("romfs:/img/icn/icnDefault.png");
-        }
+        //create generic icon
+        userIcon = util::createIconGeneric(_backupName.c_str());
+        //userIcon = texLoadPNGFile("romfs:/img/icn/icnDefault.png");
 
         return true;
     }
