@@ -24,7 +24,7 @@ Result fsMountBCAT(FsFileSystem *out, uint64_t id)
     std::memset(&sv, 0, sizeof(FsSave));
 
     sv.titleID = id;
-    sv.SaveDataType = FsSaveDataType_BcatDeliveryCacheStorage;
+    sv.saveDataType = FsSaveDataType_BcatDeliveryCacheStorage;
 
     return fsMountSaveData(out, FsSaveDataSpaceId_NandUser, &sv);
 }

@@ -277,7 +277,7 @@ namespace ui
 
                 case 1:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 28, "");
+                    fsOpenBisFileSystem(&sv, FsBisStorageId_CalibrationFile, "");
                     fsdevMountDevice("prodInfo-f", sv);
 
                     advModePrep("profInfo-f:/", false);
@@ -287,7 +287,7 @@ namespace ui
 
                 case 2:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 29, "");
+                    fsOpenBisFileSystem(&sv, FsBisStorageId_SafeMode, "");
                     fsdevMountDevice("safe", sv);
 
                     advModePrep("safe:/", false);
@@ -297,7 +297,7 @@ namespace ui
 
                 case 3:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 31, "");
+                    fsOpenBisFileSystem(&sv, FsBisStorageId_System, "");
                     fsdevMountDevice("sys", sv);
 
                     advModePrep("sys:/", false);
@@ -307,7 +307,7 @@ namespace ui
 
                 case 4:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, 30, "");
+                    fsOpenBisFileSystem(&sv, FsBisStorageId_User, "");
                     fsdevMountDevice("user", sv);
 
                     advModePrep("user:/", false);
@@ -320,7 +320,7 @@ namespace ui
                         fsdevUnmountDevice("sv");
 
                         FsStorage nand;
-                        fsOpenBisStorage(&nand, 20);
+                        fsOpenBisStorage(&nand, FsBisStorageId_UserDataRoot);
                         uint64_t nandSize = 0, offset = 0;
                         fsStorageGetSize(&nand, &nandSize);
 
@@ -367,7 +367,7 @@ namespace ui
                         fsdevUnmountDevice("sv");
 
                         FsStorage nand;
-                        fsOpenBisStorage(&nand, 20);
+                        fsOpenBisStorage(&nand, FsBisStorageId_UserDataRoot);
                         uint64_t nandSize = 0, offset = 0;
                         fsStorageGetSize(&nand, &nandSize);
 
@@ -419,7 +419,7 @@ namespace ui
                 case 7:
                     {
                         fsdevUnmountDevice("sv");
-                        fsOpenBisFileSystem(&sv, 31, "");
+                        fsOpenBisFileSystem(&sv, FsBisStorageId_System, "");
                         fsdevMountDevice("sv", sv);
                         std::string delPath = "sv:/Contents/placehld/";
 

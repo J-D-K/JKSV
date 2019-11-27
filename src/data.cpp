@@ -100,9 +100,9 @@ namespace data
                 break;
 
             //For getting sorted/assigned correctly
-            if(info.SaveDataType == FsSaveDataType_SystemSaveData)
+            if(info.saveDataType== FsSaveDataType_SystemSaveData)
                 info.userID = 1;
-            else if(info.SaveDataType == FsSaveDataType_BcatDeliveryCacheStorage)
+            else if(info.saveDataType== FsSaveDataType_BcatDeliveryCacheStorage)
                 info.userID = 2;
 
             //If save data, not black listed or just ignore
@@ -195,13 +195,13 @@ namespace data
         std::memset(dat, 0, sizeof(NsApplicationControlData));
         NacpLanguageEntry *ent = NULL;
 
-        if(inf.SaveDataType == FsSaveDataType_SaveData)
+        if(inf.saveDataType== FsSaveDataType_SaveData)
             id = inf.titleID;
-        else if(inf.SaveDataType == FsSaveDataType_SystemSaveData)
+        else if(inf.saveDataType== FsSaveDataType_SystemSaveData)
             id = inf.saveID;
 
         uID = inf.userID;
-        type = (FsSaveDataType)inf.SaveDataType;
+        type = (FsSaveDataType)inf.saveDataType;
         size_t outSz = 0;
 
         if(R_SUCCEEDED(nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
