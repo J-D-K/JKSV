@@ -29,6 +29,17 @@ Result fsMountBCAT(FsFileSystem *out, uint64_t id)
     return fsMountSaveData(out, FsSaveDataSpaceId_NandUser, &sv);
 }
 
+Result fsMountDeviceSave(FsFileSystem *out, uint64_t id)
+{
+    FsSave sv;
+    std::memset(&sv, 0, sizeof(FsSave));
+
+    sv.titleID = id;
+    sv.saveDataType = FsSaveDataType_DeviceSaveData;
+
+    return fsMountSaveData(out, FsSaveDataSpaceId_NandUser, &sv);
+}
+
 static struct
 {
     bool operator()(fs::dirItem& a, fs::dirItem& b)
@@ -63,6 +74,8 @@ namespace fs
         else if(open.getType() == FsSaveDataType_SystemSaveData && R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
             return false;
         else if(open.getType() == FsSaveDataType_BcatDeliveryCacheStorage && R_FAILED(fsMountBCAT(&sv, open.getID())))
+            return false;
+        else if(open.getType() == FsSaveDataType_DeviceSaveData && R_FAILED(fsMountDeviceSave(&sv, open.getID())))
             return false;
 
         if(fsdevMountDevice("sv", sv) == -1)

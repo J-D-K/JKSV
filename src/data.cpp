@@ -86,24 +86,34 @@ namespace data
         }
 
         //Push System and BCAT user
-        user sys;
+        user sys, bcat, dev;
         sys.initNoChk(1, "System");
-        user bcat;
         bcat.initNoChk(2, "BCAT");
+        dev.initNoChk(3, "Dev. Sv");
 
         users.push_back(sys);
         users.push_back(bcat);
+        users.push_back(dev);
 
         while(true)
         {
             if(R_FAILED(fsSaveDataIteratorRead(&saveIt, &info, 1, &total)) || total == 0)
                 break;
 
-            //For getting sorted/assigned correctly
-            if(info.saveDataType== FsSaveDataType_SystemSaveData)
-                info.userID = 1;
-            else if(info.saveDataType== FsSaveDataType_BcatDeliveryCacheStorage)
-                info.userID = 2;
+            switch(info.saveDataType)
+            {
+                case FsSaveDataType_SystemSaveData:
+                    info.userID = 1;
+                    break;
+
+                case FsSaveDataType_BcatDeliveryCacheStorage:
+                    info.userID = 2;
+                    break;
+
+                case FsSaveDataType_DeviceSaveData:
+                    info.userID = 3;
+                    break;
+            }
 
             //If save data, not black listed or just ignore
             if(!blacklisted(info.titleID))
