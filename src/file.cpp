@@ -35,9 +35,9 @@ Result fsMountDeviceSave(FsFileSystem *out, uint64_t id)
     std::memset(&sv, 0, sizeof(FsSave));
 
     sv.titleID = id;
-    sv.saveDataType = FsSaveDataType_DeviceSaveData;
+    sv.saveDataType = FsSaveDataType_Device;
 
-    return fsMountSaveData(out, FsSaveDataSpaceId_NandUser, &sv);
+    return fsdevMountSaveData(out, FsSaveDataSpaceId_User, &sv);
 }
 
 static struct
@@ -69,13 +69,13 @@ namespace fs
     {
         FsFileSystem sv;
 
-        if(open.getType() == FsSaveDataType_SaveData && R_FAILED(fsMount_SaveData(&sv, open.getID(), usr.getUID())))
+        if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsMount_SaveData(&sv, open.getID(), usr.getUID())))
             return false;
-        else if(open.getType() == FsSaveDataType_SystemSaveData && R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
+        else if(open.getType() == FsSaveDataType_SystemBcat && R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
             return false;
         else if(open.getType() == FsSaveDataType_BcatDeliveryCacheStorage && R_FAILED(fsMountBCAT(&sv, open.getID())))
             return false;
-        else if(open.getType() == FsSaveDataType_DeviceSaveData && R_FAILED(fsMountDeviceSave(&sv, open.getID())))
+        else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsMountDeviceSave(&sv, open.getID())))
             return false;
 
         if(fsdevMountDevice("sv", sv) == -1)

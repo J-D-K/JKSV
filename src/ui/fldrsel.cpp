@@ -99,7 +99,7 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(data::curData.getType() != FsSaveDataType_SystemSaveData && folderMenu.getSelected() > 0)
+            if(data::curData.getType() != FsSaveDataType_SystemBcat && folderMenu.getSelected() > 0)
             {
                 std::string scanPath = util::getTitleDir(data::curUser, data::curData);
                 fs::dirList list(scanPath);

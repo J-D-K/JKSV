@@ -188,7 +188,7 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+            if(data::curData.getType() != FsSaveDataType_SystemBcat)
             {
                 if(folderMenu.getSelected() > 0)
                 {
@@ -264,11 +264,11 @@ namespace ui
         if(down & KEY_A)
         {
             FsFileSystem sv;
-            data::curData.setType(FsSaveDataType_SystemSaveData);
+            data::curData.setType(FsSaveDataType_SystemBcat);
             switch(devMenu.getSelected())
             {
                 case 0:
-                    data::curData.setType(FsSaveDataType_SaveData);
+                    data::curData.setType(FsSaveDataType_Bcat);
                     fsdevUnmountDevice("sv");
                     advModePrep("sdmc:/", false);
                     mstate = ADV_MDE;
@@ -463,7 +463,7 @@ namespace ui
                         {
                             fsdevMountDevice("sv", sv);
                             advModePrep("sv:/", true);
-                            data::curData.setType(FsSaveDataType_SystemSaveData);
+                            data::curData.setType(FsSaveDataType_SystemBcat);
                             prevState = EX_MNU;
                             mstate = ADV_MDE;
                         }
@@ -479,7 +479,7 @@ namespace ui
                         {
                             fsdevMountDevice("tromfs", tromfs);
                             advModePrep("tromfs:/", false);
-                            data::curData.setType(FsSaveDataType_SystemSaveData);
+                            data::curData.setType(FsSaveDataType_SystemBcat);
                             ui::mstate = ADV_MDE;
                             ui::prevState = EX_MNU;
                         }

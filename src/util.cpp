@@ -163,11 +163,11 @@ namespace util
 
         switch(d.getType())
         {
-            case FsSaveDataType_SystemSaveData:
+            case FsSaveDataType_SystemBcat:
                 ret += "System Save\n\n";
                 break;
 
-            case FsSaveDataType_SaveData:
+            case FsSaveDataType_Bcat:
                 ret += "Save Data\n\n";
                 break;
 
@@ -175,15 +175,15 @@ namespace util
                 ret += "Bcat Delivery Cache\n\n";
                 break;
 
-            case FsSaveDataType_DeviceSaveData:
+            case FsSaveDataType_Device:
                 ret += "Device Save\n\n";
                 break;
 
-            case FsSaveDataType_TemporaryStorage:
+            case FsSaveDataType_Temporary:
                 ret = "Temp Storage\n\n";
                 break;
 
-            case FsSaveDataType_CacheStorage:
+            case FsSaveDataType_Cache:
                 ret+= "Cache Storage\n\n";
                 break;
         }

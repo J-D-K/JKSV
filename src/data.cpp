@@ -102,11 +102,11 @@ namespace data
 
             switch(info.saveDataType)
             {
-                case FsSaveDataType_SystemSaveData:
+                case FsSaveDataType_SystemBcat:
                     info.userID = 1;
                     break;
 
-                case FsSaveDataType_BcatDeliveryCacheStorage:
+                case FsSaveDataType_Device:
                     info.userID = 2;
                     break;
 
@@ -205,9 +205,9 @@ namespace data
         std::memset(dat, 0, sizeof(NsApplicationControlData));
         NacpLanguageEntry *ent = NULL;
 
-        if(inf.saveDataType== FsSaveDataType_SaveData)
+        if(inf.saveDataType== FsSaveDataType_Bcat)
             id = inf.titleID;
-        else if(inf.saveDataType== FsSaveDataType_SystemSaveData)
+        else if(inf.saveDataType== FsSaveDataType_SystemBcat)
             id = inf.saveID;
 
         uID = inf.userID;
