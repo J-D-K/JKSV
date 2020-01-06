@@ -158,20 +158,20 @@ namespace util
         std::string ret = d.getTitle() + "\n";
 
         char id[18];
-        sprintf(id, " %016lX", d.getID());
+        sprintf(id, " %016lX", d.info.application_id);
         ret += std::string(id) + "\n\n";
 
-        switch(d.getType())
+        switch(d.info.save_data_type)
         {
-            case FsSaveDataType_SystemBcat:
+            case FsSaveDataType_System:
                 ret += "System Save\n\n";
                 break;
 
-            case FsSaveDataType_Bcat:
+            case FsSaveDataType_Account:
                 ret += "Save Data\n\n";
                 break;
 
-            case FsSaveDataType_BcatDeliveryCacheStorage:
+            case FsSaveDataType_Bcat:
                 ret += "Bcat Delivery Cache\n\n";
                 break;
 

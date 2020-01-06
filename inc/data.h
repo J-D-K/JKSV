@@ -48,28 +48,25 @@ namespace data
             void init(const FsSaveDataInfo& inf);
 
             //Attempts to mount data with uID + id. Returns false if fails. For filtering.
-            bool isMountable(const u128& uID);
+            bool isMountable(const AccountUid& uID);
 
             //Returns title + title without forbidden chars
             std::string getTitle() { return title;}
             std::string getTitleSafe() { return titleSafe; }
 
-            //for disabling certain things
-            void setType(FsSaveDataType _type){ type = _type; }
-
-            //Returns ID
             uint64_t getID() { return id; }
+            FsSaveDataType getType(){ return (FsSaveDataType)info.save_data_type; }
+            void setType(FsSaveDataType type){ info.save_data_type = type; }
 
             //Game icon
             icn icon;
 
-            FsSaveDataType getType() { return type; }
+            //FUCK IT
+            FsSaveDataInfo info;
 
         private:
-            FsSaveDataType type;
             std::string title, titleSafe;
             uint64_t id;
-            u128 uID;
     };
 
     //Class to store user info + titles
@@ -77,16 +74,16 @@ namespace data
     {
         public:
             //Attempts to read user data using _id
-            bool init(const u128& _id);
+            bool init(const AccountUid& _id);
 
             //Allows user to init without reading data. For fun.
-            bool initNoChk(const u128& _id, const std::string& _backupName);
+            bool initNoChk(const AccountUid& _id, const std::string& _backupName);
 
             //Sets ID
-            void setUID(const u128& _id){ userID = _id; }
+            void setUID(const AccountUid& _id){ userID = _id; }
 
             //Returns user ID
-            u128 getUID() { return userID; }
+            AccountUid getUID() { return userID; }
 
             //Returns username
             std::string getUsername() { return username; }
@@ -100,7 +97,7 @@ namespace data
             void delIcon(){ texDestroy(userIcon); }
 
         private:
-            u128 userID;
+            AccountUid userID;
             std::string username, userSafe;
             //User icon
             tex* userIcon;

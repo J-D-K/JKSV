@@ -33,11 +33,14 @@ static struct
 } sortTitles;
 
 //Returns -1 for new
-static int getUserIndex(const u128& id)
+static int getUserIndex(const AccountUid& id)
 {
+    u128 nId = 0, oId = 0;
+    nId = util::accountUIDToU128(id);
     for(unsigned i = 0; i < data::users.size(); i++)
     {
-        if(data::users[i].getUID() == id)
+        oId = util::accountUIDToU128(data::users[i].getUID());
+        if(oId == nId)
             return i;
     }
 
@@ -75,11 +78,11 @@ namespace data
 
         loadBlacklist();
 
-        FsSaveDataIterator saveIt;
-        size_t total = 0;
+        FsSaveDataInfoReader saveIt;
+        s64 total = 0;
         FsSaveDataInfo info;
 
-        if(R_FAILED(fsOpenSaveDataIterator(&saveIt, FsSaveDataSpaceId_All)))
+        if(R_FAILED(fsOpenSaveDataInfoReader(&saveIt, FsSaveDataSpaceId_All)))
         {
             printf("SaveDataIterator Failed\n");
             return;
@@ -87,9 +90,9 @@ namespace data
 
         //Push System and BCAT user
         user sys, bcat, dev;
-        sys.initNoChk(1, "System");
-        bcat.initNoChk(2, "BCAT");
-        dev.initNoChk(3, "Dev. Sv");
+        sys.initNoChk(util::u128ToAccountUID(1), "System");
+        bcat.initNoChk(util::u128ToAccountUID(2), "BCAT");
+        dev.initNoChk(util::u128ToAccountUID(3), "Dev. Sv");
 
         users.push_back(sys);
         users.push_back(bcat);
@@ -97,37 +100,37 @@ namespace data
 
         while(true)
         {
-            if(R_FAILED(fsSaveDataIteratorRead(&saveIt, &info, 1, &total)) || total == 0)
+            if(R_FAILED(fsSaveDataInfoReaderRead(&saveIt, &info, 1, &total)) || total == 0)
                 break;
 
-            switch(info.saveDataType)
+            switch(info.save_data_type)
             {
-                case FsSaveDataType_SystemBcat:
-                    info.userID = 1;
+                case FsSaveDataType_System:
+                    info.uid = util::u128ToAccountUID(1);
+                    break;
+
+                case FsSaveDataType_Bcat:
+                    info.uid = util::u128ToAccountUID(2);
                     break;
 
                 case FsSaveDataType_Device:
-                    info.userID = 2;
-                    break;
-
-                case FsSaveDataType_DeviceSaveData:
-                    info.userID = 3;
+                    info.uid = util::u128ToAccountUID(3);
                     break;
             }
 
             //If save data, not black listed or just ignore
-            if(!blacklisted(info.titleID))
+            if(!blacklisted(info.application_id))
             {
-                int u = getUserIndex(info.userID);
+                int u = getUserIndex(info.uid);
                 if(u == -1)
                 {
                     user newUser;
-                    if(newUser.init(info.userID))
+                    if(newUser.init(info.uid))
                     {
                         //Always insert new users to beginning
                         users.insert(users.begin(), newUser);
 
-                        u = getUserIndex(info.userID);
+                        u = getUserIndex(info.uid);
                         titledata newData;
                         newData.init(info);
                         if(newData.isMountable(newUser.getUID()) || !forceMount)
@@ -144,7 +147,7 @@ namespace data
             }
         }
 
-        fsSaveDataIteratorClose(&saveIt);
+        fsSaveDataInfoReaderClose(&saveIt);
 
         for(unsigned i = 0; i < users.size(); i++)
             std::sort(users[i].titles.begin(), users[i].titles.end(), sortTitles);
@@ -204,17 +207,15 @@ namespace data
         NsApplicationControlData *dat = new NsApplicationControlData;
         std::memset(dat, 0, sizeof(NsApplicationControlData));
         NacpLanguageEntry *ent = NULL;
-
-        if(inf.saveDataType== FsSaveDataType_Bcat)
-            id = inf.titleID;
-        else if(inf.saveDataType== FsSaveDataType_SystemBcat)
-            id = inf.saveID;
-
-        uID = inf.userID;
-        type = (FsSaveDataType)inf.saveDataType;
         size_t outSz = 0;
 
-        if(R_SUCCEEDED(nsGetApplicationControlData(1, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
+        info = inf;
+        if(inf.save_data_type == FsSaveDataType_Account)
+            id = inf.application_id;
+        else
+            id = inf.save_data_id;
+
+        if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
                 && R_SUCCEEDED(nacpGetLanguageEntry(&dat->nacp, &ent)) && ent != NULL)
         {
             title.assign(ent->name);
@@ -250,7 +251,7 @@ namespace data
         delete dat;
     }
 
-    bool titledata::isMountable(const u128& uID)
+    bool titledata::isMountable(const AccountUid& uID)
     {
         data::user tmpUser;
         tmpUser.setUID(uID);
@@ -262,7 +263,7 @@ namespace data
         return false;
     }
 
-    bool user::init(const u128& _id)
+    bool user::init(const AccountUid& _id)
     {
         userID = _id;
 
@@ -275,12 +276,12 @@ namespace data
         if(R_FAILED(accountProfileGet(&prof, NULL, &base)))
             return false;
 
-        username.assign(base.username);
+        username.assign(base.nickname);
         if(username.empty())
             username = "Unknown";
         userSafe = util::safeString(username);
 
-        size_t sz = 0;
+        uint32_t sz = 0;
         accountProfileGetImageSize(&prof, &sz);
         uint8_t *profJpeg = new uint8_t[sz];
 
@@ -294,7 +295,7 @@ namespace data
         return true;
     }
 
-    bool user::initNoChk(const u128& _id, const std::string& _backupName)
+    bool user::initNoChk(const AccountUid& _id, const std::string& _backupName)
     {
         userID = _id;
 

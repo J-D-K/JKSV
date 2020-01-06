@@ -18,26 +18,24 @@
 static std::string wd;
 
 
-Result fsMountBCAT(FsFileSystem *out, uint64_t id)
+static Result fsMountBCAT(FsFileSystem *out, data::titledata& open)
 {
-    FsSave sv;
-    std::memset(&sv, 0, sizeof(FsSave));
+    FsSaveDataAttribute attr;
+    std::memset(&attr, 0, sizeof(FsSaveDataAttribute));
+    attr.application_id = open.info.application_id;
+    attr.save_data_type = FsSaveDataType_Bcat;
 
-    sv.titleID = id;
-    sv.saveDataType = FsSaveDataType_BcatDeliveryCacheStorage;
-
-    return fsMountSaveData(out, FsSaveDataSpaceId_NandUser, &sv);
+    return fsOpenSaveDataFileSystem(out, FsSaveDataSpaceId_User, &attr);
 }
 
-Result fsMountDeviceSave(FsFileSystem *out, uint64_t id)
+static Result fsMountDeviceSave(FsFileSystem *out, data::titledata& open)
 {
-    FsSave sv;
-    std::memset(&sv, 0, sizeof(FsSave));
+    FsSaveDataAttribute attr;
+    std::memset(&attr, 0, sizeof(FsSaveDataAttribute));
+    attr.application_id = open.info.application_id;
+    attr.save_data_type = FsSaveDataType_Device;
 
-    sv.titleID = id;
-    sv.saveDataType = FsSaveDataType_Device;
-
-    return fsdevMountSaveData(out, FsSaveDataSpaceId_User, &sv);
+    return fsOpenSaveDataFileSystem(out, FsSaveDataSpaceId_User, &attr);
 }
 
 static struct
@@ -69,13 +67,13 @@ namespace fs
     {
         FsFileSystem sv;
 
-        if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsMount_SaveData(&sv, open.getID(), usr.getUID())))
+        if(open.info.save_data_type == FsSaveDataType_Account && R_FAILED(fsOpen_SaveData(&sv, open.info.application_id, usr.getUID())))
             return false;
-        else if(open.getType() == FsSaveDataType_SystemBcat && R_FAILED(fsMount_SystemSaveData(&sv, open.getID())))
+        else if(open.info.save_data_type == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.info.save_data_id, (AccountUid){0})))
             return false;
-        else if(open.getType() == FsSaveDataType_BcatDeliveryCacheStorage && R_FAILED(fsMountBCAT(&sv, open.getID())))
+        else if(open.info.save_data_type == FsSaveDataType_Bcat && R_FAILED(fsMountBCAT(&sv, open)))
             return false;
-        else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsMountDeviceSave(&sv, open.getID())))
+        else if(open.info.save_data_type == FsSaveDataType_Device && R_FAILED(fsMountDeviceSave(&sv, open)))
             return false;
 
         if(fsdevMountDevice("sv", sv) == -1)

@@ -277,7 +277,7 @@ namespace ui
 
                 case 1:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, FsBisStorageId_CalibrationFile, "");
+                    fsOpenBisFileSystem(&sv, FsBisPartitionId_CalibrationFile, "");
                     fsdevMountDevice("prodInfo-f", sv);
 
                     advModePrep("profInfo-f:/", false);
@@ -287,7 +287,7 @@ namespace ui
 
                 case 2:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, FsBisStorageId_SafeMode, "");
+                    fsOpenBisFileSystem(&sv, FsBisPartitionId_SafeMode, "");
                     fsdevMountDevice("safe", sv);
 
                     advModePrep("safe:/", false);
@@ -297,7 +297,7 @@ namespace ui
 
                 case 3:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, FsBisStorageId_System, "");
+                    fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                     fsdevMountDevice("sys", sv);
 
                     advModePrep("sys:/", false);
@@ -307,7 +307,7 @@ namespace ui
 
                 case 4:
                     fsdevUnmountDevice("sv");
-                    fsOpenBisFileSystem(&sv, FsBisStorageId_User, "");
+                    fsOpenBisFileSystem(&sv, FsBisPartitionId_User, "");
                     fsdevMountDevice("user", sv);
 
                     advModePrep("user:/", false);
@@ -320,8 +320,8 @@ namespace ui
                         fsdevUnmountDevice("sv");
 
                         FsStorage nand;
-                        fsOpenBisStorage(&nand, FsBisStorageId_UserDataRoot);
-                        uint64_t nandSize = 0, offset = 0;
+                        fsOpenBisStorage(&nand, FsBisPartitionId_UserDataRoot);
+                        s64 nandSize = 0, offset = 0;
                         fsStorageGetSize(&nand, &nandSize);
 
                         std::fstream nandOut("sdmc:/JKSV/nand.bin", std::ios::out | std::ios::binary);
@@ -367,8 +367,8 @@ namespace ui
                         fsdevUnmountDevice("sv");
 
                         FsStorage nand;
-                        fsOpenBisStorage(&nand, FsBisStorageId_UserDataRoot);
-                        uint64_t nandSize = 0, offset = 0;
+                        fsOpenBisStorage(&nand, FsBisPartitionId_UserDataRoot);
+                        s64 nandSize = 0, offset = 0;
                         fsStorageGetSize(&nand, &nandSize);
 
                         std::fstream nandOut("sdmc:/JKSV/nand.bin.00", std::ios::out | std::ios::binary);
@@ -419,7 +419,7 @@ namespace ui
                 case 7:
                     {
                         fsdevUnmountDevice("sv");
-                        fsOpenBisFileSystem(&sv, FsBisStorageId_System, "");
+                        fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                         fsdevMountDevice("sv", sv);
                         std::string delPath = "sv:/Contents/placehld/";
 
@@ -447,7 +447,7 @@ namespace ui
                         {
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
                             pmshellInitialize();
-                            if(R_SUCCEEDED(pmshellTerminateProcessByTitleId(termID)))
+                            if(R_SUCCEEDED(pmshellTerminateProcess(termID)))
                                 ui::showMessage("Process " + idStr + " successfully shutdown.", "Success!");
                             pmshellExit();
                         }
@@ -459,7 +459,7 @@ namespace ui
                         fsdevUnmountDevice("sv");
                         std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
                         uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
-                        if(R_SUCCEEDED(fsMount_SystemSaveData(&sv, mountID)))
+                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid){0})))
                         {
                             fsdevMountDevice("sv", sv);
                             advModePrep("sv:/", true);

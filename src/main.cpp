@@ -18,7 +18,7 @@ extern "C"
         hidInitialize();
         nsInitialize();
         setsysInitialize();
-        accountInitialize();
+        accountInitialize(AccountServiceType_Application);
     }
 
     void userAppExit(void)

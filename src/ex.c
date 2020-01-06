@@ -4,7 +4,7 @@
 
 Result fsOpenDataFileSystemByCurrentProcess(FsFileSystem *out)
 {
-    Result ret = 0;
+    /*Result ret = 0;
 
     IpcCommand c;
     ipcInitialize(&c);
@@ -34,5 +34,5 @@ Result fsOpenDataFileSystemByCurrentProcess(FsFileSystem *out)
             serviceCreateSubservice(&out->s, fsGetServiceSession(), &p, 0);
     }
 
-    return ret;
+    return ret;*/
 }
