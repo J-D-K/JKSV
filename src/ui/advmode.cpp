@@ -116,7 +116,7 @@ void performCopyMenuOps()
                 {
                     //save menu
                     case 0:
-                        if(data::curData.getType() != FsSaveDataType_SystemSaveData)
+                        if(data::curData.getType() != FsSaveDataType_SystemBcat)
                         {
                             if(saveMenu.getSelected() == 0)
                             {
