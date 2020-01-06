@@ -61,10 +61,8 @@ namespace data
             //Game icon
             icn icon;
 
-            //FUCK IT
-            FsSaveDataInfo info;
-
         private:
+            FsSaveDataInfo info;
             std::string title, titleSafe;
             uint64_t id;
     };

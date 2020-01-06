@@ -158,10 +158,10 @@ namespace util
         std::string ret = d.getTitle() + "\n";
 
         char id[18];
-        sprintf(id, " %016lX", d.info.application_id);
+        sprintf(id, " %016lX", d.getID());
         ret += std::string(id) + "\n\n";
 
-        switch(d.info.save_data_type)
+        switch(d.getType())
         {
             case FsSaveDataType_System:
                 ret += "System Save\n\n";

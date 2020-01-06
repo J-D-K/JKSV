@@ -210,10 +210,10 @@ namespace data
         size_t outSz = 0;
 
         info = inf;
-        if(inf.save_data_type == FsSaveDataType_Account)
-            id = inf.application_id;
+        if(inf.save_data_type == FsSaveDataType_System)
+            id = inf.system_save_data_id;
         else
-            id = inf.save_data_id;
+            id = inf.application_id;
 
         if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
                 && R_SUCCEEDED(nacpGetLanguageEntry(&dat->nacp, &ent)) && ent != NULL)

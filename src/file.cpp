@@ -22,7 +22,7 @@ static Result fsMountBCAT(FsFileSystem *out, data::titledata& open)
 {
     FsSaveDataAttribute attr;
     std::memset(&attr, 0, sizeof(FsSaveDataAttribute));
-    attr.application_id = open.info.application_id;
+    attr.application_id = open.getID();
     attr.save_data_type = FsSaveDataType_Bcat;
 
     return fsOpenSaveDataFileSystem(out, FsSaveDataSpaceId_User, &attr);
@@ -32,7 +32,7 @@ static Result fsMountDeviceSave(FsFileSystem *out, data::titledata& open)
 {
     FsSaveDataAttribute attr;
     std::memset(&attr, 0, sizeof(FsSaveDataAttribute));
-    attr.application_id = open.info.application_id;
+    attr.application_id = open.getID();
     attr.save_data_type = FsSaveDataType_Device;
 
     return fsOpenSaveDataFileSystem(out, FsSaveDataSpaceId_User, &attr);
@@ -67,13 +67,13 @@ namespace fs
     {
         FsFileSystem sv;
 
-        if(open.info.save_data_type == FsSaveDataType_Account && R_FAILED(fsOpen_SaveData(&sv, open.info.application_id, usr.getUID())))
+        if(open.getType() == FsSaveDataType_Account && R_FAILED(fsOpen_SaveData(&sv, open.getID(), usr.getUID())))
             return false;
-        else if(open.info.save_data_type == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.info.save_data_id, (AccountUid){0})))
+        else if(open.getType() == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid){0})))
             return false;
-        else if(open.info.save_data_type == FsSaveDataType_Bcat && R_FAILED(fsMountBCAT(&sv, open)))
+        else if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsMountBCAT(&sv, open)))
             return false;
-        else if(open.info.save_data_type == FsSaveDataType_Device && R_FAILED(fsMountDeviceSave(&sv, open)))
+        else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsMountDeviceSave(&sv, open)))
             return false;
 
         if(fsdevMountDevice("sv", sv) == -1)
