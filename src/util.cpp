@@ -172,7 +172,7 @@ namespace util
                 break;
 
             case FsSaveDataType_Bcat:
-                ret += "Bcat Delivery Cache\n\n";
+                ret += "BCAT\n\n";
                 break;
 
             case FsSaveDataType_Device:
@@ -180,11 +180,15 @@ namespace util
                 break;
 
             case FsSaveDataType_Temporary:
-                ret = "Temp Storage\n\n";
+                ret += "Temp Storage\n\n";
                 break;
 
             case FsSaveDataType_Cache:
-                ret+= "Cache Storage\n\n";
+                ret += "Cache Storage\n\n";
+                break;
+
+            case FsSaveDataType_SystemBcat:
+                ret += "System BCAT";
                 break;
         }
 
@@ -217,11 +221,7 @@ namespace util
 
         char out[maxLength];
         memset(out, 0, maxLength);
-        if(R_FAILED(swkbdShow(&swkbd, out, maxLength)))
-        {
-            ui::showMessage("Keyboard failed to open. Please use a different title for the homebrew menu.", "KB Failed");
-            return "";
-        }
+        swkbdShow(&swkbd, out, maxLength);
         swkbdClose(&swkbd);
 
         return std::string(out);

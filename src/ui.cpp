@@ -49,13 +49,12 @@ namespace ui
     //Shared font
     font *shared;
 
-    void init()
+    void initTheme()
     {
+        shared = fontLoadSharedFonts();
+
         ColorSetId gthm;
         setsysGetColorSetId(&gthm);
-
-        top = texCreate(1280, 88);
-        bot = texCreate(1280, 72);
 
         switch(gthm)
         {
@@ -111,8 +110,12 @@ namespace ui
                 divClr = clrCreateU32(0xFFFFFFFF);
                 break;
         }
+    }
 
-        shared = fontLoadSharedFonts();
+    void init()
+    {
+        top = texCreate(1280, 88);
+        bot = texCreate(1280, 72);
 
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {

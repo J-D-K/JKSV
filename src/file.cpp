@@ -427,10 +427,10 @@ namespace fs
 
     bool fileExists(const std::string& path)
     {
-        std::fstream chk(path, std::ios::in);
-        if(chk.is_open())
+        FILE *test = fopen(path.c_str(), "rb");
+        if(test != NULL)
         {
-            chk.close();
+            fclose(test);
             return true;
         }
 

@@ -53,6 +53,9 @@ namespace ui
 
     extern std::vector<ui::button> selButtons;
 
+    //Sets colors and stuff
+    void initTheme();
+
     //Loads in the A, B, X, Y button graphics
     void init();
     void exit();

@@ -36,8 +36,11 @@ int main(int argc, const char *argv[])
 {
     fs::init();
     graphicsInit(1280, 720);
-    ui::init();
+    //Needed for icon gen
+    ui::initTheme();
     data::loadDataInfo();
+    ui::init();
+
     //built with 'make debug CFLAGS:=-D__debug__'
 #ifdef __debug__
     socketInitializeDefault();

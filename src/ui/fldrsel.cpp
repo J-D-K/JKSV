@@ -116,8 +116,6 @@ namespace ui
                     fs::copyDirToDirCommit(fromPath, root, "sv");
                 }
             }
-            else
-                ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.", "Sorry, bro:");
         }
         else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
         {
