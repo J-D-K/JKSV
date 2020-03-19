@@ -1,9 +1,11 @@
 #include <switch.h>
 #include <stdio.h>
+#include <stdint.h>
 #include <string.h>
 #include <malloc.h>
 #include <png.h>
 #include <jpeglib.h>
+#include <zlib.h>
 
 #include "gfx.h"
 
@@ -13,6 +15,13 @@ clr textClr;
 static NWindow *window;
 static Framebuffer fb;
 static bool framestarted = false;
+
+typedef struct
+{
+    uint16_t w;
+    uint16_t h;
+    uint32_t sz;
+} rgbaHead;
 
 static inline uint32_t blend(const clr px, const clr fb)
 {
@@ -512,6 +521,35 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
     free(row[0]);
     free(row);
 
+    return ret;
+}
+
+tex *texLoadRGBA(const char *path)
+{
+    tex *ret = malloc(sizeof(tex));
+    FILE *rgb = fopen(path, "rb");
+
+    fseek(rgb, 0, SEEK_END);
+    size_t dataSize = ftell(rgb) - sizeof(rgbaHead);
+    fseek(rgb, 0, SEEK_SET);
+
+    rgbaHead head;
+    fread(&head, sizeof(rgbaHead), 1, rgb);
+    ret->width = head.w;
+    ret->height = head.h;
+    ret->size = head.w * head.h;
+    ret->data = (uint32_t *)malloc((ret->width * ret->height) * sizeof(uint32_t));
+
+    unsigned char *inBuff = malloc(dataSize);
+    fread(inBuff, 1, dataSize, rgb);
+    uLongf destSz = ret->size * 4;
+    uncompress((unsigned char *)ret->data, &destSz, inBuff, dataSize);
+
+    FILE *deb = fopen("sdmc:/JKSV/deb.bin", "wb");
+    fwrite(ret->data, sizeof(uint32_t), ret->size, deb);
+    fclose(deb);
+
+    free(inBuff);
     return ret;
 }
 

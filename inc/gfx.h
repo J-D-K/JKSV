@@ -109,6 +109,9 @@ tex *texLoadJPEGFile(const char *path);
 //Loads jpeg from memory
 tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize);
 
+//Loads image from RGBA - Not meant for large images
+tex *texLoadRGBA(const char *path);
+
 //Frees memory used by t
 void texDestroy(tex *t);
 

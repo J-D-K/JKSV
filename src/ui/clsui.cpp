@@ -326,7 +326,7 @@ namespace ui
 
                         std::fstream nandOut("sdmc:/JKSV/nand.bin", std::ios::out | std::ios::binary);
 
-                        size_t nandBuffSize = 1024 * 1024 * 4;
+                        s64 nandBuffSize = 1024 * 1024 * 4;
                         uint8_t *nandBuff = new uint8_t[nandBuffSize];
 
                         progBar nandProg(nandSize);
@@ -373,7 +373,7 @@ namespace ui
 
                         std::fstream nandOut("sdmc:/JKSV/nand.bin.00", std::ios::out | std::ios::binary);
 
-                        size_t nandBuffSize = 1024 * 1024 * 3;
+                        s64 nandBuffSize = 1024 * 1024 * 3;
                         uint8_t *nandBuff = new uint8_t[nandBuffSize];
 
                         progBar nandProg(nandSize);

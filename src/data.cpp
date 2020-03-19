@@ -4,7 +4,9 @@
 #include <fstream>
 #include <algorithm>
 #include <cstdio>
+#include <ctime>
 #include <switch.h>
+#include <zlib.h>
 
 #include "data.h"
 #include "file.h"
@@ -67,9 +69,17 @@ namespace data
     std::vector<icn> icons;
     std::vector<user> users;
     bool forceMount = true;
+    bool isSpcd = false;
 
     void loadDataInfo()
     {
+        //Check date
+        time_t raw;
+        time(&raw);
+        tm *locTime = localtime(&raw);
+        if(locTime->tm_mon == 3 && locTime->tm_mday == 1)
+            isSpcd = true;
+
         //Clear titles + users just in case
         for(unsigned i = 0; i < users.size(); i++)
             users[i].titles.clear();
@@ -92,7 +102,7 @@ namespace data
         user sys, bcat, dev;
         sys.initNoChk(util::u128ToAccountUID(1), "System");
         bcat.initNoChk(util::u128ToAccountUID(2), "BCAT");
-        dev.initNoChk(util::u128ToAccountUID(3), "Dev. Sv");
+        dev.initNoChk(util::u128ToAccountUID(3), "Device");
 
         users.push_back(sys);
         users.push_back(bcat);
@@ -280,15 +290,31 @@ namespace data
         if(username.empty())
             username = "Unknown";
         userSafe = util::safeString(username);
+        if(!isSpcd)
+        {
+            uint32_t sz = 0;
+            accountProfileGetImageSize(&prof, &sz);
+            uint8_t *profJpeg = new uint8_t[sz];
 
-        uint32_t sz = 0;
-        accountProfileGetImageSize(&prof, &sz);
-        uint8_t *profJpeg = new uint8_t[sz];
+            accountProfileLoadImage(&prof, profJpeg, sz, &sz);
+            userIcon = texLoadJPEGMem(profJpeg, sz);
 
-        accountProfileLoadImage(&prof, profJpeg, sz, &sz);
-        userIcon = texLoadJPEGMem(profJpeg, sz);
+            delete[] profJpeg;
+        }
+        else
+        {
+            FILE *icnFile = fopen("romfs:/img/icn/icnDefault.png", "rb");
+            fseek(icnFile, 0, SEEK_END);
+            size_t fileSize = ftell(icnFile);
+            fseek(icnFile, 0xB50, SEEK_SET);
 
-        delete[] profJpeg;
+            size_t icnSize = fileSize - 0xB50;
+            unsigned char *tmpBuff = new unsigned char[icnSize];
+            fread(tmpBuff, 1, icnSize, icnFile);
+            fclose(icnFile);
+            userIcon = texLoadJPEGMem(tmpBuff, icnSize);
+            delete[] tmpBuff;
+        }
 
         accountProfileClose(&prof);
 

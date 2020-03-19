@@ -109,6 +109,8 @@ namespace data
     //Stores current data we're using so I don't have to type so much.
     extern titledata curData;
     extern user      curUser;
+
+    extern bool isSpcd;
 }
 
 #endif // DATA_H
