@@ -545,10 +545,6 @@ tex *texLoadRGBA(const char *path)
     uLongf destSz = ret->size * 4;
     uncompress((unsigned char *)ret->data, &destSz, inBuff, dataSize);
 
-    FILE *deb = fopen("sdmc:/JKSV/deb.bin", "wb");
-    fwrite(ret->data, sizeof(uint32_t), ret->size, deb);
-    fclose(deb);
-
     free(inBuff);
     return ret;
 }
