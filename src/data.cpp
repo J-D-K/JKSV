@@ -104,9 +104,9 @@ namespace data
         bcat.initNoChk(util::u128ToAccountUID(2), "BCAT");
         dev.initNoChk(util::u128ToAccountUID(3), "Device");
 
-        users.push_back(sys);
-        users.push_back(bcat);
         users.push_back(dev);
+        users.push_back(bcat);
+        users.push_back(sys);
 
         while(true)
         {
@@ -177,7 +177,11 @@ namespace data
     void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
     {
         titleID = _id;
-        iconTex = texLoadJPEGMem(jpegData, jpegSize);
+
+        if(isSpcd)
+            iconTex = util::loadDefaultIcon();
+        else
+            iconTex = texLoadJPEGMem(jpegData, jpegSize);
     }
 
     void icn::load(const uint64_t& _id, const std::string& _png)
@@ -302,19 +306,7 @@ namespace data
             delete[] profJpeg;
         }
         else
-        {
-            FILE *icnFile = fopen("romfs:/img/icn/icnDefault.png", "rb");
-            fseek(icnFile, 0, SEEK_END);
-            size_t fileSize = ftell(icnFile);
-            fseek(icnFile, 0xB50, SEEK_SET);
-
-            size_t icnSize = fileSize - 0xB50;
-            unsigned char *tmpBuff = new unsigned char[icnSize];
-            fread(tmpBuff, 1, icnSize, icnFile);
-            fclose(icnFile);
-            userIcon = texLoadJPEGMem(tmpBuff, icnSize);
-            delete[] tmpBuff;
-        }
+            userIcon = util::loadDefaultIcon();
 
         accountProfileClose(&prof);
 

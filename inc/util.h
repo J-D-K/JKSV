@@ -41,6 +41,9 @@ namespace util
 
     std::string generateAbbrev(data::titledata& dat);
 
+    //Loads default icon.
+    tex *loadDefaultIcon();
+
     //Creates a basic generic icon for stuff without one
     tex *createIconGeneric(const char *txt);
 

@@ -246,6 +246,26 @@ namespace util
         return ret;
     }
 
+    tex *loadDefaultIcon()
+    {
+        tex *ret;
+
+        std::fstream iconIn("romfs:/img/icn/icnDefault.png", std::ios::in | std::ios::binary);
+        iconIn.seekg(0, iconIn.end);
+        size_t fileSize = iconIn.tellg();
+        iconIn.seekg(0xB50, iconIn.beg);
+
+        size_t iconSize = fileSize - 0xB50;
+        uint8_t *tmpBuff = new uint8_t[iconSize];
+        iconIn.read((char *)tmpBuff, iconSize);
+        iconIn.close();
+
+        ret = texLoadJPEGMem(tmpBuff, iconSize);
+        delete[] tmpBuff;
+
+        return ret;
+    }
+
     tex *createIconGeneric(const char *txt)
     {
         tex *ret = texCreate(256, 256);
