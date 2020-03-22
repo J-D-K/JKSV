@@ -21,7 +21,7 @@ namespace ui
     {
         userMenu.reset();
 
-        userMenu.setParams(42, 98, 424);
+        userMenu.setParams(76, 98, 310);
 
         for(unsigned i = 0; i < data::users.size(); i++)
             userMenu.addOpt(data::users[i].getUsername());
@@ -30,7 +30,7 @@ namespace ui
     void clsTitlePrep(data::user& u)
     {
         titleMenu.reset();
-        titleMenu.setParams(42, 98, 424);
+        titleMenu.setParams(76, 98, 310);
 
         for(unsigned i = 0; i < u.titles.size(); i++)
             titleMenu.addOpt(u.titles[i].getTitle());
@@ -38,7 +38,7 @@ namespace ui
 
     void clsFolderPrep(data::user& usr, data::titledata& dat)
     {
-        folderMenu.setParams(488, 98, 762);
+        folderMenu.setParams(466, 98, 730);
         folderMenu.reset();
 
         util::makeTitleDir(usr, dat);
@@ -243,7 +243,7 @@ namespace ui
     void exMenuPrep()
     {
         devMenu.reset();
-        devMenu.setParams(42, 98, 424);
+        devMenu.setParams(76, 98, 310);
         devMenu.addOpt("SD to SD Browser");
         devMenu.addOpt("Bis: PRODINFOF");
         devMenu.addOpt("Bis: SAFE");

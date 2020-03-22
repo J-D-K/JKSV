@@ -15,9 +15,6 @@ enum menuTouch
 
 namespace ui
 {
-    void menuPrepGfx();
-    void menuDestGfx();
-
     class menu
     {
         public:

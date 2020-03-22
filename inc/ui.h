@@ -34,6 +34,9 @@ namespace ui
     //Current menu/ui state
     extern int mstate, prevState;
 
+    //Holds theme set id
+    extern ColorSetId thmID;
+
     //Both UI modes need access to this
     extern std::string folderMenuInfo;
 
@@ -45,8 +48,9 @@ namespace ui
     extern tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
     //Textbox graphics
     extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
-    //Selection box
-    extern tex *selBox;
+
+    //Side bar from Freebird. RIP
+    extern tex *sideBar;
 
     //Shared font
     extern font *shared;
@@ -67,6 +71,9 @@ namespace ui
 
     //Clears and draws general stuff used by multiple screens
     void drawUI();
+
+    //Draws selection box
+    void drawBoundBox(int x, int y, int w, int h, int clrSh);
 
     //switch case so we don't have problems with multiple main loops like 3DS
     void runApp(const uint64_t& down, const uint64_t& held, const touchPosition& p);

@@ -27,6 +27,9 @@ namespace ui
     //Current menu state
     int mstate = USR_SEL, prevState = USR_SEL;
 
+    //Theme id
+    ColorSetId thmID;
+
     //Info printed on folder menu
     std::string folderMenuInfo;
 
@@ -39,12 +42,14 @@ namespace ui
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
     tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
+    //Menu box pieces
+    tex *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
 
     //Button GFX
     tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
 
     //Select box + top left icon
-    tex *selBox, *icn;
+    tex *icn, *sideBar;
 
     //Shared font
     font *shared;
@@ -53,10 +58,9 @@ namespace ui
     {
         shared = fontLoadSharedFonts();
 
-        ColorSetId gthm;
-        setsysGetColorSetId(&gthm);
+        setsysGetColorSetId(&thmID);
 
-        switch(gthm)
+        switch(thmID)
         {
             case ColorSetId_Light:
                 //Dark corners
@@ -73,6 +77,7 @@ namespace ui
                 buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_drk.png");
 
                 icn = texLoadPNGFile("romfs:/img/icn/icnDrk.png");
+                sideBar = texLoadPNGFile("romfs:/img/fb/lLight.png");
 
                 clearClr = clrCreateU32(0xFFEBEBEB);
                 mnuTxt = clrCreateU32(0xFF000000);
@@ -98,7 +103,9 @@ namespace ui
                 buttonX = texLoadPNGFile("romfs:/img/button/buttonX_lght.png");
                 buttonY = texLoadPNGFile("romfs:/img/button/buttonY_lght.png");
                 buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_lght.png");
+
                 icn = texLoadPNGFile("romfs:/img/icn/icnLght.png");
+                sideBar = texLoadPNGFile("romfs:/img/fb/lDark.png");
 
                 clearClr = clrCreateU32(0xFF2D2D2D);
                 mnuTxt = clrCreateU32(0xFFFFFFFF);
@@ -127,9 +134,10 @@ namespace ui
         setupSelButtons();
         setupNavButtons();
 
-        selBox = texLoadPNGFile("romfs:/img/icn/icnSelBox.png");
-
-        menuPrepGfx();
+        mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
+        mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
+        mnuBotLeft = texLoadPNGFile("romfs:/img/fb/menuBotLeft.png");
+        mnuBotRight = texLoadPNGFile("romfs:/img/fb/menuBotRight.png");
 
         //Setup top and bottom gfx
         texClearColor(top, clearClr);
@@ -154,15 +162,16 @@ namespace ui
         texDestroy(cornerBottomLeft);
         texDestroy(cornerBottomRight);
 
+        texDestroy(mnuTopLeft);
+        texDestroy(mnuTopRight);
+        texDestroy(mnuBotLeft);
+        texDestroy(mnuBotRight);
+
         texDestroy(buttonA);
         texDestroy(buttonB);
         texDestroy(buttonX);
         texDestroy(buttonY);
         texDestroy(buttonMin);
-
-        texDestroy(selBox);
-
-        menuDestGfx();
 
         fontDestroy(shared);
     }
@@ -227,7 +236,7 @@ namespace ui
         switch(mstate)
         {
             case FLD_SEL:
-                drawRect(frameBuffer, 30, 88, 320, 560, sideRect);
+                texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
                 break;
 
             case ADV_MDE:
@@ -238,7 +247,7 @@ namespace ui
             case CLS_USR:
             case CLS_FLD:
             case EX_MNU:
-                drawRect(frameBuffer, 30, 88, 448, 560, sideRect);
+                texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
                 break;
         }
 
@@ -296,6 +305,47 @@ namespace ui
                 }
                 break;
         }
+    }
+
+    void drawBoundBox(int x, int y, int w, int h, int clrSh)
+    {
+        clr rectClr = clrCreateRGBA(0x00, 0x88 + clrSh, 0xC5, 0xFF);
+
+        texSwapColors(mnuTopLeft, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF), rectClr);
+        texSwapColors(mnuTopRight, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF), rectClr);
+        texSwapColors(mnuBotLeft, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF), rectClr);
+        texSwapColors(mnuBotRight, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF), rectClr);
+
+        switch(ui::thmID)
+        {
+            case ColorSetId_Light:
+                drawRect(frameBuffer, x + 4, y + 4, w - 8, h - 8, clrCreateU32(0xFFFDFDFD));
+                break;
+
+            default:
+            case ColorSetId_Dark:
+                drawRect(frameBuffer, x + 4, y + 4, w - 8, h - 8, clrCreateU32(0xFF272221));
+                break;
+        }
+
+        //top
+        texDraw(mnuTopLeft, frameBuffer, x, y);
+        drawRect(frameBuffer, x + 4, y, w - 8, 4, rectClr);
+        texDraw(mnuTopRight, frameBuffer, (x + w) - 4, y);
+
+        //mid
+        drawRect(frameBuffer, x, y + 4, 4, h - 8, rectClr);
+        drawRect(frameBuffer, (x + w) - 4, y + 4, 4, h - 8, rectClr);
+
+        //bottom
+        texDraw(mnuBotLeft, frameBuffer, x, (y + h) - 4);
+        drawRect(frameBuffer, x + 4, (y + h) - 4, w - 8, 4, rectClr);
+        texDraw(mnuBotRight, frameBuffer, (x + w) - 4, (y + h) - 4);
+
+        texSwapColors(mnuTopLeft, rectClr, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF));
+        texSwapColors(mnuTopRight, rectClr, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF));
+        texSwapColors(mnuBotLeft, rectClr, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF));
+        texSwapColors(mnuBotRight, rectClr, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF));
     }
 
     void runApp(const uint64_t& down, const uint64_t& held, const touchPosition& p)

@@ -19,36 +19,29 @@ namespace ui
         static uint8_t clrShft = 0;
         static bool clrAdd = true;
 
-        static unsigned selRectX = 64, selRectY = 92;
+        static unsigned selRectX = 66, selRectY = 94;
 
         static ui::touchTrack track;
-
-        //Color swapping selBox
-        clr clrPrev = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         if(clrAdd)
         {
             clrShft += 6;
-            if(clrShft > 63)
+            if(clrShft >= 0x72)
                 clrAdd = false;
         }
         else
         {
-            clrShft--;
-            if(clrShft == 0)
+            clrShft -= 3;
+            if(clrShft <= 0)
                 clrAdd = true;
         }
-
-        //Update selBox color
-        clr clrUpdt = clrCreateRGBA(0x00, 0x60 + clrShft, 0xBB + clrShft, 0xFF);
 
         unsigned x = 70, y = 98;
         unsigned endUser = start + 32;
         if(start + 32 > (int)data::users.size())
             endUser = data::users.size();
 
-        texSwapColors(ui::selBox, clrPrev, clrUpdt);
-        texDraw(ui::selBox, frameBuffer, selRectX, selRectY);
+        drawBoundBox(selRectX, selRectY, 140, 140, clrShft);
 
         for(unsigned i = start; i < endUser; y += 136)
         {
@@ -60,11 +53,8 @@ namespace ui
 
                 if((int)i == selected)
                 {
-                    if(selRectX != tX - 6 || selRectY != y - 6)
-                    {
-                        selRectX = tX - 6;
-                        selRectY = y - 6;
-                    }
+                    selRectX = tX - 6;
+                    selRectY = y - 6;
 
                     std::string username = data::users[selected].getUsername();
                     unsigned userWidth = textGetWidth(username.c_str(), ui::shared, 16);
