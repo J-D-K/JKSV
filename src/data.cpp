@@ -62,6 +62,15 @@ static bool blacklisted(const uint64_t& id)
     return false;
 }
 
+static tex *createDeviceIcon()
+{
+    tex *ret = texCreate(256, 256);
+    texClearColor(ret, ui::rectLt);
+    unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 144) / 2);
+    drawText("\ue121", ret, ui::shared, x, 56, 144, ui::mnuTxt);
+    return ret;
+}
+
 namespace data
 {
     titledata curData;
@@ -102,7 +111,11 @@ namespace data
         user sys, bcat, dev;
         sys.initNoChk(util::u128ToAccountUID(1), "System");
         bcat.initNoChk(util::u128ToAccountUID(2), "BCAT");
-        dev.initNoChk(util::u128ToAccountUID(3), "Device");
+        dev.initNoChk(util::u128ToAccountUID(3), "Device Saves");
+
+        //Modify device icon
+        dev.delIcon();
+        dev.assignIcon(createDeviceIcon());
 
         users.push_back(dev);
         users.push_back(bcat);

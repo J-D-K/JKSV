@@ -80,6 +80,9 @@ namespace data
             //Sets ID
             void setUID(const AccountUid& _id){ userID = _id; }
 
+            //Assigns icon
+            void assignIcon(tex *_icn){ userIcon = _icn; }
+
             //Returns user ID
             AccountUid getUID() { return userID; }
 
