@@ -149,7 +149,7 @@ namespace ui
 
     void showMessage(const std::string& mess, const std::string& head)
     {
-        button ok("OK", 256, 496, 768, 96);
+        button ok("OK \ue0e0 ", 256, 496, 768, 96);
 
         //center head text width
         size_t headWidth = textGetWidth(head.c_str(), ui::shared, 24);
@@ -174,7 +174,6 @@ namespace ui
             drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
             drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
             ok.draw();
-            texDrawInvert(ui::buttonA, frameBuffer, ok.getTx() + 56, ok.getTy() - 4);
             gfxEndFrame();
         }
     }
@@ -183,8 +182,8 @@ namespace ui
     {
         bool ret = false;
 
-        button yes("Yes   ", 256, 496, 384, 96);
-        button no("No   ", 640, 496, 384, 96);
+        button yes("Yes \ue0e0", 256, 496, 384, 96);
+        button no("No \ue0e1", 640, 496, 384, 96);
 
         size_t headWidth = textGetWidth("Confirm", ui::shared, 24);
         unsigned headX = (1280 / 2) - (headWidth / 2);
@@ -217,9 +216,7 @@ namespace ui
             drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
             drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
             yes.draw();
-            texDrawInvert(ui::buttonA, frameBuffer, yes.getTx() + 64, yes.getTy() - 4);
             no.draw();
-            texDrawInvert(ui::buttonB, frameBuffer, no.getTx() + 56, no.getTy() - 4);
             gfxEndFrame();
         }
 

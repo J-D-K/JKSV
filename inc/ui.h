@@ -44,8 +44,6 @@ namespace ui
     /*NEED TO COME UP WITH BETTER NAMES*/
     extern clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
 
-    //Button tex
-    extern tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
     //Textbox graphics
     extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
 

@@ -209,6 +209,7 @@ namespace util
         swkbdConfigSetType(&swkbd, SwkbdType_QWERTY);
         swkbdConfigSetStringLenMax(&swkbd, maxLength);
         swkbdConfigSetKeySetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Percent);
+        swkbdConfigSetDicFlag(&swkbd, 1);
 
         if(dictCnt > 0)
         {

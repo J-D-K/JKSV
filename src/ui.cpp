@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 03.21.2020"
+#define VER_STRING "v. 03.22.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -45,9 +45,6 @@ namespace ui
     //Menu box pieces
     tex *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
 
-    //Button GFX
-    tex *buttonA, *buttonB, *buttonX, *buttonY, *buttonMin;
-
     //Select box + top left icon
     tex *icn, *sideBar;
 
@@ -69,13 +66,6 @@ namespace ui
                 cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
                 cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
 
-                //Dark buttons
-                buttonA = texLoadPNGFile("romfs:/img/button/buttonA_drk.png");
-                buttonB = texLoadPNGFile("romfs:/img/button/buttonB_drk.png");
-                buttonX = texLoadPNGFile("romfs:/img/button/buttonX_drk.png");
-                buttonY = texLoadPNGFile("romfs:/img/button/buttonY_drk.png");
-                buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_drk.png");
-
                 icn = texLoadPNGFile("romfs:/img/icn/icnDrk.png");
                 sideBar = texLoadPNGFile("romfs:/img/fb/lLight.png");
 
@@ -96,13 +86,6 @@ namespace ui
                 cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
                 cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
                 cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
-
-                //Light buttons
-                buttonA = texLoadPNGFile("romfs:/img/button/buttonA_lght.png");
-                buttonB = texLoadPNGFile("romfs:/img/button/buttonB_lght.png");
-                buttonX = texLoadPNGFile("romfs:/img/button/buttonX_lght.png");
-                buttonY = texLoadPNGFile("romfs:/img/button/buttonY_lght.png");
-                buttonMin = texLoadPNGFile("romfs:/img/button/buttonMin_lght.png");
 
                 icn = texLoadPNGFile("romfs:/img/icn/icnLght.png");
                 sideBar = texLoadPNGFile("romfs:/img/fb/lDark.png");
@@ -166,12 +149,6 @@ namespace ui
         texDestroy(mnuTopRight);
         texDestroy(mnuBotLeft);
         texDestroy(mnuBotRight);
-
-        texDestroy(buttonA);
-        texDestroy(buttonB);
-        texDestroy(buttonX);
-        texDestroy(buttonY);
-        texDestroy(buttonMin);
 
         fontDestroy(shared);
     }
@@ -255,54 +232,17 @@ namespace ui
         {
             case USR_SEL:
             case CLS_USR:
-                {
-                    //Input guide
-                    unsigned startX = 754;
-                    texDraw(buttonA, frameBuffer, startX, 672);
-                    drawText("Select", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonY, frameBuffer, startX += 72, 672);
-                    drawText("Dump All", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonX, frameBuffer, startX += 96, 672);
-                    if(ui::clsMode)
-                        drawText("GUI Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    else
-                        drawText("Text Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonMin, frameBuffer, startX += 110, 672);
-                    drawText("Extras", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                }
+                drawText("\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0f0 Extras", frameBuffer, shared, 704, 678, 18, mnuTxt);
                 break;
 
             case TTL_SEL:
             case CLS_TTL:
-                {
-                    unsigned startX = 804;
-                    texDraw(buttonA, frameBuffer, startX, 672);
-                    drawText("Select", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonY, frameBuffer, startX += 72, 672);
-                    drawText("Dump All", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonX, frameBuffer, startX += 96, 672);
-                    drawText("Blacklist", frameBuffer, shared, startX += 38, 682, 12, mnuTxt);
-                    texDraw(buttonB, frameBuffer, startX += 72, 672);
-                    drawText("Back", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                }
+                drawText("\ue0e0 Select   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back", frameBuffer, shared, 704, 678, 18, mnuTxt);
                 break;
 
             case FLD_SEL:
             case CLS_FLD:
-                {
-                    //Input guide
-                    unsigned startX = 690;
-                    texDraw(buttonMin, frameBuffer, startX, 672);
-                    drawText("Adv. Mode", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonA, frameBuffer, startX += 100, 672);
-                    drawText("Backup", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonY, frameBuffer, startX += 72, 672);//Setup top and bottom gfx
-                    drawText("Restore", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonX, frameBuffer, startX += 72, 672);
-                    drawText("Delete", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                    texDraw(buttonB, frameBuffer, startX += 72, 672);
-                    drawText("Back", frameBuffer, shared, startX += 38, 680, 14, mnuTxt);
-                }
+                drawText("\ue0f0 File Mode   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back", frameBuffer, shared, 562, 678, 18, mnuTxt);
                 break;
         }
     }

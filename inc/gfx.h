@@ -156,6 +156,29 @@ void fontDestroy(font *f);
 
 //returns framebuffer tex pointer
 extern tex *frameBuffer;
+
+/*Switch extended button codes:
+    e0e0 = A
+    e0e1 = B
+    e0e2 = X
+    e0e3 = Y
+    e0e4 = L
+    e0e5 = R
+    e0e6 = ZL
+    e0e7 = ZR
+    e0e8 = SL
+    e0e9 = SR
+    e0ea = dpad
+    e0eb = dpad up
+    e0ec = dpad down
+    e0ed = dpad left
+    e0ee = dpad right
+    e0ef = +
+    e0f0 = -
+
+    ^^Replace second e with a for different button set. C0 to C9 = analog stick
+*/
+
 #ifdef __cplusplus
 }
 #endif

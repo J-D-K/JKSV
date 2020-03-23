@@ -153,7 +153,7 @@ namespace ui
                         data::curUser.getUsernameSafe().c_str(),
                         data::curData.getTitle().length() < 24 ? data::curData.getTitleSafe() : util::generateAbbrev(data::curData)
                     };
-                    folder = util::getStringInput("", "New Folder", 64, 5, dict);
+                    folder = util::getStringInput(std::string(data::curUser.getUsernameSafe() + " " + util::getDateTime(util::DATE_FMT_YMD)), "New Folder", 64, 5, dict);
                 }
                 if(!folder.empty())
                 {
