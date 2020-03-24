@@ -19,6 +19,14 @@ std::vector<ui::button> usrNav, ttlNav, fldNav;
 //Don't waste time drawing top and bottom over and over
 static tex *top, *bot;
 
+//Help text
+static const std::string userHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0f0 Extras";
+static const std::string titleHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back";
+static const std::string folderHelp = "\ue0f0 File Mode   \ue0e4\ue0e5 AutoName   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back";
+
+//X position of help texts. Calculated to make editing quicker/easier
+static unsigned userHelpX, titleHelpX, folderHelpX;
+
 namespace ui
 {
     //Classic mode
@@ -135,6 +143,11 @@ namespace ui
         //Not needed anymore
         texDestroy(icn);
 
+        //Calculate x position of help text
+        userHelpX = 1220 - textGetWidth(userHelp.c_str(), ui::shared, 18);
+        titleHelpX = 1220 - textGetWidth(titleHelp.c_str(), ui::shared, 18);
+        folderHelpX = 1220 - textGetWidth(folderHelp.c_str(), ui::shared, 18);
+
         advCopyMenuPrep();
     }
 
@@ -232,17 +245,17 @@ namespace ui
         {
             case USR_SEL:
             case CLS_USR:
-                drawText("\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0f0 Extras", frameBuffer, shared, 704, 678, 18, mnuTxt);
+                drawText(userHelp.c_str(), frameBuffer, shared, userHelpX, 676, 18, mnuTxt);
                 break;
 
             case TTL_SEL:
             case CLS_TTL:
-                drawText("\ue0e0 Select   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back", frameBuffer, shared, 704, 678, 18, mnuTxt);
+                drawText(titleHelp.c_str(), frameBuffer, shared, titleHelpX, 676, 18, mnuTxt);
                 break;
 
             case FLD_SEL:
             case CLS_FLD:
-                drawText("\ue0f0 File Mode   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back", frameBuffer, shared, 562, 678, 18, mnuTxt);
+                drawText(folderHelp.c_str(), frameBuffer, shared, folderHelpX, 676, 18, mnuTxt);
                 break;
         }
     }

@@ -225,6 +225,10 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
     size_t nextbreak = 0;
     size_t strLength = strlen(str);
     int tmpX = x;
+    resizeFont(f, sz);
+    textClr = c;
+
+
     for(unsigned i = 0; i < strLength; )
     {
         nextbreak = strcspn(&str[i], " /");

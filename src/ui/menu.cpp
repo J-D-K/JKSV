@@ -6,6 +6,8 @@
 #include "ui.h"
 #include "miscui.h"
 
+static const clr menuColorLight = clrCreateU32(0xFFF05032), menuColorDark = clrCreateU32(0xFFC5FF00);
+
 namespace ui
 {
     void menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW)
@@ -167,9 +169,12 @@ namespace ui
         for(int i = start; i < length; i++)
         {
             if(i == selected)
+            {
                 drawBoundBox(x, y + ((i - start) * 36), rW, 36, clrSh);
-
-            drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, textClr);
+                drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, ui::thmID == ColorSetId_Light ? menuColorLight : menuColorDark);
+            }
+            else
+                drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, ui::mnuTxt);
         }
     }
 
