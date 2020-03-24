@@ -6,6 +6,17 @@
 #include "miscui.h"
 #include "util.h"
 
+static bool popDraw = false;
+static std::string popText;
+static unsigned popY, popTextX, popState, frameCount, frameHold;
+
+enum popStates
+{
+    popRise,
+    popShow,
+    popFall
+};
+
 namespace ui
 {
     progBar::progBar(const uint64_t& _max)
@@ -271,5 +282,48 @@ namespace ui
         texDrawInvert(ui::cornerBottomLeft, frameBuffer, x, (y + h) - 32);
         drawRect(frameBuffer, x + 32, (y + h) - 32, w - 64, 32, temp);
         texDrawInvert(ui::cornerBottomRight, frameBuffer, (x + w) - 32, (y + h) - 32);
+    }
+
+    void showPopup(const std::string& mess, unsigned frames)
+    {
+        frameCount = 0;
+        frameHold = frames;
+        popTextX = 640 - (textGetWidth(mess.c_str(), ui::shared, 24) / 2);
+
+        popText = mess;
+        popY = 721;
+        popState = popRise;
+        popDraw = true;
+    }
+
+    void drawPopup()
+    {
+        if(!popDraw)
+            return;
+
+        switch(popState)
+        {
+            case popRise:
+                if(popY > 559)
+                    popY -= 24;
+                else
+                    popState = popShow;
+                break;
+
+            case popShow:
+                if(frameCount++ >= frameHold)
+                    popState = popFall;
+                break;
+
+            case popFall:
+                if(popY < 721)
+                    popY += 24;
+                else
+                    popDraw = false;
+                break;
+        }
+
+        drawTextbox(60, popY, 1160, 64);
+        drawText(popText.c_str(), frameBuffer, ui::shared, popTextX, popY + 20, 24, ui::txtClr);
     }
 }

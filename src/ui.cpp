@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 03.22.2020"
+#define VER_STRING "v. 03.24.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -21,7 +21,7 @@ static tex *top, *bot;
 
 //Help text
 static const std::string userHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0f0 Extras";
-static const std::string titleHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back";
+static const std::string titleHelp = "\ue0e0 Select   \ue0e4\ue0e5 Change User   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back";
 static const std::string folderHelp = "\ue0f0 File Mode   \ue0e4\ue0e5 AutoName   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back";
 
 //X position of help texts. Calculated to make editing quicker/easier
@@ -340,5 +340,7 @@ namespace ui
                 updateExMenu(down, held, p);
                 break;
         }
+
+        drawPopup();
     }
 }

@@ -17,6 +17,8 @@ enum trackEvents
     TRACK_SWIPE_RIGHT
 };
 
+#define POP_FRAME_DEFAULT 130
+
 //For smaller classes that aren't easy to get lost in and general functions
 namespace ui
 {
@@ -86,6 +88,10 @@ namespace ui
     bool confirmDelete(const std::string& p);
     void drawTextbox(int x, int y, int w, int h);
     void drawTextboxInvert(int x, int y, int w, int h);
+
+    //Popup from freebird
+    void showPopup(const std::string& mess, unsigned frames);
+    void drawPopup();
 }
 
 #endif // MISCUI_H

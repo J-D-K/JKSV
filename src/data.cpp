@@ -75,6 +75,7 @@ namespace data
 {
     titledata curData;
     user      curUser;
+    int selUser = 0, selData = 0;
     std::vector<icn> icons;
     std::vector<user> users;
     bool forceMount = true;

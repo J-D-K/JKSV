@@ -112,6 +112,7 @@ namespace data
     //Stores current data we're using so I don't have to type so much.
     extern titledata curData;
     extern user      curUser;
+    extern int selUser, selData;
 
     extern bool isSpcd;
 }

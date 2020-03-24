@@ -3,6 +3,7 @@
 #include <vector>
 #include <switch.h>
 
+#include "data.h"
 #include "ui.h"
 #include "uiupdate.h"
 #include "file.h"
@@ -14,7 +15,7 @@ namespace ui
     void updateUserMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
         //Static so they don't get reset every loop
-        static int start = 0, selected = 0;
+        static int start = 0;
 
         static uint8_t clrShft = 0;
         static bool clrAdd = true;
@@ -51,12 +52,12 @@ namespace ui
                 if(i == endUser)
                     break;
 
-                if((int)i == selected)
+                if((int)i == data::selUser)
                 {
                     selRectX = tX - 6;
                     selRectY = y - 6;
 
-                    std::string username = data::users[selected].getUsername();
+                    std::string username = data::users[data::selUser].getUsername();
                     unsigned userWidth = textGetWidth(username.c_str(), ui::shared, 16);
                     int userRectWidth = userWidth + 32, userRectX = (tX + 64) - (userRectWidth  / 2);
                     if(userRectX < 16)
@@ -77,15 +78,15 @@ namespace ui
         for(int i = 0; i < 32; i++)
         {
             selButtons[i].update(p);
-            if(selected == i && selButtons[i].getEvent() == BUTTON_RELEASED)
+            if(data::selUser == i && selButtons[i].getEvent() == BUTTON_RELEASED)
             {
-                data::curUser = data::users[selected];
+                data::curUser = data::users[data::selUser];
                 mstate = TTL_SEL;
             }
             else if(selButtons[i].getEvent() == BUTTON_RELEASED)
             {
                 if(start + i < (int)data::users.size())
-                    selected = start + i;
+                    data::selUser = start + i;
             }
         }
 
@@ -98,45 +99,41 @@ namespace ui
 
         if(down & KEY_RIGHT)
         {
-            if(selected < (int)data::users.size() - 1)
-                selected++;
+            if(data::selUser < (int)data::users.size() - 1)
+                data::selUser++;
 
-            if(selected >= (int)start + 32)
+            if(data::selUser >= (int)start + 32)
                 start += 8;
         }
         else if(down & KEY_LEFT)
         {
-            if(selected > 0)
-                selected--;
+            if(data::selUser > 0)
+                data::selUser--;
 
-            if(selected < start)
+            if(data::selUser < start)
                 start -= 8;
         }
         else if(down & KEY_UP)
         {
-            selected -= 8;
-            if(selected < 0)
-                selected = 0;
+            data::selUser -= 8;
+            if(data::selUser < 0)
+                data::selUser = 0;
 
-            if(selected - start >= 32)
+            if(data::selUser - start >= 32)
                 start -= 8;
         }
         else if(down & KEY_DOWN)
         {
-            selected += 8;
-            if(selected > (int)data::users.size() - 1)
-                selected = data::users.size() - 1;
+            data::selUser += 8;
+            if(data::selUser > (int)data::users.size() - 1)
+                data::selUser = data::users.size() - 1;
 
-            if(selected - start >= 32)
+            if(data::selUser - start >= 32)
                 start += 8;
         }
         else if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
-            data::curUser = data::users[selected];
-            //Reset this
-            start = 0;
-            selected = 0;
-            selRectX = 64, selRectY = 90;
+            data::curUser = data::users[data::selUser];
             mstate = TTL_SEL;
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)

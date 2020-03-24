@@ -17,7 +17,7 @@ namespace ui
     {
         //Static vars so they don't change on every loop
         //Where to start in titles, selected title
-        static int start = 0, selected = 0;
+        static int start = 0;
 
         //Color shift for rect
         static uint8_t clrShft = 0;
@@ -59,12 +59,12 @@ namespace ui
                 if(i == endTitle)
                     break;
 
-                if((int)i == selected)
+                if((int)i == data::selData)
                 {
                     selRectX = tX - 6;
                     selRectY = y - 6;
 
-                    std::string title = data::curUser.titles[selected].getTitle();
+                    std::string title = data::curUser.titles[data::selData].getTitle();
                     unsigned titleWidth = textGetWidth(title.c_str(), ui::shared, 16);
                     int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
                     if(rectX < 16)
@@ -84,9 +84,9 @@ namespace ui
         for(int i = 0; i < 32; i++)
         {
             selButtons[i].update(p);
-            if(i == selected - start && selButtons[i].getEvent() == BUTTON_RELEASED)
+            if(i == data::selData - start && selButtons[i].getEvent() == BUTTON_RELEASED)
             {
-                data::curData = data::curUser.titles[selected];
+                data::curData = data::curUser.titles[data::selData];
                 if(fs::mountSave(data::curUser, data::curData))
                 {
                     util::makeTitleDir(data::curUser, data::curData);
@@ -99,7 +99,7 @@ namespace ui
             else if(selButtons[i].getEvent() == BUTTON_RELEASED)
             {
                 if(start + i < (int)data::curUser.titles.size())
-                    selected = start + i;
+                    data::selData = start + i;
             }
         }
 
@@ -117,9 +117,9 @@ namespace ui
                     if(start + 32 < (int)data::curUser.titles.size())
                     {
                         start += 8;
-                        selected += 8;
-                        if(selected > (int)data::curUser.titles.size() - 1)
-                            selected = data::curUser.titles.size() - 1;
+                        data::selData += 8;
+                        if(data::selData > (int)data::curUser.titles.size() - 1)
+                            data::selData = data::curUser.titles.size() - 1;
                     }
                 }
                 break;
@@ -129,7 +129,7 @@ namespace ui
                     if(start - 8 >= 0)
                     {
                         start -= 8;
-                        selected -= 8;
+                        data::selData -= 8;
                     }
                 }
                 break;
@@ -137,41 +137,41 @@ namespace ui
 
         if(down & KEY_RIGHT)
         {
-            if(selected < (int)data::curUser.titles.size() - 1)
-                selected++;
+            if(data::selData < (int)data::curUser.titles.size() - 1)
+                data::selData++;
 
-            if(selected >= (int)start + 32)
+            if(data::selData >= (int)start + 32)
                 start += 8;
         }
         else if(down & KEY_LEFT)
         {
-            if(selected > 0)
-                selected--;
+            if(data::selData > 0)
+                data::selData--;
 
-            if(selected < (int)start)
+            if(data::selData < (int)start)
                 start -= 8;
         }
         else if(down & KEY_UP)
         {
-            selected -= 8;
-            if(selected < 0)
-                selected = 0;
+            data::selData -= 8;
+            if(data::selData < 0)
+                data::selData = 0;
 
-            if(selected < start)
+            if(data::selData < start)
                 start -= 8;
         }
         else if(down & KEY_DOWN)
         {
-            selected += 8;
-            if(selected > (int)data::curUser.titles.size() - 1)
-                selected = data::curUser.titles.size() - 1;
+            data::selData += 8;
+            if(data::selData > (int)data::curUser.titles.size() - 1)
+                data::selData = data::curUser.titles.size() - 1;
 
-            if(selected - start >= 32)
+            if(data::selData - start >= 32)
                 start += 8;
         }
         else if(down & KEY_A || ttlNav[0].getEvent() == BUTTON_RELEASED)
         {
-            data::curData = data::curUser.titles[selected];
+            data::curData = data::curUser.titles[data::selData];
             if(fs::mountSave(data::curUser, data::curData))
             {
                 util::makeTitleDir(data::curUser, data::curData);
@@ -187,19 +187,45 @@ namespace ui
         }
         else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
-            std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[selected].getTitle() + \
+            std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[data::selData].getTitle() + \
                                   "\" to your blacklist?";
             if(ui::confirm(confStr))
-                data::blacklistAdd(data::curUser, data::curUser.titles[selected]);
+                data::blacklistAdd(data::curUser, data::curUser.titles[data::selData]);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
         {
             start = 0;
-            selected = 0;
+            data::selData = 0;
             selRectX = 64;
             selRectY = 90;
             mstate = USR_SEL;
             return;
+        }
+        else if(down & KEY_L)
+        {
+            data::selUser--;
+            if(data::selUser < 0)
+                data::selUser = data::users.size() -1;
+
+            start = 0;
+            data::selData = 0;
+            selRectX = 64, selRectY = 90;
+            data::curUser = data::users[data::selUser];
+
+            ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        }
+        else if(down & KEY_R)
+        {
+            data::selUser++;
+            if(data::selUser > (int)data::users.size() - 1)
+                data::selUser = 0;
+
+            start = 0;
+            data::selData = 0;
+            selRectX = 64, selRectY = 90;
+            data::curUser = data::users[data::selUser];
+
+            ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
         }
     }
 }
