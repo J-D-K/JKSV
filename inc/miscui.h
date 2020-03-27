@@ -91,7 +91,7 @@ namespace ui
 
     //Popup from freebird
     void showPopup(const std::string& mess, unsigned frames);
-    void drawPopup();
+    void drawPopup(const uint64_t& down);
 }
 
 #endif // MISCUI_H

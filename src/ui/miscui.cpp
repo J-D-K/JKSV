@@ -296,7 +296,7 @@ namespace ui
         popDraw = true;
     }
 
-    void drawPopup()
+    void drawPopup(const uint64_t& down)
     {
         if(!popDraw)
             return;
@@ -311,7 +311,7 @@ namespace ui
                 break;
 
             case popShow:
-                if(frameCount++ >= frameHold)
+                if(frameCount++ >= frameHold || down)
                     popState = popFall;
                 break;
 

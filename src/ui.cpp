@@ -341,6 +341,6 @@ namespace ui
                 break;
         }
 
-        drawPopup();
+        drawPopup(down);
     }
 }

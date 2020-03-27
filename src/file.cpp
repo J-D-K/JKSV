@@ -18,22 +18,12 @@
 static std::string wd;
 
 
-static Result fsMountBCAT(FsFileSystem *out, data::titledata& open)
+static Result fsOpenBCAT(FsFileSystem *out, data::titledata& open)
 {
     FsSaveDataAttribute attr;
     std::memset(&attr, 0, sizeof(FsSaveDataAttribute));
     attr.application_id = open.getID();
     attr.save_data_type = FsSaveDataType_Bcat;
-
-    return fsOpenSaveDataFileSystem(out, FsSaveDataSpaceId_User, &attr);
-}
-
-static Result fsMountDeviceSave(FsFileSystem *out, data::titledata& open)
-{
-    FsSaveDataAttribute attr;
-    std::memset(&attr, 0, sizeof(FsSaveDataAttribute));
-    attr.application_id = open.getID();
-    attr.save_data_type = FsSaveDataType_Device;
 
     return fsOpenSaveDataFileSystem(out, FsSaveDataSpaceId_User, &attr);
 }
@@ -71,9 +61,9 @@ namespace fs
             return false;
         else if(open.getType() == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid){0})))
             return false;
-        else if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsMountBCAT(&sv, open)))
+        else if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsOpenBCAT(&sv, open)))
             return false;
-        else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsMountDeviceSave(&sv, open)))
+        else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsOpen_DeviceSaveData(&sv, open.getID())))
             return false;
 
         if(fsdevMountDevice("sv", sv) == -1)

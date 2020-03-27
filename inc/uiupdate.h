@@ -16,4 +16,4 @@ namespace ui
     void advModePrep(const std::string& svDev, bool commitOnWrite);
 }
 
-#endif // USRSEL_H
+#endif

@@ -174,7 +174,7 @@ namespace ui
                 drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, ui::thmID == ColorSetId_Light ? menuColorLight : menuColorDark);
             }
             else
-                drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, ui::mnuTxt);
+                drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, textClr);
         }
     }
 

@@ -37,7 +37,7 @@ namespace ui
             fldNav[i].update(p);
 
         //Draw folder menu
-        folderMenu.draw(mnuTxt);
+        folderMenu.draw(ui::mnuTxt);
 
         data::curData.icon.draw(96, 98);
         drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 64, 370, 18, ui::mnuTxt, 224);
