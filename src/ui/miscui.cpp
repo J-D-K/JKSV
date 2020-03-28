@@ -17,6 +17,13 @@ enum popStates
     popFall
 };
 
+//8
+static const std::string loadGlyphArray[] =
+{
+    "\ue020", "\ue021", "\ue022", "\ue023", "\ue024",
+    "\ue025", "\ue026", "\ue027"
+};
+
 namespace ui
 {
     progBar::progBar(const uint64_t& _max)
@@ -56,6 +63,17 @@ namespace ui
         y = _y;
         w = _w;
         h = _h;
+        text = _txt;
+
+        unsigned tw = textGetWidth(text.c_str(), ui::shared, 24);
+        unsigned th = 24;
+
+        tx = x + (w / 2) - (tw / 2);
+        ty = y + (h / 2) - (th / 2);
+    }
+
+    void button::setText(const std::string& _txt)
+    {
         text = _txt;
 
         unsigned tw = textGetWidth(text.c_str(), ui::shared, 24);
@@ -112,6 +130,20 @@ namespace ui
         {
             ui::drawTextbox(x, y, w, h);
             drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, txtClr);
+        }
+    }
+
+    void button::draw(const clr& _txt)
+    {
+        if(pressed)
+        {
+            ui::drawTextboxInvert(x, y, w, h);
+            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, _txt);
+        }
+        else
+        {
+            ui::drawTextbox(x, y, w, h);
+            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, _txt);
         }
     }
 
@@ -189,9 +221,12 @@ namespace ui
         }
     }
 
-    bool confirm(const std::string& mess)
+    bool confirm(const std::string& mess, bool hold)
     {
-        bool ret = false;
+        bool ret = false, heldDown = false;
+        unsigned loadFrame = 0, holdCount = 0;
+        uint8_t holdClrDiff = 0;
+        clr holdClr;
 
         button yes("Yes \ue0e0", 256, 496, 384, 96);
         button no("No \ue0e1", 640, 496, 384, 96);
@@ -199,18 +234,48 @@ namespace ui
         size_t headWidth = textGetWidth("Confirm", ui::shared, 24);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
+
         while(true)
         {
             hidScanInput();
 
             uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
+            uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
+            uint64_t up   = hidKeysUp(CONTROLLER_P1_AUTO);
+
             touchPosition p;
             hidTouchRead(&p, 0);
 
             yes.update(p);
             no.update(p);
 
-            if(down & KEY_A || yes.getEvent() == BUTTON_RELEASED)
+            if(hold && (held & KEY_A || yes.getEvent() == BUTTON_PRESSED))
+            {
+                heldDown = true;
+                holdCount++, holdClrDiff++;
+                if(holdCount % 4 == 0)
+                {
+                    loadFrame++;
+                    if(loadFrame > 7)
+                        loadFrame = 0;
+                }
+
+                if(holdCount >= 180)
+                {
+                    ret = true;
+                    break;
+                }
+
+                yes.setText(loadGlyphArray[loadFrame]);
+            }
+            else if((hold && heldDown) && (up & KEY_A || yes.getEvent() == BUTTON_RELEASED))
+            {
+                //Reset everything
+                heldDown= false;
+                holdCount = 0, loadFrame = 0, holdClrDiff = 0;
+                yes.setText("Yes \ue0e0");
+            }
+            else if(down & KEY_A || yes.getEvent() == BUTTON_RELEASED)
             {
                 ret = true;
                 break;
@@ -226,7 +291,18 @@ namespace ui
             drawText("Confirm", frameBuffer, ui::shared, headX, 144, 24, txtClr);
             drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
             drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
-            yes.draw();
+            if(hold && heldDown)
+            {
+                if(ui::thmID == ColorSetId_Light)
+                    holdClr = clrCreateRGBA(0xFF, 0xFF - holdClrDiff, 0xFF - holdClrDiff, 0xFF);
+                else
+                    holdClr = clrCreateRGBA(0x25 + holdClrDiff, 0x00, 0x00, 0xFF);
+
+                yes.draw(holdClr);
+            }
+            else
+                yes.draw();
+
             no.draw();
             gfxEndFrame();
         }
@@ -238,14 +314,14 @@ namespace ui
     {
         std::string confMess = "Are you sure you want to copy #" + f + "# to #" + t +"#?";
 
-        return confirm(confMess);
+        return confirm(confMess, false);
     }
 
     bool confirmDelete(const std::string& p)
     {
         std::string confMess = "Are you 100% sure you want to delete #" + p + "#? *This is permanent*!";
 
-        return confirm(confMess);
+        return confirm(confMess, true);
     }
 
     void drawTextbox(int x, int y, int w, int h)

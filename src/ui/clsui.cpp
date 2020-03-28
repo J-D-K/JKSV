@@ -115,11 +115,33 @@ namespace ui
         {
             std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[titleMenu.getSelected()].getTitle() + \
                                   "\" to your blacklist?";
-            if(ui::confirm(confStr))
+            if(ui::confirm(confStr, false))
                 data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
             mstate = CLS_USR;
+        else if(down & KEY_L)
+        {
+            data::selUser--;
+            if(data::selUser < 0)
+                data::selUser = data::users.size() -1;
+
+            data::curUser = data::users[data::selUser];
+            clsTitlePrep(data::curUser);
+
+            ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        }
+        else if(down & KEY_R)
+        {
+            data::selUser++;
+            if(data::selUser > (int)data::users.size() - 1)
+                data::selUser = 0;
+
+            data::curUser = data::users[data::selUser];
+            clsTitlePrep(data::curUser);
+
+            ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        }
     }
 
     void classicFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -173,7 +195,7 @@ namespace ui
                 fs::dirList list(scanPath);
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?"))
+                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", true))
                 {
                     std::string toPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
                     //Delete and recreate
@@ -188,28 +210,23 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(data::curData.getType() != FsSaveDataType_SystemBcat)
+            if(folderMenu.getSelected() > 0)
             {
-                if(folderMenu.getSelected() > 0)
+                std::string scanPath = util::getTitleDir(data::curUser, data::curData);
+                fs::dirList list(scanPath);
+
+                std::string folderName = list.getItem(folderMenu.getSelected() - 1);
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
                 {
-                    std::string scanPath = util::getTitleDir(data::curUser, data::curData);
-                    fs::dirList list(scanPath);
+                    std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+                    std::string root = "sv:/";
 
-                    std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                    if(confirm("Are you sure you want to restore \"" + folderName + "\"?"))
-                    {
-                        std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
-                        std::string root = "sv:/";
+                    fs::delDir(root);
+                    fsdevCommitDevice("sv");
 
-                        fs::delDir(root);
-                        fsdevCommitDevice("sv");
-
-                        fs::copyDirToDirCommit(fromPath, root, "sv");
-                    }
+                    fs::copyDirToDirCommit(fromPath, root, "sv");
                 }
             }
-            else
-                ui::showMessage("Writing data to system save data is not allowed currently. It CAN brick your system.", "Sorry, bro:");
         }
         else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
         {
@@ -219,7 +236,7 @@ namespace ui
                 fs::dirList list(scanPath);
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to delete \"" + folderName + "\"?"))
+                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", true))
                 {
                     std::string delPath = scanPath + folderName + "/";
                     fs::delDir(delPath);
@@ -431,7 +448,7 @@ namespace ui
                         }
                         fsdevUnmountDevice("sv");
 
-                        if(ui::confirm("System needs to be restarted for nag to go away. Reboot now?"))
+                        if(ui::confirm("System needs to be restarted for nag to go away. Reboot now?", false))
                         {
                             bpcInitialize();
                             bpcRebootSystem();
@@ -459,7 +476,7 @@ namespace ui
                         fsdevUnmountDevice("sv");
                         std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
                         uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
-                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid){0})))
+                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
                         {
                             fsdevMountDevice("sv", sv);
                             advModePrep("sv:/", true);

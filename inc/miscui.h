@@ -1,6 +1,8 @@
 #ifndef MISCUI_H
 #define MISCUI_H
 
+#include "gfx.h"
+
 enum buttonEvents
 {
     BUTTON_NOTHING,
@@ -44,12 +46,14 @@ namespace ui
     {
         public:
             button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h);
+            void setText(const std::string& _txt);
             void update(const touchPosition& p);
             bool isOver();
             bool wasOver();
             int getEvent() { return retEvent; }
 
             void draw();
+            void draw(const clr& _txt);
 
             unsigned getX() { return x; }
             unsigned getY() { return y; }
@@ -83,7 +87,7 @@ namespace ui
 
     //General use
     void showMessage(const std::string& mess, const std::string& head);
-    bool confirm(const std::string& q);
+    bool confirm(const std::string& q, bool hold);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
     void drawTextbox(int x, int y, int w, int h);

@@ -11,7 +11,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 03.24.2020"
+#define VER_STRING "v. 03.27.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
