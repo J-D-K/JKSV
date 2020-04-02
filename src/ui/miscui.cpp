@@ -8,7 +8,7 @@
 
 static bool popDraw = false;
 static std::string popText;
-static unsigned popY, popTextX, popState, frameCount, frameHold;
+static unsigned popY, popX, popWidth, popState, frameCount, frameHold;
 
 enum popStates
 {
@@ -20,8 +20,8 @@ enum popStates
 //8
 static const std::string loadGlyphArray[] =
 {
-    "\ue020", "\ue021", "\ue022", "\ue023", "\ue024",
-    "\ue025", "\ue026", "\ue027"
+    "\ue020", "\ue021", "\ue022", "\ue023",
+    "\ue024", "\ue025", "\ue026", "\ue027"
 };
 
 namespace ui
@@ -266,7 +266,7 @@ namespace ui
                     break;
                 }
 
-                yes.setText(loadGlyphArray[loadFrame]);
+                yes.setText(std::string("(Hold) " + loadGlyphArray[loadFrame]));
             }
             else if((hold && heldDown) && (up & KEY_A || yes.getEvent() == BUTTON_RELEASED))
             {
@@ -364,7 +364,8 @@ namespace ui
     {
         frameCount = 0;
         frameHold = frames;
-        popTextX = 640 - (textGetWidth(mess.c_str(), ui::shared, 24) / 2);
+        popWidth = textGetWidth(mess.c_str(), ui::shared, 24) + 32;
+        popX = 640 - (popWidth / 2);
 
         popText = mess;
         popY = 721;
@@ -380,7 +381,7 @@ namespace ui
         switch(popState)
         {
             case popRise:
-                if(popY > 559)
+                if(popY > 560)
                     popY -= 24;
                 else
                     popState = popShow;
@@ -399,7 +400,7 @@ namespace ui
                 break;
         }
 
-        drawTextbox(60, popY, 1160, 64);
-        drawText(popText.c_str(), frameBuffer, ui::shared, popTextX, popY + 20, 24, ui::txtClr);
+        drawTextbox(popX, popY, popWidth, 64);
+        drawText(popText.c_str(), frameBuffer, ui::shared, popX + 16, popY + 20, 24, ui::txtClr);
     }
 }

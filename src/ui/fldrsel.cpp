@@ -42,13 +42,14 @@ namespace ui
         data::curData.icon.draw(96, 98);
         drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 64, 370, 18, ui::mnuTxt, 224);
 
+
         if(down & KEY_A || fldNav[0].getEvent() == BUTTON_RELEASED || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
         {
             if(folderMenu.getSelected() == 0)
             {
                 std::string folder;
                 //Add back 3DS shortcut thing
-                if(held & KEY_R)
+                if(held & KEY_R || data::isAppletMode())
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
                 else if(held & KEY_L)
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);

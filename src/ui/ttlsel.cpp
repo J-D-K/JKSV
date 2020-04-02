@@ -1,8 +1,6 @@
 #include <string>
 #include <vector>
 
-#include <fstream>
-
 #include "ui.h"
 #include "uiupdate.h"
 #include "file.h"
@@ -91,7 +89,6 @@ namespace ui
                 {
                     util::makeTitleDir(data::curUser, data::curData);
                     folderMenuPrepare(data::curUser, data::curData);
-                    folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
                     mstate = FLD_SEL;
                 }
@@ -176,7 +173,9 @@ namespace ui
             {
                 util::makeTitleDir(data::curUser, data::curData);
                 folderMenuPrepare(data::curUser, data::curData);
-                folderMenuInfo = util::getInfoString(data::curUser, data::curData);
+
+                //Wanna change this sometime
+                ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
                 mstate = FLD_SEL;
             }

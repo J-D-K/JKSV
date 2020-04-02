@@ -1,12 +1,10 @@
 #include <vector>
 #include <string>
 #include <cstring>
-#include <fstream>
 #include <algorithm>
 #include <cstdio>
 #include <ctime>
 #include <switch.h>
-#include <zlib.h>
 
 #include "data.h"
 #include "file.h"
@@ -73,23 +71,25 @@ static tex *createDeviceIcon()
 
 namespace data
 {
+    //Current data
     titledata curData;
     user      curUser;
     int selUser = 0, selData = 0;
+
+    //Icon/User vectors
     std::vector<icn> icons;
     std::vector<user> users;
+
     bool forceMount = true;
-    bool isSpcd = false;
+
+    //System language
+    std::string sysLang;
+
+    //AppletType
+    AppletType appletMode;
 
     void loadDataInfo()
     {
-        //Check date
-        time_t raw;
-        time(&raw);
-        tm *locTime = localtime(&raw);
-        if(locTime->tm_mon == 3 && locTime->tm_mday == 1)
-            isSpcd = true;
-
         //Clear titles + users just in case
         for(unsigned i = 0; i < users.size(); i++)
             users[i].titles.clear();
@@ -97,6 +97,14 @@ namespace data
         users.clear();
 
         loadBlacklist();
+
+        //Get system language and copy to std::string
+        uint64_t lang;
+        setGetSystemLanguage(&lang);
+        data::sysLang.assign((const char *)&lang);
+
+        //Get applet type
+        appletMode = appletGetAppletType();
 
         FsSaveDataInfoReader saveIt;
         s64 total = 0;
@@ -188,14 +196,16 @@ namespace data
             icons[i].deleteData();
     }
 
+    bool isAppletMode()
+    {
+        return appletMode != AppletType_Application && appletMode != AppletType_SystemApplication;
+    }
+
     void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
     {
         titleID = _id;
 
-        if(isSpcd)
-            iconTex = util::loadDefaultIcon();
-        else
-            iconTex = texLoadJPEGMem(jpegData, jpegSize);
+        iconTex = texLoadJPEGMem(jpegData, jpegSize);
     }
 
     void icn::load(const uint64_t& _id, const std::string& _png)
@@ -248,6 +258,7 @@ namespace data
         {
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
+            author.assign(ent->author);
             if(titleSafe.empty())
             {
                 char tmp[18];
@@ -308,19 +319,14 @@ namespace data
         if(username.empty())
             username = "Unknown";
         userSafe = util::safeString(username);
-        if(!isSpcd)
-        {
-            uint32_t sz = 0;
-            accountProfileGetImageSize(&prof, &sz);
-            uint8_t *profJpeg = new uint8_t[sz];
+        uint32_t sz = 0;
+        accountProfileGetImageSize(&prof, &sz);
+        uint8_t *profJpeg = new uint8_t[sz];
 
-            accountProfileLoadImage(&prof, profJpeg, sz, &sz);
-            userIcon = texLoadJPEGMem(profJpeg, sz);
+        accountProfileLoadImage(&prof, profJpeg, sz, &sz);
+        userIcon = texLoadJPEGMem(profJpeg, sz);
 
-            delete[] profJpeg;
-        }
-        else
-            userIcon = util::loadDefaultIcon();
+        delete[] profJpeg;
 
         accountProfileClose(&prof);
 
@@ -336,7 +342,6 @@ namespace data
 
         //create generic icon
         userIcon = util::createIconGeneric(_backupName.c_str());
-        //userIcon = texLoadPNGFile("romfs:/img/icn/icnDefault.png");
 
         return true;
     }
@@ -344,33 +349,34 @@ namespace data
     void loadBlacklist()
     {
         blacklist.clear();
+
+        char tmp[128];
         if(fs::fileExists(fs::getWorkDir() + "blacklist.txt"))
         {
-            std::string line;
-            std::fstream bl(fs::getWorkDir() + "blacklist.txt", std::ios::in);
+            FILE *bl = fopen(std::string(fs::getWorkDir() + "blacklist.txt").c_str(), "r");
 
-            while(std::getline(bl, line))
+            while(fgets(tmp, 128, bl))
             {
-                if(line[0] == '#' || line[0] == '\n')
+                if(tmp[0] == '#' || tmp[0] == '\n')
                     continue;
 
-                blacklist.push_back(std::strtoull(line.c_str(), NULL, 16));
+                blacklist.push_back(std::strtoull(tmp, NULL, 16));
             }
-            bl.close();
+            fclose(bl);
         }
     }
 
     void blacklistAdd(user& u, titledata& t)
     {
-        std::fstream bl(fs::getWorkDir() + "blacklist.txt", std::ios::app);
+        FILE *bl = fopen(std::string(fs::getWorkDir() + "blacklist.txt").c_str(), "a");
 
         std::string titleLine = "#" + t.getTitle() + "\n";
         char idLine[32];
         sprintf(idLine, "0x%016lX\n", t.getID());
 
-        bl.write(titleLine.c_str(), titleLine.length());
-        bl.write(idLine, std::strlen(idLine));
-        bl.close();
+        fputs(titleLine.c_str(), bl);
+        fputs(idLine, bl);
+        fclose(bl);
 
         //Remove it from every user
         for(unsigned i = 0; i < users.size(); i++)

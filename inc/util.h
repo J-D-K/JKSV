@@ -24,9 +24,6 @@ namespace util
     //Returns 'JKSV/[title]/'
     std::string getTitleDir(data::user& u, data::titledata& t);
 
-    //Just returns string with '\n' inserted.
-    std::string getWrappedString(const std::string& s, const unsigned& sz, const unsigned& maxWidth);
-
     //Copys dir list to a menu with 'D: ' + 'F: '
     void copyDirListToMenu(fs::dirList& d, ui::menu& m);
 
@@ -40,9 +37,6 @@ namespace util
     std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 
     std::string generateAbbrev(data::titledata& dat);
-
-    //Loads default icon.
-    tex *loadDefaultIcon();
 
     //Creates a basic generic icon for stuff without one
     tex *createIconGeneric(const char *txt);

@@ -1,4 +1,3 @@
-#include <fstream>
 #include <cstdio>
 #include <algorithm>
 #include <cstring>
@@ -187,29 +186,30 @@ namespace fs
 
     void copyFile(const std::string& from, const std::string& to)
     {
-        std::fstream f(from, std::ios::in | std::ios::binary);
-        std::fstream t(to, std::ios::out | std::ios::binary);
+        FILE *f = fopen(from.c_str(), "rb");
+        FILE *t = fopen(to.c_str(), "wb");
 
-        if(!f.is_open() || !t.is_open())
+        if(f == NULL || t == NULL)
         {
-            f.close();
-            t.close();
+            //JIC
+            fclose(f);
+            fclose(t);
             return;
         }
 
-        f.seekg(0, f.end);
-        size_t fileSize = f.tellg();
-        f.seekg(0, f.beg);
+        fseek(f, 0, SEEK_END);
+        size_t fileSize = ftell(f);
+        fseek(f, 0, SEEK_SET);
 
         uint8_t *buff = new uint8_t[BUFF_SIZE];
         ui::progBar prog(fileSize);
 
         for(unsigned i = 0; i < fileSize; )
         {
-            f.read((char *)buff, BUFF_SIZE);
-            t.write((char *)buff, f.gcount());
+            size_t readCount = fread(buff, 1, BUFF_SIZE, f);
+            fwrite(buff, 1, readCount, t);
 
-            i += f.gcount();
+            i += readCount;
             prog.update(i);
 
             gfxBeginFrame();
@@ -219,35 +219,35 @@ namespace fs
 
         delete[] buff;
 
-        f.close();
-        t.close();
+        fclose(f);
+        fclose(t);
     }
 
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
     {
-        std::fstream f(from, std::ios::in | std::ios::binary);
-        std::fstream t(to, std::ios::out | std::ios::binary);
+        FILE *f = fopen(from.c_str(), "rb");
+        FILE *t = fopen(to.c_str(), "wb");
 
-        if(!f.is_open() || !t.is_open())
+        if(f == NULL || t == NULL)
         {
-            f.close();
-            t.close();
+            fclose(f);
+            fclose(t);
             return;
         }
 
-        f.seekg(0, f.end);
-        size_t fileSize = f.tellg();
-        f.seekg(0, f.beg);
+        fseek(f, 0, SEEK_END);
+        size_t fileSize = ftell(f);
+        fseek(f, 0, SEEK_SET);
 
         uint8_t *buff = new uint8_t[BUFF_SIZE];
         ui::progBar prog(fileSize);
 
         for(unsigned i = 0; i < fileSize; )
         {
-            f.read((char *)buff, BUFF_SIZE);
-            t.write((char *)buff, f.gcount());
+            size_t readCount = fread(buff, 1, BUFF_SIZE, f);
+            fwrite(buff, 1, readCount, t);
 
-            i += f.gcount();
+            i += readCount;
             prog.update(i);
 
             gfxBeginFrame();
@@ -257,8 +257,8 @@ namespace fs
 
         delete[] buff;
 
-        f.close();
-        t.close();
+        fclose(f);
+        fclose(t);
 
         if(R_FAILED(fsdevCommitDevice(dev.c_str())))
             ui::showMessage("Error committing file to device!", "*ERROR*");
@@ -362,15 +362,16 @@ namespace fs
     std::string getFileProps(const std::string& _path)
     {
         std::string ret = "";
-        std::fstream get(_path, std::ios::in | std::ios::binary);
-        if(get.is_open())
+
+        FILE *get = fopen(_path.c_str(), "rb");
+        if(get != NULL)
         {
             //Size
-            get.seekg(0, get.end);
-            unsigned fileSize = get.tellg();
-            get.seekg(0, get.beg);
+            fseek(get, 0, SEEK_END);
+            unsigned fileSize = ftell(get);
+            fseek(get, 0, SEEK_SET);
 
-            get.close();
+            fclose(get);
 
             //Probably add more later
 
@@ -405,10 +406,10 @@ namespace fs
                 fileCount++;
                 std::string filePath = _path + list.getItem(i);
 
-                std::fstream gSize(filePath.c_str(), std::ios::in | std::ios::binary);
-                gSize.seekg(0, gSize.end);
-                size_t fSize = gSize.tellg();
-                gSize.close();
+                FILE *gSize = fopen(filePath.c_str(), "rb");
+                fseek(gSize, 0, SEEK_END);
+                size_t fSize = ftell(gSize);
+                fclose(gSize);
 
                 totalSize += fSize;
             }

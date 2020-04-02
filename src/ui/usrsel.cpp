@@ -1,5 +1,4 @@
 #include <string>
-#include <fstream>
 #include <vector>
 #include <switch.h>
 
@@ -143,9 +142,8 @@ namespace ui
         }
         else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
         {
-            //Just create file so user doesn't have to constantly enable
-            std::fstream cls(fs::getWorkDir() + "cls.txt", std::ios::out);
-            cls.close();
+            FILE *cls = fopen(std::string(fs::getWorkDir() + "cls.txt").c_str(), "w");
+            fclose(cls);
             clsUserPrep();
             mstate = CLS_USR;
             clsMode = true;

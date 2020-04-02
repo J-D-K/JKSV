@@ -18,6 +18,7 @@ extern "C"
         hidInitialize();
         nsInitialize();
         setsysInitialize();
+        setInitialize();
         accountInitialize(AccountServiceType_System);
     }
 
@@ -28,6 +29,7 @@ extern "C"
         hidExit();
         nsExit();
         setsysExit();
+        setExit();
         accountExit();
     }
 }

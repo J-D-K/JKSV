@@ -16,6 +16,7 @@ namespace data
     void loadDataInfo();
     void loadBlacklist();
     void exit();
+    bool isAppletMode();
 
     //Class to help not load the same icons over and over
     class icn
@@ -53,6 +54,7 @@ namespace data
             //Returns title + title without forbidden chars
             std::string getTitle() { return title;}
             std::string getTitleSafe() { return titleSafe; }
+            std::string getAuthor() { return author; }
 
             uint64_t getID() { return id; }
             FsSaveDataType getType(){ return (FsSaveDataType)info.save_data_type; }
@@ -63,7 +65,7 @@ namespace data
 
         private:
             FsSaveDataInfo info;
-            std::string title, titleSafe;
+            std::string title, titleSafe, author;
             uint64_t id;
     };
 
@@ -113,8 +115,8 @@ namespace data
     extern titledata curData;
     extern user      curUser;
     extern int selUser, selData;
-
-    extern bool isSpcd;
+    extern std::string sysLang;
+    extern AppletType appletMode;
 }
 
 #endif // DATA_H

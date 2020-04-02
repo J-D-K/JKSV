@@ -1,5 +1,4 @@
 #include <string>
-#include <fstream>
 #include <vector>
 #include <cstdlib>
 #include <switch.h>
@@ -102,7 +101,6 @@ namespace ui
             {
                 util::makeTitleDir(data::curUser, data::curData);
                 clsFolderPrep(data::curUser, data::curData);
-                folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
                 mstate = CLS_FLD;
             }
@@ -159,7 +157,7 @@ namespace ui
             {
                 std::string folder;
                 //Add back 3DS shortcut thing
-                if(held & KEY_R)
+                if(held & KEY_R || data::isAppletMode())
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
                 else if(held & KEY_L)
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
@@ -266,8 +264,6 @@ namespace ui
         devMenu.addOpt("Bis: SAFE");
         devMenu.addOpt("Bis: SYSTEM");
         devMenu.addOpt("Bis: USER");
-        devMenu.addOpt("NAND Backup (exFat)");
-        devMenu.addOpt("NAND Backup (FAT32)");
         devMenu.addOpt("Remove Downloaded Update");
         devMenu.addOpt("Terminate Process ID");
         devMenu.addOpt("Mount System Save ID");
@@ -335,107 +331,6 @@ namespace ui
                 case 5:
                     {
                         fsdevUnmountDevice("sv");
-
-                        FsStorage nand;
-                        fsOpenBisStorage(&nand, FsBisPartitionId_UserDataRoot);
-                        s64 nandSize = 0, offset = 0;
-                        fsStorageGetSize(&nand, &nandSize);
-
-                        std::fstream nandOut("sdmc:/JKSV/nand.bin", std::ios::out | std::ios::binary);
-
-                        s64 nandBuffSize = 1024 * 1024 * 4;
-                        uint8_t *nandBuff = new uint8_t[nandBuffSize];
-
-                        progBar nandProg(nandSize);
-
-                        while(offset < nandSize)
-                        {
-                            size_t readLen = 0;
-                            if(offset + nandBuffSize < nandSize)
-                                readLen = nandBuffSize;
-                            else
-                                readLen = nandSize - offset;
-
-                            if(R_SUCCEEDED(fsStorageRead(&nand, offset, nandBuff, readLen)))
-                            {
-                                nandOut.write((char *)nandBuff, readLen);
-                                offset += readLen;
-                            }
-                            else
-                            {
-                                ui::showMessage("Something went wrong while dumping your NAND.", "*ERROR*");
-                                break;
-                            }
-                            gfxBeginFrame();
-                            nandProg.update(offset);
-                            nandProg.draw("", "Copying NAND");
-                            gfxEndFrame();
-                        }
-
-                        delete[] nandBuff;
-                        nandOut.close();
-                        fsStorageClose(&nand);
-                    }
-                    break;
-
-                case 6:
-                    {
-                        unsigned fcount = 1;
-                        fsdevUnmountDevice("sv");
-
-                        FsStorage nand;
-                        fsOpenBisStorage(&nand, FsBisPartitionId_UserDataRoot);
-                        s64 nandSize = 0, offset = 0;
-                        fsStorageGetSize(&nand, &nandSize);
-
-                        std::fstream nandOut("sdmc:/JKSV/nand.bin.00", std::ios::out | std::ios::binary);
-
-                        s64 nandBuffSize = 1024 * 1024 * 3;
-                        uint8_t *nandBuff = new uint8_t[nandBuffSize];
-
-                        progBar nandProg(nandSize);
-
-                        while(offset < nandSize)
-                        {
-                            size_t readLen = 0;
-                            if(offset + nandBuffSize < nandSize)
-                                readLen = nandBuffSize;
-                            else
-                                readLen = nandSize - offset;
-
-                            if(R_SUCCEEDED(fsStorageRead(&nand, offset, nandBuff, readLen)))
-                            {
-                                if((size_t)nandOut.tellp() + readLen >= 0x100000000)
-                                {
-                                    nandOut.close();
-                                    char newPath[128];
-                                    sprintf(newPath, "sdmc:/JKSV/nand.bin.%02d", fcount++);
-                                    nandOut.open(newPath, std::ios::out | std::ios::binary);
-                                }
-                                nandOut.write((char *)nandBuff, readLen);
-                                offset += readLen;
-                            }
-                            else
-                            {
-                                ui::showMessage("Something went wrong while dumping your NAND.", "*ERROR*");
-                                break;
-                            }
-
-                            gfxBeginFrame();
-                            nandProg.update(offset);
-                            nandProg.draw("", "Copying NAND");
-                            gfxEndFrame();
-                        }
-
-                        delete[] nandBuff;
-                        nandOut.close();
-                        fsStorageClose(&nand);
-                    }
-                    break;
-
-                case 7:
-                    {
-                        fsdevUnmountDevice("sv");
                         fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                         fsdevMountDevice("sv", sv);
                         std::string delPath = "sv:/Contents/placehld/";
@@ -456,7 +351,7 @@ namespace ui
                     }
                     break;
 
-                case 8:
+                case 6:
                     {
                         fsdevUnmountDevice("sv");
                         std::string idStr = util::getStringInput("0100000000000000", "Enter Process ID", 18, 0, NULL);
@@ -471,7 +366,7 @@ namespace ui
                     }
                     break;
 
-                case 9:
+                case 7:
                     {
                         fsdevUnmountDevice("sv");
                         std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
@@ -487,7 +382,7 @@ namespace ui
                     }
                     break;
 
-                case 10:
+                case 8:
                     {
                         fsdevUnmountDevice("sv");
                         FsFileSystem tromfs;

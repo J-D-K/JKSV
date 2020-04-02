@@ -1,5 +1,4 @@
 #include <string>
-#include <fstream>
 #include <cstdio>
 #include <ctime>
 #include <sys/stat.h>
@@ -10,7 +9,18 @@
 #include "file.h"
 #include "ui.h"
 
-static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*'};
+static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '™', '©', '®'};
+
+static bool isVerboten(uint32_t t)
+{
+    for(unsigned i = 0; i < 13; i++)
+    {
+        if(t == verboten[i])
+            return true;
+    }
+
+    return false;
+}
 
 //Missing swkbd config funcs for now
 typedef enum
@@ -40,7 +50,7 @@ void swkbdDictWordCreate(dictWord *w, const char *read, const char *word)
     memcpy(w->word, tmp, 0x30);
 }
 
-uint32_t replaceIfAccent(uint32_t c)
+uint32_t replaceChar(uint32_t c)
 {
     switch(c)
     {
@@ -113,17 +123,6 @@ namespace util
         _path.erase(last + 1, _path.length());
     }
 
-    bool isVerboten(uint32_t t)
-    {
-        for(unsigned i = 0; i < 10; i++)
-        {
-            if(t == verboten[i])
-                return true;
-        }
-
-        return false;
-    }
-
     std::string safeString(const std::string& s)
     {
         std::string ret = "";
@@ -134,12 +133,10 @@ namespace util
 
             i += untCnt;
 
-            tmpChr = replaceIfAccent(tmpChr);
+            tmpChr = replaceChar(tmpChr);
 
             if(isVerboten(tmpChr))
-            {
                 ret += ' ';
-            }
             else if(tmpChr < 31 || tmpChr > 126)
                 return ""; //return empty string so titledata::init defaults to titleID
             else
@@ -147,8 +144,8 @@ namespace util
         }
 
         //Check for spaces at end
-        if(ret[ret.length() - 1] == ' ')
-            ret.erase(ret.end() - 1, ret.end());
+        while(ret[ret.length() - 1] == ' ')
+            ret.erase(ret.length() - 1, 1);
 
         return ret;
     }
@@ -243,26 +240,6 @@ namespace util
             ret += tok[0];
             tok = strtok(NULL, " ");
         }
-
-        return ret;
-    }
-
-    tex *loadDefaultIcon()
-    {
-        tex *ret;
-
-        std::fstream iconIn("romfs:/img/icn/icnDefault.png", std::ios::in | std::ios::binary);
-        iconIn.seekg(0, iconIn.end);
-        size_t fileSize = iconIn.tellg();
-        iconIn.seekg(0xB50, iconIn.beg);
-
-        size_t iconSize = fileSize - 0xB50;
-        uint8_t *tmpBuff = new uint8_t[iconSize];
-        iconIn.read((char *)tmpBuff, iconSize);
-        iconIn.close();
-
-        ret = texLoadJPEGMem(tmpBuff, iconSize);
-        delete[] tmpBuff;
 
         return ret;
     }
