@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.02.2020"
+#define VER_STRING "v. 04.03.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -20,7 +20,7 @@ static tex *top, *bot;
 
 //Help text
 static const std::string userHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0e7 Options   \ue0f0 Extras";
-static const std::string titleHelp = "\ue0e0 Select   \ue0e4\ue0e5 Change User   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back";
+static const std::string titleHelp = "\ue0e0 Select   \ue0e4\ue0e5 Change User   \ue0e3 Dump All   \ue0e2 BlackList   \ue0f0 Favorite   \ue0e1 Back";
 static const std::string folderHelp = "\ue0f0 File Mode   \ue0e4\ue0e5 AutoName   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back";
 static const std::string optHelp = "\ue0e0 Toggle   \ue0e1 Back";
 

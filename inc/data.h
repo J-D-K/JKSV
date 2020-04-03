@@ -19,6 +19,8 @@ namespace data
     bool isAppletMode();
     void loadCfg();
     void saveCfg();
+    void loadFav();
+    void saveFav();
 
     //Class to help not load the same icons over and over
     class icn
@@ -30,17 +32,22 @@ namespace data
             void load(const uint64_t & _id, const std::string& _png);
             //Creates a generic icon for stuff with no icon
             void create(const uint64_t& _id, const std::string& _txt);
+            //Creates favorite with heart on it. Needs to be called after icon is loaded
+            void createFav();
 
             void draw(unsigned x, unsigned y) { texDrawNoAlpha(iconTex, frameBuffer, x, y); }
+            void drawFav(unsigned x, unsigned y) { texDrawNoAlpha(iconFav, frameBuffer, x, y); }
             void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, frameBuffer, x, y); }
+            void drawFavHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconFav, frameBuffer, x, y); }
 
             uint64_t getTitleID() { return titleID; }
+            tex *getTex() { return iconTex; }
 
-            void deleteData() { texDestroy(iconTex); }
+            void deleteData() { texDestroy(iconTex); texDestroy(iconFav); }
 
         private:
             uint64_t titleID;
-            tex *iconTex;
+            tex *iconTex, *iconFav = NULL;
     };
 
     //Class to store title info
@@ -59,16 +66,19 @@ namespace data
             std::string getAuthor() { return author; }
 
             uint64_t getID() { return id; }
-            FsSaveDataType getType(){ return (FsSaveDataType)info.save_data_type; }
-            void setType(FsSaveDataType type){ info.save_data_type = type; }
+            FsSaveDataType getType() { return (FsSaveDataType)saveDataType; }
+            void setType(FsSaveDataType type) { saveDataType = type; }
+            void setFav(bool setFav) { favorite = setFav; }
+            bool getFav() { return favorite; }
 
             //Game icon
             icn icon;
 
         private:
-            FsSaveDataInfo info;
+            uint8_t saveDataType;
             std::string title, titleSafe, author;
             uint64_t id;
+            bool favorite = false;
     };
 
     //Class to store user info + titles
@@ -82,10 +92,10 @@ namespace data
             bool initNoChk(const AccountUid& _id, const std::string& _backupName);
 
             //Sets ID
-            void setUID(const AccountUid& _id){ userID = _id; }
+            void setUID(const AccountUid& _id) { userID = _id; }
 
             //Assigns icon
-            void assignIcon(tex *_icn){ userIcon = _icn; }
+            void assignIcon(tex *_icn) { userIcon = _icn; }
 
             //Returns user ID
             AccountUid getUID() { return userID; }
@@ -97,9 +107,9 @@ namespace data
             //Vector for storing save data info for user
             std::vector<titledata> titles;
 
-            void drawIcon(int x, int y){ texDrawNoAlpha(userIcon, frameBuffer, x, y); }
-            void drawIconHalf(int x, int y){ texDrawSkipNoAlpha(userIcon, frameBuffer, x, y); }
-            void delIcon(){ texDestroy(userIcon); }
+            void drawIcon(int x, int y) { texDrawNoAlpha(userIcon, frameBuffer, x, y); }
+            void drawIconHalf(int x, int y) { texDrawSkipNoAlpha(userIcon, frameBuffer, x, y); }
+            void delIcon() { texDestroy(userIcon); }
 
         private:
             AccountUid userID;
@@ -108,7 +118,10 @@ namespace data
             tex* userIcon;
     };
     //Adds title to blacklist
-    void blacklistAdd(user& u, titledata& t);
+    void blacklistAdd(data::user& u, data::titledata& t);
+    //Adds title to favorite list
+    void favoriteAdd(data::user& u, data::titledata& t);
+    void favoriteRemove(data::user& u, data::titledata& t);
 
     //User vector
     extern std::vector<user> users;
@@ -119,7 +132,7 @@ namespace data
     extern int selUser, selData;
     extern std::string sysLang;
     extern AppletType appletMode;
-    extern bool incDev, autoBack;
+    extern bool incDev, autoBack, ovrClk;
 }
 
 #endif // DATA_H

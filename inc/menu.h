@@ -42,7 +42,7 @@ namespace ui
             void reset();
 
             //Resets selected + start
-            void resetSel(){ selected = 0; start = 0; }
+            void resetSel() { selected = 0; start = 0; }
 
             //Adjusts things after changes are made
             void adjust();

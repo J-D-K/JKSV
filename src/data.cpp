@@ -15,6 +15,9 @@ static struct
 {
     bool operator()(data::titledata& a, data::titledata& b)
     {
+        if(a.getFav() != b.getFav())
+            return a.getFav() == true;
+
         uint32_t tmpA, tmpB;
         for(unsigned i = 0; i < a.getTitle().length(); )
         {
@@ -48,12 +51,24 @@ static int getUserIndex(const AccountUid& id)
 }
 
 static std::vector<uint64_t> blacklist;
+static std::vector<uint64_t> favorites;
 
 static bool blacklisted(const uint64_t& id)
 {
     for(unsigned i = 0; i < blacklist.size(); i++)
     {
         if(id == blacklist[i])
+            return true;
+    }
+
+    return false;
+}
+
+static bool isFavorite(const uint64_t& id)
+{
+    for(unsigned i = 0; i < favorites.size(); i++)
+    {
+        if(id == favorites[i])
             return true;
     }
 
@@ -89,7 +104,7 @@ namespace data
     AppletType appletMode;
 
     //Options
-    bool incDev = false, autoBack = true;
+    bool incDev = false, autoBack = true, ovrClk = false, isOvrClk = false;
 
     void init()
     {
@@ -100,7 +115,20 @@ namespace data
         users.clear();
 
         loadBlacklist();
+        loadFav();
         loadCfg();
+
+        if(data::ovrClk)
+        {
+            clkrstInitialize();
+            ClkrstSession cpu;
+            clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
+            clkrstSetClockRate(&cpu, 1224000000);
+            clkrstCloseSession(&cpu);
+            clkrstExit();
+
+            data::isOvrClk = true;
+        }
 
         //Get system language and copy to std::string
         uint64_t lang;
@@ -169,6 +197,9 @@ namespace data
                         u = getUserIndex(info.uid);
                         titledata newData;
                         newData.init(info);
+                        if(isFavorite(newData.getID()))
+                            newData.setFav(true);
+
                         if(newData.isMountable(newUser.getUID()) || !forceMount)
                             users[u].titles.push_back(newData);
                     }
@@ -177,6 +208,9 @@ namespace data
                 {
                     titledata newData;
                     newData.init(info);
+                    if(isFavorite(newData.getID()))
+                        newData.setFav(true);
+
                     if(newData.isMountable(users[u].getUID()) || !forceMount)
                         users[u].titles.push_back(newData);
                 }
@@ -206,6 +240,17 @@ namespace data
         for(unsigned i = 0; i < icons.size(); i++)
             icons[i].deleteData();
 
+        if(data::isOvrClk)
+        {
+            clkrstInitialize();
+            ClkrstSession cpu;
+            clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
+            clkrstSetClockRate(&cpu, 1020000000);
+            clkrstCloseSession(&cpu);
+            clkrstExit();
+        }
+
+        saveFav();
         saveCfg();
     }
 
@@ -242,6 +287,12 @@ namespace data
             iconTex = util::createIconGeneric(_txt.c_str());
     }
 
+    void icn::createFav()
+    {
+        iconFav = texCreateFromPart(iconTex, 0, 0, 256, 256);
+        drawText("♥", iconFav, ui::shared, 0, 0, 48, clrCreateU32(0xFF4444FF));
+    }
+
     int findIcnIndex(const uint64_t& titleID)
     {
         for(unsigned i = 0; i < icons.size(); i++)
@@ -260,11 +311,12 @@ namespace data
         NacpLanguageEntry *ent = NULL;
         size_t outSz = 0;
 
-        info = inf;
         if(inf.save_data_type == FsSaveDataType_System)
             id = inf.system_save_data_id;
         else
             id = inf.application_id;
+
+        saveDataType = inf.save_data_type;
 
         if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
                 && R_SUCCEEDED(nacpGetLanguageEntry(&dat->nacp, &ent)) && ent != NULL)
@@ -285,6 +337,7 @@ namespace data
                 size_t icnSize = outSz - sizeof(dat->nacp);
                 icn newIcn;
                 newIcn.load(id, dat->icon, icnSize);
+                newIcn.createFav();
                 icons.push_back(newIcn);
 
                 icon = icons[findIcnIndex(id)];
@@ -373,7 +426,7 @@ namespace data
                 if(tmp[0] == '#' || tmp[0] == '\n')
                     continue;
 
-                blacklist.push_back(std::strtoull(tmp, NULL, 16));
+                blacklist.push_back(strtoull(tmp, NULL, 16));
             }
             fclose(bl);
         }
@@ -405,6 +458,51 @@ namespace data
         u = users[uInd];
     }
 
+    void favoriteAdd(data::user& u, titledata& t)
+    {
+        for(unsigned i = 0; i < users.size(); i++)
+        {
+            for(unsigned j = 0; j < users[i].titles.size(); j++)
+            {
+                if(users[i].titles[j].getID() == t.getID())
+                    users[i].titles[j].setFav(true);
+            }
+            std::sort(users[i].titles.begin(), users[i].titles.end(), sortTitles);
+        }
+        favorites.push_back(t.getID());
+
+
+        int uInd = getUserIndex(u.getUID());
+        u = users[uInd];
+    }
+
+    void favoriteRemove(data::user& u, data::titledata& t)
+    {
+        unsigned ind = 0;
+        for(unsigned i = 0; i < favorites.size(); i++)
+        {
+            if(favorites[i] == t.getID())
+            {
+                ind = i;
+                break;
+            }
+        }
+
+        favorites.erase(favorites.begin() + ind);
+        for(unsigned i = 0; i < users.size(); i++)
+        {
+            for(unsigned j = 0; j < users[i].titles.size(); j++)
+            {
+                if(users[i].titles[j].getID() == t.getID())
+                    users[i].titles[j].setFav(false);
+            }
+            std::sort(users[i].titles.begin(), users[i].titles.end(), sortTitles);
+        }
+
+        int uInd = getUserIndex(u.getUID());
+        u = users[uInd];
+    }
+
     void loadCfg()
     {
         if(fs::fileExists(fs::getWorkDir() + "cfg.bin"))
@@ -412,6 +510,7 @@ namespace data
             FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "rb");
             data::incDev = fgetc(cfg);
             data::autoBack = fgetc(cfg);
+            data::ovrClk = fgetc(cfg);
             fclose(cfg);
         }
     }
@@ -421,6 +520,40 @@ namespace data
         FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "wb");
         fputc(data::incDev, cfg);
         fputc(data::autoBack, cfg);
+        fputc(data::ovrClk, cfg);
         fclose(cfg);
+    }
+
+    void loadFav()
+    {
+        favorites.clear();
+
+        if(fs::fileExists(std::string(fs::getWorkDir() + "favorites.txt")))
+        {
+            FILE *fav = fopen(std::string(fs::getWorkDir() + "favorites.txt").c_str(), "r");
+
+            char tmp[64];
+            while(fgets(tmp, 64, fav))
+            {
+                if(tmp[0] == '#' || tmp[0] == '\n')
+                    continue;
+
+                favorites.push_back(strtoull(tmp, NULL, 16));
+            }
+            fclose(fav);
+        }
+    }
+
+    void saveFav()
+    {
+        FILE *fav = fopen(std::string(fs::getWorkDir() + "favorites.txt").c_str(), "w");
+
+        char tmp[64];
+        for(unsigned i = 0; i < favorites.size(); i++)
+        {
+            sprintf(tmp, "0x%016lX\n", favorites[i]);
+            fputs(tmp, fav);
+        }
+        fclose(fav);
     }
 }

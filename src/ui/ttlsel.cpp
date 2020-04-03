@@ -74,7 +74,11 @@ namespace ui
                     drawTextbox(rectX, y - 50, rectWidth, 38);
                     drawText(title.c_str(), frameBuffer, ui::shared, rectX + 16, y - 38, 16, txtClr);
                 }
-                data::curUser.titles[i].icon.drawHalf(tX, y);
+
+                if(data::curUser.titles[i].getFav())
+                    data::curUser.titles[i].icon.drawFavHalf(tX, y);
+                else
+                    data::curUser.titles[i].icon.drawHalf(tX, y);
             }
         }
 
@@ -225,6 +229,13 @@ namespace ui
             data::curUser = data::users[data::selUser];
 
             ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        }
+        else if(down & KEY_MINUS)
+        {
+            if(!data::curUser.titles[data::selData].getFav())
+                data::favoriteAdd(data::curUser, data::curUser.titles[data::selData]);
+            else
+                data::favoriteRemove(data::curUser, data::curUser.titles[data::selData]);
         }
     }
 }

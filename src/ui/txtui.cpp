@@ -18,7 +18,8 @@ extern std::vector<ui::button> usrNav, ttlNav, fldNav;
 static const std::string optHelp[] =
 {
     "Includes all Device Save data in Account Saves.",
-    "Automatically create a backup before restoring a save. Just to be safe."
+    "Automatically create a backup before restoring a save. Just to be safe.",
+    "Apply a small overclock to 1224MHz at boot."
 };
 
 static inline void switchBool(bool& sw)
@@ -49,7 +50,12 @@ namespace ui
         titleMenu.setParams(76, 98, 310);
 
         for(unsigned i = 0; i < u.titles.size(); i++)
-            titleMenu.addOpt(u.titles[i].getTitle());
+        {
+            if(u.titles[i].getFav())
+                titleMenu.addOpt("♥ " + u.titles[i].getTitle());
+            else
+                titleMenu.addOpt(u.titles[i].getTitle());
+        }
     }
 
     void textFolderPrep(data::user& usr, data::titledata& dat)
@@ -136,6 +142,8 @@ namespace ui
                                   "\" to your blacklist?";
             if(ui::confirm(confStr, false))
                 data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
+
+            textTitlePrep(data::curUser);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
             mstate = TXT_USR;
@@ -160,6 +168,16 @@ namespace ui
             textTitlePrep(data::curUser);
 
             ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        }
+        else if(down & KEY_MINUS)
+        {
+            unsigned sel = titleMenu.getSelected();
+            if(!data::curUser.titles[sel].getFav())
+                data::favoriteAdd(data::curUser, data::curUser.titles[sel]);
+            else
+                data::favoriteRemove(data::curUser, data::curUser.titles[sel]);
+
+            textTitlePrep(data::curUser);
         }
     }
 
@@ -438,6 +456,7 @@ namespace ui
         optMenu.setParams(76, 98, 310);
         optMenu.addOpt("Inc. Dev Sv");
         optMenu.addOpt("Auto Backup");
+        optMenu.addOpt("OverClock");
     }
 
     void updateOptMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -447,6 +466,7 @@ namespace ui
         //Update Menu Options to reflect changes
         optMenu.editOpt(0, "Include Dev Sv: " + getBoolText(data::incDev));
         optMenu.editOpt(1, "Auto Backup: " + getBoolText(data::autoBack));
+        optMenu.editOpt(2, "Overclock: " + getBoolText(data::ovrClk));
 
         if(down & KEY_A)
         {
@@ -458,6 +478,10 @@ namespace ui
 
                 case 1:
                     switchBool(data::autoBack);
+                    break;
+
+                case 2:
+                    switchBool(data::ovrClk);
                     break;
             }
         }

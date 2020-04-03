@@ -58,8 +58,8 @@ namespace fs
 
         if(open.getType() == FsSaveDataType_Account && R_FAILED(fsOpen_SaveData(&sv, open.getID(), usr.getUID())))
             return false;
-        else if(open.getType() == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid){0})))
-            return false;
+        else if(open.getType() == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid) {0})))
+        return false;
         else if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsOpenBCAT(&sv, open)))
             return false;
         else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsOpen_DeviceSaveData(&sv, open.getID())))
