@@ -100,7 +100,7 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(data::curData.getType() != FsSaveDataType_SystemBcat && folderMenu.getSelected() > 0)
+            if(data::curData.getType() != FsSaveDataType_System && folderMenu.getSelected() > 0)
             {
                 std::string scanPath = util::getTitleDir(data::curUser, data::curData);
                 fs::dirList list(scanPath);
@@ -108,6 +108,16 @@ namespace ui
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
                 if(confirm("Are you sure you want to restore \"" + folderName + "\"?", false))
                 {
+                    if(data::autoBack)
+                    {
+                        std::string autoFolder = util::getTitleDir(data::curUser, data::curData) + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                        mkdir(autoFolder.c_str(), 777);
+                        autoFolder += "/";
+
+                        std::string root = "sv:/";
+                        fs::copyDirToDir(root, autoFolder);
+                    }
+
                     std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
                     std::string root = "sv:/";
 
@@ -115,6 +125,10 @@ namespace ui
                     fsdevCommitDevice("sv");
 
                     fs::copyDirToDirCommit(fromPath, root, "sv");
+
+                    //Rescan init folder menu if autobak to show changes
+                    if(data::autoBack)
+                        folderMenuPrepare(data::curUser, data::curData);
                 }
             }
         }

@@ -249,6 +249,8 @@ namespace ui
             yes.update(p);
             no.update(p);
 
+            std::string holdText;
+
             if(hold && (held & KEY_A || yes.getEvent() == BUTTON_PRESSED))
             {
                 heldDown = true;
@@ -266,7 +268,15 @@ namespace ui
                     break;
                 }
 
-                yes.setText(std::string("(Hold) " + loadGlyphArray[loadFrame]));
+                if(holdCount <= 60)
+                    holdText = "(Hold) ";
+                else if(holdCount <= 120)
+                    holdText = "(Keep Holding) ";
+                else if(holdCount < 180)
+                    holdText = "(Almost There!) ";
+
+                holdText += loadGlyphArray[loadFrame];
+                yes.setText(holdText);
             }
             else if((hold && heldDown) && (up & KEY_A || yes.getEvent() == BUTTON_RELEASED))
             {

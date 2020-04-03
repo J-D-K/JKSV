@@ -10,13 +10,30 @@
 #include "util.h"
 #include "ex.h"
 
-static ui::menu userMenu, titleMenu, devMenu;
+static ui::menu userMenu, titleMenu, exMenu, optMenu;
 extern ui::menu folderMenu;
 extern std::vector<ui::button> usrNav, ttlNav, fldNav;
 
+//Help text for options
+static const std::string optHelp[] =
+{
+    "Includes all Device Save data in Account Saves.",
+    "Automatically create a backup before restoring a save. Just to be safe."
+};
+
+static inline void switchBool(bool& sw)
+{
+    sw ? sw = false : sw = true;
+}
+
+static inline std::string getBoolText(bool b)
+{
+    return b ? "On" : "Off";
+}
+
 namespace ui
 {
-    void clsUserPrep()
+    void textUserPrep()
     {
         userMenu.reset();
 
@@ -26,7 +43,7 @@ namespace ui
             userMenu.addOpt(data::users[i].getUsername());
     }
 
-    void clsTitlePrep(data::user& u)
+    void textTitlePrep(data::user& u)
     {
         titleMenu.reset();
         titleMenu.setParams(76, 98, 310);
@@ -35,7 +52,7 @@ namespace ui
             titleMenu.addOpt(u.titles[i].getTitle());
     }
 
-    void clsFolderPrep(data::user& usr, data::titledata& dat)
+    void textFolderPrep(data::user& usr, data::titledata& dat)
     {
         folderMenu.setParams(466, 98, 730);
         folderMenu.reset();
@@ -51,7 +68,7 @@ namespace ui
         folderMenu.adjust();
     }
 
-    void classicUserMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void textUserMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
         userMenu.handleInput(down, held, p);
         userMenu.draw(mnuTxt);
@@ -62,9 +79,9 @@ namespace ui
         if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
             data::curUser = data::users[userMenu.getSelected()];
-            clsTitlePrep(data::curUser);
+            textTitlePrep(data::curUser);
 
-            mstate = CLS_TTL;
+            mstate = TXT_TTL;
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {
@@ -74,7 +91,7 @@ namespace ui
         else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
         {
             std::remove(std::string(fs::getWorkDir() + "cls.txt").c_str());
-            clsMode = false;
+            ui::textMode = false;
             mstate = USR_SEL;
         }
         else if(down & KEY_MINUS || usrNav[3].getEvent() == BUTTON_RELEASED)
@@ -85,7 +102,7 @@ namespace ui
         }
     }
 
-    void classicTitleMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void textTitleMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
         titleMenu.handleInput(down, held, p);
         titleMenu.draw(mnuTxt);
@@ -100,9 +117,9 @@ namespace ui
             if(fs::mountSave(data::curUser, data::curData))
             {
                 util::makeTitleDir(data::curUser, data::curData);
-                clsFolderPrep(data::curUser, data::curData);
+                textFolderPrep(data::curUser, data::curData);
 
-                mstate = CLS_FLD;
+                mstate = TXT_FLD;
             }
         }
         else if(down & KEY_Y || ttlNav[1].getEvent() == BUTTON_RELEASED)
@@ -117,7 +134,7 @@ namespace ui
                 data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
-            mstate = CLS_USR;
+            mstate = TXT_USR;
         else if(down & KEY_L)
         {
             data::selUser--;
@@ -125,7 +142,7 @@ namespace ui
                 data::selUser = data::users.size() -1;
 
             data::curUser = data::users[data::selUser];
-            clsTitlePrep(data::curUser);
+            textTitlePrep(data::curUser);
 
             ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
         }
@@ -136,13 +153,13 @@ namespace ui
                 data::selUser = 0;
 
             data::curUser = data::users[data::selUser];
-            clsTitlePrep(data::curUser);
+            textTitlePrep(data::curUser);
 
             ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
         }
     }
 
-    void classicFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void textFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
         titleMenu.draw(mnuTxt);
         folderMenu.handleInput(down, held, p);
@@ -184,7 +201,7 @@ namespace ui
                     std::string root = "sv:/";
                     fs::copyDirToDir(root, path);
 
-                    clsFolderPrep(data::curUser, data::curData);
+                    textFolderPrep(data::curUser, data::curData);
                 }
             }
             else
@@ -240,7 +257,7 @@ namespace ui
                     fs::delDir(delPath);
                 }
 
-                clsFolderPrep(data::curUser, data::curData);
+                textFolderPrep(data::curUser, data::curData);
             }
         }
         else if(down & KEY_MINUS)
@@ -251,34 +268,34 @@ namespace ui
         else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
         {
             fsdevUnmountDevice("sv");
-            mstate = CLS_TTL;
+            mstate = TXT_TTL;
         }
     }
 
     void exMenuPrep()
     {
-        devMenu.reset();
-        devMenu.setParams(76, 98, 310);
-        devMenu.addOpt("SD to SD Browser");
-        devMenu.addOpt("Bis: PRODINFOF");
-        devMenu.addOpt("Bis: SAFE");
-        devMenu.addOpt("Bis: SYSTEM");
-        devMenu.addOpt("Bis: USER");
-        devMenu.addOpt("Remove Downloaded Update");
-        devMenu.addOpt("Terminate Process ID");
-        devMenu.addOpt("Mount System Save ID");
-        devMenu.addOpt("Mount Process RomFS");
+        exMenu.reset();
+        exMenu.setParams(76, 98, 310);
+        exMenu.addOpt("SD to SD Browser");
+        exMenu.addOpt("Bis: PRODINFOF");
+        exMenu.addOpt("Bis: SAFE");
+        exMenu.addOpt("Bis: SYSTEM");
+        exMenu.addOpt("Bis: USER");
+        exMenu.addOpt("Remove Downloaded Update");
+        exMenu.addOpt("Terminate Process ID");
+        exMenu.addOpt("Mount System Save ID");
+        exMenu.addOpt("Mount Process RomFS");
     }
 
     void updateExMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
     {
-        devMenu.handleInput(down, held, p);
+        exMenu.handleInput(down, held, p);
 
         if(down & KEY_A)
         {
             FsFileSystem sv;
-            data::curData.setType(FsSaveDataType_SystemBcat);
-            switch(devMenu.getSelected())
+            data::curData.setType(FsSaveDataType_System);
+            switch(exMenu.getSelected())
             {
                 case 0:
                     data::curData.setType(FsSaveDataType_Bcat);
@@ -401,14 +418,51 @@ namespace ui
         else if(down & KEY_B)
         {
             fsdevUnmountDevice("sv");
-            if(ui::clsMode)
-                mstate = CLS_USR;
+            if(ui::textMode)
+                mstate = TXT_USR;
             else
                 mstate = USR_SEL;
 
             prevState = USR_SEL;
         }
 
-        devMenu.draw(mnuTxt);
+        exMenu.draw(mnuTxt);
+    }
+
+    void optMenuInit()
+    {
+        optMenu.setParams(76, 98, 310);
+        optMenu.addOpt("Inc. Dev Sv");
+        optMenu.addOpt("Auto Backup");
+    }
+
+    void updateOptMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    {
+        optMenu.handleInput(down, held, p);
+
+        //Update Menu Options to reflect changes
+        optMenu.editOpt(0, "Include Dev Sv: " + getBoolText(data::incDev));
+        optMenu.editOpt(1, "Auto Backup: " + getBoolText(data::autoBack));
+
+        if(down & KEY_A)
+        {
+            switch(optMenu.getSelected())
+            {
+                case 0:
+                    switchBool(data::incDev);
+                    break;
+
+                case 1:
+                    switchBool(data::autoBack);
+                    break;
+            }
+        }
+        else if(down & KEY_B)
+        {
+            ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
+        }
+
+        optMenu.draw(ui::mnuTxt);
+        drawTextWrap(optHelp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 24, ui::mnuTxt, 730);
     }
 }

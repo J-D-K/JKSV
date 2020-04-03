@@ -137,22 +137,26 @@ namespace ui
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {
-            for(unsigned i = 0; i < data::users.size() - 3; i++)
+            for(unsigned i = 0; i < data::users.size() - 2; i++)
                 fs::dumpAllUserSaves(data::users[i]);
         }
         else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
         {
             FILE *cls = fopen(std::string(fs::getWorkDir() + "cls.txt").c_str(), "w");
             fclose(cls);
-            clsUserPrep();
-            mstate = CLS_USR;
-            clsMode = true;
+            textUserPrep();
+            mstate = TXT_USR;
+            textMode = true;
         }
         else if(down & KEY_MINUS || usrNav[3].getEvent() == BUTTON_RELEASED)
         {
             fsdevUnmountDevice("sv");
-            ui::exMenuPrep();
+
             ui::mstate = EX_MNU;
+        }
+        else if(down & KEY_ZR)
+        {
+            ui::mstate = OPT_MNU;
         }
     }
 }

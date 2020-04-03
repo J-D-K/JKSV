@@ -88,7 +88,10 @@ namespace data
     //AppletType
     AppletType appletMode;
 
-    void loadDataInfo()
+    //Options
+    bool incDev = false, autoBack = true;
+
+    void init()
     {
         //Clear titles + users just in case
         for(unsigned i = 0; i < users.size(); i++)
@@ -97,6 +100,7 @@ namespace data
         users.clear();
 
         loadBlacklist();
+        loadCfg();
 
         //Get system language and copy to std::string
         uint64_t lang;
@@ -179,6 +183,13 @@ namespace data
             }
         }
 
+        if(data::incDev)
+        {
+            //Copy device saves to all accounts
+            for(unsigned i = 0; i < users.size() - 3; i++)
+                users[i].titles.insert(users[i].titles.end(), users[users.size() - 3].titles.begin(), users[users.size() - 3].titles.end());
+        }
+
         fsSaveDataInfoReaderClose(&saveIt);
 
         for(unsigned i = 0; i < users.size(); i++)
@@ -194,6 +205,8 @@ namespace data
 
         for(unsigned i = 0; i < icons.size(); i++)
             icons[i].deleteData();
+
+        saveCfg();
     }
 
     bool isAppletMode()
@@ -390,5 +403,24 @@ namespace data
 
         int uInd = getUserIndex(u.getUID());
         u = users[uInd];
+    }
+
+    void loadCfg()
+    {
+        if(fs::fileExists(fs::getWorkDir() + "cfg.bin"))
+        {
+            FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "rb");
+            data::incDev = fgetc(cfg);
+            data::autoBack = fgetc(cfg);
+            fclose(cfg);
+        }
+    }
+
+    void saveCfg()
+    {
+        FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "wb");
+        fputc(data::incDev, cfg);
+        fputc(data::autoBack, cfg);
+        fclose(cfg);
     }
 }

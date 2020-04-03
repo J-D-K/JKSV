@@ -40,7 +40,7 @@ int main(int argc, const char *argv[])
     graphicsInit(1280, 720);
     //Needed for icon gen
     ui::initTheme();
-    data::loadDataInfo();
+    data::init();
     ui::init();
 
     //built with 'make debug CFLAGS:=-D__debug__'

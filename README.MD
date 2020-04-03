@@ -1,6 +1,6 @@
 # JKSV
 
-Multipurpose tool for Switch.
+Data Dump/Restore tool for Switch.
 
 ## Info
 JKSV on Switch started as a small project/port to test some things and get familiar with libnx. A list of what it currently can do:
@@ -13,11 +13,10 @@ JKSV on Switch started as a small project/port to test some things and get famil
     * BIS Storage is opened inside a basic filebrowser. The partition's listing is on the left. Your SD is on the right.
     * Only copying to SD and file properties work on BIS partitions. Writing to and deleting are disabled for now.
 4. Misc Extras:
-    * NAND Dumping
     * Ability to remove downloaded firmware updates from NAND.
     * Terminating processes by [ID](https://switchbrew.org/wiki/Title_list#System_Modules). Allowing you to dump normally unopenable system archives.
     * Mount by System Save [ID](https://switchbrew.org/wiki/Flash_Filesystem#System_Savegames). Normally used when the terminated process makes JKSV unable to rescan titles without the Switch crashing.
-	* Mount and open RomFS of process the homebrew menu takes over (if launched as NRO)
+	* Mount and open RomFS of process the homebrew menu takes over (if launched as NRO) (To be re-added later)
 		* Hold R while opening a game or applet with Atmosphere so the homebrew menu loads. Open JKSV and press minus and select **Mount Process RomFS**. The romfs of the app should appear in the browser along with your SD on the right.
 
 # Building:

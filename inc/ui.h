@@ -10,7 +10,7 @@
 //ui headers - split up to keep a bit more organized
 #include "menu.h"
 #include "miscui.h"
-#include "clsui.h"
+#include "txtui.h"
 #include "uiupdate.h"
 
 enum menuState
@@ -19,17 +19,18 @@ enum menuState
     TTL_SEL,
     FLD_SEL,
     ADV_MDE,
-    CLS_USR,
-    CLS_TTL,
-    CLS_FLD,
-    EX_MNU
+    TXT_USR,
+    TXT_TTL,
+    TXT_FLD,
+    EX_MNU,
+    OPT_MNU
 };
 
 
 namespace ui
 {
-    //Classic mode/text menus
-    extern bool clsMode;
+    //Text menus
+    extern bool textMode;
 
     //Current menu/ui state
     extern int mstate, prevState;

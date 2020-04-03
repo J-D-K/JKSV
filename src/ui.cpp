@@ -19,17 +19,18 @@ std::vector<ui::button> usrNav, ttlNav, fldNav;
 static tex *top, *bot;
 
 //Help text
-static const std::string userHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0f0 Extras";
+static const std::string userHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0e7 Options   \ue0f0 Extras";
 static const std::string titleHelp = "\ue0e0 Select   \ue0e4\ue0e5 Change User   \ue0e3 Dump All   \ue0e2 BlackList   \ue0e1 Back";
 static const std::string folderHelp = "\ue0f0 File Mode   \ue0e4\ue0e5 AutoName   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back";
+static const std::string optHelp = "\ue0e0 Toggle   \ue0e1 Back";
 
 //X position of help texts. Calculated to make editing quicker/easier
-static unsigned userHelpX, titleHelpX, folderHelpX;
+static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
 
 namespace ui
 {
-    //Classic mode
-    bool clsMode = false;
+    //text mode
+    bool textMode = false;
 
     //Current menu state
     int mstate = USR_SEL, prevState = USR_SEL;
@@ -116,9 +117,9 @@ namespace ui
 
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
-            clsUserPrep();
-            clsMode = true;
-            mstate = CLS_USR;
+            textUserPrep();
+            textMode = true;
+            mstate = TXT_USR;
         }
 
         setupSelButtons();
@@ -146,8 +147,11 @@ namespace ui
         userHelpX = 1220 - textGetWidth(userHelp.c_str(), ui::shared, 18);
         titleHelpX = 1220 - textGetWidth(titleHelp.c_str(), ui::shared, 18);
         folderHelpX = 1220 - textGetWidth(folderHelp.c_str(), ui::shared, 18);
+        optHelpX = 1220 - textGetWidth(optHelp.c_str(), ui::shared, 18);
 
         advCopyMenuPrep();
+        ui::exMenuPrep();
+        ui::optMenuInit();
     }
 
     void exit()
@@ -232,10 +236,11 @@ namespace ui
                 drawRect(frameBuffer, 640, 87, 1, 561, divClr);
                 break;
 
-            case CLS_TTL:
-            case CLS_USR:
-            case CLS_FLD:
+            case TXT_TTL:
+            case TXT_USR:
+            case TXT_FLD:
             case EX_MNU:
+            case OPT_MNU:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
                 break;
         }
@@ -243,18 +248,22 @@ namespace ui
         switch(mstate)
         {
             case USR_SEL:
-            case CLS_USR:
+            case TXT_USR:
                 drawText(userHelp.c_str(), frameBuffer, shared, userHelpX, 676, 18, mnuTxt);
                 break;
 
             case TTL_SEL:
-            case CLS_TTL:
+            case TXT_TTL:
                 drawText(titleHelp.c_str(), frameBuffer, shared, titleHelpX, 676, 18, mnuTxt);
                 break;
 
             case FLD_SEL:
-            case CLS_FLD:
+            case TXT_FLD:
                 drawText(folderHelp.c_str(), frameBuffer, shared, folderHelpX, 676, 18, mnuTxt);
+                break;
+
+            case OPT_MNU:
+                drawText(optHelp.c_str(), frameBuffer, ui::shared, optHelpX, 676, 18, ui::mnuTxt);
                 break;
         }
     }
@@ -323,20 +332,24 @@ namespace ui
                 updateAdvMode(down, held, p);
                 break;
 
-            case CLS_USR:
-                classicUserMenuUpdate(down, held, p);
+            case TXT_USR:
+                textUserMenuUpdate(down, held, p);
                 break;
 
-            case CLS_TTL:
-                classicTitleMenuUpdate(down, held, p);
+            case TXT_TTL:
+                textTitleMenuUpdate(down, held, p);
                 break;
 
-            case CLS_FLD:
-                classicFolderMenuUpdate(down, held, p);
+            case TXT_FLD:
+                textFolderMenuUpdate(down, held, p);
                 break;
 
             case EX_MNU:
                 updateExMenu(down, held, p);
+                break;
+
+            case OPT_MNU:
+                updateOptMenu(down, held, p);
                 break;
         }
 

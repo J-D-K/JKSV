@@ -494,8 +494,8 @@ namespace ui
                 mstate = EX_MNU;
             else if(prevState == TTL_SEL)
                 mstate = TTL_SEL;
-            else if(ui::clsMode)
-                mstate = CLS_FLD;
+            else if(ui::textMode)
+                mstate = TXT_FLD;
             else
                 mstate = FLD_SEL;
         }

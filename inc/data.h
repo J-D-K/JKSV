@@ -13,10 +13,12 @@ namespace data
     extern bool forceMount;
 
     //Loads user + title info
-    void loadDataInfo();
+    void init();
     void loadBlacklist();
     void exit();
     bool isAppletMode();
+    void loadCfg();
+    void saveCfg();
 
     //Class to help not load the same icons over and over
     class icn
@@ -111,12 +113,13 @@ namespace data
     //User vector
     extern std::vector<user> users;
 
-    //Stores current data we're using so I don't have to type so much.
+    //Stores current data we're using so I don't have to type so much. + Options and info
     extern titledata curData;
     extern user      curUser;
     extern int selUser, selData;
     extern std::string sysLang;
     extern AppletType appletMode;
+    extern bool incDev, autoBack;
 }
 
 #endif // DATA_H
