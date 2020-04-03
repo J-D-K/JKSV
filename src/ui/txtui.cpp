@@ -100,6 +100,10 @@ namespace ui
             ui::exMenuPrep();
             ui::mstate = EX_MNU;
         }
+        else if(down & KEY_ZR)
+        {
+            ui::mstate = OPT_MNU;
+        }
     }
 
     void textTitleMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
