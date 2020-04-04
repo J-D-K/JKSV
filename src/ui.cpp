@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.03.2020"
+#define VER_STRING "v. 04.04.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -89,6 +89,8 @@ namespace ui
 
             default:
             case ColorSetId_Dark:
+                //jic
+                thmID = ColorSetId_Dark;
                 //Light corners
                 cornerTopLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
                 cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");

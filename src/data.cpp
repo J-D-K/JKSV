@@ -143,10 +143,7 @@ namespace data
         FsSaveDataInfo info;
 
         if(R_FAILED(fsOpenSaveDataInfoReader(&saveIt, FsSaveDataSpaceId_All)))
-        {
-            printf("SaveDataIterator Failed\n");
             return;
-        }
 
         //Push System and BCAT user
         user sys, bcat, dev;
@@ -317,16 +314,16 @@ namespace data
             id = inf.application_id;
 
         saveDataType = inf.save_data_type;
-
-        if(R_SUCCEEDED(nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz)) && outSz >= sizeof(dat->nacp) \
-                && R_SUCCEEDED(nacpGetLanguageEntry(&dat->nacp, &ent)) && ent != NULL)
+        Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
+        Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
+        if(R_SUCCEEDED(ctrlDataRes) && outSz >= sizeof(dat->nacp) && R_SUCCEEDED(nacpRes) && ent != NULL)
         {
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
             author.assign(ent->author);
             if(titleSafe.empty())
             {
-                char tmp[18];
+                char tmp[32];
                 sprintf(tmp, "%016lX", id);
                 titleSafe.assign(tmp);
             }
@@ -351,7 +348,11 @@ namespace data
             sprintf(tmp, "%016lX", id);
             title.assign(tmp);
             titleSafe.assign(tmp);
-            icon.create(id, "");
+            icn newIcn;
+            newIcn.create(id, "");
+            newIcn.createFav();
+            icons.push_back(newIcn);
+            icon = icons[findIcnIndex(id)];
         }
         delete dat;
     }

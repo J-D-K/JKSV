@@ -16,6 +16,8 @@
 
 static std::string wd;
 
+static FsFile logFile;
+static s64 offset = 0;
 
 static Result fsOpenBCAT(FsFileSystem *out, data::titledata& open)
 {
@@ -47,9 +49,13 @@ namespace fs
     void init()
     {
         mkdir("sdmc:/JKSV", 777);
-        chdir("sdmc:/JKSV");
-
+        logOpen();
         wd = "sdmc:/JKSV/";
+    }
+
+    void exit()
+    {
+        logClose();
     }
 
     bool mountSave(data::user& usr, data::titledata& open)
@@ -437,5 +443,29 @@ namespace fs
     std::string getWorkDir()
     {
         return wd;
+    }
+
+    void logOpen()
+    {
+        remove("sdmc:/JKSV/log.txt");
+        FsFileSystem *sd = fsdevGetDeviceFileSystem("sdmc");
+        fsFsCreateFile(sd, "/JKSV/log.txt", 0, FsWriteOption_Flush);
+        fsFsOpenFile(sd, "/JKSV/log.txt", FsOpenMode_Write, &logFile);
+    }
+
+    void logWrite(const std::string& out)
+    {
+        s64 curSize = 0;
+        fsFileGetSize(&logFile, &curSize);
+        curSize += out.size();
+        fsFileSetSize(&logFile, curSize);
+
+        fsFileWrite(&logFile, offset, out.c_str(), out.length(), 0);
+        offset += out.length();
+    }
+
+    void logClose()
+    {
+        fsFileClose(&logFile);
     }
 }

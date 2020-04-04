@@ -11,6 +11,7 @@
 namespace fs
 {
     void init();
+    void exit();
 
     //Mounts usr's save data for open. Returns false it fails
     bool mountSave(data::user& usr, data::titledata& open);
@@ -72,6 +73,10 @@ namespace fs
             std::string path;
             std::vector<dirItem> item;
     };
+
+    void logOpen();
+    void logWrite(const std::string& out);
+    void logClose();
 }
 
 #endif // FILE_H
