@@ -445,9 +445,7 @@ tex *texLoadJPEGFile(const char *path)
         jpeg_create_decompress(&jpegInfo);
         jpeg_stdio_src(&jpegInfo, jpegIn);
         jpeg_read_header(&jpegInfo, true);
-
-        if(jpegInfo.jpeg_color_space == JCS_YCbCr)
-            jpegInfo.out_color_space = JCS_RGB;
+        jpegInfo.out_color_space = JCS_RGB;
 
         tex *ret = malloc(sizeof(tex));
 
@@ -494,9 +492,7 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
     jpeg_create_decompress(&jpegInfo);
     jpeg_mem_src(&jpegInfo, jpegData, jpegSize);
     jpeg_read_header(&jpegInfo, true);
-
-    if(jpegInfo.jpeg_color_space == JCS_YCbCr)
-        jpegInfo.out_color_space = JCS_RGB;
+    jpegInfo.out_color_space = JCS_RGB;
 
     tex *ret = malloc(sizeof(tex));
     ret->width = jpegInfo.image_width;

@@ -259,7 +259,6 @@ namespace data
     void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
     {
         titleID = _id;
-
         iconTex = texLoadJPEGMem(jpegData, jpegSize);
     }
 
@@ -316,7 +315,7 @@ namespace data
         saveDataType = inf.save_data_type;
         Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
         Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
-        if(R_SUCCEEDED(ctrlDataRes) && outSz >= sizeof(dat->nacp) && R_SUCCEEDED(nacpRes) && ent != NULL)
+        if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL)
         {
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
