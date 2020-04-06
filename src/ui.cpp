@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.05.2020"
+#define VER_STRING "v. 04.06.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -50,6 +50,8 @@ namespace ui
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
     tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
+    tex *progCovLeft, *progCovRight;
+
     //Menu box pieces
     tex *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
 
@@ -65,6 +67,11 @@ namespace ui
 
         setsysGetColorSetId(&thmID);
 
+        mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
+        mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
+        mnuBotLeft = texLoadPNGFile("romfs:/img/fb/menuBotLeft.png");
+        mnuBotRight = texLoadPNGFile("romfs:/img/fb/menuBotRight.png");
+
         switch(thmID)
         {
             case ColorSetId_Light:
@@ -73,6 +80,8 @@ namespace ui
                 cornerTopRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
                 cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
                 cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+                progCovLeft = texLoadPNGFile("romfs:/img/tboxDrk/progBarCoverLeftDrk.png");
+                progCovRight = texLoadPNGFile("romfs:/img/tboxDrk/progBarCoverRightDrk.png");
 
                 icn = texLoadPNGFile("romfs:/img/icn/icnDrk.png");
                 sideBar = texLoadPNGFile("romfs:/img/fb/lLight.png");
@@ -96,6 +105,8 @@ namespace ui
                 cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
                 cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
                 cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+                progCovLeft = texLoadPNGFile("romfs:/img/tboxLght/progBarCoverLeftLight.png");
+                progCovRight = texLoadPNGFile("romfs:/img/tboxLght/progBarCoverRightLight.png");
 
                 icn = texLoadPNGFile("romfs:/img/icn/icnLght.png");
                 sideBar = texLoadPNGFile("romfs:/img/fb/lDark.png");
@@ -127,11 +138,6 @@ namespace ui
         setupSelButtons();
         setupNavButtons();
 
-        mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
-        mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
-        mnuBotLeft = texLoadPNGFile("romfs:/img/fb/menuBotLeft.png");
-        mnuBotRight = texLoadPNGFile("romfs:/img/fb/menuBotRight.png");
-
         //Setup top and bottom gfx
         texClearColor(top, clearClr);
         texDraw(icn, top, 66, 27);
@@ -162,6 +168,8 @@ namespace ui
         texDestroy(cornerTopRight);
         texDestroy(cornerBottomLeft);
         texDestroy(cornerBottomRight);
+        texDestroy(progCovLeft);
+        texDestroy(progCovRight);
 
         texDestroy(mnuTopLeft);
         texDestroy(mnuTopRight);

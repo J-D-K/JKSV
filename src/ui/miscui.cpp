@@ -35,26 +35,23 @@ namespace ui
     {
         prog = _prog;
 
-        width = (float)(((float)prog / (float)max) * 1088);
+        width = (float)(((float)prog / (float)max) * 576);
     }
 
     void progBar::draw(const std::string& text, const std::string& head)
     {
-        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 24);
+        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 20);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
-        ui::drawTextbox(64, 240, 1152, 240);
-        drawRect(frameBuffer, 64, 296, 1152, 2, clrCreateU32(0xFF6D6D6D));
-        drawRect(frameBuffer, 96, 400, 1088, 64, clrCreateU32(0xFF000000));
-        drawRect(frameBuffer, 96, 400, (unsigned)width, 64, clrCreateU32(0xFF00CC00));
+        ui::drawTextbox(320, 150, 640, 420);
+        drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
+        drawRect(frameBuffer, 352, 530, 576, 12, clrCreateU32(0xFF666666));
+        drawRect(frameBuffer, 352, 530, (unsigned)width, 12, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFFC5FF00) : clrCreateU32(0xFFF05032));
+        texDraw(ui::progCovLeft, frameBuffer, 352, 530);
+        texDraw(ui::progCovRight, frameBuffer, 920, 530);
 
-        char tmp[128];
-        sprintf(tmp, "%lu KB/%lu KB", prog / 1024, max / 1024);
-        int szX = 640 - (textGetWidth(tmp, shared, 24) / 2);
-
-        drawText(head.c_str(), frameBuffer, ui::shared, headX, 256, 24, txtClr);
-        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 80, 312, 18, txtClr, 752);
-        drawText(tmp, frameBuffer, shared, szX, 416, 24, clrCreateU32(0xFFFFFFFF));
+        drawText(head.c_str(), frameBuffer, ui::shared, headX, 168, 20, txtClr);
+        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
     }
 
     button::button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h)
@@ -65,8 +62,8 @@ namespace ui
         h = _h;
         text = _txt;
 
-        unsigned tw = textGetWidth(text.c_str(), ui::shared, 24);
-        unsigned th = 24;
+        unsigned tw = textGetWidth(text.c_str(), ui::shared, 20);
+        unsigned th = 20;
 
         tx = x + (w / 2) - (tw / 2);
         ty = y + (h / 2) - (th / 2);
@@ -76,8 +73,8 @@ namespace ui
     {
         text = _txt;
 
-        unsigned tw = textGetWidth(text.c_str(), ui::shared, 24);
-        unsigned th = 24;
+        unsigned tw = textGetWidth(text.c_str(), ui::shared, 20);
+        unsigned th = 20;
 
         tx = x + (w / 2) - (tw / 2);
         ty = y + (h / 2) - (th / 2);
@@ -124,12 +121,12 @@ namespace ui
         if(pressed)
         {
             ui::drawTextboxInvert(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, mnuTxt);
+            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, mnuTxt);
         }
         else
         {
             ui::drawTextbox(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, txtClr);
+            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, txtClr);
         }
     }
 
@@ -138,12 +135,12 @@ namespace ui
         if(pressed)
         {
             ui::drawTextboxInvert(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, _txt);
+            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, _txt);
         }
         else
         {
             ui::drawTextbox(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 24, _txt);
+            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, _txt);
         }
     }
 
@@ -192,10 +189,10 @@ namespace ui
 
     void showMessage(const std::string& mess, const std::string& head)
     {
-        button ok("OK \ue0e0 ", 256, 496, 768, 96);
+        button ok("OK \ue0e0 ", 320, 506, 640, 64);
 
         //center head text width
-        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 24);
+        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 20);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
         while(true)
@@ -208,14 +205,14 @@ namespace ui
 
             ok.update(p);
 
-            if(down & KEY_A || down & KEY_B || ok.getEvent() == BUTTON_RELEASED)
+            if(down || ok.getEvent() == BUTTON_RELEASED)
                 break;
 
             gfxBeginFrame();
-            ui::drawTextbox(256, 128, 768, 464);
-            drawText(head.c_str(), frameBuffer, ui::shared, headX, 144, 24, txtClr);
-            drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
-            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
+            ui::drawTextbox(320, 150, 640, 420);
+            drawText(head.c_str(), frameBuffer, ui::shared, headX, 168, 20, txtClr);
+            drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
+            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
             ok.draw();
             gfxEndFrame();
         }
@@ -228,10 +225,10 @@ namespace ui
         uint8_t holdClrDiff = 0;
         clr holdClr;
 
-        button yes("Yes \ue0e0", 256, 496, 384, 96);
-        button no("No \ue0e1", 640, 496, 384, 96);
+        button yes("Yes \ue0e0", 320, 506, 320, 64);
+        button no("No \ue0e1", 640, 506, 320, 64);
 
-        size_t headWidth = textGetWidth("Confirm", ui::shared, 24);
+        size_t headWidth = textGetWidth("Confirm", ui::shared, 20);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
 
@@ -297,10 +294,10 @@ namespace ui
             }
 
             gfxBeginFrame();
-            ui::drawTextbox(256, 128, 768, 464);
-            drawText("Confirm", frameBuffer, ui::shared, headX, 144, 24, txtClr);
-            drawRect(frameBuffer, 256, 184, 768, 2, clrCreateU32(0xFF6D6D6D));
-            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 272, 200, 24, txtClr, 752);
+            ui::drawTextbox(320, 150, 640, 420);
+            drawText("Confirm", frameBuffer, ui::shared, headX, 168, 20, txtClr);
+            drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
+            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
             if(hold && heldDown)
             {
                 if(ui::thmID == ColorSetId_Light)

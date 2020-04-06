@@ -60,10 +60,9 @@ int main(int argc, const char *argv[])
 
         if(down & KEY_PLUS)
             break;
+
         gfxBeginFrame();
-
         ui::runApp(down, held, p);
-
         gfxEndFrame();
     }
 #ifdef __debug__

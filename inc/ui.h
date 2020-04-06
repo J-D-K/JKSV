@@ -47,6 +47,8 @@ namespace ui
 
     //Textbox graphics
     extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
+    //Covers left and right of progress bar to fake being not a rectangle.
+    extern tex *progCovLeft, *progCovRight;
 
     //Side bar from Freebird. RIP
     extern tex *sideBar;
