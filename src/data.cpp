@@ -146,10 +146,11 @@ namespace data
             return;
 
         //Push System and BCAT user
-        user sys, bcat, dev;
+        user sys, bcat, dev, sysBcat;
         sys.initNoChk(util::u128ToAccountUID(1), "System");
         bcat.initNoChk(util::u128ToAccountUID(2), "BCAT");
         dev.initNoChk(util::u128ToAccountUID(3), "Device Saves");
+        //sysBcat.initNoChk(util::u128ToAccountUID(4), "Sys BCAT");
 
         //Modify device icon
         dev.delIcon();
@@ -158,6 +159,7 @@ namespace data
         users.push_back(dev);
         users.push_back(bcat);
         users.push_back(sys);
+        //users.push_back(sysBcat);
 
         while(true)
         {
@@ -176,6 +178,10 @@ namespace data
 
                 case FsSaveDataType_Device:
                     info.uid = util::u128ToAccountUID(3);
+                    break;
+
+                case FsSaveDataType_SystemBcat:
+                    info.uid = util::u128ToAccountUID(4);
                     break;
             }
 
@@ -307,7 +313,7 @@ namespace data
         NacpLanguageEntry *ent = NULL;
         size_t outSz = 0;
 
-        if(inf.save_data_type == FsSaveDataType_System)
+        if(inf.save_data_type == FsSaveDataType_System || inf.save_data_type == FsSaveDataType_SystemBcat)
             id = inf.system_save_data_id;
         else
             id = inf.application_id;

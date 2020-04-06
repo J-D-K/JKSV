@@ -132,8 +132,13 @@ namespace ui
         }
         else if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
-            data::curUser = data::users[data::selUser];
-            mstate = TTL_SEL;
+            if(data::users[data::selUser].titles.size() > 0)
+            {
+                data::curUser = data::users[data::selUser];
+                mstate = TTL_SEL;
+            }
+            else
+                ui::showPopup("No Saves available for " + data::users[data::selUser].getUsername() + ".", POP_FRAME_DEFAULT);
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {

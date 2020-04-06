@@ -84,10 +84,14 @@ namespace ui
 
         if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
         {
-            data::curUser = data::users[userMenu.getSelected()];
-            textTitlePrep(data::curUser);
-
-            mstate = TXT_TTL;
+            if(data::users[userMenu.getSelected()].titles.size() > 0)
+            {
+                data::curUser = data::users[userMenu.getSelected()];
+                textTitlePrep(data::curUser);
+                mstate = TXT_TTL;
+            }
+            else
+                ui::showPopup("No saves available for " + data::users[userMenu.getSelected()].getUsername() + ".", POP_FRAME_DEFAULT);
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {
@@ -247,13 +251,13 @@ namespace ui
         }
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
-            if(folderMenu.getSelected() > 0)
+            if(data::curData.getType() != FsSaveDataType_System && folderMenu.getSelected() > 0)
             {
                 std::string scanPath = util::getTitleDir(data::curUser, data::curData);
                 fs::dirList list(scanPath);
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", false))
                 {
                     std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
                     std::string root = "sv:/";
@@ -306,6 +310,7 @@ namespace ui
         exMenu.addOpt("Remove Downloaded Update");
         exMenu.addOpt("Terminate Process ID");
         exMenu.addOpt("Mount System Save ID");
+        exMenu.addOpt("Rescan Titles");
         exMenu.addOpt("Mount Process RomFS");
     }
 
@@ -315,13 +320,13 @@ namespace ui
 
         if(down & KEY_A)
         {
+            fsdevUnmountDevice("sv");
             FsFileSystem sv;
             data::curData.setType(FsSaveDataType_System);
             switch(exMenu.getSelected())
             {
                 case 0:
                     data::curData.setType(FsSaveDataType_Bcat);
-                    fsdevUnmountDevice("sv");
                     advModePrep("sdmc:/", false);
                     mstate = ADV_MDE;
                     prevState = EX_MNU;
@@ -338,7 +343,6 @@ namespace ui
                     break;
 
                 case 2:
-                    fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, FsBisPartitionId_SafeMode, "");
                     fsdevMountDevice("safe", sv);
 
@@ -348,7 +352,6 @@ namespace ui
                     break;
 
                 case 3:
-                    fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                     fsdevMountDevice("sys", sv);
 
@@ -358,7 +361,6 @@ namespace ui
                     break;
 
                 case 4:
-                    fsdevUnmountDevice("sv");
                     fsOpenBisFileSystem(&sv, FsBisPartitionId_User, "");
                     fsdevMountDevice("user", sv);
 
@@ -369,7 +371,6 @@ namespace ui
 
                 case 5:
                     {
-                        fsdevUnmountDevice("sv");
                         fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                         fsdevMountDevice("sv", sv);
                         std::string delPath = "sv:/Contents/placehld/";
@@ -392,13 +393,12 @@ namespace ui
 
                 case 6:
                     {
-                        fsdevUnmountDevice("sv");
                         std::string idStr = util::getStringInput("0100000000000000", "Enter Process ID", 18, 0, NULL);
                         if(!idStr.empty())
                         {
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
                             pmshellInitialize();
-                            if(R_SUCCEEDED(pmshellTerminateProcess(termID)))
+                            if(R_SUCCEEDED(pmshellTerminateProgram(termID)))
                                 ui::showMessage("Process " + idStr + " successfully shutdown.", "Success!");
                             pmshellExit();
                         }
@@ -407,7 +407,6 @@ namespace ui
 
                 case 7:
                     {
-                        fsdevUnmountDevice("sv");
                         std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
                         uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
                         if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
@@ -422,8 +421,11 @@ namespace ui
                     break;
 
                 case 8:
+                    data::init();
+                    break;
+
+                case 9:
                     {
-                        fsdevUnmountDevice("sv");
                         FsFileSystem tromfs;
                         Result res = fsOpenDataFileSystemByCurrentProcess(&tromfs);
                         if(R_SUCCEEDED(res))
