@@ -181,7 +181,7 @@ namespace data
                     break;
 
                 case FsSaveDataType_SystemBcat:
-                    info.uid = util::u128ToAccountUID(4);
+                    //info.uid = util::u128ToAccountUID(4);
                     break;
             }
 

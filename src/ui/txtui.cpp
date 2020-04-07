@@ -257,8 +257,18 @@ namespace ui
                 fs::dirList list(scanPath);
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", false))
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
                 {
+                    if(data::autoBack)
+                    {
+                        std::string autoFolder = util::getTitleDir(data::curUser, data::curData) + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                        mkdir(autoFolder.c_str(), 777);
+                        autoFolder += "/";
+
+                        std::string root = "sv:/";
+                        fs::copyDirToDir(root, autoFolder);
+                    }
+
                     std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
                     std::string root = "sv:/";
 
@@ -266,6 +276,9 @@ namespace ui
                     fsdevCommitDevice("sv");
 
                     fs::copyDirToDirCommit(fromPath, root, "sv");
+
+                    if(data::autoBack)
+                        folderMenuPrepare(data::curUser, data::curData);
                 }
             }
         }

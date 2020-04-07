@@ -106,7 +106,7 @@ namespace ui
                 fs::dirList list(scanPath);
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", false))
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
                 {
                     if(data::autoBack)
                     {
