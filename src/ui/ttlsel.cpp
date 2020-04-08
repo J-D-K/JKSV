@@ -91,6 +91,7 @@ namespace ui
                 data::curData = data::curUser.titles[data::selData];
                 if(fs::mountSave(data::curUser, data::curData))
                 {
+                    folderMenuInfo = util::getInfoString(data::curUser, data::curData);
                     folderMenuPrepare(data::curUser, data::curData);
                     mstate = FLD_SEL;
                 }
