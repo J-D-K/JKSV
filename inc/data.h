@@ -14,13 +14,13 @@ namespace data
 
     //Loads user + title info
     void init();
-    void loadBlacklist();
     void exit();
-    bool isAppletMode();
+    void loadBlacklist();
     void loadCfg();
     void saveCfg();
     void loadFav();
     void saveFav();
+    bool isAppletMode();
 
     //Class to help not load the same icons over and over
     class icn
@@ -28,10 +28,9 @@ namespace data
         public:
             //Loads jpeg icon from jpegData
             void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
-            //For loading default icon
-            void load(const uint64_t & _id, const std::string& _png);
-            //Creates a generic icon for stuff with no icon
+            //Creates a generic icon for stuff with no icon with id
             void create(const uint64_t& _id, const std::string& _txt);
+
             //Creates favorite with heart on it. Needs to be called after icon is loaded
             void createFav();
 
@@ -99,6 +98,7 @@ namespace data
 
             //Returns user ID
             AccountUid getUID() { return userID; }
+            u128 getUID128(){ return uID128; }
 
             //Returns username
             std::string getUsername() { return username; }
@@ -113,6 +113,7 @@ namespace data
 
         private:
             AccountUid userID;
+            u128 uID128;
             std::string username, userSafe;
             //User icon
             tex* userIcon;
@@ -124,6 +125,7 @@ namespace data
     void favoriteRemove(data::user& u, data::titledata& t);
 
     //User vector
+    extern std::vector<icn> icons;
     extern std::vector<user> users;
 
     //Stores current data we're using so I don't have to type so much. + Options and info

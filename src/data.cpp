@@ -38,17 +38,28 @@ static struct
 //Returns -1 for new
 static int getUserIndex(const AccountUid& id)
 {
-    u128 nId = 0, oId = 0;
+    u128 nId = 0;
     nId = util::accountUIDToU128(id);
     for(unsigned i = 0; i < data::users.size(); i++)
     {
-        oId = util::accountUIDToU128(data::users[i].getUID());
-        if(oId == nId)
+        if(data::users[i].getUID128() == nId)
             return i;
     }
 
     return -1;
 }
+
+static int findIcnIndex(const uint64_t& titleID)
+{
+    for(unsigned i = 0; i < data::icons.size(); i++)
+    {
+        if(data::icons[i].getTitleID() == titleID)
+            return i;
+    }
+
+    return -1;
+}
+
 
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
@@ -108,6 +119,12 @@ namespace data
 
     void init()
     {
+        FsSaveDataInfoReader saveIt;
+        FsSaveDataInfo info;
+        s64 total = 0;
+        if(R_FAILED(fsOpenSaveDataInfoReader(&saveIt, FsSaveDataSpaceId_All)))
+            return;
+
         //Clear titles + users just in case
         for(unsigned i = 0; i < users.size(); i++)
             users[i].titles.clear();
@@ -138,13 +155,6 @@ namespace data
         //Get applet type
         appletMode = appletGetAppletType();
 
-        FsSaveDataInfoReader saveIt;
-        s64 total = 0;
-        FsSaveDataInfo info;
-
-        if(R_FAILED(fsOpenSaveDataInfoReader(&saveIt, FsSaveDataSpaceId_All)))
-            return;
-
         //Push System and BCAT user
         user sys, bcat, dev, sysBcat;
         sys.initNoChk(util::u128ToAccountUID(1), "System");
@@ -161,11 +171,8 @@ namespace data
         users.push_back(sys);
         //users.push_back(sysBcat);
 
-        while(true)
+        while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&saveIt, &info, 1, &total)) && total != 0)
         {
-            if(R_FAILED(fsSaveDataInfoReaderRead(&saveIt, &info, 1, &total)) || total == 0)
-                break;
-
             switch(info.save_data_type)
             {
                 case FsSaveDataType_System:
@@ -186,7 +193,7 @@ namespace data
             }
 
             //If save data, not black listed or just ignore
-            if(!blacklisted(info.application_id))
+            if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id))
             {
                 int u = getUserIndex(info.uid);
                 if(u == -1)
@@ -219,6 +226,7 @@ namespace data
                 }
             }
         }
+        fsSaveDataInfoReaderClose(&saveIt);
 
         if(data::incDev)
         {
@@ -226,8 +234,6 @@ namespace data
             for(unsigned i = 0; i < users.size() - 3; i++)
                 users[i].titles.insert(users[i].titles.end(), users[users.size() - 3].titles.begin(), users[users.size() - 3].titles.end());
         }
-
-        fsSaveDataInfoReaderClose(&saveIt);
 
         for(unsigned i = 0; i < users.size(); i++)
             std::sort(users[i].titles.begin(), users[i].titles.end(), sortTitles);
@@ -268,12 +274,6 @@ namespace data
         iconTex = texLoadJPEGMem(jpegData, jpegSize);
     }
 
-    void icn::load(const uint64_t& _id, const std::string& _png)
-    {
-        titleID = _id;
-        iconTex = texLoadPNGFile(_png.c_str());
-    }
-
     void icn::create(const uint64_t& _id, const std::string& _txt)
     {
         titleID = _id;
@@ -291,27 +291,17 @@ namespace data
 
     void icn::createFav()
     {
-        iconFav = texCreateFromPart(iconTex, 0, 0, 256, 256);
+        iconFav = texCreate(256, 256);
+        memcpy(iconFav->data, iconTex->data, 256 * 256 * sizeof(uint32_t));
         drawText("♥", iconFav, ui::shared, 0, 0, 48, clrCreateU32(0xFF4444FF));
-    }
-
-    int findIcnIndex(const uint64_t& titleID)
-    {
-        for(unsigned i = 0; i < icons.size(); i++)
-        {
-            if(icons[i].getTitleID() == titleID)
-                return i;
-        }
-
-        return -1;
     }
 
     void titledata::init(const FsSaveDataInfo& inf)
     {
-        NsApplicationControlData *dat = new NsApplicationControlData;
-        std::memset(dat, 0, sizeof(NsApplicationControlData));
-        NacpLanguageEntry *ent = NULL;
         size_t outSz = 0;
+        NsApplicationControlData *dat = new NsApplicationControlData;
+        NacpLanguageEntry *ent = NULL;
+        memset(dat, 0, sizeof(NsApplicationControlData));
 
         if(inf.save_data_type == FsSaveDataType_System || inf.save_data_type == FsSaveDataType_SystemBcat)
             id = inf.system_save_data_id;
@@ -377,6 +367,7 @@ namespace data
     bool user::init(const AccountUid& _id)
     {
         userID = _id;
+        uID128 = util::accountUIDToU128(_id);
 
         AccountProfile prof;
         AccountProfileBase base;
@@ -389,8 +380,16 @@ namespace data
 
         username.assign(base.nickname);
         if(username.empty())
-            username = "Unknown";
+            username = "Empty";
+
         userSafe = util::safeString(username);
+        if(userSafe.empty())
+        {
+            char tmp[32];
+            sprintf(tmp, "Acc%016lX", (uint64_t)uID128);
+            userSafe = tmp;
+        }
+
         uint32_t sz = 0;
         accountProfileGetImageSize(&prof, &sz);
         uint8_t *profJpeg = new uint8_t[sz];
@@ -398,9 +397,8 @@ namespace data
         accountProfileLoadImage(&prof, profJpeg, sz, &sz);
         userIcon = texLoadJPEGMem(profJpeg, sz);
 
-        delete[] profJpeg;
-
         accountProfileClose(&prof);
+        delete[] profJpeg;
 
         return true;
     }
@@ -408,6 +406,7 @@ namespace data
     bool user::initNoChk(const AccountUid& _id, const std::string& _backupName)
     {
         userID = _id;
+        uID128 = util::accountUIDToU128(_id);
 
         username = _backupName;
         userSafe = util::safeString(_backupName);
@@ -441,13 +440,7 @@ namespace data
     void blacklistAdd(user& u, titledata& t)
     {
         FILE *bl = fopen(std::string(fs::getWorkDir() + "blacklist.txt").c_str(), "a");
-
-        std::string titleLine = "#" + t.getTitle() + "\n";
-        char idLine[32];
-        sprintf(idLine, "0x%016lX\n", t.getID());
-
-        fputs(titleLine.c_str(), bl);
-        fputs(idLine, bl);
+        fprintf(bl, "#%s\n0x%016lX\n", t.getTitle().c_str(), t.getID());
         fclose(bl);
 
         //Remove it from every user
@@ -554,12 +547,9 @@ namespace data
     {
         FILE *fav = fopen(std::string(fs::getWorkDir() + "favorites.txt").c_str(), "w");
 
-        char tmp[64];
         for(unsigned i = 0; i < favorites.size(); i++)
-        {
-            sprintf(tmp, "0x%016lX\n", favorites[i]);
-            fputs(tmp, fav);
-        }
+            fprintf(fav, "0x%016lX\n", favorites[i]);
+
         fclose(fav);
     }
 }

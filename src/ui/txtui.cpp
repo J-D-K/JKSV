@@ -149,8 +149,6 @@ namespace ui
 
             textTitlePrep(data::curUser);
         }
-        else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
-            mstate = TXT_USR;
         else if(down & KEY_L)
         {
             data::selUser--;
@@ -183,6 +181,8 @@ namespace ui
 
             textTitlePrep(data::curUser);
         }
+        else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
+            mstate = TXT_USR;
     }
 
     void textFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -210,13 +210,14 @@ namespace ui
                 {
                     const std::string dict[] =
                     {
-                        util::getDateTime(util::DATE_FMT_YMD).c_str(),
-                        util::getDateTime(util::DATE_FMT_YDM).c_str(),
-                        util::getDateTime(util::DATE_FMT_HOYSTE).c_str(),
+                        util::getDateTime(util::DATE_FMT_YMD),
+                        util::getDateTime(util::DATE_FMT_YDM),
+                        util::getDateTime(util::DATE_FMT_HOYSTE),
+                        util::getDateTime(util::DATE_FMT_JHK),
                         data::curUser.getUsernameSafe().c_str(),
                         data::curData.getTitle().length() < 24 ? data::curData.getTitleSafe() : util::generateAbbrev(data::curData)
                     };
-                    folder = util::getStringInput(std::string(data::curUser.getUsernameSafe() + " " + util::getDateTime(util::DATE_FMT_YMD)), "New Folder", 64, 5, dict);
+                    folder = util::getStringInput("", "New Folder", 64, 6, dict);
                 }
                 if(!folder.empty())
                 {

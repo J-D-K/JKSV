@@ -43,11 +43,6 @@ int main(int argc, const char *argv[])
     data::init();
     ui::init();
 
-    //built with 'make debug CFLAGS:=-D__debug__'
-#ifdef __debug__
-    socketInitializeDefault();
-    nxlinkStdio();
-#endif
     while(appletMainLoop())
     {
         hidScanInput();
@@ -65,9 +60,7 @@ int main(int argc, const char *argv[])
         ui::runApp(down, held, p);
         gfxEndFrame();
     }
-#ifdef __debug__
-    socketExit();
-#endif
+
     ui::exit();
     data::exit();
     graphicsExit();

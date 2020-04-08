@@ -85,6 +85,10 @@ namespace util
             case DATE_FMT_HOYSTE:
                 sprintf(ret, "%02d.%02d.%04d", Time->tm_mday, Time->tm_mon + 1, Time->tm_year + 1900);
                 break;
+
+            case DATE_FMT_JHK:
+                sprintf(ret, "%04d%02d%02d_%02d%02d", Time->tm_year + 1900, Time->tm_mon + 1, Time->tm_mday, Time->tm_hour, Time->tm_min);
+                break;
         }
 
         return std::string(ret);

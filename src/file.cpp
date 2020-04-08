@@ -50,23 +50,45 @@ namespace fs
 
     bool mountSave(data::user& usr, data::titledata& open)
     {
+        Result svOpen;
         FsFileSystem sv;
 
-        if(open.getType() == FsSaveDataType_Account && R_FAILED(fsOpen_SaveData(&sv, open.getID(), usr.getUID())))
-            return false;
-        else if(open.getType() == FsSaveDataType_System && R_FAILED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid) {0})))
-            return false;
-        else if(open.getType() == FsSaveDataType_Bcat && R_FAILED(fsOpen_BcatSaveData(&sv, open.getID())))
-            return false;
-        else if(open.getType() == FsSaveDataType_Device && R_FAILED(fsOpen_DeviceSaveData(&sv, open.getID())))
-            return false;
-        else if(open.getType() == FsSaveDataType_SystemBcat && R_FAILED(fsOpen_SystemBcatSaveData(&sv, open.getID())))
-            return false;
+        switch(open.getType())
+        {
+            case FsSaveDataType_System:
+                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid){0});
+                break;
 
-        if(fsdevMountDevice("sv", sv) == -1)
-            return false;
+            case FsSaveDataType_Account:
+                svOpen = fsOpen_SaveData(&sv, open.getID(), usr.getUID());
+                break;
 
-        return true;
+            case FsSaveDataType_Bcat:
+                svOpen = fsOpen_BcatSaveData(&sv, open.getID());
+                break;
+
+            case FsSaveDataType_Device:
+                svOpen = fsOpen_DeviceSaveData(&sv, open.getID());
+                break;
+
+            case FsSaveDataType_Temporary:
+                svOpen = fsOpen_TemporaryStorage(&sv);
+                break;
+
+            case FsSaveDataType_Cache:
+                svOpen = 1; //For Now
+                break;
+
+            case FsSaveDataType_SystemBcat:
+                svOpen = fsOpen_SystemBcatSaveData(&sv, open.getID());
+                break;
+
+            default:
+                svOpen = 1;
+                break;
+        }
+
+        return R_SUCCEEDED(svOpen) && fsdevMountDevice("sv", sv) != -1;
     }
 
     dirItem::dirItem(const std::string& pathTo, const std::string& sItem)
