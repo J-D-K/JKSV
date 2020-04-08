@@ -17,10 +17,9 @@ namespace ui
         folderMenu.setParams(466, 98, 730);
         folderMenu.reset();
 
-        util::makeTitleDir(usr, dat);
-        std::string scanPath = util::getTitleDir(usr, dat);
+        dat.createDir();
 
-        fs::dirList list(scanPath);
+        fs::dirList list(dat.getPath());
         folderMenu.addOpt("New");
         for(unsigned i = 0; i < list.getCount(); i++)
             folderMenu.addOpt(list.getItem(i));
@@ -70,7 +69,7 @@ namespace ui
                 }
                 if(!folder.empty())
                 {
-                    std::string path = util::getTitleDir(data::curUser, data::curData) + "/" + folder;
+                    std::string path = data::curData.getPath() + "/" + folder;
                     mkdir(path.c_str(), 777);
                     path += "/";
 
@@ -82,13 +81,12 @@ namespace ui
             }
             else
             {
-                std::string scanPath = util::getTitleDir(data::curUser, data::curData);
-                fs::dirList list(scanPath);
+                fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
                 if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", true))
                 {
-                    std::string toPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+                    std::string toPath = data::curData.getPath() + folderName + "/";
                     //Delete and recreate
                     fs::delDir(toPath);
                     mkdir(toPath.c_str(), 777);
@@ -102,16 +100,15 @@ namespace ui
         else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
         {
             if(data::curData.getType() != FsSaveDataType_System && folderMenu.getSelected() > 0)
-            {
-                std::string scanPath = util::getTitleDir(data::curUser, data::curData);
-                fs::dirList list(scanPath);
+            {;
+                fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
                 if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
                 {
                     if(data::autoBack)
                     {
-                        std::string autoFolder = util::getTitleDir(data::curUser, data::curData) + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
                         mkdir(autoFolder.c_str(), 777);
                         autoFolder += "/";
 
@@ -119,7 +116,7 @@ namespace ui
                         fs::copyDirToDir(root, autoFolder);
                     }
 
-                    std::string fromPath = util::getTitleDir(data::curUser, data::curData) + folderName + "/";
+                    std::string fromPath = data::curData.getPath() + folderName + "/";
                     std::string root = "sv:/";
 
                     fs::delDir(root);
@@ -137,13 +134,12 @@ namespace ui
         {
             if(folderMenu.getSelected() > 0)
             {
-                std::string scanPath = util::getTitleDir(data::curUser, data::curData);
-                fs::dirList list(scanPath);
+                fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
                 if(confirm("Are you sure you want to delete \"" + folderName + "\"?", true))
                 {
-                    std::string delPath = scanPath + folderName + "/";
+                    std::string delPath = data::curData.getPath() + folderName + "/";
                     fs::delDir(delPath);
                 }
 

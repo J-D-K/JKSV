@@ -349,6 +349,9 @@ namespace data
             icons.push_back(newIcn);
             icon = icons[findIcnIndex(id)];
         }
+
+        path = fs::getWorkDir() + titleSafe + "/";
+
         delete dat;
     }
 
@@ -362,6 +365,11 @@ namespace data
             return true;
         }
         return false;
+    }
+
+    void titledata::createDir()
+    {
+        mkdir(std::string(fs::getWorkDir() + titleSafe).c_str(), 777);
     }
 
     bool user::init(const AccountUid& _id)

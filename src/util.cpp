@@ -94,17 +94,6 @@ namespace util
         return std::string(ret);
     }
 
-    void makeTitleDir(data::user& u, data::titledata& t)
-    {
-        std::string path = fs::getWorkDir() + t.getTitleSafe();
-        mkdir(path.c_str(), 777);
-    }
-
-    std::string getTitleDir(data::user& u, data::titledata& t)
-    {
-        return std::string(fs::getWorkDir() + t.getTitleSafe() + "/");
-    }
-
     void copyDirListToMenu(fs::dirList& d, ui::menu& m)
     {
         m.reset();

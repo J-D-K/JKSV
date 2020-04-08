@@ -64,6 +64,11 @@ namespace data
             std::string getTitleSafe() { return titleSafe; }
             std::string getAuthor() { return author; }
 
+            //Creates title folder
+            void createDir();
+            //Returns folder path
+            std::string getPath() { return path; }
+
             uint64_t getID() { return id; }
             FsSaveDataType getType() { return (FsSaveDataType)saveDataType; }
             void setType(FsSaveDataType type) { saveDataType = type; }
@@ -75,7 +80,7 @@ namespace data
 
         private:
             uint8_t saveDataType;
-            std::string title, titleSafe, author;
+            std::string title, titleSafe, author, path;
             uint64_t id;
             bool favorite = false;
     };

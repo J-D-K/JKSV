@@ -26,11 +26,6 @@ static const std::string loadGlyphArray[] =
 
 namespace ui
 {
-    progBar::progBar(const uint64_t& _max)
-    {
-        max = _max;
-    }
-
     void progBar::update(const uint64_t& _prog)
     {
         prog = _prog;

@@ -91,9 +91,7 @@ namespace ui
                 data::curData = data::curUser.titles[data::selData];
                 if(fs::mountSave(data::curUser, data::curData))
                 {
-                    util::makeTitleDir(data::curUser, data::curData);
                     folderMenuPrepare(data::curUser, data::curData);
-
                     mstate = FLD_SEL;
                 }
             }
@@ -175,9 +173,7 @@ namespace ui
             data::curData = data::curUser.titles[data::selData];
             if(fs::mountSave(data::curUser, data::curData))
             {
-                util::makeTitleDir(data::curUser, data::curData);
                 folderMenuPrepare(data::curUser, data::curData);
-
                 //Wanna change this sometime
                 ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
@@ -185,9 +181,7 @@ namespace ui
             }
         }
         else if(down & KEY_Y || ttlNav[1].getEvent() == BUTTON_RELEASED)
-        {
             fs::dumpAllUserSaves(data::curUser);
-        }
         else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
             std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[data::selData].getTitle() + \

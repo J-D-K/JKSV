@@ -295,7 +295,7 @@ namespace ui
 
             default:
             case ColorSetId_Dark:
-                drawRect(frameBuffer, x + 4, y + 4, w - 8, h - 8, clrCreateU32(0xFF272221));
+                drawRect(frameBuffer, x + 4, y + 4, w - 8, h - 8, clrCreateU32(0xFF212221));
                 break;
         }
 

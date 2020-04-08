@@ -29,7 +29,7 @@ namespace ui
     {
         public:
             //Constructor. _max is the maximum value
-            progBar(const uint64_t& _max);
+            progBar(const uint64_t& _max) { max = _max; }
 
             //Updates progress
             void update(const uint64_t& _prog);
@@ -40,6 +40,7 @@ namespace ui
         private:
             uint64_t max, prog;
             float width;
+            tex *bg;
     };
 
     class button

@@ -19,12 +19,6 @@ namespace util
     //Returns string with date S+ time
     std::string getDateTime(int fmt);
 
-    //Creates Dir 'JKSV/[title]
-    void makeTitleDir(data::user& u, data::titledata& t);
-
-    //Returns 'JKSV/[title]/'
-    std::string getTitleDir(data::user& u, data::titledata& t);
-
     //Copys dir list to a menu with 'D: ' + 'F: '
     void copyDirListToMenu(fs::dirList& d, ui::menu& m);
 
