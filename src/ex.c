@@ -35,4 +35,6 @@ Result fsOpenDataFileSystemByCurrentProcess(FsFileSystem *out)
     }
 
     return ret;*/
+
+    return 1;
 }
