@@ -75,7 +75,7 @@ namespace fs
     };
 
     void logOpen();
-    void logWrite(const std::string& out);
+    void logWrite(const char *fmt, ...);
     void logClose();
 }
 

@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.06.2020"
+#define VER_STRING "v. 04.10.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;

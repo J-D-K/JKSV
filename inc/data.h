@@ -54,7 +54,7 @@ namespace data
     {
         public:
             //Attempts to read title's info
-            void init(const FsSaveDataInfo& inf);
+            void init(const FsSaveDataInfo& inf, NsApplicationControlData *dat);
 
             //Attempts to mount data with uID + id. Returns false if fails. For filtering.
             bool isMountable(const AccountUid& uID);

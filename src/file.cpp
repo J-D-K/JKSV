@@ -4,6 +4,7 @@
 #include <switch.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <cstdarg>
 #include <sys/stat.h>
 
 #include "file.h"
@@ -467,15 +468,21 @@ namespace fs
         fsFsOpenFile(sd, "/JKSV/log.txt", FsOpenMode_Write, &logFile);
     }
 
-    void logWrite(const std::string& out)
+    void logWrite(const char *fmt, ...)
     {
+        char tmp[256];
+        va_list args;
+        va_start(args, fmt);
+        vsprintf(tmp, fmt, args);
+
+        unsigned tmpLength = strlen(tmp);
         s64 curSize = 0;
         fsFileGetSize(&logFile, &curSize);
-        curSize += out.size();
+        curSize += tmpLength;
         fsFileSetSize(&logFile, curSize);
 
-        fsFileWrite(&logFile, offset, out.c_str(), out.length(), 0);
-        offset += out.length();
+        fsFileWrite(&logFile, offset, tmp, tmpLength, 0);
+        offset += tmpLength;
     }
 
     void logClose()

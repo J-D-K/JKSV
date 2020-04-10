@@ -171,6 +171,8 @@ namespace data
         users.push_back(sys);
         //users.push_back(sysBcat);
 
+        //Stop allocing and freeing over and over for every title.
+        NsApplicationControlData *dat = new NsApplicationControlData;
         while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&saveIt, &info, 1, &total)) && total != 0)
         {
             switch(info.save_data_type)
@@ -206,7 +208,7 @@ namespace data
 
                         u = getUserIndex(info.uid);
                         titledata newData;
-                        newData.init(info);
+                        newData.init(info, dat);
                         if(isFavorite(newData.getID()))
                             newData.setFav(true);
 
@@ -217,7 +219,7 @@ namespace data
                 else
                 {
                     titledata newData;
-                    newData.init(info);
+                    newData.init(info, dat);
                     if(isFavorite(newData.getID()))
                         newData.setFav(true);
 
@@ -226,6 +228,7 @@ namespace data
                 }
             }
         }
+        delete dat;
         fsSaveDataInfoReaderClose(&saveIt);
 
         if(data::incDev)
@@ -296,10 +299,9 @@ namespace data
         drawText("♥", iconFav, ui::shared, 0, 0, 48, clrCreateU32(0xFF4444FF));
     }
 
-    void titledata::init(const FsSaveDataInfo& inf)
+    void titledata::init(const FsSaveDataInfo& inf, NsApplicationControlData *dat)
     {
         size_t outSz = 0;
-        NsApplicationControlData *dat = new NsApplicationControlData;
         NacpLanguageEntry *ent = NULL;
         memset(dat, 0, sizeof(NsApplicationControlData));
 
@@ -311,7 +313,8 @@ namespace data
         saveDataType = inf.save_data_type;
         Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
         Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
-        if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL)
+        size_t icnSize = outSz - sizeof(dat->nacp);
+        if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL && icnSize > 0)
         {
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
@@ -326,13 +329,13 @@ namespace data
             int icnInd = findIcnIndex(id);
             if(icnInd == -1)
             {
-                size_t icnSize = outSz - sizeof(dat->nacp);
                 icn newIcn;
                 newIcn.load(id, dat->icon, icnSize);
                 newIcn.createFav();
                 icons.push_back(newIcn);
 
-                icon = icons[findIcnIndex(id)];
+                //safe to assume icon is last
+                icon = data::icons[data::icons.size() - 1];
             }
             else
                 icon = icons[icnInd];
@@ -351,8 +354,6 @@ namespace data
         }
 
         path = fs::getWorkDir() + titleSafe + "/";
-
-        delete dat;
     }
 
     bool titledata::isMountable(const AccountUid& uID)
@@ -394,7 +395,7 @@ namespace data
         if(userSafe.empty())
         {
             char tmp[32];
-            sprintf(tmp, "Acc%016lX", (uint64_t)uID128);
+            sprintf(tmp, "Acc%08X", (uint32_t)uID128);
             userSafe = tmp;
         }
 
