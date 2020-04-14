@@ -323,7 +323,7 @@ namespace ui
     {
         std::string confMess = "Are you 100% sure you want to delete #" + p + "#? *This is permanent*!";
 
-        return confirm(confMess, true);
+        return confirm(confMess, data::holdDel);
     }
 
     void drawTextbox(int x, int y, int w, int h)

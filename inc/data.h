@@ -139,7 +139,7 @@ namespace data
     extern int selUser, selData;
     extern std::string sysLang;
     extern AppletType appletMode;
-    extern bool incDev, autoBack, ovrClk;
+    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver;
 }
 
 #endif // DATA_H

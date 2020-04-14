@@ -116,6 +116,7 @@ namespace data
 
     //Options
     bool incDev = false, autoBack = true, ovrClk = false, isOvrClk = false;
+    bool holdDel = true, holdRest = true, holdOver = true;
 
     void init()
     {
@@ -516,19 +517,34 @@ namespace data
         if(fs::fileExists(fs::getWorkDir() + "cfg.bin"))
         {
             FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "rb");
-            data::incDev = fgetc(cfg);
-            data::autoBack = fgetc(cfg);
-            data::ovrClk = fgetc(cfg);
+
+            uint64_t cfgIn = 0;
+            fread(&cfgIn, sizeof(uint64_t), 1, cfg);
             fclose(cfg);
+
+            data::incDev = cfgIn >> 63 & 1;
+            data::autoBack = cfgIn >> 62 & 1;
+            data::ovrClk = cfgIn >> 61 & 1;
+            data::holdDel = cfgIn >> 60 & 1;
+            data::holdRest = cfgIn >> 59 & 1;
+            data::holdOver = cfgIn >> 58 & 1;
         }
     }
 
     void saveCfg()
     {
         FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "wb");
-        fputc(data::incDev, cfg);
-        fputc(data::autoBack, cfg);
-        fputc(data::ovrClk, cfg);
+
+        //Use 64bit int for space future stuff. Like this for readability.
+        uint64_t cfgOut = 0;
+        cfgOut |= (uint64_t)data::incDev << 63;
+        cfgOut |= (uint64_t)data::autoBack << 62;
+        cfgOut |= (uint64_t)data::ovrClk << 61;
+        cfgOut |= (uint64_t)data::holdDel << 60;
+        cfgOut |= (uint64_t)data::holdRest << 59;
+        cfgOut |= (uint64_t)data::holdOver << 58;
+        fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
+
         fclose(cfg);
     }
 

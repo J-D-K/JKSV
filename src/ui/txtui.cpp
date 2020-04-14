@@ -19,7 +19,10 @@ static const std::string optHelp[] =
 {
     "Includes all Device Save data in Account Saves.",
     "Automatically create a backup before restoring a save. Just to be safe.",
-    "Apply a small overclock to 1224MHz at boot."
+    "Apply a small overclock to 1224MHz at boot.",
+    "Whether or not holding \ue0e0 is required when deleting save folders and files.",
+    "Whether or not holding \ue0e0 is required when restoring saves to games.",
+    "Whether or not holding \ue0e0 is required when overwriting save folders."
 };
 
 static inline void switchBool(bool& sw)
@@ -231,7 +234,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", data::holdOver))
                 {
                     std::string toPath = data::curData.getPath() + folderName + "/";
                     //Delete and recreate
@@ -251,7 +254,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", data::holdRest))
                 {
                     if(data::autoBack)
                     {
@@ -283,7 +286,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", data::holdDel))
                 {
                     std::string delPath = data::curData.getPath() + folderName + "/";
                     fs::delDir(delPath);
@@ -465,6 +468,9 @@ namespace ui
         optMenu.addOpt("Inc. Dev Sv");
         optMenu.addOpt("Auto Backup");
         optMenu.addOpt("OverClock");
+        optMenu.addOpt("Hold to Delete");
+        optMenu.addOpt("Hold to Restore");
+        optMenu.addOpt("Hold to Overwrite");
     }
 
     void updateOptMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -475,6 +481,9 @@ namespace ui
         optMenu.editOpt(0, "Include Dev Sv: " + getBoolText(data::incDev));
         optMenu.editOpt(1, "Auto Backup: " + getBoolText(data::autoBack));
         optMenu.editOpt(2, "Overclock: " + getBoolText(data::ovrClk));
+        optMenu.editOpt(3, "Hold to Delete: " + getBoolText(data::holdDel));
+        optMenu.editOpt(4, "Hold to Restore: " + getBoolText(data::holdRest));
+        optMenu.editOpt(5, "Hold to Overwrite: " + getBoolText(data::holdOver));
 
         if(down & KEY_A)
         {
@@ -490,6 +499,18 @@ namespace ui
 
                 case 2:
                     switchBool(data::ovrClk);
+                    break;
+
+                case 3:
+                    switchBool(data::holdDel);
+                    break;
+
+                case 4:
+                    switchBool(data::holdRest);
+                    break;
+
+                case 5:
+                    switchBool(data::holdOver);
                     break;
             }
         }

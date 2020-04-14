@@ -84,7 +84,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", data::holdOver))
                 {
                     std::string toPath = data::curData.getPath() + folderName + "/";
                     //Delete and recreate
@@ -104,7 +104,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", data::holdRest))
                 {
                     if(data::autoBack)
                     {
@@ -137,7 +137,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", true))
+                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", data::holdDel))
                 {
                     std::string delPath = data::curData.getPath() + folderName + "/";
                     fs::delDir(delPath);
