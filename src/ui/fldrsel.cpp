@@ -137,7 +137,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", data::holdDel))
+                if(ui::confirmDelete(folderName))
                 {
                     std::string delPath = data::curData.getPath() + folderName + "/";
                     fs::delDir(delPath);
@@ -150,6 +150,11 @@ namespace ui
         {
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
+        }
+        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your Switch! Are you sure you want to do this?", true))
+        {
+            fs::delDir("sv:/");
+            fsdevCommitDevice("sv");
         }
         else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
         {

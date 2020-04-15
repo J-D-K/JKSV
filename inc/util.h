@@ -33,6 +33,9 @@ namespace util
 
     std::string generateAbbrev(data::titledata& dat);
 
+    //For future external translation support. Replaces [button] with button chars
+    void replaceButtonsInString(std::string& rep);
+
     //Creates a basic generic icon for stuff without one
     tex *createIconGeneric(const char *txt);
 

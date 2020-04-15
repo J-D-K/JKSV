@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.14.2020"
+#define VER_STRING "v. 04.15.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -18,11 +18,12 @@ std::vector<ui::button> usrNav, ttlNav, fldNav;
 //Don't waste time drawing top and bottom over and over
 static tex *top, *bot;
 
-//Help text
-static const char *userHelp = "\ue0e0 Select   \ue0e3 Dump All   \ue0e2 UI Mode   \ue0e7 Options   \ue0f0 Extras";
-static const char *titleHelp = "\ue0e0 Select   \ue0e4\ue0e5 Change User   \ue0e3 Dump All   \ue0e2 BlackList   \ue0f0 Favorite   \ue0e1 Back";
-static const char *folderHelp = "\ue0f0 File Mode   \ue0e4\ue0e5 AutoName   \ue0e0 Backup   \ue0e3 Restore   \ue0e2 Delete   \ue0e1 Back";
-static const char *optHelp = "\ue0e0 Toggle   \ue0e1 Back";
+//Ui text strings
+std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [MINUS] Extras";
+std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] BlackList   [MINUS] Favorite   [B] Back";
+std::string ui::folderHelp = "[MINUS] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase Save  [B] Back";
+std::string ui::optHelp = "[A] Toggle   [B] Back";
+std::string ui::confBlackList, ui::confOverwrite, ui::confRestore, ui::confDel, ui::confCopy;
 
 //X position of help texts. Calculated to make editing quicker/easier
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
@@ -151,11 +152,17 @@ namespace ui
         //Not needed anymore
         texDestroy(icn);
 
+        util::replaceButtonsInString(userHelp);
+        util::replaceButtonsInString(titleHelp);
+        util::replaceButtonsInString(folderHelp);
+        util::replaceButtonsInString(optHelp);
+
         //Calculate x position of help text
-        userHelpX = 1220 - textGetWidth(userHelp, ui::shared, 18);
-        titleHelpX = 1220 - textGetWidth(titleHelp, ui::shared, 18);
-        folderHelpX = 1220 - textGetWidth(folderHelp, ui::shared, 18);
-        optHelpX = 1220 - textGetWidth(optHelp, ui::shared, 18);
+        userHelpX = 1220 - textGetWidth(userHelp.c_str(), ui::shared, 18);
+        titleHelpX = 1220 - textGetWidth(titleHelp.c_str(), ui::shared, 18);
+        folderHelpX = 1220 - textGetWidth(folderHelp.c_str(), ui::shared, 18);
+        optHelpX = 1220 - textGetWidth(optHelp.c_str(), ui::shared, 18);
+
 
         advCopyMenuPrep();
         ui::exMenuPrep();
@@ -239,31 +246,31 @@ namespace ui
         switch(mstate)
         {
             case USR_SEL:
-                drawText(userHelp, frameBuffer, ui::shared, userHelpX, 676, 18, ui::mnuTxt);
+                drawText(userHelp.c_str(), frameBuffer, ui::shared, userHelpX, 676, 18, ui::mnuTxt);
                 break;
 
             case TTL_SEL:
-                drawText(titleHelp, frameBuffer, ui::shared, titleHelpX, 676, 18, ui::mnuTxt);
+                drawText(titleHelp.c_str(), frameBuffer, ui::shared, titleHelpX, 676, 18, ui::mnuTxt);
                 break;
 
             case FLD_SEL:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(folderHelp, frameBuffer, ui::shared, folderHelpX, 676, 18, ui::mnuTxt);
+                drawText(folderHelp.c_str(), frameBuffer, ui::shared, folderHelpX, 676, 18, ui::mnuTxt);
                 break;
 
             case TXT_USR:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(userHelp, frameBuffer, ui::shared, userHelpX, 676, 18, ui::mnuTxt);
+                drawText(userHelp.c_str(), frameBuffer, ui::shared, userHelpX, 676, 18, ui::mnuTxt);
                 break;
 
             case TXT_TTL:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(titleHelp, frameBuffer, ui::shared, titleHelpX, 676, 18, ui::mnuTxt);
+                drawText(titleHelp.c_str(), frameBuffer, ui::shared, titleHelpX, 676, 18, ui::mnuTxt);
                 break;
 
             case TXT_FLD:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(folderHelp, frameBuffer, ui::shared, folderHelpX, 676, 18, ui::mnuTxt);
+                drawText(folderHelp.c_str(), frameBuffer, ui::shared, folderHelpX, 676, 18, ui::mnuTxt);
                 break;
 
             case EX_MNU:
@@ -272,7 +279,7 @@ namespace ui
 
             case OPT_MNU:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(optHelp, frameBuffer, ui::shared, optHelpX, 676, 18, ui::mnuTxt);
+                drawText(optHelp.c_str(), frameBuffer, ui::shared, optHelpX, 676, 18, ui::mnuTxt);
                 break;
         }
     }

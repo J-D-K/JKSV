@@ -62,6 +62,13 @@ uint32_t replaceChar(uint32_t c)
     return c;
 }
 
+static inline void replaceStr(std::string& _str, const std::string& _find, const std::string& _rep)
+{
+    size_t pos = 0;
+    while((pos = _str.find(_find)) != _str.npos)
+        _str.replace(pos, _find.length(), _rep);
+}
+
 namespace util
 {
     std::string getDateTime(int fmt)
@@ -235,6 +242,27 @@ namespace util
         }
 
         return ret;
+    }
+
+    void replaceButtonsInString(std::string& rep)
+    {
+        replaceStr(rep, "[A]", "\ue0e0");
+        replaceStr(rep, "[B]", "\ue0e1");
+        replaceStr(rep, "[X]", "\ue0e2");
+        replaceStr(rep, "[Y]", "\ue0e3");
+        replaceStr(rep, "[L]", "\ue0e4");
+        replaceStr(rep, "[R]", "\ue0e5");
+        replaceStr(rep, "[ZL]", "\ue0e6");
+        replaceStr(rep, "[ZR]", "\ue0e7");
+        replaceStr(rep, "[SL]", "\ue0e8");
+        replaceStr(rep, "[SR]", "\ue0e9");
+        replaceStr(rep, "[DPAD]", "\ue0ea");
+        replaceStr(rep, "[DUP]", "\ue0eb");
+        replaceStr(rep, "[DDOWN]", "\ue0ec");
+        replaceStr(rep, "[DLEFT]", "\ue0ed");
+        replaceStr(rep, "[DRIGHT]", "\ue0ee");
+        replaceStr(rep, "[PLUS]", "\ue0ef");
+        replaceStr(rep, "[MINUS]", "\ue0f0");
     }
 
     tex *createIconGeneric(const char *txt)

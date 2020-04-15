@@ -15,11 +15,11 @@ extern ui::menu folderMenu;
 extern std::vector<ui::button> usrNav, ttlNav, fldNav;
 
 //Help text for options
-static const std::string optHelp[] =
+static const std::string optHelpStrings[] =
 {
     "Includes all Device Save data in Account Saves.",
     "Automatically create a backup before restoring a save. Just to be safe.",
-    "Apply a small overclock to 1224MHz at boot.",
+    "Apply a small overclock to 1224MHz at boot. This is to help the text UI mode run smoothly.",
     "Whether or not holding \ue0e0 is required when deleting save folders and files.",
     "Whether or not holding \ue0e0 is required when restoring saves to games.",
     "Whether or not holding \ue0e0 is required when overwriting save folders."
@@ -286,7 +286,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to delete \"" + folderName + "\"?", data::holdDel))
+                if(ui::confirmDelete(folderName))
                 {
                     std::string delPath = data::curData.getPath() + folderName + "/";
                     fs::delDir(delPath);
@@ -299,6 +299,11 @@ namespace ui
         {
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
+        }
+        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your Switch! Are you sure you want to do this?", true))
+        {
+            fs::delDir("sv:/");
+            fsdevCommitDevice("sv");
         }
         else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
         {
@@ -418,7 +423,10 @@ namespace ui
                     {
                         std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
                         uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
-                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
+                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid)
+                    {
+                        0
+                    })))
                         {
                             fsdevMountDevice("sv", sv);
                             advModePrep("sv:/", true);
@@ -520,6 +528,6 @@ namespace ui
         }
 
         optMenu.draw(ui::mnuTxt);
-        drawTextWrap(optHelp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 24, ui::mnuTxt, 730);
+        drawTextWrap(optHelpStrings[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::mnuTxt, 730);
     }
 }

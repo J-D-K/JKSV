@@ -26,7 +26,6 @@ enum menuState
     OPT_MNU
 };
 
-
 namespace ui
 {
     //Text menus
@@ -40,6 +39,10 @@ namespace ui
 
     //Both UI modes need access to this
     extern std::string folderMenuInfo;
+
+    //Strings since translation support soonish
+    extern std::string userHelp, titleHelp, folderHelp, optHelp;
+    extern std::string confBlackList, confOverwrite, confRestore, confDel, confCopy;
 
     //Colors to use now that I added theme detection
     /*NEED TO COME UP WITH BETTER NAMES*/

@@ -1,0 +1,34 @@
+#This file's strings must be kept in this order. Lines starting with '#' will be ignored.
+#Not sure yet if the whole thing needs to be translated or just important things
+#Button strings [X] are replaced by JKSV at boot.
+
+#Translation author. Displayed in UI. NULL is ignored and not displayed.
+NULL
+
+#Help/Guide strings on bottom
+#User Select
+[A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [MINUS] Extras
+
+#Title Select
+[A] Select   [L][R] Change User   [Y] Dump All   [X] BlackList   [MINUS] Favorite   [B] Back
+
+#Folder Select
+[MINUS] File Mode   [L][R] AutoName   [A] Backup   [Y] Restore   [X] Delete   [B] Back
+
+#Options Menu
+[A] Toggle   [B] Back
+
+#Confirm blacklist.
+Are you sure you want to add #%s# to your blacklist?
+
+#Confirm overwriting folder
+Are you sure you want to overwrite #%s#?
+
+#Confirm restoring save
+Are you sure you want to restore #%s#?
+
+#Confirm deleting. # and * are used to change text color.
+Are you sure you want to delete #%s#? *This is permanent*!
+
+#Confirm file copy in file mode
+Are you sure you want to copy #%s# to #%s#?
