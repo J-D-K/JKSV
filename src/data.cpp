@@ -311,15 +311,20 @@ namespace data
         else
             id = inf.application_id;
 
+        saveID = inf.save_data_id;
+
         saveDataType = inf.save_data_type;
         Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
         Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
         size_t icnSize = outSz - sizeof(dat->nacp);
+        char tmp[18];
         if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL && icnSize > 0)
         {
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
             author.assign(ent->author);
+            sprintf(tmp, "%016lx", inf.save_data_id);
+            saveDataID.assign(tmp);
             if(titleSafe.empty())
             {
                 char tmp[32];
@@ -343,10 +348,11 @@ namespace data
         }
         else
         {
-            char tmp[18];
             sprintf(tmp, "%016lX", id);
             title.assign(tmp);
             titleSafe.assign(tmp);
+            sprintf(tmp, "%016lx", inf.save_data_id);
+            saveDataID.assign(tmp);
             icn newIcn;
             newIcn.create(id, "");
             newIcn.createFav();
@@ -576,5 +582,60 @@ namespace data
             fprintf(fav, "0x%016lX\n", favorites[i]);
 
         fclose(fav);
+    }
+
+    void rescanTitles()
+    {
+        //Clear out users, device, and BCAT
+        for(unsigned i = 0; i < users.size() - 2; i++)
+            data::users[i].titles.clear();
+
+        FsSaveDataInfoReader it;
+        FsSaveDataInfo info;
+        s64 tot = 0;
+        fsOpenSaveDataInfoReader(&it, FsSaveDataSpaceId_All);
+        NsApplicationControlData *dat = new NsApplicationControlData;
+        while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &tot)) && tot != 0)
+        {
+            //Skip system saves cause we're not reloading them
+            if(info.save_data_type == FsSaveDataType_System)
+                continue;
+
+            switch(info.save_data_type)
+            {
+                case FsSaveDataType_Bcat:
+                    info.uid = util::u128ToAccountUID(2);
+                    break;
+
+                case FsSaveDataType_Device:
+                    info.uid = util::u128ToAccountUID(3);
+                    break;
+            }
+
+            if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id))
+            {
+                //We have all users and icons. This *should* be safe
+                int u = getUserIndex(info.uid);
+                titledata newData;
+                newData.init(info, dat);
+                if(isFavorite(newData.getID()))
+                    newData.setFav(true);
+
+                if(newData.isMountable(data::users[u].getUID()) || !forceMount)
+                    users[u].titles.push_back(newData);
+            }
+        }
+        delete dat;
+        fsSaveDataInfoReaderClose(&it);
+
+        if(data::incDev)
+        {
+            //Copy device saves to all accounts
+            for(unsigned i = 0; i < users.size() - 3; i++)
+                users[i].titles.insert(users[i].titles.end(), users[users.size() - 3].titles.begin(), users[users.size() - 3].titles.end());
+        }
+
+        for(unsigned i = 0; i < users.size(); i++)
+            std::sort(users[i].titles.begin(), users[i].titles.end(), sortTitles);
     }
 }

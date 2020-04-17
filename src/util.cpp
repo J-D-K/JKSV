@@ -152,11 +152,12 @@ namespace util
 
     std::string getInfoString(data::user& u, data::titledata& d)
     {
-        std::string ret = d.getTitle() + "\n";
+        std::string ret = d.getTitle() + "\n\n";
 
         char id[18];
         sprintf(id, " %016lX", d.getID());
-        ret += std::string(id) + "\n\n";
+        ret += "TID: " + std::string(id) + "\n\n";
+        ret += "FILE: " + d.getSaveDataID() + "\n\n";
 
         switch(d.getType())
         {
@@ -185,7 +186,7 @@ namespace util
                 break;
 
             case FsSaveDataType_SystemBcat:
-                ret += "System BCAT";
+                ret += "System BCAT\n\n";
                 break;
         }
 

@@ -20,6 +20,7 @@ namespace data
     void saveCfg();
     void loadFav();
     void saveFav();
+    void rescanTitles();
     bool isAppletMode();
 
     //Class to help not load the same icons over and over
@@ -69,7 +70,11 @@ namespace data
             //Returns folder path
             std::string getPath() { return path; }
 
+            //returns save_data_id string. only used for helping identify nand files
+            std::string getSaveDataID(){ return saveDataID; }
+
             uint64_t getID() { return id; }
+            uint64_t getSaveID() { return saveID; }
             FsSaveDataType getType() { return (FsSaveDataType)saveDataType; }
             void setType(FsSaveDataType type) { saveDataType = type; }
             void setFav(bool setFav) { favorite = setFav; }
@@ -80,8 +85,8 @@ namespace data
 
         private:
             uint8_t saveDataType;
-            std::string title, titleSafe, author, path;
-            uint64_t id;
+            std::string title, titleSafe, author, path, saveDataID;
+            uint64_t id, saveID;
             bool favorite = false;
     };
 

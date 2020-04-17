@@ -39,7 +39,7 @@ namespace ui
         folderMenu.draw(ui::mnuTxt);
 
         data::curData.icon.draw(96, 98);
-        drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 64, 370, 18, ui::mnuTxt, 224);
+        drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::mnuTxt, 360);
 
 
         if(down & KEY_A || fldNav[0].getEvent() == BUTTON_RELEASED || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
@@ -151,7 +151,7 @@ namespace ui
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
-        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your Switch! Are you sure you want to do this?", true))
+        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your system! Are you sure you want to do this?", true))
         {
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");

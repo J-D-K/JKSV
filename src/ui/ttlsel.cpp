@@ -201,9 +201,8 @@ namespace ui
         }
         else if(down & KEY_L)
         {
-            data::selUser--;
-            if(data::selUser < 0)
-                data::selUser = data::users.size() -1;
+            if(--data::selUser < 0)
+                data::selUser = data::users.size() - 1;
 
             start = 0;
             data::selData = 0;
@@ -214,8 +213,7 @@ namespace ui
         }
         else if(down & KEY_R)
         {
-            data::selUser++;
-            if(data::selUser > (int)data::users.size() - 1)
+            if(++data::selUser > (int)data::users.size() - 1)
                 data::selUser = 0;
 
             start = 0;
@@ -224,6 +222,18 @@ namespace ui
             data::curUser = data::users[data::selUser];
 
             ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        }
+        else if(down & KEY_ZR)
+        {
+            data::titledata tempData = data::curUser.titles[data::selData];
+            if(tempData.getType() == FsSaveDataType_System)
+                ui::showMessage("Deleting system save archives is disabled.", "*NO*");
+            else if(confirm("*WARNING:* This will erase the save data for #" + tempData.getTitle() + "# from your system. Are you 100% sure you want to do this?", true))
+                fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
+
+            data::rescanTitles();
+            data::curUser = data::users[data::selUser];
+            data::selData = 0;
         }
         else if(down & KEY_MINUS)
         {

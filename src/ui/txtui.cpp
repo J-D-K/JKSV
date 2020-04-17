@@ -149,9 +149,8 @@ namespace ui
         }
         else if(down & KEY_L)
         {
-            data::selUser--;
-            if(data::selUser < 0)
-                data::selUser = data::users.size() -1;
+            if(--data::selUser < 0)
+                data::selUser = data::users.size() - 1;
 
             data::curUser = data::users[data::selUser];
             textTitlePrep(data::curUser);
@@ -160,8 +159,7 @@ namespace ui
         }
         else if(down & KEY_R)
         {
-            data::selUser++;
-            if(data::selUser > (int)data::users.size() - 1)
+            if(++data::selUser > (int)data::users.size() - 1)
                 data::selUser = 0;
 
             data::curUser = data::users[data::selUser];
@@ -178,6 +176,18 @@ namespace ui
                 data::favoriteRemove(data::curUser, data::curUser.titles[sel]);
 
             textTitlePrep(data::curUser);
+        }
+        else if(down & KEY_ZR)
+        {
+            data::titledata tempData = data::curUser.titles[titleMenu.getSelected()];
+            if(tempData.getType() == FsSaveDataType_System)
+                ui::showMessage("Deleting system save archives is disabled.", "*NO*");
+            else if(confirm("*WARNING:* This will erase the save data for #" + tempData.getTitle() + "# from your system. Are you 100% sure you want to do this?", true))
+                fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
+
+            data::rescanTitles();
+            data::curUser = data::users[data::selUser];
+            ui::textTitlePrep(data::curUser);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
             mstate = TXT_USR;
@@ -300,7 +310,7 @@ namespace ui
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
-        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your Switch! Are you sure you want to do this?", true))
+        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your system! Are you sure you want to do this?", true))
         {
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");
