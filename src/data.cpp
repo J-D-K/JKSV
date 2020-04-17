@@ -587,7 +587,7 @@ namespace data
     void rescanTitles()
     {
         //Clear out users, device, and BCAT
-        for(unsigned i = 0; i < users.size() - 2; i++)
+        for(unsigned i = 0; i < users.size() - 1; i++)
             data::users[i].titles.clear();
 
         FsSaveDataInfoReader it;
