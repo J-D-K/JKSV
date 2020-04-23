@@ -7,7 +7,6 @@ JKSV on Switch started as a small project/port to test some things and get famil
 1. Dump and restore save data.
     * This includes the ability to dump and restore to/from any location on SD by pressing minus and using the Advanced Mode.
 2. Dump system save data
-    * Pressing all four shoulder buttons at once will rescan and include the previously unlisted system saves.
     * Dumping this data is allowed, but writing back is not.
 3. Open and explore bis storage partitions via the Extras menu
     * BIS Storage is opened inside a basic filebrowser. The partition's listing is on the left. Your SD is on the right.

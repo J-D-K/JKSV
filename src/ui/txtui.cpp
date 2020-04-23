@@ -448,7 +448,7 @@ namespace ui
                     break;
 
                 case 8:
-                    data::init();
+                    data::rescanTitles();
                     break;
 
                 case 9:

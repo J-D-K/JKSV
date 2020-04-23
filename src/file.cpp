@@ -35,6 +35,82 @@ static struct
     }
 } sortListAlpha;
 
+typedef struct
+{
+    std::string from, to, dev;
+    uint64_t *pos;
+    bool fin;
+} copyArgs;
+
+static copyArgs *copyArgsCreate(const std::string& _f, const std::string& _t, const std::string& _dev, uint64_t *_p)
+{
+    copyArgs *ret = new copyArgs;
+    ret->from = _f;
+    ret->to = _t;
+    ret->dev = _dev;
+    ret->pos = _p;
+    ret->fin = false;
+    return ret;
+}
+
+static void copyfile_t(void *a)
+{
+    copyArgs *args = (copyArgs *)a;
+
+    FILE *f = fopen(args->from.c_str(), "rb");
+    FILE *t = fopen(args->to.c_str(), "wb");
+
+    size_t read = 0;
+    unsigned char *buff = new unsigned char[BUFF_SIZE];
+    while((read = fread(buff, 1, BUFF_SIZE, f)))
+    {
+        fwrite(buff, 1, read, t);
+        *args->pos += read;
+    }
+    delete[] buff;
+    fclose(f);
+    fclose(t);
+
+    args->fin = true;
+}
+
+static void copyfileCommit_t(void *a)
+{
+    copyArgs *args = (copyArgs *)a;
+
+    FILE *f = fopen(args->from.c_str(), "rb");
+    FILE *t = fopen(args->to.c_str(), "wb");
+
+    size_t read = 0;
+    unsigned char *buff = new unsigned char[BUFF_SIZE];
+    while((read = fread(buff, 1, BUFF_SIZE, f)))
+    {
+        fwrite(buff, 1, read, t);
+        *args->pos += read;
+    }
+    delete[] buff;
+    fclose(f);
+    fclose(t);
+
+    fsdevCommitDevice(args->dev.c_str());
+
+    args->fin = true;
+}
+
+static inline size_t fsize(const std::string& _f)
+{
+    size_t ret = 0;
+    FILE *get = fopen(_f.c_str(), "rb");
+    if(get != NULL)
+    {
+        fseek(get, 0, SEEK_END);
+        ret = ftell(get);
+        fseek(get, 0, SEEK_SET);
+    }
+    fclose(get);
+    return ret;
+}
+
 namespace fs
 {
     void init()
@@ -207,82 +283,42 @@ namespace fs
 
     void copyFile(const std::string& from, const std::string& to)
     {
-        FILE *f = fopen(from.c_str(), "rb");
-        FILE *t = fopen(to.c_str(), "wb");
+        Thread cpyThread;
+        uint64_t gProg = 0;
+        copyArgs *thr = copyArgsCreate(from, to, "", &gProg);
+        threadCreate(&cpyThread, copyfile_t, thr, NULL, 0x4000, 0x2B, 1);
 
-        if(f == NULL || t == NULL)
+        ui::progBar fileProg(fsize(from));
+        threadStart(&cpyThread);
+        while(!thr->fin)
         {
-            //JIC
-            fclose(f);
-            fclose(t);
-            return;
-        }
-
-        fseek(f, 0, SEEK_END);
-        size_t fileSize = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        uint8_t *buff = new uint8_t[BUFF_SIZE];
-        ui::progBar prog(fileSize);
-
-        for(unsigned i = 0; i < fileSize; )
-        {
-            size_t readCount = fread(buff, 1, BUFF_SIZE, f);
-            fwrite(buff, 1, readCount, t);
-
-            i += readCount;
-            prog.update(i);
-
+            fileProg.update(*thr->pos);
             gfxBeginFrame();
-            prog.draw(from, "Copying File:");
+            fileProg.draw(from, "Copying File...");
             gfxEndFrame();
         }
-
-        delete[] buff;
-
-        fclose(f);
-        fclose(t);
+        threadClose(&cpyThread);
+        delete thr;
     }
 
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
     {
-        FILE *f = fopen(from.c_str(), "rb");
-        FILE *t = fopen(to.c_str(), "wb");
+        Thread cpyThread;
+        uint64_t gProg = 0;
+        copyArgs *thr = copyArgsCreate(from, to, dev, &gProg);
+        threadCreate(&cpyThread, copyfileCommit_t, thr, NULL, 0x4000, 0x2B, 1);
 
-        if(f == NULL || t == NULL)
+        ui::progBar fileProg(fsize(from));
+        threadStart(&cpyThread);
+        while(!thr->fin)
         {
-            fclose(f);
-            fclose(t);
-            return;
-        }
-
-        fseek(f, 0, SEEK_END);
-        size_t fileSize = ftell(f);
-        fseek(f, 0, SEEK_SET);
-
-        uint8_t *buff = new uint8_t[BUFF_SIZE];
-        ui::progBar prog(fileSize);
-
-        for(unsigned i = 0; i < fileSize; )
-        {
-            size_t readCount = fread(buff, 1, BUFF_SIZE, f);
-            fwrite(buff, 1, readCount, t);
-
-            i += readCount;
-            prog.update(i);
-
+            fileProg.update(*thr->pos);
             gfxBeginFrame();
-            prog.draw(from, "Copying File:");
+            fileProg.draw(from, "Copying File...");
             gfxEndFrame();
         }
-
-        delete[] buff;
-
-        fclose(f);
-        fclose(t);
-
-        if(R_FAILED(fsdevCommitDevice(dev.c_str())))
-            ui::showMessage("Error committing file to device!", "*ERROR*");
+        threadClose(&cpyThread);
+        delete thr;
     }
 
     void copyDirToDir(const std::string& from, const std::string& to)

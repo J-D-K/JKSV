@@ -586,8 +586,8 @@ namespace data
 
     void rescanTitles()
     {
-        //Clear out users, device, and BCAT
-        for(unsigned i = 0; i < users.size() - 1; i++)
+        //Clear out current titles for users
+        for(unsigned i = 0; i < users.size(); i++)
             data::users[i].titles.clear();
 
         FsSaveDataInfoReader it;
@@ -597,12 +597,12 @@ namespace data
         NsApplicationControlData *dat = new NsApplicationControlData;
         while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &tot)) && tot != 0)
         {
-            //Skip system saves cause we're not reloading them
-            if(info.save_data_type == FsSaveDataType_System)
-                continue;
-
             switch(info.save_data_type)
             {
+                case FsSaveDataType_System:
+                    info.uid = util::u128ToAccountUID(1);
+                    break;
+
                 case FsSaveDataType_Bcat:
                     info.uid = util::u128ToAccountUID(2);
                     break;
