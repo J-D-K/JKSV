@@ -48,7 +48,7 @@ namespace ui
             {
                 std::string folder;
                 //Add back 3DS shortcut thing
-                if(held & KEY_R || data::isAppletMode())
+                if(held & KEY_R)
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
                 else if(held & KEY_L)
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
@@ -84,7 +84,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", data::holdOver))
+                if(confirm(data::holdOver, ui::confOverwrite.c_str(), folderName.c_str()))
                 {
                     std::string toPath = data::curData.getPath() + folderName + "/";
                     //Delete and recreate
@@ -104,7 +104,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", data::holdRest))
+                if(confirm(data::holdRest, ui::confRestore.c_str(), folderName.c_str()))
                 {
                     if(data::autoBack)
                     {
@@ -151,7 +151,7 @@ namespace ui
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
-        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your system! Are you sure you want to do this?", true))
+        else if(down & KEY_ZR && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
         {
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");

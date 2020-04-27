@@ -33,6 +33,9 @@ namespace util
 
     std::string generateAbbrev(data::titledata& dat);
 
+    //removes newline '\n' chars from string
+    void stripNL(std::string& _s);
+
     //For future external translation support. Replaces [button] with button chars
     void replaceButtonsInString(std::string& rep);
 

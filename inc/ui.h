@@ -43,6 +43,7 @@ namespace ui
     //Strings since translation support soonish
     extern std::string userHelp, titleHelp, folderHelp, optHelp;
     extern std::string confBlackList, confOverwrite, confRestore, confDel, confCopy;
+    extern std::string confEraseNand, confEraseFolder;
 
     //Colors to use now that I added theme detection
     /*NEED TO COME UP WITH BETTER NAMES*/

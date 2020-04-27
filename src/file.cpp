@@ -24,6 +24,9 @@ static struct
 {
     bool operator()(fs::dirItem& a, fs::dirItem& b)
     {
+        if(a.isDir() != b.isDir())
+            return a.isDir();
+
         for(unsigned i = 0; i < a.getItm().length(); i++)
         {
             char charA = tolower(a.getItm()[i]);
@@ -33,7 +36,7 @@ static struct
         }
         return false;
     }
-} sortListAlpha;
+} sortDirList;
 
 typedef struct
 {
@@ -59,6 +62,13 @@ static void copyfile_t(void *a)
 
     FILE *f = fopen(args->from.c_str(), "rb");
     FILE *t = fopen(args->to.c_str(), "wb");
+    if(f == NULL || t == NULL)
+    {
+        fclose(f);
+        fclose(t);
+        args->fin = true;
+        return;
+    }
 
     size_t read = 0;
     unsigned char *buff = new unsigned char[BUFF_SIZE];
@@ -80,6 +90,13 @@ static void copyfileCommit_t(void *a)
 
     FILE *f = fopen(args->from.c_str(), "rb");
     FILE *t = fopen(args->to.c_str(), "wb");
+    if(f == NULL || t == NULL)
+    {
+        fclose(f);
+        fclose(t);
+        args->fin = true;
+        return;
+    }
 
     size_t read = 0;
     unsigned char *buff = new unsigned char[BUFF_SIZE];
@@ -178,39 +195,19 @@ namespace fs
             dir = true;
     }
 
-    std::string dirItem::getItm()
-    {
-        return itm;
-    }
-
-    bool dirItem::isDir()
-    {
-        return dir;
-    }
-
     dirList::dirList(const std::string& _path)
     {
         path = _path;
         d = opendir(path.c_str());
 
-        std::vector<dirItem> dirVect, filVect;
-
         while((ent = readdir(d)))
         {
             dirItem add(path, ent->d_name);
-            if(add.isDir())
-                dirVect.push_back(add);
-            else
-                filVect.push_back(add);
+            item.push_back(add);
         }
-
         closedir(d);
 
-        std::sort(dirVect.begin(), dirVect.end(), sortListAlpha);
-        std::sort(filVect.begin(), filVect.end(), sortListAlpha);
-
-        item.assign(dirVect.begin(), dirVect.end());
-        item.insert(item.end(), filVect.begin(), filVect.end());
+        std::sort(item.begin(), item.end(), sortDirList);
     }
 
     void dirList::reassign(const std::string& _path)
@@ -221,24 +218,14 @@ namespace fs
 
         item.clear();
 
-        std::vector<dirItem> dirVect, filVect;
-
         while((ent = readdir(d)))
         {
             dirItem add(path, ent->d_name);
-            if(add.isDir())
-                dirVect.push_back(add);
-            else
-                filVect.push_back(add);
+            item.push_back(add);
         }
-
         closedir(d);
 
-        std::sort(dirVect.begin(), dirVect.end(), sortListAlpha);
-        std::sort(filVect.begin(), filVect.end(), sortListAlpha);
-
-        item.assign(dirVect.begin(), dirVect.end());
-        item.insert(item.end(), filVect.begin(), filVect.end());
+        std::sort(item.begin(), item.end(), sortDirList);
     }
 
     void dirList::rescan()
@@ -246,24 +233,14 @@ namespace fs
         item.clear();
         d = opendir(path.c_str());
 
-        std::vector<dirItem> dirVect, filVect;
-
         while((ent = readdir(d)))
         {
             dirItem add(path, ent->d_name);
-            if(add.isDir())
-                dirVect.push_back(add);
-            else
-                filVect.push_back(add);
+            item.push_back(add);
         }
-
         closedir(d);
 
-        std::sort(dirVect.begin(), dirVect.end(), sortListAlpha);
-        std::sort(filVect.begin(), filVect.end(), sortListAlpha);
-
-        item.assign(dirVect.begin(), dirVect.end());
-        item.insert(item.end(), filVect.begin(), filVect.end());
+        std::sort(item.begin(), item.end(), sortDirList);
     }
 
     std::string dirList::getItem(int index)
@@ -279,6 +256,34 @@ namespace fs
     unsigned dirList::getCount()
     {
         return item.size();
+    }
+
+    dataFile::dataFile(const std::string& _path)
+    {
+        f = fopen(_path.c_str(), "r");
+        if(f != NULL)
+            opened = true;
+    }
+
+    dataFile::~dataFile()
+    {
+        fclose(f);
+    }
+
+    std::string dataFile::getNextLine()
+    {
+        std::string ret = "";
+        char tmp[1024];
+        while(fgets(tmp, 1024, f))
+        {
+            if(tmp[0] != '#' && tmp[0] != '\n')
+            {
+                ret = tmp;
+                break;
+            }
+        }
+        util::stripNL(ret);
+        return ret;
     }
 
     void copyFile(const std::string& from, const std::string& to)
@@ -485,15 +490,12 @@ namespace fs
         return false;
     }
 
+    std::string getWorkDir() { return wd; }
+
     bool isDir(const std::string& _path)
     {
         struct stat s;
         return stat(_path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
-    }
-
-    std::string getWorkDir()
-    {
-        return wd;
     }
 
     void logOpen()

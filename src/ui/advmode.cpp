@@ -287,7 +287,7 @@ void performCopyMenuOps()
                                 {
                                     std::string fprops = fs::getFileProps(fullPath);
                                     if(!fprops.empty())
-                                        ui::showMessage(fprops, "File Props");
+                                        ui::showMessage("File Properties:", fprops.c_str());
                                 }
                             }
                         }
@@ -314,7 +314,7 @@ void performCopyMenuOps()
                                 {
                                     std::string fprops = fs::getFileProps(fullPath);
                                     if(!fprops.empty())
-                                        ui::showMessage(fprops, "File Props");
+                                        ui::showMessage("File Properties:", fprops.c_str());
                                 }
                             }
                         }

@@ -140,9 +140,7 @@ namespace ui
         }
         else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
-            std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[titleMenu.getSelected()].getTitle() + \
-                                  "\" to your blacklist?";
-            if(ui::confirm(confStr, false))
+            if(ui::confirm(false, ui::confBlackList.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
                 data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
 
             textTitlePrep(data::curUser);
@@ -182,12 +180,14 @@ namespace ui
             data::titledata tempData = data::curUser.titles[titleMenu.getSelected()];
             if(tempData.getType() == FsSaveDataType_System)
                 ui::showMessage("Deleting system save archives is disabled.", "*NO*");
-            else if(confirm("*WARNING:* This will erase the save data for #" + tempData.getTitle() + "# from your system. Are you 100% sure you want to do this?", true))
+            else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
+            {
                 fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
 
-            data::rescanTitles();
-            data::curUser = data::users[data::selUser];
-            ui::textTitlePrep(data::curUser);
+                data::rescanTitles();
+                data::curUser = data::users[data::selUser];
+                ui::textTitlePrep(data::curUser);
+            }
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
             mstate = TXT_USR;
@@ -208,7 +208,7 @@ namespace ui
             {
                 std::string folder;
                 //Add back 3DS shortcut thing
-                if(held & KEY_R || data::isAppletMode())
+                if(held & KEY_R)
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
                 else if(held & KEY_L)
                     folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
@@ -244,7 +244,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to overwrite \"" + folderName + "\"?", data::holdOver))
+                if(confirm(data::holdOver, ui::confOverwrite.c_str(), folderName.c_str()))
                 {
                     std::string toPath = data::curData.getPath() + folderName + "/";
                     //Delete and recreate
@@ -264,7 +264,7 @@ namespace ui
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-                if(confirm("Are you sure you want to restore \"" + folderName + "\"?", data::holdRest))
+                if(confirm(data::holdRest, ui::confRestore.c_str(), folderName.c_str()))
                 {
                     if(data::autoBack)
                     {
@@ -310,7 +310,7 @@ namespace ui
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
-        else if(down & KEY_ZR && confirm("*WARNING*: This WILL delete your current saved data for #" + data::curData.getTitle() + "# on your system! Are you sure you want to do this?", true))
+        else if(down & KEY_ZR && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
         {
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");
@@ -407,7 +407,7 @@ namespace ui
                         }
                         fsdevUnmountDevice("sv");
 
-                        if(ui::confirm("System needs to be restarted for nag to go away. Reboot now?", false))
+                        if(ui::confirm(false, "Restart?"))
                         {
                             bpcInitialize();
                             bpcRebootSystem();
@@ -423,7 +423,7 @@ namespace ui
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
                             pmshellInitialize();
                             if(R_SUCCEEDED(pmshellTerminateProgram(termID)))
-                                ui::showMessage("Process " + idStr + " successfully shutdown.", "Success!");
+                                ui::showMessage("Success!", "Process %s successfully shutdown.", idStr.c_str());
                             pmshellExit();
                         }
                     }

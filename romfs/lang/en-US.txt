@@ -10,14 +10,15 @@ NULL
 [A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [MINUS] Extras
 
 #Title Select
-[A] Select   [L][R] Change User   [Y] Dump All   [X] BlackList   [MINUS] Favorite   [B] Back
+[A] Select   [L][R] Change User   [Y] Dump All   [MINUS] Favorite   [X] BlackList   [ZR] Erase   [B] Back
 
 #Folder Select
-[MINUS] File Mode   [L][R] AutoName   [A] Backup   [Y] Restore   [X] Delete   [B] Back
+[MINUS] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Delete [B] Back
 
 #Options Menu
 [A] Toggle   [B] Back
 
+#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names.
 #Confirm blacklist.
 Are you sure you want to add #%s# to your blacklist?
 
@@ -27,8 +28,14 @@ Are you sure you want to overwrite #%s#?
 #Confirm restoring save
 Are you sure you want to restore #%s#?
 
-#Confirm deleting. # and * are used to change text color.
+#Confirm deleting.
 Are you sure you want to delete #%s#? *This is permanent*!
 
 #Confirm file copy in file mode
 Are you sure you want to copy #%s# to #%s#?
+
+#Warning for erasing save data from system in title menu
+*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?
+
+#Warning for deleting save data in folder menu
+*WARNING*: This *will* delete the current save data for #%s# from your system! Are you sure you want to continue?

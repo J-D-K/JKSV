@@ -185,9 +185,7 @@ namespace ui
             fs::dumpAllUserSaves(data::curUser);
         else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
-            std::string confStr = "Are you 100% sure you want to add \"" + data::curUser.titles[data::selData].getTitle() + \
-                                  "\" to your blacklist?";
-            if(ui::confirm(confStr, false))
+            if(ui::confirm(false, ui::confBlackList.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
                 data::blacklistAdd(data::curUser, data::curUser.titles[data::selData]);
         }
         else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
@@ -228,12 +226,13 @@ namespace ui
             data::titledata tempData = data::curUser.titles[data::selData];
             if(tempData.getType() == FsSaveDataType_System)
                 ui::showMessage("Deleting system save archives is disabled.", "*NO*");
-            else if(confirm("*WARNING:* This will erase the save data for #" + tempData.getTitle() + "# from your system. Are you 100% sure you want to do this?", true))
+            else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
+            {
                 fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
-
-            data::rescanTitles();
-            data::curUser = data::users[data::selUser];
-            data::selData = 0;
+                data::rescanTitles();
+                data::curUser = data::users[data::selUser];
+                data::selData = 0;
+            }
         }
         else if(down & KEY_MINUS)
         {

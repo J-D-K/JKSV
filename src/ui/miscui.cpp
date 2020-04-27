@@ -1,4 +1,5 @@
 #include <cstring>
+#include <cstdarg>
 #include <switch.h>
 
 #include "gfx.h"
@@ -182,12 +183,17 @@ namespace ui
 
     }
 
-    void showMessage(const std::string& mess, const std::string& head)
+    void showMessage(const char *head, const char *fmt, ...)
     {
+        char tmp[512];
+        va_list args;
+        va_start(args, fmt);
+        vsprintf(tmp, fmt, args);
+
         button ok("OK \ue0e0 ", 320, 506, 640, 64);
 
         //center head text width
-        size_t headWidth = textGetWidth(head.c_str(), ui::shared, 20);
+        size_t headWidth = textGetWidth(head, ui::shared, 20);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
         while(true)
@@ -205,16 +211,21 @@ namespace ui
 
             gfxBeginFrame();
             ui::drawTextbox(320, 150, 640, 420);
-            drawText(head.c_str(), frameBuffer, ui::shared, headX, 168, 20, txtClr);
+            drawText(head, frameBuffer, ui::shared, headX, 168, 20, txtClr);
             drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
-            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
+            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
             ok.draw();
             gfxEndFrame();
         }
     }
 
-    bool confirm(const std::string& mess, bool hold)
+    bool confirm(bool hold, const char *fmt, ...)
     {
+        char tmp[512];
+        va_list args;
+        va_start(args, fmt);
+        vsprintf(tmp, fmt, args);
+
         bool ret = false, heldDown = false;
         unsigned loadFrame = 0, holdCount = 0;
         uint8_t holdClrDiff = 0;
@@ -254,17 +265,17 @@ namespace ui
                         loadFrame = 0;
                 }
 
-                if(holdCount >= 180)
+                if(holdCount >= 150)
                 {
                     ret = true;
                     break;
                 }
 
-                if(holdCount <= 60)
+                if(holdCount <= 50)
                     holdText = "(Hold) ";
-                else if(holdCount <= 120)
+                else if(holdCount <= 100)
                     holdText = "(Keep Holding) ";
-                else if(holdCount < 180)
+                else if(holdCount < 150)
                     holdText = "(Almost There!) ";
 
                 holdText += loadGlyphArray[loadFrame];
@@ -292,7 +303,7 @@ namespace ui
             ui::drawTextbox(320, 150, 640, 420);
             drawText("Confirm", frameBuffer, ui::shared, headX, 168, 20, txtClr);
             drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
-            drawTextWrap(mess.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
+            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
             if(hold && heldDown)
             {
                 if(ui::thmID == ColorSetId_Light)
@@ -314,16 +325,12 @@ namespace ui
 
     bool confirmTransfer(const std::string& f, const std::string& t)
     {
-        std::string confMess = "Are you sure you want to copy #" + f + "# to #" + t +"#?";
-
-        return confirm(confMess, false);
+        return confirm(false, ui::confCopy.c_str(), f.c_str(), t.c_str());
     }
 
     bool confirmDelete(const std::string& p)
     {
-        std::string confMess = "Are you 100% sure you want to delete #" + p + "#? *This is permanent*!";
-
-        return confirm(confMess, data::holdDel);
+        return confirm(data::holdDel, ui::confDel.c_str(), p.c_str());
     }
 
     void drawTextbox(int x, int y, int w, int h)

@@ -21,7 +21,6 @@ namespace data
     void loadFav();
     void saveFav();
     void rescanTitles();
-    bool isAppletMode();
 
     //Class to help not load the same icons over and over
     class icn
@@ -142,8 +141,7 @@ namespace data
     extern titledata curData;
     extern user      curUser;
     extern int selUser, selData;
-    extern std::string sysLang;
-    extern AppletType appletMode;
+    extern SetLanguage sysLang;
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver;
 }
 

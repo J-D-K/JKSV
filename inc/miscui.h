@@ -87,8 +87,8 @@ namespace ui
     };
 
     //General use
-    void showMessage(const std::string& mess, const std::string& head);
-    bool confirm(const std::string& q, bool hold);
+    void showMessage(const char *head, const char *fmt, ...);
+    bool confirm(bool hold, const char *fmt, ...);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
     void drawTextbox(int x, int y, int w, int h);

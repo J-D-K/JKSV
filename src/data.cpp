@@ -109,7 +109,7 @@ namespace data
     bool forceMount = true;
 
     //System language
-    std::string sysLang;
+    SetLanguage sysLang;
 
     //AppletType
     AppletType appletMode;
@@ -151,10 +151,7 @@ namespace data
         //Get system language and copy to std::string
         uint64_t lang;
         setGetSystemLanguage(&lang);
-        data::sysLang.assign((const char *)&lang);
-
-        //Get applet type
-        appletMode = appletGetAppletType();
+        setMakeLanguage(lang, &sysLang);
 
         //Push System and BCAT user
         user sys, bcat, dev, sysBcat;
@@ -265,11 +262,6 @@ namespace data
 
         saveFav();
         saveCfg();
-    }
-
-    bool isAppletMode()
-    {
-        return appletMode != AppletType_Application && appletMode != AppletType_SystemApplication;
     }
 
     void icn::load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
@@ -437,19 +429,12 @@ namespace data
     {
         blacklist.clear();
 
-        char tmp[128];
-        if(fs::fileExists(fs::getWorkDir() + "blacklist.txt"))
+        fs::dataFile blk(fs::getWorkDir() + "blacklist.txt");
+        std::string line;
+        if(blk.isOpen())
         {
-            FILE *bl = fopen(std::string(fs::getWorkDir() + "blacklist.txt").c_str(), "r");
-
-            while(fgets(tmp, 128, bl))
-            {
-                if(tmp[0] == '#' || tmp[0] == '\n')
-                    continue;
-
-                blacklist.push_back(strtoull(tmp, NULL, 16));
-            }
-            fclose(bl);
+            while((line = blk.getNextLine()).empty() == false)
+                blacklist.push_back(strtoul(line.c_str(), NULL, 16));
         }
     }
 
@@ -558,19 +543,12 @@ namespace data
     {
         favorites.clear();
 
-        if(fs::fileExists(std::string(fs::getWorkDir() + "favorites.txt")))
+        fs::dataFile fav(fs::getWorkDir() + "favorites.txt");
+        std::string line;
+        if(fav.isOpen())
         {
-            FILE *fav = fopen(std::string(fs::getWorkDir() + "favorites.txt").c_str(), "r");
-
-            char tmp[64];
-            while(fgets(tmp, 64, fav))
-            {
-                if(tmp[0] == '#' || tmp[0] == '\n')
-                    continue;
-
-                favorites.push_back(strtoull(tmp, NULL, 16));
-            }
-            fclose(fav);
+            while((line = fav.getNextLine()).empty() == false)
+                favorites.push_back(strtoul(line.c_str(), NULL, 16));
         }
     }
 

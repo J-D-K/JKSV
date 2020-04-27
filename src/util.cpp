@@ -245,6 +245,13 @@ namespace util
         return ret;
     }
 
+    void stripNL(std::string& _s)
+    {
+        size_t pos = 0;
+        while((pos = _s.find('\n')) != _s.npos)
+            _s.erase(pos, 1);
+    }
+
     void replaceButtonsInString(std::string& rep)
     {
         replaceStr(rep, "[A]", "\ue0e0");

@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.17.2020"
+#define VER_STRING "v. 04.26.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -19,14 +19,40 @@ std::vector<ui::button> usrNav, ttlNav, fldNav;
 static tex *top, *bot;
 
 //Ui text strings
-std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [MINUS] Extras";
-std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] BlackList   [MINUS] Favorite   [ZR] Erase   [B] Back";
-std::string ui::folderHelp = "[MINUS] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase Save  [B] Back";
-std::string ui::optHelp = "[A] Toggle   [B] Back";
+std::string author, ui::userHelp, ui::titleHelp, ui::folderHelp, ui::optHelp;
 std::string ui::confBlackList, ui::confOverwrite, ui::confRestore, ui::confDel, ui::confCopy;
+std::string ui::confEraseNand, ui::confEraseFolder;
 
 //X position of help texts. Calculated to make editing quicker/easier
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
+
+static void loadTrans()
+{
+    std::string file = "romfs:/lang/";
+    switch(data::sysLang)
+    {
+        default:
+            file += "en-US.txt";
+            break;
+    }
+
+    fs::dataFile lang(file);
+    author = lang.getNextLine();
+    if(author == "NULL")
+        author = "";
+
+    ui::userHelp = lang.getNextLine();
+    ui::titleHelp = lang.getNextLine();
+    ui::folderHelp = lang.getNextLine();
+    ui::optHelp = lang.getNextLine();
+    ui::confBlackList = lang.getNextLine();
+    ui::confOverwrite = lang.getNextLine();
+    ui::confRestore = lang.getNextLine();
+    ui::confDel = lang.getNextLine();
+    ui::confCopy = lang.getNextLine();
+    ui::confEraseNand = lang.getNextLine();
+    ui::confEraseFolder = lang.getNextLine();
+}
 
 namespace ui
 {
@@ -136,6 +162,8 @@ namespace ui
             mstate = TXT_USR;
         }
 
+        loadTrans();
+
         setupSelButtons();
         setupNavButtons();
 
@@ -147,7 +175,9 @@ namespace ui
 
         texClearColor(bot, clearClr);
         drawRect(bot, 30, 0, 1220, 1, mnuTxt);
-        drawText(VER_STRING, bot, shared, 8, 56, 12, mnuTxt);
+        drawText(VER_STRING, bot, shared, 8, author.empty() ? 56 : 38, 12, mnuTxt);
+        if(!author.empty())
+            drawText(std::string("Translation: " + author).c_str(), bot, ui::shared, 8, 56, 12, ui::mnuTxt);
 
         //Not needed anymore
         texDestroy(icn);

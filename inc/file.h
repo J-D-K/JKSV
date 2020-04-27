@@ -2,6 +2,7 @@
 #define FILE_H
 
 #include <string>
+#include <cstdio>
 #include <vector>
 #include <switch.h>
 #include <dirent.h>
@@ -40,15 +41,14 @@ namespace fs
     bool fileExists(const std::string& _path);
     bool isDir(const std::string& _path);
 
-    //Retrieves working dir string
     std::string getWorkDir();
 
     class dirItem
     {
         public:
             dirItem(const std::string& pathTo, const std::string& sItem);
-            std::string getItm();
-            bool isDir();
+            std::string getItm() { return itm; }
+            bool isDir() { return dir; }
 
         private:
             std::string itm;
@@ -72,6 +72,22 @@ namespace fs
             struct dirent *ent;
             std::string path;
             std::vector<dirItem> item;
+    };
+
+    class dataFile
+    {
+        public:
+            dataFile(const std::string& _path);
+            ~dataFile();
+
+            bool isOpen(){ return opened; }
+
+            //Gets next good line. Returns empty string if no more.
+            std::string getNextLine();
+
+        private:
+            FILE *f;
+            bool opened = false;
     };
 
     void logOpen();
