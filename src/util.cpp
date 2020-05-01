@@ -250,6 +250,9 @@ namespace util
         size_t pos = 0;
         while((pos = _s.find('\n')) != _s.npos)
             _s.erase(pos, 1);
+
+        while((pos = _s.find('\r')) != _s.npos)
+            _s.erase(pos, 1);
     }
 
     void replaceButtonsInString(std::string& rep)

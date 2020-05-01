@@ -1,9 +1,7 @@
 # JKSV
 
 Data Dump/Restore tool for Switch.
-<center>
 <img width="640" src="https://i.imgur.com/3hAVzkQ.jpg"/>
-</center>
 
 ## Info
 JKSV on Switch started as a small project/port to test some things and get familiar with libnx. A list of what it currently can do:
@@ -22,6 +20,8 @@ JKSV on Switch started as a small project/port to test some things and get famil
 		* Hold R while opening a game or applet with Atmosphere so the homebrew menu loads. Open JKSV and press minus and select **Mount Process RomFS**. The romfs of the app should appear in the browser along with your SD on the right.
 
 ## Quick Guide
+**A custom path can be defined by creating "sdmc:/switch/jksv_dir.txt" and typing the path you want to use. For example, `sdmc:/switch/JKSV/` will force JKSV to create its folder in the switch homebrew folder.**
+
 1. User Select
 	* A opens the selected user's save files. 
 	* Y Dumps __all__ save data from __all users__, device save data, and BCAT save data. System save data is not included in this.

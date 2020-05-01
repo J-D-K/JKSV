@@ -4,7 +4,8 @@
 
 Result fsOpenDataFileSystemByCurrentProcess(FsFileSystem *out)
 {
-    /*Result ret = 0;
+    /*
+    Result ret = 0;
 
     IpcCommand c;
     ipcInitialize(&c);

@@ -128,13 +128,40 @@ static inline size_t fsize(const std::string& _f)
     return ret;
 }
 
+static void mkdirRec(const std::string& _p)
+{
+    //skip first slash
+    size_t pos = _p.find('/', 0) + 1;
+    while((pos = _p.find('/', pos)) != _p.npos)
+    {
+        std::string create;
+        create.assign(_p.begin(), _p.begin() + pos);
+        mkdir(create.c_str(), 777);
+        ++pos;
+    }
+}
+
 namespace fs
 {
     void init()
     {
-        mkdir("sdmc:/JKSV", 777);
-        logOpen();
-        wd = "sdmc:/JKSV/";
+        if(fs::fileExists("sdmc:/switch/jksv_dir.txt"))
+        {
+            char tmp[256];
+            FILE *getDir = fopen("sdmc:/switch/jksv_dir.txt", "r");
+            fgets(tmp, 256, getDir);
+            fclose(getDir);
+            wd = tmp;
+            util::stripNL(wd);
+            mkdirRec(wd);
+        }
+        else
+        {
+            mkdir("sdmc:/JKSV", 777);
+            wd = "sdmc:/JKSV/";
+        }
+        //to fix later
+        //logOpen();
     }
 
     void exit()
@@ -500,10 +527,11 @@ namespace fs
 
     void logOpen()
     {
-        remove("sdmc:/JKSV/log.txt");
+        std::string logPath = wd + "log.txt";
+        remove(logPath.c_str());
         FsFileSystem *sd = fsdevGetDeviceFileSystem("sdmc");
-        fsFsCreateFile(sd, "/JKSV/log.txt", 0, FsWriteOption_Flush);
-        fsFsOpenFile(sd, "/JKSV/log.txt", FsOpenMode_Write, &logFile);
+        fsFsCreateFile(sd, logPath.c_str(), 0, FsWriteOption_Flush);
+        fsFsOpenFile(sd, logPath.c_str(), FsOpenMode_Write, &logFile);
     }
 
     void logWrite(const char *fmt, ...)

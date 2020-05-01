@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.26.2020"
+#define VER_STRING "v. 04.30.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -94,25 +94,9 @@ namespace ui
 
         setsysGetColorSetId(&thmID);
 
-        mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
-        mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
-        mnuBotLeft = texLoadPNGFile("romfs:/img/fb/menuBotLeft.png");
-        mnuBotRight = texLoadPNGFile("romfs:/img/fb/menuBotRight.png");
-
         switch(thmID)
         {
             case ColorSetId_Light:
-                //Dark corners
-                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
-                cornerTopRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
-                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
-                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
-                progCovLeft = texLoadPNGFile("romfs:/img/tboxDrk/progBarCoverLeftDrk.png");
-                progCovRight = texLoadPNGFile("romfs:/img/tboxDrk/progBarCoverRightDrk.png");
-
-                icn = texLoadPNGFile("romfs:/img/icn/icnDrk.png");
-                sideBar = texLoadPNGFile("romfs:/img/fb/lLight.png");
-
                 clearClr = clrCreateU32(0xFFEBEBEB);
                 mnuTxt = clrCreateU32(0xFF000000);
                 txtClr = clrCreateU32(0xFFFFFFFF);
@@ -127,17 +111,6 @@ namespace ui
             case ColorSetId_Dark:
                 //jic
                 thmID = ColorSetId_Dark;
-                //Light corners
-                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
-                cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
-                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
-                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
-                progCovLeft = texLoadPNGFile("romfs:/img/tboxLght/progBarCoverLeftLight.png");
-                progCovRight = texLoadPNGFile("romfs:/img/tboxLght/progBarCoverRightLight.png");
-
-                icn = texLoadPNGFile("romfs:/img/icn/icnLght.png");
-                sideBar = texLoadPNGFile("romfs:/img/fb/lDark.png");
-
                 clearClr = clrCreateU32(0xFF2D2D2D);
                 mnuTxt = clrCreateU32(0xFFFFFFFF);
                 txtClr = clrCreateU32(0xFF000000);
@@ -152,6 +125,39 @@ namespace ui
 
     void init()
     {
+        mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
+        mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
+        mnuBotLeft = texLoadPNGFile("romfs:/img/fb/menuBotLeft.png");
+        mnuBotRight = texLoadPNGFile("romfs:/img/fb/menuBotRight.png");
+        switch(ui::thmID)
+        {
+            case ColorSetId_Light:
+                //Dark corners
+                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
+                cornerTopRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
+                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
+                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+                progCovLeft = texLoadPNGFile("romfs:/img/tboxDrk/progBarCoverLeftDrk.png");
+                progCovRight = texLoadPNGFile("romfs:/img/tboxDrk/progBarCoverRightDrk.png");
+
+                icn = texLoadPNGFile("romfs:/img/icn/icnDrk.png");
+                sideBar = texLoadPNGFile("romfs:/img/fb/lLight.png");
+                break;
+
+            default:
+                //Light corners
+                cornerTopLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
+                cornerTopRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
+                cornerBottomLeft = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
+                cornerBottomRight = texLoadPNGFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+                progCovLeft = texLoadPNGFile("romfs:/img/tboxLght/progBarCoverLeftLight.png");
+                progCovRight = texLoadPNGFile("romfs:/img/tboxLght/progBarCoverRightLight.png");
+
+                icn = texLoadPNGFile("romfs:/img/icn/icnLght.png");
+                sideBar = texLoadPNGFile("romfs:/img/fb/lDark.png");
+                break;
+        }
+
         top = texCreate(1280, 88);
         bot = texCreate(1280, 72);
 
@@ -192,7 +198,6 @@ namespace ui
         titleHelpX = 1220 - textGetWidth(titleHelp.c_str(), ui::shared, 18);
         folderHelpX = 1220 - textGetWidth(folderHelp.c_str(), ui::shared, 18);
         optHelpX = 1220 - textGetWidth(optHelp.c_str(), ui::shared, 18);
-
 
         advCopyMenuPrep();
         ui::exMenuPrep();
