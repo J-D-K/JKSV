@@ -39,6 +39,10 @@ namespace fs
     void getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize);
 
     bool fileExists(const std::string& _path);
+    //Returns file size
+    size_t fsize(const std::string& _f);
+    //Returns if device in path has space needed. Device is gotten from file path.
+    bool hasFreeSpace(const std::string& _f, int needed);
     bool isDir(const std::string& _path);
 
     std::string getWorkDir();

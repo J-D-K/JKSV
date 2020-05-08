@@ -66,7 +66,7 @@ namespace ui
     void initTheme();
 
     //Loads graphics and stuff
-    void init();
+    void init(void *a);
     void exit();
 
     //Prepares ui

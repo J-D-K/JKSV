@@ -225,7 +225,7 @@ namespace ui
         {
             data::titledata tempData = data::curUser.titles[data::selData];
             if(tempData.getType() == FsSaveDataType_System)
-                ui::showMessage("Deleting system save archives is disabled.", "*NO*");
+                ui::showMessage("*NO*", "Deleting system save archives is disabled.");
             else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
             {
                 fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());

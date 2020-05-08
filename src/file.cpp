@@ -114,20 +114,6 @@ static void copyfileCommit_t(void *a)
     args->fin = true;
 }
 
-static inline size_t fsize(const std::string& _f)
-{
-    size_t ret = 0;
-    FILE *get = fopen(_f.c_str(), "rb");
-    if(get != NULL)
-    {
-        fseek(get, 0, SEEK_END);
-        ret = ftell(get);
-        fseek(get, 0, SEEK_SET);
-    }
-    fclose(get);
-    return ret;
-}
-
 static void mkdirRec(const std::string& _p)
 {
     //skip first slash
@@ -177,7 +163,7 @@ namespace fs
         switch(open.getType())
         {
             case FsSaveDataType_System:
-                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid){0});
+                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid) {0});
                 break;
 
             case FsSaveDataType_Account:
@@ -373,7 +359,10 @@ namespace fs
                 std::string fullFrom = from + list.getItem(i);
                 std::string fullTo   = to   + list.getItem(i);
 
-                copyFile(fullFrom, fullTo);
+                if(hasFreeSpace(fullTo, fsize(fullFrom)))
+                    copyFile(fullFrom, fullTo);
+                else
+                    ui::showMessage("*Error*", "Not enough free space to copy #%s#!", fullFrom.c_str());
             }
         }
     }
@@ -398,7 +387,10 @@ namespace fs
                 std::string fullFrom = from + list.getItem(i);
                 std::string fullTo   = to   + list.getItem(i);
 
-                copyFileCommit(fullFrom, fullTo, dev);
+                if(hasFreeSpace(fullTo, fsize(fullFrom)))
+                    copyFileCommit(fullFrom, fullTo, dev);
+                else
+                    ui::showMessage("*Error*", "Not enough free space to copy #%s#!", fullFrom.c_str());
             }
         }
     }
@@ -515,6 +507,32 @@ namespace fs
         }
 
         return false;
+    }
+
+    size_t fsize(const std::string& _f)
+    {
+        size_t ret = 0;
+        FILE *get = fopen(_f.c_str(), "rb");
+        if(get != NULL)
+        {
+            fseek(get, 0, SEEK_END);
+            ret = ftell(get);
+            fseek(get, 0, SEEK_SET);
+        }
+        fclose(get);
+        return ret;
+    }
+
+    bool hasFreeSpace(const std::string& _f, int needed)
+    {
+        s64 free = 0;
+        //grab device from _f
+        size_t endDevPos = _f.find(':', 0);
+        std::string dev;
+        dev.assign(_f.begin(), _f.begin() + endDevPos);
+        fsFsGetFreeSpace(fsdevGetDeviceFileSystem(dev.c_str()), "/", &free);
+
+        return free > needed;
     }
 
     std::string getWorkDir() { return wd; }

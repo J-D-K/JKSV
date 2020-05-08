@@ -151,7 +151,7 @@ namespace ui
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
-        else if(down & KEY_ZR && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
+        else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
         {
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");

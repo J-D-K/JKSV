@@ -65,7 +65,7 @@ void performCopyMenuOps()
                                 //just copy file
                                 std::string fromPath = savePath + saveList.getItem(saveSel);
                                 std::string toPath = sdPath + saveList.getItem(saveSel);
-                                if(ui::confirmTransfer(fromPath, toPath))
+                                if(ui::confirmTransfer(fromPath, toPath) && fs::hasFreeSpace(toPath, fs::fsize(fromPath)))
                                     fs::copyFile(fromPath, toPath);
                             }
                         }
@@ -99,7 +99,7 @@ void performCopyMenuOps()
                             {
                                 std::string fromPath = sdPath + sdList.getItem(sdSel);
                                 std::string toPath = savePath + sdList.getItem(sdSel);
-                                if(ui::confirmTransfer(fromPath, toPath))
+                                if(ui::confirmTransfer(fromPath, toPath) && fs::hasFreeSpace(toPath, fs::fsize(fromPath)))
                                     commit ? fs::copyFileCommit(fromPath, toPath, dev) : fs::copyFile(fromPath, toPath);
                             }
                         }

@@ -179,7 +179,7 @@ namespace ui
         {
             data::titledata tempData = data::curUser.titles[titleMenu.getSelected()];
             if(tempData.getType() == FsSaveDataType_System)
-                ui::showMessage("Deleting system save archives is disabled.", "*NO*");
+                ui::showMessage("*NO*", "Deleting system save archives is disabled.");
             else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
             {
                 fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
@@ -310,7 +310,7 @@ namespace ui
             advModePrep("sv:/", true);
             mstate = ADV_MDE;
         }
-        else if(down & KEY_ZR && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
+        else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
         {
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");

@@ -40,8 +40,15 @@ int main(int argc, const char *argv[])
     graphicsInit(1280, 720);
     //Needed for icon gen
     ui::initTheme();
+
+    /*Not completely stable yet
+    Thread uiInitThrd;
+    threadCreate(&uiInitThrd, ui::init, NULL, NULL, 0x80000, 0x2B, -2);
+    threadStart(&uiInitThrd);*/
     data::init();
-    ui::init();
+    ui::init(NULL);
+    /*threadWaitForExit(&uiInitThrd);
+    threadClose(&uiInitThrd);*/
 
     while(appletMainLoop())
     {

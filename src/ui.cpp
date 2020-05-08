@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 04.30.2020"
+#define VER_STRING "v. 05.08.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -123,7 +123,7 @@ namespace ui
         }
     }
 
-    void init()
+    void init(void *a)
     {
         mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
         mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
