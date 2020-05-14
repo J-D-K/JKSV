@@ -457,22 +457,27 @@ tex *texLoadJPEGFile(const char *path)
 
         jpeg_start_decompress(&jpegInfo);
 
-        JSAMPARRAY row = malloc(sizeof(JSAMPROW));
-        row[0] = malloc(sizeof(JSAMPLE) * ret->width * 3);
+        JSAMPARRAY row = malloc(sizeof(JSAMPROW) * ret->height);
+        for(unsigned i = 0; i < ret->height; i++)
+            row[i] = malloc(sizeof(JSAMPLE) * ret->width * 3);
 
         uint32_t *dataPtr = &ret->data[0];
         for(int y = 0; y < ret->height; y++)
         {
-            jpeg_read_scanlines(&jpegInfo, row, 1);
+            unsigned read = jpeg_read_scanlines(&jpegInfo, row, ret->height);
             uint8_t *jpegPtr = row[0];
-            for(int x = 0; x < ret->width; x++, jpegPtr += 3)
-                *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
+            for(unsigned i = 0; i < read; i++)
+            {
+                for(int x = 0; x < ret->width; x++, jpegPtr += 3)
+                    *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
+            }
         }
 
         jpeg_finish_decompress(&jpegInfo);
         jpeg_destroy_decompress(&jpegInfo);
 
-        free(row[0]);
+        for(unsigned i = 0; i < ret->height; i++)
+            free(row[i]);
         free(row);
 
         fclose(jpegIn);
@@ -503,22 +508,27 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
 
     jpeg_start_decompress(&jpegInfo);
 
-    JSAMPARRAY row = malloc(sizeof(JSAMPARRAY));
-    row[0] = malloc(sizeof(JSAMPLE) * ret->width * 3);
+    JSAMPARRAY row = malloc(sizeof(JSAMPROW) * ret->height);
+    for(unsigned i = 0; i < ret->height; i++)
+        row[i] = malloc(sizeof(JSAMPLE) * ret->width * 3);
 
     uint32_t *dataPtr = &ret->data[0];
     for(int y = 0; y < ret->height; y++)
     {
-        jpeg_read_scanlines(&jpegInfo, row, 1);
+        unsigned read = jpeg_read_scanlines(&jpegInfo, row, ret->height);
         uint8_t *jpegPtr = row[0];
-        for(int x = 0; x < ret->width; x++, jpegPtr += 3)
-            *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
+        for(unsigned i = 0; i < read; i++)
+        {
+            for(int x = 0; x < ret->width; x++, jpegPtr += 3)
+                *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
+        }
     }
 
     jpeg_finish_decompress(&jpegInfo);
     jpeg_destroy_decompress(&jpegInfo);
 
-    free(row[0]);
+    for(unsigned i = 0; i < ret->height; i++)
+        free(row[i]);
     free(row);
 
     return ret;

@@ -142,8 +142,12 @@ namespace ui
         }
         else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
         {
+            bool cont = true;
             for(unsigned i = 0; i < data::users.size() - 2; i++)
-                fs::dumpAllUserSaves(data::users[i]);
+            {
+                if(cont)
+                    cont = fs::dumpAllUserSaves(data::users[i]);
+            }
         }
         else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
         {

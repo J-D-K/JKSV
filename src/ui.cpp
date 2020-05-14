@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.08.2020"
+#define VER_STRING "v. 05.14.2020"
 
 //Nav buttons
 std::vector<ui::button> usrNav, ttlNav, fldNav;
@@ -28,12 +28,18 @@ static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
 
 static void loadTrans()
 {
-    std::string file = "romfs:/lang/";
-    switch(data::sysLang)
+    std::string file;
+    if(fs::fileExists(fs::getWorkDir() + "trans.txt"))
+        file = fs::getWorkDir() + "trans.txt";
+    else
     {
-        default:
-            file += "en-US.txt";
-            break;
+        file = "romfs:/lang/";
+        switch(data::sysLang)
+        {
+            default:
+                file += "en-US.txt";
+                break;
+        }
     }
 
     fs::dataFile lang(file);
@@ -315,6 +321,10 @@ namespace ui
             case OPT_MNU:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
                 drawText(optHelp.c_str(), frameBuffer, ui::shared, optHelpX, 676, 18, ui::mnuTxt);
+                break;
+
+            case ADV_MDE:
+                drawRect(frameBuffer, 640, 88, 1, 559, ui::mnuTxt);
                 break;
         }
     }

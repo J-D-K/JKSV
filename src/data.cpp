@@ -106,8 +106,6 @@ namespace data
     std::vector<icn> icons;
     std::vector<user> users;
 
-    bool forceMount = true;
-
     //System language
     SetLanguage sysLang;
 
@@ -116,7 +114,7 @@ namespace data
 
     //Options
     bool incDev = false, autoBack = true, ovrClk = false, isOvrClk = false;
-    bool holdDel = true, holdRest = true, holdOver = true;
+    bool holdDel = true, holdRest = true, holdOver = true, forceMount = true;
 
     void init()
     {
@@ -201,8 +199,7 @@ namespace data
                     user newUser;
                     if(newUser.init(info.uid))
                     {
-                        //Always insert new users to beginning
-                        users.insert(users.begin(), newUser);
+                        users.insert(users.end() - 3, newUser);
 
                         u = getUserIndex(info.uid);
                         titledata newData;
@@ -304,6 +301,7 @@ namespace data
             id = inf.application_id;
 
         saveID = inf.save_data_id;
+        saveIndex = inf.save_data_index;
 
         saveDataType = inf.save_data_type;
         Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
@@ -519,6 +517,7 @@ namespace data
             data::holdDel = cfgIn >> 60 & 1;
             data::holdRest = cfgIn >> 59 & 1;
             data::holdOver = cfgIn >> 58 & 1;
+            data::forceMount = cfgIn >> 57 & 1;
         }
     }
 
@@ -534,6 +533,7 @@ namespace data
         cfgOut |= (uint64_t)data::holdDel << 60;
         cfgOut |= (uint64_t)data::holdRest << 59;
         cfgOut |= (uint64_t)data::holdOver << 58;
+        cfgOut |= (uint64_t)data::forceMount << 57;
         fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
         fclose(cfg);

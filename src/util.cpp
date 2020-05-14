@@ -157,7 +157,7 @@ namespace util
         char id[18];
         sprintf(id, " %016lX", d.getID());
         ret += "TID: " + std::string(id) + "\n\n";
-        ret += "FILE: " + d.getSaveDataID() + "\n\n";
+        ret += "SID: " + d.getSaveDataID() + "\n\n";
 
         switch(d.getType())
         {
@@ -272,8 +272,8 @@ namespace util
         replaceStr(rep, "[DDOWN]", "\ue0ec");
         replaceStr(rep, "[DLEFT]", "\ue0ed");
         replaceStr(rep, "[DRIGHT]", "\ue0ee");
-        replaceStr(rep, "[PLUS]", "\ue0ef");
-        replaceStr(rep, "[MINUS]", "\ue0f0");
+        replaceStr(rep, "[+]", "\ue0ef");
+        replaceStr(rep, "[-]", "\ue0f0");
     }
 
     tex *createIconGeneric(const char *txt)

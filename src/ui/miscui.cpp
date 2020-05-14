@@ -265,17 +265,17 @@ namespace ui
                         loadFrame = 0;
                 }
 
-                if(holdCount >= 150)
+                if(holdCount >= 120)
                 {
                     ret = true;
                     break;
                 }
 
-                if(holdCount <= 50)
+                if(holdCount <= 40)
                     holdText = "(Hold) ";
-                else if(holdCount <= 100)
+                else if(holdCount <= 80)
                     holdText = "(Keep Holding) ";
-                else if(holdCount < 150)
+                else if(holdCount < 120)
                     holdText = "(Almost There!) ";
 
                 holdText += loadGlyphArray[loadFrame];

@@ -183,7 +183,7 @@ namespace fs
                 break;
 
             case FsSaveDataType_Cache:
-                svOpen = 1; //For Now
+                svOpen = fsOpen_CacheStorage(&sv, open.getID(), open.getSaveIndex());
                 break;
 
             case FsSaveDataType_SystemBcat:
@@ -254,21 +254,6 @@ namespace fs
         closedir(d);
 
         std::sort(item.begin(), item.end(), sortDirList);
-    }
-
-    std::string dirList::getItem(int index)
-    {
-        return item[index].getItm();
-    }
-
-    bool dirList::isDir(int index)
-    {
-        return item[index].isDir();
-    }
-
-    unsigned dirList::getCount()
-    {
-        return item.size();
     }
 
     dataFile::dataFile(const std::string& _path)
@@ -418,10 +403,15 @@ namespace fs
         rmdir(path.c_str());
     }
 
-    void dumpAllUserSaves(data::user& u)
+    bool dumpAllUserSaves(data::user& u)
     {
         for(unsigned i = 0; i < u.titles.size(); i++)
         {
+            hidScanInput();
+
+            if(hidKeysHeld(CONTROLLER_P1_AUTO) & KEY_B)
+                return false;
+
             if(fs::mountSave(u, u.titles[i]))
             {
                 u.titles[i].createDir();
@@ -565,7 +555,7 @@ namespace fs
         curSize += tmpLength;
         fsFileSetSize(&logFile, curSize);
 
-        fsFileWrite(&logFile, offset, tmp, tmpLength, 0);
+        fsFileWrite(&logFile, offset, tmp, tmpLength, FsWriteOption_Flush);
         offset += tmpLength;
     }
 

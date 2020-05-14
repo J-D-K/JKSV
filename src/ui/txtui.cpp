@@ -22,7 +22,8 @@ static const std::string optHelpStrings[] =
     "Apply a small overclock to 1224MHz at boot. This is to help the text UI mode run smoothly.",
     "Whether or not holding \ue0e0 is required when deleting save folders and files.",
     "Whether or not holding \ue0e0 is required when restoring saves to games.",
-    "Whether or not holding \ue0e0 is required when overwriting save folders."
+    "Whether or not holding \ue0e0 is required when overwriting save folders.",
+    "When on, JKSV will only show save data that can be opened. When off, JKSV shows everything."
 };
 
 static inline void switchBool(bool& sw)
@@ -140,7 +141,7 @@ namespace ui
         }
         else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
         {
-            if(ui::confirm(false, ui::confBlackList.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
+            if(ui::confirm(false, ui::confBlackList.c_str(), data::curUser.titles[titleMenu.getSelected()].getTitle().c_str()))
                 data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
 
             textTitlePrep(data::curUser);
@@ -421,10 +422,8 @@ namespace ui
                         if(!idStr.empty())
                         {
                             uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
-                            pmshellInitialize();
                             if(R_SUCCEEDED(pmshellTerminateProgram(termID)))
                                 ui::showMessage("Success!", "Process %s successfully shutdown.", idStr.c_str());
-                            pmshellExit();
                         }
                     }
                     break;
@@ -433,10 +432,7 @@ namespace ui
                     {
                         std::string idStr = util::getStringInput("8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
                         uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
-                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid)
-                    {
-                        0
-                    })))
+                        if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
                         {
                             fsdevMountDevice("sv", sv);
                             advModePrep("sv:/", true);
@@ -455,15 +451,17 @@ namespace ui
                     {
                         FsFileSystem tromfs;
                         Result res = fsOpenDataFileSystemByCurrentProcess(&tromfs);
+                        //Result res = romfsMountFromCurrentProcess("tromfs"); << Works too, but is kinda weird
                         if(R_SUCCEEDED(res))
                         {
                             fsdevMountDevice("tromfs", tromfs);
                             advModePrep("tromfs:/", false);
-                            data::curData.setType(FsSaveDataType_SystemBcat);
+                            data::curData.setType(FsSaveDataType_System);
                             ui::mstate = ADV_MDE;
                             ui::prevState = EX_MNU;
                         }
                     }
+                    break;
             }
         }
         else if(down & KEY_B)
@@ -489,6 +487,7 @@ namespace ui
         optMenu.addOpt("Hold to Delete");
         optMenu.addOpt("Hold to Restore");
         optMenu.addOpt("Hold to Overwrite");
+        optMenu.addOpt("Force Mount");
     }
 
     void updateOptMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
@@ -502,6 +501,7 @@ namespace ui
         optMenu.editOpt(3, "Hold to Delete: " + getBoolText(data::holdDel));
         optMenu.editOpt(4, "Hold to Restore: " + getBoolText(data::holdRest));
         optMenu.editOpt(5, "Hold to Overwrite: " + getBoolText(data::holdOver));
+        optMenu.editOpt(6, "Force Mount: " + getBoolText(data::forceMount));
 
         if(down & KEY_A)
         {
@@ -530,12 +530,14 @@ namespace ui
                 case 5:
                     switchBool(data::holdOver);
                     break;
+
+                case 6:
+                    switchBool(data::forceMount);
+                    break;
             }
         }
         else if(down & KEY_B)
-        {
             ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
-        }
 
         optMenu.draw(ui::mnuTxt);
         drawTextWrap(optHelpStrings[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::mnuTxt, 730);

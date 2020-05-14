@@ -74,6 +74,7 @@ namespace data
 
             uint64_t getID() { return id; }
             uint64_t getSaveID() { return saveID; }
+            uint16_t getSaveIndex() { return saveIndex; }
             FsSaveDataType getType() { return (FsSaveDataType)saveDataType; }
             void setType(FsSaveDataType type) { saveDataType = type; }
             void setFav(bool setFav) { favorite = setFav; }
@@ -86,6 +87,7 @@ namespace data
             uint8_t saveDataType;
             std::string title, titleSafe, author, path, saveDataID;
             uint64_t id, saveID;
+            uint16_t saveIndex;
             bool favorite = false;
     };
 
@@ -142,7 +144,7 @@ namespace data
     extern user      curUser;
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver;
+    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount;
 }
 
 #endif // DATA_H

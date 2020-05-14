@@ -20,6 +20,7 @@ extern "C"
         setsysInitialize();
         setInitialize();
         accountInitialize(AccountServiceType_System);
+        pmshellInitialize();
     }
 
     void userAppExit(void)
@@ -31,6 +32,7 @@ extern "C"
         setsysExit();
         setExit();
         accountExit();
+        pmshellExit();
     }
 }
 

@@ -7,13 +7,13 @@ NULL
 
 #Help/Guide strings on bottom
 #User Select
-[A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [MINUS] Extras
+[A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [-] Extras
 
 #Title Select
-[A] Select   [L][R] Change User   [Y] Dump All   [MINUS] Favorite   [X] BlackList   [ZR] Erase   [B] Back
+[A] Select   [L][R] Change User   [Y] Dump All   [-] Favorite   [X] BlackList   [ZR] Erase   [B] Back
 
 #Folder Select
-[MINUS] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Delete [B] Back
+[-] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Delete [B] Back
 
 #Options Menu
 [A] Toggle   [B] Back

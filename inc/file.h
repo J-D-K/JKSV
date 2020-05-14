@@ -29,8 +29,8 @@ namespace fs
     //Recursively deletes 'path'
     void delDir(const std::string& path);
 
-    //Dumps all titles for 'user'
-    void dumpAllUserSaves(data::user& u);
+    //Dumps all titles for 'user'. returns false to bail
+    bool dumpAllUserSaves(data::user& u);
 
     //returns file properties as C++ string
     std::string getFileProps(const std::string& _path);
@@ -67,9 +67,9 @@ namespace fs
             void reassign(const std::string& _path);
             void rescan();
 
-            std::string getItem(int index);
-            bool isDir(int index);
-            unsigned getCount();
+            std::string getItem(int index) { return item[index].getItm(); }
+            bool isDir(int index) { return item[index].isDir(); }
+            unsigned getCount() { return item.size(); }
 
         private:
             DIR *d;
@@ -84,7 +84,7 @@ namespace fs
             dataFile(const std::string& _path);
             ~dataFile();
 
-            bool isOpen(){ return opened; }
+            bool isOpen() { return opened; }
 
             //Gets next good line. Returns empty string if no more.
             std::string getNextLine();
