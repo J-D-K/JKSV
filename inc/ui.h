@@ -60,19 +60,12 @@ namespace ui
     //Shared font
     extern font *shared;
 
-    extern std::vector<ui::button> selButtons;
-
     //Sets colors and loads font for icon creation
     void initTheme();
 
     //Loads graphics and stuff
-    void init(void *a);
+    void init();
     void exit();
-
-    //Prepares ui
-    //Sets up buttons for icon touchin
-    void setupSelButtons();
-    void setupNavButtons();
 
     //Clears and draws general stuff used by multiple screens
     void drawUI();
@@ -81,7 +74,7 @@ namespace ui
     void drawBoundBox(int x, int y, int w, int h, int clrSh);
 
     //switch case so we don't have problems with multiple main loops like 3DS
-    void runApp(const uint64_t& down, const uint64_t& held, const touchPosition& p);
+    void runApp(const uint64_t& down, const uint64_t& held);
 }
 
 #endif

@@ -12,11 +12,9 @@
 
 #define VER_STRING "v. 05.14.2020"
 
-//Nav buttons
-std::vector<ui::button> usrNav, ttlNav, fldNav;
-
 //Don't waste time drawing top and bottom over and over
-static tex *top, *bot;
+//guide graphics are to save cpu drawing that over and over with alpha
+static tex *top, *bot, *usrGuide, *ttlGuide, *fldrGuide, *optGuide;
 
 //Ui text strings
 std::string author, ui::userHelp, ui::titleHelp, ui::folderHelp, ui::optHelp;
@@ -74,9 +72,6 @@ namespace ui
     //Info printed on folder menu
     std::string folderMenuInfo;
 
-    //Touch button vector
-    std::vector<ui::button> selButtons;
-
     //UI colors
     clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect, divClr;
 
@@ -129,7 +124,7 @@ namespace ui
         }
     }
 
-    void init(void *a)
+    void init()
     {
         mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
         mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
@@ -176,9 +171,6 @@ namespace ui
 
         loadTrans();
 
-        setupSelButtons();
-        setupNavButtons();
-
         //Setup top and bottom gfx
         texClearColor(top, clearClr);
         texDraw(icn, top, 66, 27);
@@ -199,11 +191,29 @@ namespace ui
         util::replaceButtonsInString(folderHelp);
         util::replaceButtonsInString(optHelp);
 
+        //Create graphics to hold guides
+        usrGuide = texCreate(textGetWidth(userHelp.c_str(), ui::shared, 18), 28);
+        ttlGuide = texCreate(textGetWidth(titleHelp.c_str(), ui::shared, 18), 28);
+        fldrGuide = texCreate(textGetWidth(folderHelp.c_str(), ui::shared, 18), 28);
+        optGuide = texCreate(textGetWidth(optHelp.c_str(), ui::shared, 18), 28);
+
+        //Clear with bg color
+        texClearColor(usrGuide, ui::clearClr);
+        texClearColor(ttlGuide, ui::clearClr);
+        texClearColor(fldrGuide, ui::clearClr);
+        texClearColor(optGuide, ui::clearClr);
+
+        //Draw text to them
+        drawText(userHelp.c_str(), usrGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
+        drawText(titleHelp.c_str(), ttlGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
+        drawText(folderHelp.c_str(), fldrGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
+        drawText(optHelp.c_str(), optGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
+
         //Calculate x position of help text
-        userHelpX = 1220 - textGetWidth(userHelp.c_str(), ui::shared, 18);
-        titleHelpX = 1220 - textGetWidth(titleHelp.c_str(), ui::shared, 18);
-        folderHelpX = 1220 - textGetWidth(folderHelp.c_str(), ui::shared, 18);
-        optHelpX = 1220 - textGetWidth(optHelp.c_str(), ui::shared, 18);
+        userHelpX = 1220 - usrGuide->width;
+        titleHelpX = 1220 - ttlGuide->width;
+        folderHelpX = 1220 - fldrGuide->width;
+        optHelpX = 1220 - optGuide->width;
 
         advCopyMenuPrep();
         ui::exMenuPrep();
@@ -224,58 +234,12 @@ namespace ui
         texDestroy(mnuBotLeft);
         texDestroy(mnuBotRight);
 
+        texDestroy(usrGuide);
+        texDestroy(ttlGuide);
+        texDestroy(fldrGuide);
+        texDestroy(optGuide);
+
         fontDestroy(shared);
-    }
-
-    void setupSelButtons()
-    {
-        int x = 70, y = 98;
-        for(int i = 0; i < 32; y += 144)
-        {
-            int endRow = i + 8;
-            for(int tX = x; i < endRow; tX += 144, i++)
-            {
-                //Make a new button with no text. We're not drawing them anyway
-                ui::button newSelButton("", tX, y, 128, 128);
-                selButtons.push_back(newSelButton);
-            }
-        }
-    }
-
-    void setupNavButtons()
-    {
-        //User Select
-        int startX = 754;
-        ui::button sel("", startX, 656, 110, 64);
-        ui::button dmp("", startX += 110, 656, 134, 64);
-        ui::button cls("", startX += 134, 656, 110, 64);
-        ui::button ex("", startX += 110, 656, 110, 64);
-        usrNav.push_back(sel);
-        usrNav.push_back(dmp);
-        usrNav.push_back(cls);
-        usrNav.push_back(ex);
-
-        //Title
-        startX = 804;
-        ui::button ttlSel("", startX, 656, 110, 64);
-        ui::button ttlDmp("", startX += 110, 656, 134, 64);
-        ui::button ttlBlk("", startX += 134, 656, 110, 64);
-        ui::button ttlBck("", startX += 110, 656, 110, 64);
-        ttlNav.push_back(ttlSel);
-        ttlNav.push_back(ttlDmp);
-        ttlNav.push_back(ttlBlk);
-        ttlNav.push_back(ttlBck);
-
-        //Folder. Skip adv since it can't be touch controlled
-        startX = 800;
-        ui::button fldBackup("", startX, 656, 110, 64);
-        ui::button fldRestor("", startX += 110, 656, 110, 64);
-        ui::button fldDelete("", startX += 110, 656, 110, 64);
-        ui::button fldBack("", startX += 110, 672, 110, 64);
-        fldNav.push_back(fldBackup);
-        fldNav.push_back(fldRestor);
-        fldNav.push_back(fldDelete);
-        fldNav.push_back(fldBack);
     }
 
     void drawUI()
@@ -287,31 +251,31 @@ namespace ui
         switch(mstate)
         {
             case USR_SEL:
-                drawText(userHelp.c_str(), frameBuffer, ui::shared, userHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(usrGuide, frameBuffer, userHelpX, 673);
                 break;
 
             case TTL_SEL:
-                drawText(titleHelp.c_str(), frameBuffer, ui::shared, titleHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(ttlGuide, frameBuffer, titleHelpX, 673);
                 break;
 
             case FLD_SEL:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(folderHelp.c_str(), frameBuffer, ui::shared, folderHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(fldrGuide, frameBuffer, folderHelpX, 673);
                 break;
 
             case TXT_USR:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(userHelp.c_str(), frameBuffer, ui::shared, userHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(usrGuide, frameBuffer, userHelpX, 673);
                 break;
 
             case TXT_TTL:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(titleHelp.c_str(), frameBuffer, ui::shared, titleHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(ttlGuide, frameBuffer, titleHelpX, 673);
                 break;
 
             case TXT_FLD:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(folderHelp.c_str(), frameBuffer, ui::shared, folderHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(fldrGuide, frameBuffer, folderHelpX, 673);
                 break;
 
             case EX_MNU:
@@ -320,7 +284,7 @@ namespace ui
 
             case OPT_MNU:
                 texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
-                drawText(optHelp.c_str(), frameBuffer, ui::shared, optHelpX, 676, 18, ui::mnuTxt);
+                texDrawNoAlpha(optGuide, frameBuffer, optHelpX, 673);
                 break;
 
             case ADV_MDE:
@@ -370,7 +334,7 @@ namespace ui
         texSwapColors(mnuBotRight, rectClr, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF));
     }
 
-    void runApp(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void runApp(const uint64_t& down, const uint64_t& held)
     {
         //Draw first. Shouldn't, but it simplifies the showX functions
         drawUI();
@@ -378,42 +342,41 @@ namespace ui
         switch(mstate)
         {
             case USR_SEL:
-                updateUserMenu(down, held, p);
+                updateUserMenu(down, held);
                 break;
 
             case TTL_SEL:
-                updateTitleMenu(down, held, p);
+                updateTitleMenu(down, held);
                 break;
 
             case FLD_SEL:
-                updateFolderMenu(down, held, p);
+                updateFolderMenu(down, held);
                 break;
 
             case ADV_MDE:
-                updateAdvMode(down, held, p);
+                updateAdvMode(down, held);
                 break;
 
             case TXT_USR:
-                textUserMenuUpdate(down, held, p);
+                textUserMenuUpdate(down, held);
                 break;
 
             case TXT_TTL:
-                textTitleMenuUpdate(down, held, p);
+                textTitleMenuUpdate(down, held);
                 break;
 
             case TXT_FLD:
-                textFolderMenuUpdate(down, held, p);
+                textFolderMenuUpdate(down, held);
                 break;
 
             case EX_MNU:
-                updateExMenu(down, held, p);
+                updateExMenu(down, held);
                 break;
 
             case OPT_MNU:
-                updateOptMenu(down, held, p);
+                updateOptMenu(down, held);
                 break;
         }
-
         drawPopup(down);
     }
 }

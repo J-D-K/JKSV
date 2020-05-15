@@ -12,7 +12,6 @@
 
 static ui::menu userMenu, titleMenu, exMenu, optMenu;
 extern ui::menu folderMenu;
-extern std::vector<ui::button> usrNav, ttlNav, fldNav;
 
 //Help text for options
 static const std::string optHelpStrings[] =
@@ -23,7 +22,9 @@ static const std::string optHelpStrings[] =
     "Whether or not holding \ue0e0 is required when deleting save folders and files.",
     "Whether or not holding \ue0e0 is required when restoring saves to games.",
     "Whether or not holding \ue0e0 is required when overwriting save folders.",
-    "When on, JKSV will only show save data that can be opened. When off, JKSV shows everything."
+    "When on, JKSV will only show save data that can be opened. When off, JKSV shows everything.",
+    "Includes system save data tied to accounts.",
+    "Controls whether or not system saves can be restored/overwritten. *THIS CAN BE EXTREMELY DANGEROUS*."
 };
 
 static inline void switchBool(bool& sw)
@@ -77,15 +78,12 @@ namespace ui
         folderMenu.adjust();
     }
 
-    void textUserMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
-        userMenu.handleInput(down, held, p);
+        userMenu.handleInput(down, held);
         userMenu.draw(mnuTxt);
 
-        for(unsigned i = 0; i < usrNav.size(); i++)
-            usrNav[i].update(p);
-
-        if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
+        if(down & KEY_A)
         {
             if(data::users[userMenu.getSelected()].titles.size() > 0)
             {
@@ -96,18 +94,18 @@ namespace ui
             else
                 ui::showPopup("No saves available for " + data::users[userMenu.getSelected()].getUsername() + ".", POP_FRAME_DEFAULT);
         }
-        else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_Y)
         {
             for(unsigned i = 0; i < data::users.size(); i++)
                 fs::dumpAllUserSaves(data::users[i]);
         }
-        else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X)
         {
             std::remove(std::string(fs::getWorkDir() + "cls.txt").c_str());
             ui::textMode = false;
             mstate = USR_SEL;
         }
-        else if(down & KEY_MINUS || usrNav[3].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_MINUS)
         {
             fsdevUnmountDevice("sv");
             ui::exMenuPrep();
@@ -117,15 +115,12 @@ namespace ui
             ui::mstate = OPT_MNU;
     }
 
-    void textTitleMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
-        titleMenu.handleInput(down, held, p);
+        titleMenu.handleInput(down, held);
         titleMenu.draw(mnuTxt);
 
-        for(unsigned i = 0; i < ttlNav.size(); i++)
-            ttlNav[i].update(p);
-
-        if(down & KEY_A || ttlNav[0].getEvent() == BUTTON_RELEASED)
+        if(down & KEY_A)
         {
             data::curData = data::curUser.titles[titleMenu.getSelected()];
 
@@ -135,11 +130,11 @@ namespace ui
                 mstate = TXT_FLD;
             }
         }
-        else if(down & KEY_Y || ttlNav[1].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_Y)
         {
             fs::dumpAllUserSaves(data::curUser);
         }
-        else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X)
         {
             if(ui::confirm(false, ui::confBlackList.c_str(), data::curUser.titles[titleMenu.getSelected()].getTitle().c_str()))
                 data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
@@ -190,20 +185,17 @@ namespace ui
                 ui::textTitlePrep(data::curUser);
             }
         }
-        else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_B)
             mstate = TXT_USR;
     }
 
-    void textFolderMenuUpdate(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
         titleMenu.draw(mnuTxt);
-        folderMenu.handleInput(down, held, p);
+        folderMenu.handleInput(down, held);
         folderMenu.draw(mnuTxt);
 
-        for(unsigned i = 0; i < fldNav.size(); i++)
-            fldNav[i].update(p);
-
-        if(down & KEY_A || fldNav[0].getEvent() == BUTTON_RELEASED || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
+        if(down & KEY_A)
         {
             if(folderMenu.getSelected() == 0)
             {
@@ -258,9 +250,9 @@ namespace ui
                 }
             }
         }
-        else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_Y)
         {
-            if(data::curData.getType() != FsSaveDataType_System && folderMenu.getSelected() > 0)
+            if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0)
             {
                 fs::dirList list(data::curData.getPath());
 
@@ -290,7 +282,7 @@ namespace ui
                 }
             }
         }
-        else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X)
         {
             if(folderMenu.getSelected() > 0)
             {
@@ -316,7 +308,7 @@ namespace ui
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");
         }
-        else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_B)
         {
             fsdevUnmountDevice("sv");
             mstate = TXT_TTL;
@@ -339,9 +331,9 @@ namespace ui
         exMenu.addOpt("Mount Process RomFS");
     }
 
-    void updateExMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateExMenu(const uint64_t& down, const uint64_t& held)
     {
-        exMenu.handleInput(down, held, p);
+        exMenu.handleInput(down, held);
 
         if(down & KEY_A)
         {
@@ -488,11 +480,13 @@ namespace ui
         optMenu.addOpt("Hold to Restore");
         optMenu.addOpt("Hold to Overwrite");
         optMenu.addOpt("Force Mount");
+        optMenu.addOpt("Account Sys Saves");
+        optMenu.addOpt("Write to Sys Saves");
     }
 
-    void updateOptMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateOptMenu(const uint64_t& down, const uint64_t& held)
     {
-        optMenu.handleInput(down, held, p);
+        optMenu.handleInput(down, held);
 
         //Update Menu Options to reflect changes
         optMenu.editOpt(0, "Include Dev Sv: " + getBoolText(data::incDev));
@@ -502,6 +496,8 @@ namespace ui
         optMenu.editOpt(4, "Hold to Restore: " + getBoolText(data::holdRest));
         optMenu.editOpt(5, "Hold to Overwrite: " + getBoolText(data::holdOver));
         optMenu.editOpt(6, "Force Mount: " + getBoolText(data::forceMount));
+        optMenu.editOpt(7, "Account Sys. Saves: " + getBoolText(data::accSysSave));
+        optMenu.editOpt(8, "Write To Sys. Saves: " + getBoolText(data::sysSaveWrite));
 
         if(down & KEY_A)
         {
@@ -533,6 +529,14 @@ namespace ui
 
                 case 6:
                     switchBool(data::forceMount);
+                    break;
+
+                case 7:
+                    switchBool(data::accSysSave);
+                    break;
+
+                case 8:
+                    switchBool(data::sysSaveWrite);
                     break;
             }
         }

@@ -7,11 +7,9 @@
 #include "util.h"
 #include "ex.h"
 
-extern std::vector<ui::button> ttlNav;
-
 namespace ui
 {
-    void updateTitleMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateTitleMenu(const uint64_t& down, const uint64_t& held)
     {
         //Static vars so they don't change on every loop
         //Where to start in titles, selected title
@@ -24,8 +22,6 @@ namespace ui
 
         //Selected rectangle X and Y.
         static unsigned selRectX = 66, selRectY = 94;
-
-        static ui::touchTrack track;
 
         if(clrAdd)
         {
@@ -82,59 +78,6 @@ namespace ui
             }
         }
 
-        //Buttons
-        for(int i = 0; i < 32; i++)
-        {
-            selButtons[i].update(p);
-            if(i == data::selData - start && selButtons[i].getEvent() == BUTTON_RELEASED)
-            {
-                data::curData = data::curUser.titles[data::selData];
-                if(fs::mountSave(data::curUser, data::curData))
-                {
-                    folderMenuInfo = util::getInfoString(data::curUser, data::curData);
-                    folderMenuPrepare(data::curUser, data::curData);
-                    mstate = FLD_SEL;
-                }
-            }
-            else if(selButtons[i].getEvent() == BUTTON_RELEASED)
-            {
-                if(start + i < (int)data::curUser.titles.size())
-                    data::selData = start + i;
-            }
-        }
-
-        //Nav
-        for(unsigned i = 0; i < ttlNav.size(); i++)
-            ttlNav[i].update(p);
-
-        //Update touchtracking
-        track.update(p);
-
-        switch(track.getEvent())
-        {
-            case TRACK_SWIPE_UP:
-                {
-                    if(start + 32 < (int)data::curUser.titles.size())
-                    {
-                        start += 8;
-                        data::selData += 8;
-                        if(data::selData > (int)data::curUser.titles.size() - 1)
-                            data::selData = data::curUser.titles.size() - 1;
-                    }
-                }
-                break;
-
-            case TRACK_SWIPE_DOWN:
-                {
-                    if(start - 8 >= 0)
-                    {
-                        start -= 8;
-                        data::selData -= 8;
-                    }
-                }
-                break;
-        }
-
         if(down & KEY_RIGHT)
         {
             if(data::selData < (int)data::curUser.titles.size() - 1)
@@ -169,7 +112,7 @@ namespace ui
             if(data::selData - start >= 32)
                 start += 8;
         }
-        else if(down & KEY_A || ttlNav[0].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_A)
         {
             data::curData = data::curUser.titles[data::selData];
             if(fs::mountSave(data::curUser, data::curData))
@@ -181,14 +124,14 @@ namespace ui
                 mstate = FLD_SEL;
             }
         }
-        else if(down & KEY_Y || ttlNav[1].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_Y)
             fs::dumpAllUserSaves(data::curUser);
-        else if(down & KEY_X || ttlNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X)
         {
             if(ui::confirm(false, ui::confBlackList.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
                 data::blacklistAdd(data::curUser, data::curUser.titles[data::selData]);
         }
-        else if(down & KEY_B || ttlNav[3].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_B)
         {
             start = 0;
             data::selData = 0;

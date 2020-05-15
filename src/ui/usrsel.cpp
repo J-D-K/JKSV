@@ -7,11 +7,9 @@
 #include "uiupdate.h"
 #include "file.h"
 
-extern std::vector<ui::button> usrNav;
-
 namespace ui
 {
-    void updateUserMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateUserMenu(const uint64_t& down, const uint64_t& held)
     {
         //Static so they don't get reset every loop
         static int start = 0;
@@ -20,8 +18,6 @@ namespace ui
         static bool clrAdd = true;
 
         static unsigned selRectX = 66, selRectY = 94;
-
-        static ui::touchTrack track;
 
         if(clrAdd)
         {
@@ -72,30 +68,6 @@ namespace ui
             }
         }
 
-
-        //Update invisible buttons
-        for(int i = 0; i < 32; i++)
-        {
-            selButtons[i].update(p);
-            if(data::selUser == i && selButtons[i].getEvent() == BUTTON_RELEASED)
-            {
-                data::curUser = data::users[data::selUser];
-                mstate = TTL_SEL;
-            }
-            else if(selButtons[i].getEvent() == BUTTON_RELEASED)
-            {
-                if(start + i < (int)data::users.size())
-                    data::selUser = start + i;
-            }
-        }
-
-        //Update nav
-        for(unsigned i = 0; i < usrNav.size(); i++)
-            usrNav[i].update(p);
-
-        //Update touch tracking
-        track.update(p);
-
         if(down & KEY_RIGHT)
         {
             if(data::selUser < (int)data::users.size() - 1)
@@ -130,7 +102,7 @@ namespace ui
             if(data::selUser - start >= 32)
                 start += 8;
         }
-        else if(down & KEY_A || usrNav[0].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_A)
         {
             if(data::users[data::selUser].titles.size() > 0)
             {
@@ -140,7 +112,7 @@ namespace ui
             else
                 ui::showPopup("No Saves available for " + data::users[data::selUser].getUsername() + ".", POP_FRAME_DEFAULT);
         }
-        else if(down & KEY_Y || usrNav[1].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_Y)
         {
             bool cont = true;
             for(unsigned i = 0; i < data::users.size() - 2; i++)
@@ -149,7 +121,7 @@ namespace ui
                     cont = fs::dumpAllUserSaves(data::users[i]);
             }
         }
-        else if(down & KEY_X || usrNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X)
         {
             FILE *cls = fopen(std::string(fs::getWorkDir() + "cls.txt").c_str(), "w");
             fclose(cls);
@@ -157,10 +129,9 @@ namespace ui
             mstate = TXT_USR;
             textMode = true;
         }
-        else if(down & KEY_MINUS || usrNav[3].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_MINUS)
         {
-            fsdevUnmountDevice("sv");
-
+            fs::unmountSave();
             ui::mstate = EX_MNU;
         }
         else if(down & KEY_ZR)

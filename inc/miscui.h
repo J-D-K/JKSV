@@ -43,49 +43,6 @@ namespace ui
             tex *bg;
     };
 
-    class button
-    {
-        public:
-            button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h);
-            void setText(const std::string& _txt);
-            void update(const touchPosition& p);
-            bool isOver();
-            bool wasOver();
-            int getEvent() { return retEvent; }
-
-            void draw();
-            void draw(const clr& _txt);
-
-            unsigned getX() { return x; }
-            unsigned getY() { return y; }
-            unsigned getTx() { return tx; }
-            unsigned getTy() { return ty; }
-
-        protected:
-            bool pressed = false, first = false;
-            int retEvent = BUTTON_NOTHING;
-            unsigned x, y, w, h;
-            unsigned tx, ty;
-            std::string text;
-            touchPosition prev, cur;
-    };
-
-    class touchTrack
-    {
-        public:
-            void update(const touchPosition& p);
-
-            int getEvent() { return retTrack; }
-            int getOriginX() { return originX; }
-            int getOriginY() { return originY; }
-
-        private:
-            touchPosition pos[5];
-            int retTrack = TRACK_NOTHING;
-            int curPos = 0, avX = 0, avY = 0;
-            int originX = 0, originY = 0;
-    };
-
     //General use
     void showMessage(const char *head, const char *fmt, ...);
     bool confirm(bool hold, const char *fmt, ...);

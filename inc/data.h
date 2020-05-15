@@ -57,7 +57,7 @@ namespace data
             void init(const FsSaveDataInfo& inf, NsApplicationControlData *dat);
 
             //Attempts to mount data with uID + id. Returns false if fails. For filtering.
-            bool isMountable(const AccountUid& uID);
+            bool isMountable(const AccountUid& uid);
 
             //Returns title + title without forbidden chars
             std::string getTitle() { return title;}
@@ -70,7 +70,7 @@ namespace data
             std::string getPath() { return path; }
 
             //returns save_data_id string. only used for helping identify nand files
-            std::string getSaveDataID(){ return saveDataID; }
+            std::string getSaveIDStr(){ return saveIDStr; }
 
             uint64_t getID() { return id; }
             uint64_t getSaveID() { return saveID; }
@@ -85,7 +85,7 @@ namespace data
 
         private:
             uint8_t saveDataType;
-            std::string title, titleSafe, author, path, saveDataID;
+            std::string title, titleSafe, author, path, saveIDStr;
             uint64_t id, saveID;
             uint16_t saveIndex;
             bool favorite = false;
@@ -102,7 +102,7 @@ namespace data
             bool initNoChk(const AccountUid& _id, const std::string& _backupName);
 
             //Sets ID
-            void setUID(const AccountUid& _id) { userID = _id; }
+            void setUID(const AccountUid& _id);
 
             //Assigns icon
             void assignIcon(tex *_icn) { userIcon = _icn; }
@@ -129,6 +129,7 @@ namespace data
             //User icon
             tex* userIcon;
     };
+
     //Adds title to blacklist
     void blacklistAdd(data::user& u, data::titledata& t);
     //Adds title to favorite list
@@ -144,7 +145,7 @@ namespace data
     extern user      curUser;
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount;
+    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite;
 }
 
 #endif // DATA_H

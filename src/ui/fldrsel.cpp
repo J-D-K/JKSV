@@ -8,8 +8,6 @@
 
 ui::menu folderMenu;
 
-extern std::vector<ui::button> fldNav;
-
 namespace ui
 {
     void folderMenuPrepare(data::user& usr, data::titledata& dat)
@@ -27,13 +25,9 @@ namespace ui
         folderMenu.adjust();
     }
 
-    void updateFolderMenu(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateFolderMenu(const uint64_t& down, const uint64_t& held)
     {
-        folderMenu.handleInput(down, held, p);
-
-        //Update nav
-        for(unsigned i = 0; i < fldNav.size(); i++)
-            fldNav[i].update(p);
+        folderMenu.handleInput(down, held);
 
         //Draw folder menu
         folderMenu.draw(ui::mnuTxt);
@@ -42,7 +36,7 @@ namespace ui
         drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::mnuTxt, 360);
 
 
-        if(down & KEY_A || fldNav[0].getEvent() == BUTTON_RELEASED || folderMenu.getTouchEvent() == MENU_DOUBLE_REL)
+        if(down & KEY_A)
         {
             if(folderMenu.getSelected() == 0)
             {
@@ -97,10 +91,10 @@ namespace ui
                 }
             }
         }
-        else if(down & KEY_Y || fldNav[1].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_Y)
         {
-            if(data::curData.getType() != FsSaveDataType_System && folderMenu.getSelected() > 0)
-            {;
+            if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0)
+            {
                 fs::dirList list(data::curData.getPath());
 
                 std::string folderName = list.getItem(folderMenu.getSelected() - 1);
@@ -130,7 +124,7 @@ namespace ui
                 }
             }
         }
-        else if(down & KEY_X || fldNav[2].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_X)
         {
             if(folderMenu.getSelected() > 0)
             {
@@ -156,7 +150,7 @@ namespace ui
             fs::delDir("sv:/");
             fsdevCommitDevice("sv");
         }
-        else if(down & KEY_B || fldNav[3].getEvent() == BUTTON_RELEASED)
+        else if(down & KEY_B)
         {
             fsdevUnmountDevice("sv");
             mstate = TTL_SEL;

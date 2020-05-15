@@ -50,147 +50,12 @@ namespace ui
         drawTextWrap(text.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
     }
 
-    button::button(const std::string& _txt, unsigned _x, unsigned _y, unsigned _w, unsigned _h)
-    {
-        x = _x;
-        y = _y;
-        w = _w;
-        h = _h;
-        text = _txt;
-
-        unsigned tw = textGetWidth(text.c_str(), ui::shared, 20);
-        unsigned th = 20;
-
-        tx = x + (w / 2) - (tw / 2);
-        ty = y + (h / 2) - (th / 2);
-    }
-
-    void button::setText(const std::string& _txt)
-    {
-        text = _txt;
-
-        unsigned tw = textGetWidth(text.c_str(), ui::shared, 20);
-        unsigned th = 20;
-
-        tx = x + (w / 2) - (tw / 2);
-        ty = y + (h / 2) - (th / 2);
-    }
-
-    void button::update(const touchPosition& p)
-    {
-        prev = cur;
-        cur  = p;
-
-        //If button was first thing pressed
-        if(isOver() && prev.px == 0 && prev.py == 0)
-        {
-            first = true;
-            pressed = true;
-            retEvent = BUTTON_PRESSED;
-        }
-        else if(retEvent == BUTTON_PRESSED && hidTouchCount() == 0 && wasOver())
-        {
-            first = false;
-            pressed = false;
-            retEvent = BUTTON_RELEASED;
-        }
-        else if(retEvent != BUTTON_NOTHING && hidTouchCount() == 0)
-        {
-            first = false;
-            pressed = false;
-            retEvent = BUTTON_NOTHING;
-        }
-    }
-
-    bool button::isOver()
-    {
-        return (cur.px > x && cur.px < x + w && cur.py > y && cur.py < y + h);
-    }
-
-    bool button::wasOver()
-    {
-        return (prev.px > x && prev.px < x + w && prev.py > y && prev.py < y + h);
-    }
-
-    void button::draw()
-    {
-        if(pressed)
-        {
-            ui::drawTextboxInvert(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, mnuTxt);
-        }
-        else
-        {
-            ui::drawTextbox(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, txtClr);
-        }
-    }
-
-    void button::draw(const clr& _txt)
-    {
-        if(pressed)
-        {
-            ui::drawTextboxInvert(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, _txt);
-        }
-        else
-        {
-            ui::drawTextbox(x, y, w, h);
-            drawText(text.c_str(), frameBuffer, ui::shared, tx, ty, 20, _txt);
-        }
-    }
-
-    void touchTrack::update(const touchPosition& p)
-    {
-        if(hidTouchCount() > 0)
-        {
-            pos[curPos++] = p;
-            if(curPos == 5)
-            {
-                curPos = 0;
-
-                for(unsigned i = 1; i < 5; i++)
-                {
-                    touchPosition c = pos[i], p = pos[i - 1];
-                    avX += c.px - p.px;
-                    avY += c.py - p.py;
-                }
-
-                avX /= 5;
-                avY /= 5;
-
-                if(avY <= -8)
-                    retTrack = TRACK_SWIPE_UP;
-                else if(avY >= 8)
-                    retTrack = TRACK_SWIPE_DOWN;
-                else if(retTrack <= -8)
-                    retTrack = TRACK_SWIPE_LEFT;
-                else if(retTrack >= 8)
-                    retTrack = TRACK_SWIPE_RIGHT;
-                else
-                    retTrack = TRACK_NOTHING;
-
-                std::memset(pos, 0, sizeof(touchPosition) * 5);
-            }
-            else
-                retTrack = TRACK_NOTHING;
-        }
-        else
-        {
-            retTrack = TRACK_NOTHING;
-            curPos = 0;
-        }
-
-    }
-
     void showMessage(const char *head, const char *fmt, ...)
     {
         char tmp[512];
         va_list args;
         va_start(args, fmt);
         vsprintf(tmp, fmt, args);
-
-        button ok("OK \ue0e0 ", 320, 506, 640, 64);
 
         //center head text width
         size_t headWidth = textGetWidth(head, ui::shared, 20);
@@ -201,12 +66,8 @@ namespace ui
             hidScanInput();
 
             uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-            touchPosition p;
-            hidTouchRead(&p, 0);
 
-            ok.update(p);
-
-            if(down || ok.getEvent() == BUTTON_RELEASED)
+            if(down)
                 break;
 
             gfxBeginFrame();
@@ -214,7 +75,6 @@ namespace ui
             drawText(head, frameBuffer, ui::shared, headX, 168, 20, txtClr);
             drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
             drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
-            ok.draw();
             gfxEndFrame();
         }
     }
@@ -231,9 +91,6 @@ namespace ui
         uint8_t holdClrDiff = 0;
         clr holdClr;
 
-        button yes("Yes \ue0e0", 320, 506, 320, 64);
-        button no("No \ue0e1", 640, 506, 320, 64);
-
         size_t headWidth = textGetWidth("Confirm", ui::shared, 20);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
@@ -244,17 +101,10 @@ namespace ui
 
             uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
             uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-            uint64_t up   = hidKeysUp(CONTROLLER_P1_AUTO);
-
-            touchPosition p;
-            hidTouchRead(&p, 0);
-
-            yes.update(p);
-            no.update(p);
 
             std::string holdText;
 
-            if(hold && (held & KEY_A || yes.getEvent() == BUTTON_PRESSED))
+            if(hold && held & KEY_A)
             {
                 heldDown = true;
                 holdCount++, holdClrDiff++;
@@ -279,21 +129,19 @@ namespace ui
                     holdText = "(Almost There!) ";
 
                 holdText += loadGlyphArray[loadFrame];
-                yes.setText(holdText);
             }
-            else if((hold && heldDown) && (up & KEY_A || yes.getEvent() == BUTTON_RELEASED))
+            else if(hold && heldDown)
             {
                 //Reset everything
                 heldDown= false;
                 holdCount = 0, loadFrame = 0, holdClrDiff = 0;
-                yes.setText("Yes \ue0e0");
             }
-            else if(down & KEY_A || yes.getEvent() == BUTTON_RELEASED)
+            else if(down & KEY_A)
             {
                 ret = true;
                 break;
             }
-            else if(down & KEY_B || no.getEvent() == BUTTON_RELEASED)
+            else if(down & KEY_B)
             {
                 ret = false;
                 break;
@@ -310,13 +158,7 @@ namespace ui
                     holdClr = clrCreateRGBA(0xFF, 0xFF - holdClrDiff, 0xFF - holdClrDiff, 0xFF);
                 else
                     holdClr = clrCreateRGBA(0x25 + holdClrDiff, 0x00, 0x00, 0xFF);
-
-                yes.draw(holdClr);
             }
-            else
-                yes.draw();
-
-            no.draw();
             gfxEndFrame();
         }
 

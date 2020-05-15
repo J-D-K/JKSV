@@ -16,15 +16,6 @@ namespace ui
         y = _y;
         rW = _rW;
         rY = _y;
-
-        optButtons.clear();
-
-        for(unsigned i = 0; i < 15; i++)
-        {
-            //Init + push invisible options buttons
-            ui::button newOptButton("", x, y + i * 36, rW, 36);
-            optButtons.push_back(newOptButton);
-        }
     }
 
     void menu::addOpt(const std::string& add)
@@ -60,7 +51,7 @@ namespace ui
         opt.clear();
     }
 
-    void menu::handleInput(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void menu::handleInput(const uint64_t& down, const uint64_t& held)
     {
         if( (held & KEY_UP) || (held & KEY_DOWN))
             fc++;
@@ -109,39 +100,6 @@ namespace ui
                 selected = 0;
             if(selected < start)
                 start = selected;
-        }
-
-        //New touch shit
-        for(int i = 0; i < 15; i++)
-        {
-            optButtons[i].update(p);
-            if(selected == i && optButtons[i - start].getEvent() == BUTTON_RELEASED)
-            {
-                retEvent = MENU_DOUBLE_REL;
-                break;
-            }
-            else if(optButtons[i].getEvent() == BUTTON_RELEASED && i + start < (int)opt.size())
-            {
-                selected = i + start;
-                retEvent = MENU_NOTHING;
-            }
-            else
-                retEvent = MENU_NOTHING;
-        }
-
-        track.update(p);
-
-        switch(track.getEvent())
-        {
-            case TRACK_SWIPE_UP:
-                if(start + 15 < (int)opt.size())
-                    start++, selected++;
-                break;
-
-            case TRACK_SWIPE_DOWN:
-                if(start - 1 >= 0)
-                    start--, selected--;
-                break;
         }
     }
 

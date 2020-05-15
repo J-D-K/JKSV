@@ -10,6 +10,9 @@
 #include "file.h"
 #include "util.h"
 
+static std::vector<uint64_t> blacklist;
+static std::vector<uint64_t> favorites;
+
 //Sorts titles sort-of alphabetically
 static struct
 {
@@ -60,10 +63,6 @@ static int findIcnIndex(const uint64_t& titleID)
     return -1;
 }
 
-
-static std::vector<uint64_t> blacklist;
-static std::vector<uint64_t> favorites;
-
 static bool blacklisted(const uint64_t& id)
 {
     for(unsigned i = 0; i < blacklist.size(); i++)
@@ -90,9 +89,17 @@ static tex *createDeviceIcon()
 {
     tex *ret = texCreate(256, 256);
     texClearColor(ret, ui::rectLt);
-    unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 144) / 2);
-    drawText("\ue121", ret, ui::shared, x, 56, 144, ui::mnuTxt);
+    unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 188) / 2);
+    drawText("\ue121", ret, ui::shared, x, 34, 188, ui::mnuTxt);
     return ret;
+}
+
+static bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
+{
+    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 1 && !data::accSysSave)
+        return false;
+
+    return true;
 }
 
 namespace data
@@ -114,7 +121,7 @@ namespace data
 
     //Options
     bool incDev = false, autoBack = true, ovrClk = false, isOvrClk = false;
-    bool holdDel = true, holdRest = true, holdOver = true, forceMount = true;
+    bool holdDel = true, holdRest = true, holdOver = true, forceMount = true, accSysSave = false, sysSaveWrite = false;
 
     void init()
     {
@@ -133,18 +140,6 @@ namespace data
         loadBlacklist();
         loadFav();
         loadCfg();
-
-        if(data::ovrClk)
-        {
-            clkrstInitialize();
-            ClkrstSession cpu;
-            clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
-            clkrstSetClockRate(&cpu, 1224000000);
-            clkrstCloseSession(&cpu);
-            clkrstExit();
-
-            data::isOvrClk = true;
-        }
 
         //Get system language and copy to std::string
         uint64_t lang;
@@ -174,7 +169,8 @@ namespace data
             switch(info.save_data_type)
             {
                 case FsSaveDataType_System:
-                    info.uid = util::u128ToAccountUID(1);
+                    if(util::accountUIDToU128(info.uid) == 0)
+                        info.uid = util::u128ToAccountUID(1);
                     break;
 
                 case FsSaveDataType_Bcat:
@@ -191,7 +187,7 @@ namespace data
             }
 
             //If save data, not black listed or just ignore
-            if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id))
+            if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id) && accountSystemSaveCheck(info))
             {
                 int u = getUserIndex(info.uid);
                 if(u == -1)
@@ -207,7 +203,7 @@ namespace data
                         if(isFavorite(newData.getID()))
                             newData.setFav(true);
 
-                        if(newData.isMountable(newUser.getUID()) || !forceMount)
+                        if(!forceMount || newData.isMountable(data::users[u].getUID()))
                             users[u].titles.push_back(newData);
                     }
                 }
@@ -218,7 +214,7 @@ namespace data
                     if(isFavorite(newData.getID()))
                         newData.setFav(true);
 
-                    if(newData.isMountable(users[u].getUID()) || !forceMount)
+                    if(!forceMount || newData.isMountable(data::users[u].getUID()))
                         users[u].titles.push_back(newData);
                 }
             }
@@ -246,16 +242,6 @@ namespace data
 
         for(unsigned i = 0; i < icons.size(); i++)
             icons[i].deleteData();
-
-        if(data::isOvrClk)
-        {
-            clkrstInitialize();
-            ClkrstSession cpu;
-            clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
-            clkrstSetClockRate(&cpu, 1020000000);
-            clkrstCloseSession(&cpu);
-            clkrstExit();
-        }
 
         saveFav();
         saveCfg();
@@ -313,8 +299,8 @@ namespace data
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
             author.assign(ent->author);
-            sprintf(tmp, "%016lx", inf.save_data_id);
-            saveDataID.assign(tmp);
+            sprintf(tmp, "%016lX", inf.save_data_id);
+            saveIDStr.assign(tmp);
             if(titleSafe.empty())
             {
                 char tmp[32];
@@ -342,7 +328,7 @@ namespace data
             title.assign(tmp);
             titleSafe.assign(tmp);
             sprintf(tmp, "%016lx", inf.save_data_id);
-            saveDataID.assign(tmp);
+            saveIDStr.assign(tmp);
             icn newIcn;
             newIcn.create(id, "");
             newIcn.createFav();
@@ -353,13 +339,13 @@ namespace data
         path = fs::getWorkDir() + titleSafe + "/";
     }
 
-    bool titledata::isMountable(const AccountUid& uID)
+    bool titledata::isMountable(const AccountUid& uid)
     {
         data::user tmpUser;
-        tmpUser.setUID(uID);
+        tmpUser.setUID(uid);
         if(fs::mountSave(tmpUser, *this))
         {
-            fsdevUnmountDevice("sv");
+            fs::unmountSave();
             return true;
         }
         return false;
@@ -421,6 +407,12 @@ namespace data
         userIcon = util::createIconGeneric(_backupName.c_str());
 
         return true;
+    }
+
+    void user::setUID(const AccountUid& _id)
+    {
+        userID = _id;
+        uID128 = util::accountUIDToU128(_id);
     }
 
     void loadBlacklist()
@@ -518,6 +510,8 @@ namespace data
             data::holdRest = cfgIn >> 59 & 1;
             data::holdOver = cfgIn >> 58 & 1;
             data::forceMount = cfgIn >> 57 & 1;
+            data::accSysSave = cfgIn >> 56 & 1;
+            data::sysSaveWrite = cfgIn >> 55 & 1;
         }
     }
 
@@ -534,6 +528,8 @@ namespace data
         cfgOut |= (uint64_t)data::holdRest << 59;
         cfgOut |= (uint64_t)data::holdOver << 58;
         cfgOut |= (uint64_t)data::forceMount << 57;
+        cfgOut |= (uint64_t)data::accSysSave << 56;
+        cfgOut |= (uint64_t)data::sysSaveWrite << 55;
         fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
         fclose(cfg);
@@ -578,15 +574,16 @@ namespace data
             switch(info.save_data_type)
             {
                 case FsSaveDataType_System:
-                    info.uid = util::u128ToAccountUID(1);
+                    if(util::accountUIDToU128(info.uid) == 0)
+                        info.uid = util::u128ToAccountUID(1);
                     break;
 
                 case FsSaveDataType_Bcat:
-                    info.uid = util::u128ToAccountUID(2);
+                    info.uid = util::u128ToAccountUID(1);
                     break;
 
                 case FsSaveDataType_Device:
-                    info.uid = util::u128ToAccountUID(3);
+                    info.uid = util::u128ToAccountUID(2);
                     break;
             }
 
@@ -600,7 +597,10 @@ namespace data
                     newData.setFav(true);
 
                 if(newData.isMountable(data::users[u].getUID()) || !forceMount)
+                {
                     users[u].titles.push_back(newData);
+                    fs::unmountSave();
+                }
             }
         }
         delete dat;

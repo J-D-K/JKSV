@@ -27,7 +27,7 @@ namespace ui
             ~menu();
 
             //Handles controller input
-            void handleInput(const uint64_t& down, const uint64_t& held, const touchPosition& p);
+            void handleInput(const uint64_t& down, const uint64_t& held);
 
             //Returns selected option
             int getSelected() { return selected; }
@@ -57,9 +57,6 @@ namespace ui
             //How much we shift the color of the rectangle
             uint8_t clrSh = 0;
             bool clrAdd = true;
-
-            ui::touchTrack track;
-            std::vector<ui::button> optButtons;
     };
 }
 

@@ -54,5 +54,7 @@ namespace util
         ret.uid[1] = id;
         return ret;
     }
+
+    void setCPU(uint32_t hz);
 }
 #endif // UTIL_H

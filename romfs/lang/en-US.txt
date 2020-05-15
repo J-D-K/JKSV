@@ -13,7 +13,7 @@ NULL
 [A] Select   [L][R] Change User   [Y] Dump All   [-] Favorite   [X] BlackList   [ZR] Erase   [B] Back
 
 #Folder Select
-[-] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Delete [B] Back
+[-] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase [B] Back
 
 #Options Menu
 [A] Toggle   [B] Back
@@ -38,4 +38,4 @@ Are you sure you want to copy #%s# to #%s#?
 *WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?
 
 #Warning for deleting save data in folder menu
-*WARNING*: This *will* delete the current save data for #%s# from your system! Are you sure you want to continue?
+*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?

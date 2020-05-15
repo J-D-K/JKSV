@@ -8,6 +8,7 @@
 #include "data.h"
 #include "ui.h"
 #include "file.h"
+#include "util.h"
 
 extern "C"
 {
@@ -38,19 +39,15 @@ extern "C"
 
 int main(int argc, const char *argv[])
 {
+    //Max cpu to speed up boot. Doesn't take long.
+    util::setCPU(1785000000);
     fs::init();
     graphicsInit(1280, 720);
-    //Needed for icon gen
     ui::initTheme();
-
-    /*Not completely stable yet
-    Thread uiInitThrd;
-    threadCreate(&uiInitThrd, ui::init, NULL, NULL, 0x80000, 0x2B, -2);
-    threadStart(&uiInitThrd);*/
     data::init();
-    ui::init(NULL);
-    /*threadWaitForExit(&uiInitThrd);
-    threadClose(&uiInitThrd);*/
+    ui::init();
+    //Reset cpu
+    util::setCPU(data::ovrClk ? 1224000000 : 1020000000);
 
     while(appletMainLoop())
     {
@@ -59,16 +56,17 @@ int main(int argc, const char *argv[])
         uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
         uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
 
-        touchPosition p;
-        hidTouchRead(&p, 0);
-
         if(down & KEY_PLUS)
             break;
 
         gfxBeginFrame();
-        ui::runApp(down, held, p);
+        ui::runApp(down, held);
         gfxEndFrame();
     }
+
+    //reset cpu on exit
+    if(data::ovrClk)
+        util::setCPU(1020000000);
 
     ui::exit();
     data::exit();

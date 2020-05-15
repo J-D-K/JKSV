@@ -22,6 +22,11 @@ fs::dirList saveList(""), sdList("sdmc:/");
 
 static bool commit = false;
 
+static inline bool sysSaveCheck()
+{
+    return data::sysSaveWrite || data::curData.getType() != FsSaveDataType_System;
+}
+
 //Performs copy menu operations. To big to stuff into case IMO.
 void performCopyMenuOps()
 {
@@ -72,12 +77,12 @@ void performCopyMenuOps()
                         break;
 
                     case 1:
-                        if(sdMenu.getSelected() == 0)
+                        if(sysSaveCheck() && sdMenu.getSelected() == 0)
                         {
                             if(ui::confirmTransfer(sdPath, savePath))
                                 commit ? fs::copyDirToDirCommit(sdPath, savePath, dev) : fs::copyDirToDir(sdPath, savePath);
                         }
-                        else if(sdMenu.getSelected() > 1)
+                        else if(sysSaveCheck() && sdMenu.getSelected() > 1)
                         {
                             //Same as above, but reverse
                             int sdSel = sdMenu.getSelected() - 2;
@@ -116,7 +121,7 @@ void performCopyMenuOps()
                 {
                     //save menu
                     case 0:
-                        if(data::curData.getType() != FsSaveDataType_System)
+                        if(sysSaveCheck())
                         {
                             if(saveMenu.getSelected() == 0)
                             {
@@ -184,7 +189,7 @@ void performCopyMenuOps()
                 //save
                 case 0:
                     {
-                        if(saveMenu.getSelected() > 1)
+                        if(sysSaveCheck() && saveMenu.getSelected() > 1)
                         {
                             int selSave = saveMenu.getSelected() - 2;
                             std::string newName = util::getStringInput(saveList.getItem(selSave), "Rename", 256, 0, NULL);
@@ -232,14 +237,17 @@ void performCopyMenuOps()
                     //save
                     case 0:
                         {
-                            std::string newFolder = util::getStringInput("", "New Folder", 256, 0, NULL);
-                            if(!newFolder.empty())
+                            if(sysSaveCheck())
                             {
-                                std::string folderPath = savePath + newFolder;
-                                mkdir(folderPath.c_str(), 777);
-                                if(commit)
+                                std::string newFolder = util::getStringInput("", "New Folder", 256, 0, NULL);
+                                if(!newFolder.empty())
                                 {
-                                    fsdevCommitDevice(dev.c_str());
+                                    std::string folderPath = savePath + newFolder;
+                                    mkdir(folderPath.c_str(), 777);
+                                    if(commit)
+                                    {
+                                        fsdevCommitDevice(dev.c_str());
+                                    }
                                 }
                             }
                         }
@@ -368,21 +376,21 @@ namespace ui
         advMenuCtrl = 0;
     }
 
-    void updateAdvMode(const uint64_t& down, const uint64_t& held, const touchPosition& p)
+    void updateAdvMode(const uint64_t& down, const uint64_t& held)
     {
         //0 = save; 1 = sd; 2 = cpy
         switch(advMenuCtrl)
         {
             case 0:
-                saveMenu.handleInput(down, held, p);
+                saveMenu.handleInput(down, held);
                 break;
 
             case 1:
-                sdMenu.handleInput(down, held, p);
+                sdMenu.handleInput(down, held);
                 break;
 
             case 2:
-                copyMenu.handleInput(down, held, p);
+                copyMenu.handleInput(down, held);
                 break;
         }
 

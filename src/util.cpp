@@ -157,7 +157,7 @@ namespace util
         char id[18];
         sprintf(id, " %016lX", d.getID());
         ret += "TID: " + std::string(id) + "\n\n";
-        ret += "SID: " + d.getSaveDataID() + "\n\n";
+        ret += "SID: " + d.getSaveIDStr() + "\n\n";
 
         switch(d.getType())
         {
@@ -283,6 +283,18 @@ namespace util
         unsigned int x = 128 - (textGetWidth(txt, ui::shared, 32) / 2);
         drawText(txt, ret, ui::shared, x, 112, 32, ui::mnuTxt);
         return ret;
+    }
+
+    void setCPU(uint32_t hz)
+    {
+        if(R_FAILED(clkrstInitialize()))
+            return;
+
+        ClkrstSession cpu;
+        clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
+        clkrstSetClockRate(&cpu, hz);
+        clkrstCloseSession(&cpu);
+        clkrstExit();
     }
 }
 

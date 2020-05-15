@@ -163,7 +163,7 @@ namespace fs
         switch(open.getType())
         {
             case FsSaveDataType_System:
-                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), (AccountUid) {0});
+                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID128() == 1 ? (AccountUid){ 0 } : usr.getUID());
                 break;
 
             case FsSaveDataType_Account:
@@ -194,7 +194,6 @@ namespace fs
                 svOpen = 1;
                 break;
         }
-
         return R_SUCCEEDED(svOpen) && fsdevMountDevice("sv", sv) != -1;
     }
 
@@ -428,6 +427,8 @@ namespace fs
                 fsdevUnmountDevice("sv");
             }
         }
+
+        return true;//?
     }
 
     std::string getFileProps(const std::string& _path)
