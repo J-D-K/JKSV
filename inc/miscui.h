@@ -48,8 +48,8 @@ namespace ui
     bool confirm(bool hold, const char *fmt, ...);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
-    void drawTextbox(int x, int y, int w, int h);
-    void drawTextboxInvert(int x, int y, int w, int h);
+    void drawTextbox(tex *target, int x, int y, int w, int h);
+    void drawTextboxInvert(tex *target, int x, int y, int w, int h);
 
     //Popup from freebird
     void showPopup(const std::string& mess, unsigned frames);

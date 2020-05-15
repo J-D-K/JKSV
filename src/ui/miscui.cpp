@@ -9,6 +9,7 @@
 
 static bool popDraw = false;
 static std::string popText;
+static const char *yt = "Yes \ue0e0", *nt = "No \ue0e1", *okt = "OK \ue0e0";
 static unsigned popY, popX, popWidth, popState, frameCount, frameHold;
 
 enum popStates
@@ -39,7 +40,7 @@ namespace ui
         size_t headWidth = textGetWidth(head.c_str(), ui::shared, 20);
         unsigned headX = (1280 / 2) - (headWidth / 2);
 
-        ui::drawTextbox(320, 150, 640, 420);
+        texDraw(diaBox, frameBuffer, 320, 150);
         drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
         drawRect(frameBuffer, 352, 530, 576, 12, clrCreateU32(0xFF666666));
         drawRect(frameBuffer, 352, 530, (unsigned)width, 12, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFFC5FF00) : clrCreateU32(0xFFF05032));
@@ -52,14 +53,16 @@ namespace ui
 
     void showMessage(const char *head, const char *fmt, ...)
     {
+        //fake focus
+        drawRectAlpha(frameBuffer, 0, 0, 1280, 720, clrCreateU32(0xAA0D0D0D));
+
         char tmp[512];
         va_list args;
         va_start(args, fmt);
         vsprintf(tmp, fmt, args);
 
-        //center head text width
-        size_t headWidth = textGetWidth(head, ui::shared, 20);
-        unsigned headX = (1280 / 2) - (headWidth / 2);
+        unsigned headX = (640 / 2) - (textGetWidth(head, ui::shared, 20) / 2);
+        unsigned okX = (640 / 2) - (textGetWidth(okt, ui::shared, 20) / 2);
 
         while(true)
         {
@@ -71,16 +74,19 @@ namespace ui
                 break;
 
             gfxBeginFrame();
-            ui::drawTextbox(320, 150, 640, 420);
-            drawText(head, frameBuffer, ui::shared, headX, 168, 20, txtClr);
-            drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
-            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
+            texDraw(diaBox, frameBuffer, 320, 150);
+            drawText(head, frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtClr);
+            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtClr, 576);
+            drawText(okt, frameBuffer, ui::shared, 320 + okX, 530, 20, ui::txtClr);
             gfxEndFrame();
         }
     }
 
     bool confirm(bool hold, const char *fmt, ...)
     {
+        //fake focus
+        drawRectAlpha(frameBuffer, 0, 0, 1280, 720, clrCreateU32(0xAA0D0D0D));
+
         char tmp[512];
         va_list args;
         va_start(args, fmt);
@@ -89,11 +95,13 @@ namespace ui
         bool ret = false, heldDown = false;
         unsigned loadFrame = 0, holdCount = 0;
         uint8_t holdClrDiff = 0;
-        clr holdClr;
+        clr holdClr = ui::txtClr;
 
-        size_t headWidth = textGetWidth("Confirm", ui::shared, 20);
-        unsigned headX = (1280 / 2) - (headWidth / 2);
+        unsigned headX = (640 / 2) - (textGetWidth("Confirm", ui::shared, 20) / 2);
+        unsigned yesX = 160 - (textGetWidth(yt, ui::shared, 20) / 2);
+        unsigned noX = 160 - (textGetWidth(nt, ui::shared, 20) / 2);
 
+        std::string yesText = yt;
 
         while(true)
         {
@@ -101,8 +109,6 @@ namespace ui
 
             uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
             uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-            std::string holdText;
 
             if(hold && held & KEY_A)
             {
@@ -122,19 +128,23 @@ namespace ui
                 }
 
                 if(holdCount <= 40)
-                    holdText = "(Hold) ";
+                    yesText = "(Hold) ";
                 else if(holdCount <= 80)
-                    holdText = "(Keep Holding) ";
+                    yesText = "(Keep Holding) ";
                 else if(holdCount < 120)
-                    holdText = "(Almost There!) ";
+                    yesText = "(Almost There!) ";
 
-                holdText += loadGlyphArray[loadFrame];
+                yesText += loadGlyphArray[loadFrame];
+                yesX = 160 - (textGetWidth(yesText.c_str(), ui::shared, 20) / 2);
             }
             else if(hold && heldDown)
             {
                 //Reset everything
                 heldDown= false;
                 holdCount = 0, loadFrame = 0, holdClrDiff = 0;
+                yesX = 160 - (textGetWidth(yt, ui::shared, 20) / 2);
+                yesText = yt;
+                holdClr = ui::txtClr;
             }
             else if(down & KEY_A)
             {
@@ -147,11 +157,6 @@ namespace ui
                 break;
             }
 
-            gfxBeginFrame();
-            ui::drawTextbox(320, 150, 640, 420);
-            drawText("Confirm", frameBuffer, ui::shared, headX, 168, 20, txtClr);
-            drawRect(frameBuffer, 320, 206, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
-            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
             if(hold && heldDown)
             {
                 if(ui::thmID == ColorSetId_Light)
@@ -159,6 +164,13 @@ namespace ui
                 else
                     holdClr = clrCreateRGBA(0x25 + holdClrDiff, 0x00, 0x00, 0xFF);
             }
+
+            gfxBeginFrame();
+            texDraw(diaBox, frameBuffer, 320, 150);
+            drawText("Confirm", frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtClr);
+            drawText(yesText.c_str(), frameBuffer, ui::shared, 320 + yesX, 530, 20, holdClr);
+            drawText(nt, frameBuffer, ui::shared, 860    - noX, 530, 20, ui::txtClr);
+            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtClr, 576);
             gfxEndFrame();
         }
 
@@ -175,40 +187,40 @@ namespace ui
         return confirm(data::holdDel, ui::confDel.c_str(), p.c_str());
     }
 
-    void drawTextbox(int x, int y, int w, int h)
+    void drawTextbox(tex *target, int x, int y, int w, int h)
     {
         //Top
-        texDraw(ui::cornerTopLeft, frameBuffer, x, y);
-        drawRect(frameBuffer, x + 32, y, w - 64, 32, ui::tboxClr);
-        texDraw(ui::cornerTopRight, frameBuffer, (x + w) - 32, y);
+        texDraw(ui::cornerTopLeft, target, x, y);
+        drawRect(target, x + 32, y, w - 64, 32, ui::tboxClr);
+        texDraw(ui::cornerTopRight, target, (x + w) - 32, y);
 
         //middle
-        drawRect(frameBuffer, x, y + 32,  w, h - 64, tboxClr);
+        drawRect(target, x, y + 32,  w, h - 64, tboxClr);
 
         //bottom
-        texDraw(ui::cornerBottomLeft, frameBuffer, x, (y + h) - 32);
-        drawRect(frameBuffer, x + 32, (y + h) - 32, w - 64, 32, tboxClr);
-        texDraw(ui::cornerBottomRight, frameBuffer, (x + w) - 32, (y + h) - 32);
+        texDraw(ui::cornerBottomLeft, target, x, (y + h) - 32);
+        drawRect(target, x + 32, (y + h) - 32, w - 64, 32, tboxClr);
+        texDraw(ui::cornerBottomRight, target, (x + w) - 32, (y + h) - 32);
 
     }
 
-    void drawTextboxInvert(int x, int y, int w, int h)
+    void drawTextboxInvert(tex *target, int x, int y, int w, int h)
     {
         clr temp = ui::tboxClr;
         clrInvert(&temp);
 
         //Top
-        texDrawInvert(ui::cornerTopLeft, frameBuffer, x, y);
-        drawRect(frameBuffer, x + 32, y, w - 64, 32, temp);
-        texDrawInvert(ui::cornerTopRight, frameBuffer, (x + w) - 32, y);
+        texDrawInvert(ui::cornerTopLeft, target, x, y);
+        drawRect(target, x + 32, y, w - 64, 32, temp);
+        texDrawInvert(ui::cornerTopRight, target, (x + w) - 32, y);
 
         //middle
-        drawRect(frameBuffer, x, y + 32,  w, h - 64, temp);
+        drawRect(target, x, y + 32,  w, h - 64, temp);
 
         //bottom
-        texDrawInvert(ui::cornerBottomLeft, frameBuffer, x, (y + h) - 32);
-        drawRect(frameBuffer, x + 32, (y + h) - 32, w - 64, 32, temp);
-        texDrawInvert(ui::cornerBottomRight, frameBuffer, (x + w) - 32, (y + h) - 32);
+        texDrawInvert(ui::cornerBottomLeft, target, x, (y + h) - 32);
+        drawRect(target, x + 32, (y + h) - 32, w - 64, 32, temp);
+        texDrawInvert(ui::cornerBottomRight, target, (x + w) - 32, (y + h) - 32);
     }
 
     void showPopup(const std::string& mess, unsigned frames)
@@ -251,7 +263,7 @@ namespace ui
                 break;
         }
 
-        drawTextbox(popX, popY, popWidth, 64);
+        drawTextbox(frameBuffer, popX, popY, popWidth, 64);
         drawText(popText.c_str(), frameBuffer, ui::shared, popX + 16, popY + 20, 24, ui::txtClr);
     }
 }

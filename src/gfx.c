@@ -10,7 +10,7 @@
 #include "gfx.h"
 
 tex *frameBuffer;
-clr textClr;
+static clr textClr;
 
 static NWindow *window;
 static Framebuffer fb;

@@ -78,7 +78,7 @@ namespace ui
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
     tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
-    tex *progCovLeft, *progCovRight;
+    tex *progCovLeft, *progCovRight, *diaBox;
 
     //Menu box pieces
     tex *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
@@ -161,6 +161,7 @@ namespace ui
 
         top = texCreate(1280, 88);
         bot = texCreate(1280, 72);
+        diaBox = texCreate(640, 420);
 
         if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
         {
@@ -185,6 +186,10 @@ namespace ui
 
         //Not needed anymore
         texDestroy(icn);
+
+        //Setup dialog box
+        drawTextbox(diaBox, 0, 0, 640, 420);
+        drawRect(diaBox, 0, 56, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
 
         util::replaceButtonsInString(userHelp);
         util::replaceButtonsInString(titleHelp);
@@ -238,6 +243,10 @@ namespace ui
         texDestroy(ttlGuide);
         texDestroy(fldrGuide);
         texDestroy(optGuide);
+
+        texDestroy(top);
+        texDestroy(bot);
+        texDestroy(diaBox);
 
         fontDestroy(shared);
     }

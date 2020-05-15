@@ -61,7 +61,7 @@ namespace ui
                     if(userRectX + userRectWidth > 1264)
                         userRectX = 1264 - userRectWidth;
 
-                    drawTextbox(userRectX, y - 50, userRectWidth, 38);
+                    drawTextbox(frameBuffer, userRectX, y - 50, userRectWidth, 38);
                     drawText(username.c_str(), frameBuffer, ui::shared, userRectX + 16, y - 38, 16, txtClr);
                 }
                 data::users[i].drawIconHalf(tX, y);

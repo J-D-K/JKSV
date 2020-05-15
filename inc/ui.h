@@ -52,9 +52,9 @@ namespace ui
     //Textbox graphics
     extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
     //Covers left and right of progress bar to fake being not a rectangle.
-    extern tex *progCovLeft, *progCovRight;
+    extern tex *progCovLeft, *progCovRight, *diaBox;
 
-    //Side bar from Freebird. RIP
+    //Side bar from Freebird. RIP. NEVERMIND
     extern tex *sideBar;
 
     //Shared font
