@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.14.2020"
+#define VER_STRING "v. 05.15.2020"
 
 //Don't waste time drawing top and bottom over and over
 //guide graphics are to save cpu drawing that over and over with alpha

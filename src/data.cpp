@@ -579,15 +579,15 @@ namespace data
                     break;
 
                 case FsSaveDataType_Bcat:
-                    info.uid = util::u128ToAccountUID(1);
+                    info.uid = util::u128ToAccountUID(2);
                     break;
 
                 case FsSaveDataType_Device:
-                    info.uid = util::u128ToAccountUID(2);
+                    info.uid = util::u128ToAccountUID(3);
                     break;
             }
 
-            if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id))
+            if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id) && accountSystemSaveCheck(info))
             {
                 //We have all users and icons. This *should* be safe
                 int u = getUserIndex(info.uid);
@@ -597,10 +597,7 @@ namespace data
                     newData.setFav(true);
 
                 if(newData.isMountable(data::users[u].getUID()) || !forceMount)
-                {
                     users[u].titles.push_back(newData);
-                    fs::unmountSave();
-                }
             }
         }
         delete dat;
