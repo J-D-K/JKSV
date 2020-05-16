@@ -24,7 +24,8 @@ static const std::string optHelpStrings[] =
     "Whether or not holding \ue0e0 is required when overwriting save folders.",
     "When on, JKSV will only show save data that can be opened. When off, JKSV shows everything.",
     "Includes system save data tied to accounts.",
-    "Controls whether or not system saves can be restored/overwritten. *THIS CAN BE EXTREMELY DANGEROUS*."
+    "Controls whether or not system saves can be restored/overwritten. *THIS CAN BE EXTREMELY DANGEROUS*.",
+    "Changes the UI to a text menu based one like the 3DS version of JKSV."
 };
 
 static inline void switchBool(bool& sw)
@@ -81,7 +82,7 @@ namespace ui
     void textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
         userMenu.handleInput(down, held);
-        userMenu.draw(mnuTxt);
+        userMenu.draw(ui::txtCont);
 
         if(down & KEY_A)
         {
@@ -101,24 +102,23 @@ namespace ui
         }
         else if(down & KEY_X)
         {
-            std::remove(std::string(fs::getWorkDir() + "cls.txt").c_str());
             ui::textMode = false;
             mstate = USR_SEL;
         }
-        else if(down & KEY_MINUS)
+        else if(down & KEY_ZR)
         {
-            fsdevUnmountDevice("sv");
+            fs::unmountSave();
             ui::exMenuPrep();
             ui::mstate = EX_MNU;
         }
-        else if(down & KEY_ZR)
+        else if(down & KEY_MINUS)
             ui::mstate = OPT_MNU;
     }
 
     void textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
         titleMenu.handleInput(down, held);
-        titleMenu.draw(mnuTxt);
+        titleMenu.draw(ui::txtCont);
 
         if(down & KEY_A)
         {
@@ -191,9 +191,9 @@ namespace ui
 
     void textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
-        titleMenu.draw(mnuTxt);
+        titleMenu.draw(ui::txtCont);
         folderMenu.handleInput(down, held);
-        folderMenu.draw(mnuTxt);
+        folderMenu.draw(ui::txtCont);
 
         if(down & KEY_A)
         {
@@ -467,7 +467,7 @@ namespace ui
             prevState = USR_SEL;
         }
 
-        exMenu.draw(mnuTxt);
+        exMenu.draw(ui::txtCont);
     }
 
     void optMenuInit()
@@ -482,6 +482,7 @@ namespace ui
         optMenu.addOpt("Force Mount");
         optMenu.addOpt("Account Sys Saves");
         optMenu.addOpt("Write to Sys Saves");
+        optMenu.addOpt("Text UI Mode");
     }
 
     void updateOptMenu(const uint64_t& down, const uint64_t& held)
@@ -498,6 +499,7 @@ namespace ui
         optMenu.editOpt(6, "Force Mount: " + getBoolText(data::forceMount));
         optMenu.editOpt(7, "Account Sys. Saves: " + getBoolText(data::accSysSave));
         optMenu.editOpt(8, "Write To Sys. Saves: " + getBoolText(data::sysSaveWrite));
+        optMenu.editOpt(9, "Text UI Mode: " + getBoolText(ui::textMode));
 
         if(down & KEY_A)
         {
@@ -538,12 +540,16 @@ namespace ui
                 case 8:
                     switchBool(data::sysSaveWrite);
                     break;
+
+                case 9:
+                    switchBool(ui::textMode);
+                    break;
             }
         }
         else if(down & KEY_B)
             ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
 
-        optMenu.draw(ui::mnuTxt);
-        drawTextWrap(optHelpStrings[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::mnuTxt, 730);
+        optMenu.draw(ui::txtCont);
+        drawTextWrap(optHelpStrings[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);
     }
 }

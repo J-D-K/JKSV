@@ -152,14 +152,12 @@ static inline FT_GlyphSlot loadGlyph(const uint32_t c, const font *f, FT_Int32 f
         FT_Load_Glyph(f->face[0], FT_Get_Char_Index(f->face[0], c), flags);
         return f->face[0]->glyph;
     }
+
     for(int i = 0; i < 6; i++)
     {
         FT_UInt cInd = 0;
-        if( (cInd = FT_Get_Char_Index(f->face[i], c)) != 0 && \
-                FT_Load_Glyph(f->face[i], cInd, flags) == 0)
-        {
+        if( (cInd = FT_Get_Char_Index(f->face[i], c)) != 0 && FT_Load_Glyph(f->face[i], cInd, flags) == 0)
             return f->face[i]->glyph;
-        }
     }
 
     return NULL;
@@ -457,27 +455,23 @@ tex *texLoadJPEGFile(const char *path)
 
         jpeg_start_decompress(&jpegInfo);
 
-        JSAMPARRAY row = malloc(sizeof(JSAMPROW) * ret->height);
+        JSAMPARRAY row = malloc(sizeof(JSAMPROW));
         for(unsigned i = 0; i < ret->height; i++)
-            row[i] = malloc(sizeof(JSAMPLE) * ret->width * 3);
+            row[0] = malloc(sizeof(JSAMPLE) * ret->width * 3);
 
         uint32_t *dataPtr = &ret->data[0];
         for(int y = 0; y < ret->height; y++)
         {
-            unsigned read = jpeg_read_scanlines(&jpegInfo, row, ret->height);
+            jpeg_read_scanlines(&jpegInfo, row, 1);
             uint8_t *jpegPtr = row[0];
-            for(unsigned i = 0; i < read; i++)
-            {
-                for(int x = 0; x < ret->width; x++, jpegPtr += 3)
-                    *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
-            }
+            for(int x = 0; x < ret->width; x++, jpegPtr += 3)
+                *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
         }
 
         jpeg_finish_decompress(&jpegInfo);
         jpeg_destroy_decompress(&jpegInfo);
 
-        for(unsigned i = 0; i < ret->height; i++)
-            free(row[i]);
+        free(row[0]);
         free(row);
 
         fclose(jpegIn);
@@ -508,28 +502,24 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
 
     jpeg_start_decompress(&jpegInfo);
 
-    JSAMPARRAY row = malloc(sizeof(JSAMPROW) * ret->height);
-    for(unsigned i = 0; i < ret->height; i++)
-        row[i] = malloc(sizeof(JSAMPLE) * ret->width * 3);
+    JSAMPARRAY row = malloc(sizeof(JSAMPROW));
+        for(unsigned i = 0; i < ret->height; i++)
+            row[0] = malloc(sizeof(JSAMPLE) * ret->width * 3);
 
-    uint32_t *dataPtr = &ret->data[0];
-    for(int y = 0; y < ret->height; y++)
-    {
-        unsigned read = jpeg_read_scanlines(&jpegInfo, row, ret->height);
-        uint8_t *jpegPtr = row[0];
-        for(unsigned i = 0; i < read; i++)
+        uint32_t *dataPtr = &ret->data[0];
+        for(int y = 0; y < ret->height; y++)
         {
+            jpeg_read_scanlines(&jpegInfo, row, 1);
+            uint8_t *jpegPtr = row[0];
             for(int x = 0; x < ret->width; x++, jpegPtr += 3)
                 *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
         }
-    }
 
-    jpeg_finish_decompress(&jpegInfo);
-    jpeg_destroy_decompress(&jpegInfo);
+        jpeg_finish_decompress(&jpegInfo);
+        jpeg_destroy_decompress(&jpegInfo);
 
-    for(unsigned i = 0; i < ret->height; i++)
-        free(row[i]);
-    free(row);
+        free(row[0]);
+        free(row);
 
     return ret;
 }

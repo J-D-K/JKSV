@@ -45,9 +45,12 @@ namespace ui
     extern std::string confBlackList, confOverwrite, confRestore, confDel, confCopy;
     extern std::string confEraseNand, confEraseFolder;
 
-    //Colors to use now that I added theme detection
-    /*NEED TO COME UP WITH BETTER NAMES*/
-    extern clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect;
+    /*Colors
+        clearClr = color to clear buffer
+        txtCont = text that contrasts clearClr
+        txtDiag = text color for dialogs
+    */
+    extern clr clearClr, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect;
 
     //Textbox graphics
     extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;

@@ -7,7 +7,7 @@ NULL
 
 #Help/Guide strings on bottom
 #User Select
-[A] Select   [Y] Dump All   [X] UI Mode   [ZR] Options   [-] Extras
+[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras
 
 #Title Select
 [A] Select   [L][R] Change User   [Y] Dump All   [-] Favorite   [X] BlackList   [ZR] Erase   [B] Back

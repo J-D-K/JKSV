@@ -154,9 +154,7 @@ namespace util
     {
         std::string ret = d.getTitle() + "\n\n";
 
-        char id[18];
-        sprintf(id, " %016lX", d.getID());
-        ret += "TID: " + std::string(id) + "\n\n";
+        ret += "TID: " + d.getTIDStr() + "\n\n";
         ret += "SID: " + d.getSaveIDStr() + "\n\n";
 
         switch(d.getType())
@@ -281,7 +279,7 @@ namespace util
         tex *ret = texCreate(256, 256);
         texClearColor(ret, ui::rectLt);
         unsigned int x = 128 - (textGetWidth(txt, ui::shared, 32) / 2);
-        drawText(txt, ret, ui::shared, x, 112, 32, ui::mnuTxt);
+        drawText(txt, ret, ui::shared, x, 112, 32, ui::txtCont);
         return ret;
     }
 

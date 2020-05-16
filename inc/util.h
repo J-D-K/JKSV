@@ -42,12 +42,12 @@ namespace util
     //Creates a basic generic icon for stuff without one
     tex *createIconGeneric(const char *txt);
 
-    static inline u128 accountUIDToU128(AccountUid uid)
+    inline u128 accountUIDToU128(AccountUid uid)
     {
         return ((u128)uid.uid[0] << 64 | uid.uid[1]);
     }
 
-    static inline AccountUid u128ToAccountUID(u128 id)
+    inline AccountUid u128ToAccountUID(u128 id)
     {
         AccountUid ret;
         ret.uid[0] = id >> 64;

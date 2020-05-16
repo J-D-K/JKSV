@@ -73,7 +73,7 @@ namespace ui
     std::string folderMenuInfo;
 
     //UI colors
-    clr clearClr, mnuTxt, txtClr, rectLt, rectSh, tboxClr, sideRect, divClr;
+    clr clearClr, txtCont, txtDiag, rectLt, rectSh, tboxClr, divClr;
 
     //textbox pieces
     //I was going to flip them when I draw them, but then laziness kicked in.
@@ -91,7 +91,10 @@ namespace ui
 
     void initTheme()
     {
-        shared = fontLoadSharedFonts();
+        if(fs::fileExists(fs::getWorkDir() + "font.ttf"))
+            shared = fontLoadTTF(std::string(fs::getWorkDir() + "font.ttf").c_str());
+        else
+            shared = fontLoadSharedFonts();
 
         setsysGetColorSetId(&thmID);
 
@@ -99,12 +102,11 @@ namespace ui
         {
             case ColorSetId_Light:
                 clearClr = clrCreateU32(0xFFEBEBEB);
-                mnuTxt = clrCreateU32(0xFF000000);
-                txtClr = clrCreateU32(0xFFFFFFFF);
+                txtCont = clrCreateU32(0xFF000000);
+                txtDiag = clrCreateU32(0xFFFFFFFF);
                 rectLt = clrCreateU32(0xFFDFDFDF);
                 rectSh = clrCreateU32(0xFFCACACA);
                 tboxClr = clrCreateU32(0xFF505050);
-                sideRect = clrCreateU32(0xFFDCDCDC);
                 divClr = clrCreateU32(0xFF000000);
                 break;
 
@@ -113,12 +115,11 @@ namespace ui
                 //jic
                 thmID = ColorSetId_Dark;
                 clearClr = clrCreateU32(0xFF2D2D2D);
-                mnuTxt = clrCreateU32(0xFFFFFFFF);
-                txtClr = clrCreateU32(0xFF000000);
+                txtCont = clrCreateU32(0xFFFFFFFF);
+                txtDiag = clrCreateU32(0xFF000000);
                 rectLt = clrCreateU32(0xFF505050);
                 rectSh = clrCreateU32(0xFF202020);
                 tboxClr = clrCreateU32(0xFFEBEBEB);
-                sideRect = clrCreateU32(0xFF373737);
                 divClr = clrCreateU32(0xFFFFFFFF);
                 break;
         }
@@ -162,27 +163,25 @@ namespace ui
         top = texCreate(1280, 88);
         bot = texCreate(1280, 72);
         diaBox = texCreate(640, 420);
+        texClearColor(diaBox, clrCreateU32(0x00000000));
 
-        if(fs::fileExists(fs::getWorkDir() + "cls.txt"))
-        {
-            textUserPrep();
-            textMode = true;
+        if(ui::textMode)
             mstate = TXT_USR;
-        }
 
         loadTrans();
+        textUserPrep();
 
         //Setup top and bottom gfx
         texClearColor(top, clearClr);
         texDraw(icn, top, 66, 27);
-        drawText("JKSV", top, shared, 130, 38, 24, mnuTxt);
-        drawRect(top, 30, 87, 1220, 1, mnuTxt);
+        drawText("JKSV", top, shared, 130, 38, 24, ui::txtCont);
+        drawRect(top, 30, 87, 1220, 1, ui::txtCont);
 
         texClearColor(bot, clearClr);
-        drawRect(bot, 30, 0, 1220, 1, mnuTxt);
-        drawText(VER_STRING, bot, shared, 8, author.empty() ? 56 : 38, 12, mnuTxt);
+        drawRect(bot, 30, 0, 1220, 1, ui::txtCont);
+        drawText(VER_STRING, bot, shared, 8, author.empty() ? 56 : 38, 12, ui::txtCont);
         if(!author.empty())
-            drawText(std::string("Translation: " + author).c_str(), bot, ui::shared, 8, 56, 12, ui::mnuTxt);
+            drawText(std::string("Translation: " + author).c_str(), bot, ui::shared, 8, 56, 12, ui::txtCont);
 
         //Not needed anymore
         texDestroy(icn);
@@ -209,10 +208,10 @@ namespace ui
         texClearColor(optGuide, ui::clearClr);
 
         //Draw text to them
-        drawText(userHelp.c_str(), usrGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
-        drawText(titleHelp.c_str(), ttlGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
-        drawText(folderHelp.c_str(), fldrGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
-        drawText(optHelp.c_str(), optGuide, ui::shared, 0, 3, 18, ui::mnuTxt);
+        drawText(userHelp.c_str(), usrGuide, ui::shared, 0, 3, 18, ui::txtCont);
+        drawText(titleHelp.c_str(), ttlGuide, ui::shared, 0, 3, 18, ui::txtCont);
+        drawText(folderHelp.c_str(), fldrGuide, ui::shared, 0, 3, 18, ui::txtCont);
+        drawText(optHelp.c_str(), optGuide, ui::shared, 0, 3, 18, ui::txtCont);
 
         //Calculate x position of help text
         userHelpX = 1220 - usrGuide->width;
@@ -297,14 +296,14 @@ namespace ui
                 break;
 
             case ADV_MDE:
-                drawRect(frameBuffer, 640, 88, 1, 559, ui::mnuTxt);
+                drawRect(frameBuffer, 640, 88, 1, 559, ui::txtCont);
                 break;
         }
     }
 
     void drawBoundBox(int x, int y, int w, int h, int clrSh)
     {
-        clr rectClr = clrCreateRGBA(0x00, 0x88 + clrSh, 0xC5, 0xFF);
+        clr rectClr = clrCreateRGBA(0x00, 0x88 + clrSh, 0xC5 + (clrSh / 2), 0xFF);
 
         texSwapColors(mnuTopLeft, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF), rectClr);
         texSwapColors(mnuTopRight, clrCreateRGBA(0x00, 0x88, 0xC5, 0xFF), rectClr);

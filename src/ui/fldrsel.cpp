@@ -30,10 +30,10 @@ namespace ui
         folderMenu.handleInput(down, held);
 
         //Draw folder menu
-        folderMenu.draw(ui::mnuTxt);
+        folderMenu.draw(ui::txtCont);
 
         data::curData.icon.draw(96, 98);
-        drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::mnuTxt, 360);
+        drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
 
 
         if(down & KEY_A)

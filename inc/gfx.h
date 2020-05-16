@@ -148,7 +148,7 @@ TEX END
 //Loads and returns font with Switch shared font loaded
 font *fontLoadSharedFonts();
 
-//Loads and returns TTF font
+//Loads and returns TTF font.
 font *fontLoadTTF(const char *path);
 
 //Frees font

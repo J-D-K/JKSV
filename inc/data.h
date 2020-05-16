@@ -70,6 +70,7 @@ namespace data
             std::string getPath() { return path; }
 
             //returns save_data_id string. only used for helping identify nand files
+            std::string getTIDStr() { return tidStr; }
             std::string getSaveIDStr(){ return saveIDStr; }
 
             uint64_t getID() { return id; }
@@ -85,7 +86,7 @@ namespace data
 
         private:
             uint8_t saveDataType;
-            std::string title, titleSafe, author, path, saveIDStr;
+            std::string title, titleSafe, author, path, tidStr, saveIDStr;
             uint64_t id, saveID;
             uint16_t saveIndex;
             bool favorite = false;

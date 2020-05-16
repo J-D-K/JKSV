@@ -19,21 +19,19 @@ static struct
     bool operator()(data::titledata& a, data::titledata& b)
     {
         if(a.getFav() != b.getFav())
-            return a.getFav() == true;
+            return a.getFav();
 
         uint32_t tmpA, tmpB;
         for(unsigned i = 0; i < a.getTitle().length(); )
         {
             ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&a.getTitle().data()[i]);
             decode_utf8(&tmpB, (const uint8_t *)&b.getTitle().data()[i]);
-            tmpA = tolower(tmpA);
-            tmpB = tolower(tmpB);
+            tmpA = tolower(tmpA), tmpB = tolower(tmpB);
             if(tmpA != tmpB)
                 return tmpA < tmpB;
 
             i += uCnt;
         }
-
         return false;
     }
 } sortTitles;
@@ -90,8 +88,15 @@ static tex *createDeviceIcon()
     tex *ret = texCreate(256, 256);
     texClearColor(ret, ui::rectLt);
     unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 188) / 2);
-    drawText("\ue121", ret, ui::shared, x, 34, 188, ui::mnuTxt);
+    drawText("\ue121", ret, ui::shared, x, 34, 188, ui::txtCont);
     return ret;
+}
+
+static inline std::string getIDStr(const uint64_t& _id)
+{
+    char tmp[18];
+    sprintf(tmp, "%016lX", _id);
+    return std::string(tmp);
 }
 
 static bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
@@ -120,8 +125,9 @@ namespace data
     AppletType appletMode;
 
     //Options
-    bool incDev = false, autoBack = true, ovrClk = false, isOvrClk = false;
-    bool holdDel = true, holdRest = true, holdOver = true, forceMount = true, accSysSave = false, sysSaveWrite = false;
+    bool incDev = false, autoBack = true, ovrClk = false, \
+    holdDel = true, holdRest = true, holdOver = true, \
+    forceMount = true, accSysSave = false, sysSaveWrite = false;
 
     void init()
     {
@@ -288,25 +294,20 @@ namespace data
 
         saveID = inf.save_data_id;
         saveIndex = inf.save_data_index;
+        tidStr    = getIDStr(id);
+        saveIDStr = getIDStr(saveID);
 
         saveDataType = inf.save_data_type;
         Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
         Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
         size_t icnSize = outSz - sizeof(dat->nacp);
-        char tmp[18];
         if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL && icnSize > 0)
         {
             title.assign(ent->name);
             titleSafe.assign(util::safeString(title));
             author.assign(ent->author);
-            sprintf(tmp, "%016lX", inf.save_data_id);
-            saveIDStr.assign(tmp);
             if(titleSafe.empty())
-            {
-                char tmp[32];
-                sprintf(tmp, "%016lX", id);
-                titleSafe.assign(tmp);
-            }
+                titleSafe = getIDStr(id);
 
             int icnInd = findIcnIndex(id);
             if(icnInd == -1)
@@ -324,18 +325,14 @@ namespace data
         }
         else
         {
-            sprintf(tmp, "%016lX", id);
-            title.assign(tmp);
-            titleSafe.assign(tmp);
-            sprintf(tmp, "%016lx", inf.save_data_id);
-            saveIDStr.assign(tmp);
+            title = getIDStr(id);
+            titleSafe = getIDStr(id);
             icn newIcn;
             newIcn.create(id, "");
             newIcn.createFav();
             icons.push_back(newIcn);
             icon = icons[findIcnIndex(id)];
         }
-
         path = fs::getWorkDir() + titleSafe + "/";
     }
 
@@ -512,6 +509,7 @@ namespace data
             data::forceMount = cfgIn >> 57 & 1;
             data::accSysSave = cfgIn >> 56 & 1;
             data::sysSaveWrite = cfgIn >> 55 & 1;
+            ui::textMode = cfgIn >> 54 & 1;
         }
     }
 
@@ -530,6 +528,7 @@ namespace data
         cfgOut |= (uint64_t)data::forceMount << 57;
         cfgOut |= (uint64_t)data::accSysSave << 56;
         cfgOut |= (uint64_t)data::sysSaveWrite << 55;
+        cfgOut |= (uint64_t)ui::textMode << 54;
         fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
         fclose(cfg);

@@ -105,6 +105,9 @@ namespace ui
 
     void menu::draw(const clr& textClr)
     {
+        if(opt.size() < 1)
+            return;
+
         if(clrAdd)
         {
             clrSh += 6;

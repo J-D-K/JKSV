@@ -394,11 +394,11 @@ namespace ui
                 break;
         }
 
-        saveMenu.draw(mnuTxt);
-        sdMenu.draw(mnuTxt);
+        saveMenu.draw(ui::txtCont);
+        sdMenu.draw(ui::txtCont);
 
-        drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, mnuTxt, 600);
-        drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, mnuTxt, 600);
+        drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, ui::txtCont, 600);
+        drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, ui::txtCont, 600);
 
         //OH BOY HERE WE GO
         if(down & KEY_A)
@@ -517,17 +517,17 @@ namespace ui
                     copyMenu.setParams(176, 278, 304);
                     copyMenu.editOpt(0, "Copy to SD");
                     ui::drawTextbox(frameBuffer, 168, 236, 320, 268);
-                    drawText("SAVE", frameBuffer, ui::shared, 176, 250, 18,txtClr);
+                    drawText("SAVE", frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
                     break;
 
                 case 1:
                     copyMenu.setParams(816, 278, 304);
                     copyMenu.editOpt(0, "Copy to Save");
                     ui::drawTextbox(frameBuffer, 808, 236, 320, 268);
-                    drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, txtClr);
+                    drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, ui::txtDiag);
                     break;
             }
-            copyMenu.draw(txtClr);
+            copyMenu.draw(ui::txtDiag);
         }
     }
 }

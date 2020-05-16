@@ -47,8 +47,8 @@ namespace ui
         texDraw(ui::progCovLeft, frameBuffer, 352, 530);
         texDraw(ui::progCovRight, frameBuffer, 920, 530);
 
-        drawText(head.c_str(), frameBuffer, ui::shared, headX, 168, 20, txtClr);
-        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 352, 230, 16, txtClr, 576);
+        drawText(head.c_str(), frameBuffer, ui::shared, headX, 168, 20, ui::txtDiag);
+        drawTextWrap(text.c_str(), frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);
     }
 
     void showMessage(const char *head, const char *fmt, ...)
@@ -75,9 +75,9 @@ namespace ui
 
             gfxBeginFrame();
             texDraw(diaBox, frameBuffer, 320, 150);
-            drawText(head, frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtClr);
-            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtClr, 576);
-            drawText(okt, frameBuffer, ui::shared, 320 + okX, 530, 20, ui::txtClr);
+            drawText(head, frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
+            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);
+            drawText(okt, frameBuffer, ui::shared, 320 + okX, 530, 20, ui::txtDiag);
             gfxEndFrame();
         }
     }
@@ -95,7 +95,7 @@ namespace ui
         bool ret = false, heldDown = false;
         unsigned loadFrame = 0, holdCount = 0;
         uint8_t holdClrDiff = 0;
-        clr holdClr = ui::txtClr;
+        clr holdClr = ui::txtDiag;
 
         unsigned headX = (640 / 2) - (textGetWidth("Confirm", ui::shared, 20) / 2);
         unsigned yesX = 160 - (textGetWidth(yt, ui::shared, 20) / 2);
@@ -144,7 +144,7 @@ namespace ui
                 holdCount = 0, loadFrame = 0, holdClrDiff = 0;
                 yesX = 160 - (textGetWidth(yt, ui::shared, 20) / 2);
                 yesText = yt;
-                holdClr = ui::txtClr;
+                holdClr = ui::txtDiag;
             }
             else if(down & KEY_A)
             {
@@ -167,10 +167,10 @@ namespace ui
 
             gfxBeginFrame();
             texDraw(diaBox, frameBuffer, 320, 150);
-            drawText("Confirm", frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtClr);
+            drawText("Confirm", frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
             drawText(yesText.c_str(), frameBuffer, ui::shared, 320 + yesX, 530, 20, holdClr);
-            drawText(nt, frameBuffer, ui::shared, 860    - noX, 530, 20, ui::txtClr);
-            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtClr, 576);
+            drawText(nt, frameBuffer, ui::shared, 860    - noX, 530, 20, ui::txtDiag);
+            drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);
             gfxEndFrame();
         }
 
@@ -264,6 +264,6 @@ namespace ui
         }
 
         drawTextbox(frameBuffer, popX, popY, popWidth, 64);
-        drawText(popText.c_str(), frameBuffer, ui::shared, popX + 16, popY + 20, 24, ui::txtClr);
+        drawText(popText.c_str(), frameBuffer, ui::shared, popX + 16, popY + 20, 24, ui::txtDiag);
     }
 }
