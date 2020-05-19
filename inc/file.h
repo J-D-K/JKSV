@@ -7,6 +7,7 @@
 #include <switch.h>
 #include <dirent.h>
 
+#include "fsfile.h"
 #include "data.h"
 
 namespace fs

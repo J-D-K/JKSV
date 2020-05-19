@@ -127,7 +127,8 @@ namespace data
     //Options
     bool incDev = false, autoBack = true, ovrClk = false, \
     holdDel = true, holdRest = true, holdOver = true, \
-    forceMount = true, accSysSave = false, sysSaveWrite = false;
+    forceMount = true, accSysSave = false, sysSaveWrite = false, \
+    directFsCmd = false;
 
     void init()
     {
@@ -510,6 +511,7 @@ namespace data
             data::accSysSave = cfgIn >> 56 & 1;
             data::sysSaveWrite = cfgIn >> 55 & 1;
             ui::textMode = cfgIn >> 54 & 1;
+            data::directFsCmd = cfgIn >> 53 & 1;
         }
     }
 
@@ -529,6 +531,7 @@ namespace data
         cfgOut |= (uint64_t)data::accSysSave << 56;
         cfgOut |= (uint64_t)data::sysSaveWrite << 55;
         cfgOut |= (uint64_t)ui::textMode << 54;
+        cfgOut |= (uint64_t)data::directFsCmd << 53;
         fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
         fclose(cfg);

@@ -25,7 +25,8 @@ static const std::string optHelpStrings[] =
     "When on, JKSV will only show save data that can be opened. When off, JKSV shows everything.",
     "Includes system save data tied to accounts.",
     "Controls whether or not system saves can be restored/overwritten. *THIS CAN BE EXTREMELY DANGEROUS*.",
-    "Changes the UI to a text menu based one like the 3DS version of JKSV."
+    "Changes the UI to a text menu based one like the 3DS version of JKSV.",
+    "Directly uses the Switch's FS commands to copy files instead of stdio."
 };
 
 static inline void switchBool(bool& sw)
@@ -483,6 +484,7 @@ namespace ui
         optMenu.addOpt("Account Sys Saves");
         optMenu.addOpt("Write to Sys Saves");
         optMenu.addOpt("Text UI Mode");
+        optMenu.addOpt("Direct FS");
     }
 
     void updateOptMenu(const uint64_t& down, const uint64_t& held)
@@ -500,6 +502,7 @@ namespace ui
         optMenu.editOpt(7, "Account Sys. Saves: " + getBoolText(data::accSysSave));
         optMenu.editOpt(8, "Write To Sys. Saves: " + getBoolText(data::sysSaveWrite));
         optMenu.editOpt(9, "Text UI Mode: " + getBoolText(ui::textMode));
+        optMenu.editOpt(10, "Direct FS Cmd: " + getBoolText(data::directFsCmd));
 
         if(down & KEY_A)
         {
@@ -543,6 +546,10 @@ namespace ui
 
                 case 9:
                     switchBool(ui::textMode);
+                    break;
+
+                case 10:
+                    switchBool(data::directFsCmd);
                     break;
             }
         }

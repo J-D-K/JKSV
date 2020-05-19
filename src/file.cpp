@@ -17,8 +17,7 @@
 
 static std::string wd;
 
-static FsFile logFile;
-static s64 offset = 0;
+static FSFILE *log;
 
 static struct
 {
@@ -84,6 +83,34 @@ static void copyfile_t(void *a)
     args->fin = true;
 }
 
+static void copyfileFS_t(void *a)
+{
+    copyArgs *args = (copyArgs *)a;
+
+    FSFILE *f = fsfopen(args->from.c_str(), FsOpenMode_Read);
+    FSFILE *t = fsfopen(args->to.c_str(), FsOpenMode_Write);
+    if(f == NULL || t == NULL)
+    {
+        fsfclose(f);
+        fsfclose(t);
+        args->fin = true;
+        return;
+    }
+
+    size_t read = 0;
+    unsigned char *buff = new unsigned char[BUFF_SIZE];
+    while((read = fsfread(buff, 1, BUFF_SIZE, f)))
+    {
+        fsfwrite(buff, 1, read, t);
+        *args->pos += read;
+    }
+    delete[] buff;
+    fsfclose(f);
+    fsfclose(t);
+
+    args->fin = true;
+}
+
 static void copyfileCommit_t(void *a)
 {
     copyArgs *args = (copyArgs *)a;
@@ -108,6 +135,36 @@ static void copyfileCommit_t(void *a)
     delete[] buff;
     fclose(f);
     fclose(t);
+
+    fsdevCommitDevice(args->dev.c_str());
+
+    args->fin = true;
+}
+
+static void copyfileCommitFS_t(void *a)
+{
+    copyArgs *args = (copyArgs *)a;
+
+    FSFILE *f = fsfopen(args->from.c_str(), FsOpenMode_Read);
+    FSFILE *t = fsfopen(args->to.c_str(), FsOpenMode_Write);
+    if(f == NULL || t == NULL)
+    {
+        fsfclose(f);
+        fsfclose(t);
+        args->fin = true;
+        return;
+    }
+
+    size_t read = 0;
+    unsigned char *buff = new unsigned char[BUFF_SIZE];
+    while((read = fsfread(buff, 1, BUFF_SIZE, f)))
+    {
+        fsfwrite(buff, 1, read, t);
+        *args->pos += read;
+    }
+    delete[] buff;
+    fsfclose(f);
+    fsfclose(t);
 
     fsdevCommitDevice(args->dev.c_str());
 
@@ -146,13 +203,12 @@ namespace fs
             mkdir("sdmc:/JKSV", 777);
             wd = "sdmc:/JKSV/";
         }
-        //to fix later
-        //logOpen();
+        fs::logOpen();
     }
 
     void exit()
     {
-        logClose();
+        fs::logClose();
     }
 
     bool mountSave(data::user& usr, data::titledata& open)
@@ -288,7 +344,10 @@ namespace fs
         Thread cpyThread;
         uint64_t gProg = 0;
         copyArgs *thr = copyArgsCreate(from, to, "", &gProg);
-        threadCreate(&cpyThread, copyfile_t, thr, NULL, 0x4000, 0x2B, 1);
+        if(data::directFsCmd)
+            threadCreate(&cpyThread, copyfileFS_t, thr, NULL, 0x4000, 0x2B, 1);
+        else
+            threadCreate(&cpyThread, copyfile_t, thr, NULL, 0x4000, 0x2B, 1);
 
         ui::progBar fileProg(fsize(from));
         threadStart(&cpyThread);
@@ -308,7 +367,10 @@ namespace fs
         Thread cpyThread;
         uint64_t gProg = 0;
         copyArgs *thr = copyArgsCreate(from, to, dev, &gProg);
-        threadCreate(&cpyThread, copyfileCommit_t, thr, NULL, 0x4000, 0x2B, 1);
+        if(data::directFsCmd)
+            threadCreate(&cpyThread, copyfileCommitFS_t, thr, NULL, 0x4000, 0x2B, 1);
+        else
+            threadCreate(&cpyThread, copyfileCommit_t, thr, NULL, 0x4000, 0x2B, 1);
 
         ui::progBar fileProg(fsize(from));
         threadStart(&cpyThread);
@@ -538,9 +600,7 @@ namespace fs
     {
         std::string logPath = wd + "log.txt";
         remove(logPath.c_str());
-        FsFileSystem *sd = fsdevGetDeviceFileSystem("sdmc");
-        fsFsCreateFile(sd, logPath.c_str(), 0, FsWriteOption_Flush);
-        fsFsOpenFile(sd, logPath.c_str(), FsOpenMode_Write, &logFile);
+        log = fsfopen(logPath.c_str(), FsOpenMode_Write);
     }
 
     void logWrite(const char *fmt, ...)
@@ -549,19 +609,11 @@ namespace fs
         va_list args;
         va_start(args, fmt);
         vsprintf(tmp, fmt, args);
-
-        unsigned tmpLength = strlen(tmp);
-        s64 curSize = 0;
-        fsFileGetSize(&logFile, &curSize);
-        curSize += tmpLength;
-        fsFileSetSize(&logFile, curSize);
-
-        fsFileWrite(&logFile, offset, tmp, tmpLength, FsWriteOption_Flush);
-        offset += tmpLength;
+        fsfwrite(tmp, 1, strlen(tmp), log);
     }
 
     void logClose()
     {
-        fsFileClose(&logFile);
+        fsfclose(log);
     }
 }

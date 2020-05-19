@@ -146,7 +146,7 @@ namespace data
     extern user      curUser;
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite;
+    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd;
 }
 
 #endif // DATA_H
