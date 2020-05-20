@@ -219,7 +219,7 @@ namespace fs
         switch(open.getType())
         {
             case FsSaveDataType_System:
-                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID128() == 1 ? (AccountUid){ 0 } : usr.getUID());
+                svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID128() == 1 ? (AccountUid) { 0 } : usr.getUID());
                 break;
 
             case FsSaveDataType_Account:
@@ -441,6 +441,14 @@ namespace fs
         }
     }
 
+    void delfile(const std::string& path)
+    {
+        if(data::directFsCmd)
+            fsremove(path.c_str());
+        else
+            remove(path.c_str());
+    }
+
     void delDir(const std::string& path)
     {
         dirList list(path);
@@ -460,7 +468,6 @@ namespace fs
                 std::remove(delPath.c_str());
             }
         }
-
         rmdir(path.c_str());
     }
 

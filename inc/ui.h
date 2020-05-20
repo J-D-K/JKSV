@@ -41,9 +41,9 @@ namespace ui
     extern std::string folderMenuInfo;
 
     //Strings since translation support soonish
-    extern std::string userHelp, titleHelp, folderHelp, optHelp;
-    extern std::string confBlackList, confOverwrite, confRestore, confDel, confCopy;
-    extern std::string confEraseNand, confEraseFolder;
+    extern std::string userHelp, titleHelp, folderHelp, optHelp, \
+    confBlackList, confOverwrite, confRestore, confDel, confCopy, \
+    confEraseNand, confEraseFolder, yt, nt;
 
     /*Colors
         clearClr = color to clear buffer
@@ -69,6 +69,9 @@ namespace ui
     //Loads graphics and stuff
     void init();
     void exit();
+
+    //Just draws a screen and flips JIC boot takes long.
+    void showLoadScreen();
 
     //Clears and draws general stuff used by multiple screens
     void drawUI();

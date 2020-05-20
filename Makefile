@@ -38,8 +38,9 @@ INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  05.15.2020
+APP_VERSION :=  05.19.2020
 ROMFS	    :=	romfs
+ICON		:= romfs/icon.jpg
 
 #---------------------------------------------------------------------------------
 # options for code generation
@@ -51,7 +52,7 @@ override CFLAGS	+=	-g -Wall -O2 -ffunction-sections \
 
 override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
 
-CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++11
+CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)

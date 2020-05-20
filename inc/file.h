@@ -28,6 +28,8 @@ namespace fs
     //Same as above, but commits data to 'dev' after every file is closed
     void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
 
+    //deletes file
+    void delfile(const std::string& path);
     //Recursively deletes 'path'
     void delDir(const std::string& path);
 

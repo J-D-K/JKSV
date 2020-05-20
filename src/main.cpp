@@ -44,6 +44,7 @@ int main(int argc, const char *argv[])
     fs::init();
     graphicsInit(1280, 720);
     ui::initTheme();
+    ui::showLoadScreen();
     data::init();
     ui::init();
     //Reset cpu

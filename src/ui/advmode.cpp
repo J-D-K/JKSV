@@ -287,9 +287,7 @@ void performCopyMenuOps()
                                     fullPath += "/";
 
                                     fs::getDirProps(fullPath, dirCnt, fileCnt, fileSize);
-                                    char mess[256];
-                                    sprintf(mess, "#%s#:\n%u Folders\n%u Files\nTotal Size: %.2fMB", fullPath.c_str(), dirCnt, fileCnt, (float)((float)fileSize / 1024 / 1024));
-                                    ui::showMessage("Folder Properties", mess);
+                                    ui::showMessage("Folder Properties", "#%s#:\n%u Folders\n%u Files\nTotal Size: %.2fMB", fullPath.c_str(), dirCnt, fileCnt, (float)((float)fileSize / 1024.0f / 1024.0f));
                                 }
                                 else
                                 {
@@ -314,9 +312,7 @@ void performCopyMenuOps()
                                     fullPath += "/";
 
                                     fs::getDirProps(fullPath, dirCnt, fileCnt, fileSize);
-                                    char mess[256];
-                                    sprintf(mess, "#%s#:\n%u Folders\n%u Files\nTotal Size: %.2fMB", fullPath.c_str(), dirCnt, fileCnt, (float)((float)fileSize / 1024 / 1024));
-                                    ui::showMessage(mess, "Folder Props");
+                                    ui::showMessage("Folder Properties", "#%s#:\n%u Folders\n%u Files\nTotal Size: %.2fMB", fullPath.c_str(), dirCnt, fileCnt, (float)((float)fileSize / 1024.0f / 1024.0f));
                                 }
                                 else
                                 {

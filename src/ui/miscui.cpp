@@ -9,7 +9,7 @@
 
 static bool popDraw = false;
 static std::string popText;
-static const char *yt = "Yes \ue0e0", *nt = "No \ue0e1", *okt = "OK \ue0e0";
+static const char *okt = "OK \ue0e0";
 static unsigned popY, popX, popWidth, popState, frameCount, frameHold;
 
 enum popStates
@@ -56,7 +56,7 @@ namespace ui
         //fake focus
         drawRectAlpha(frameBuffer, 0, 0, 1280, 720, clrCreateU32(0xAA0D0D0D));
 
-        char tmp[512];
+        char tmp[1024];
         va_list args;
         va_start(args, fmt);
         vsprintf(tmp, fmt, args);
@@ -87,7 +87,7 @@ namespace ui
         //fake focus
         drawRectAlpha(frameBuffer, 0, 0, 1280, 720, clrCreateU32(0xAA0D0D0D));
 
-        char tmp[512];
+        char tmp[1024];
         va_list args;
         va_start(args, fmt);
         vsprintf(tmp, fmt, args);
@@ -98,8 +98,8 @@ namespace ui
         clr holdClr = ui::txtDiag;
 
         unsigned headX = (640 / 2) - (textGetWidth("Confirm", ui::shared, 20) / 2);
-        unsigned yesX = 160 - (textGetWidth(yt, ui::shared, 20) / 2);
-        unsigned noX = 160 - (textGetWidth(nt, ui::shared, 20) / 2);
+        unsigned yesX = 160 - (textGetWidth(ui::yt.c_str(), ui::shared, 20) / 2);
+        unsigned noX = 160 - (textGetWidth(ui::nt.c_str(), ui::shared, 20) / 2);
 
         std::string yesText = yt;
 
@@ -142,8 +142,8 @@ namespace ui
                 //Reset everything
                 heldDown= false;
                 holdCount = 0, loadFrame = 0, holdClrDiff = 0;
-                yesX = 160 - (textGetWidth(yt, ui::shared, 20) / 2);
-                yesText = yt;
+                yesX = 160 - (textGetWidth(ui::yt.c_str(), ui::shared, 20) / 2);
+                yesText = ui::yt;
                 holdClr = ui::txtDiag;
             }
             else if(down & KEY_A)
@@ -169,11 +169,10 @@ namespace ui
             texDraw(diaBox, frameBuffer, 320, 150);
             drawText("Confirm", frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
             drawText(yesText.c_str(), frameBuffer, ui::shared, 320 + yesX, 530, 20, holdClr);
-            drawText(nt, frameBuffer, ui::shared, 860    - noX, 530, 20, ui::txtDiag);
+            drawText(ui::nt.c_str(), frameBuffer, ui::shared, 860 - noX, 530, 20, ui::txtDiag);
             drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);
             gfxEndFrame();
         }
-
         return ret;
     }
 

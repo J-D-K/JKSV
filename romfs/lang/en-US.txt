@@ -18,6 +18,10 @@ NULL
 #Options Menu
 [A] Toggle   [B] Back
 
+#Button prompts.
+Yes [A]
+No  [B]
+
 #Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names.
 #Confirm blacklist.
 Are you sure you want to add #%s# to your blacklist?

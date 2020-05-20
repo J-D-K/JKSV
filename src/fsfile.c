@@ -31,6 +31,27 @@ static char *getFilePath(char *pathOut, size_t _max, const char *path)
     return pathOut;
 }
 
+int fsremove(const char *_p)
+{
+    char devStr[16];
+    char path[FS_MAX_PATH];
+    if(!getDeviceFromPath(devStr, 16, _p) || !getFilePath(path, FS_MAX_PATH, _p))
+        return -1;
+
+    Result res = fsFsDeleteFile(fsdevGetDeviceFileSystem(devStr), path);
+    return res;
+}
+
+Result fsDelDirRec(const char *_p)
+{
+    char devStr[16];
+    char path[FS_MAX_PATH];
+    if(!getDeviceFromPath(devStr, 16, _p) || ! getFilePath(path, FS_MAX_PATH, _p))
+        return 1;
+
+    return fsFsDeleteDirectoryRecursively(fsdevGetDeviceFileSystem(devStr), path);
+}
+
 FSFILE *fsfopen(const char *_p, uint32_t mode)
 {
     char devStr[16];
@@ -121,6 +142,12 @@ size_t fsftell(FSFILE *_f)
 size_t fsfwrite(const void *buf, size_t sz, size_t count, FSFILE *_f)
 {
     size_t fullSize = sz * count;
+    if(_f->offset + fullSize > _f->fsize)
+    {
+        s64 newSize = (_f->fsize + fullSize) - (_f->fsize - _f->offset);
+        fsFileSetSize(&_f->_f, newSize);
+        _f->fsize = newSize;
+    }
     _f->error = fsFileWrite(&_f->_f, _f->offset, buf, fullSize, FsWriteOption_Flush);
     _f->offset += fullSize;
 

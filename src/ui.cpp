@@ -17,9 +17,9 @@
 static tex *top, *bot, *usrGuide, *ttlGuide, *fldrGuide, *optGuide;
 
 //Ui text strings
-std::string author, ui::userHelp, ui::titleHelp, ui::folderHelp, ui::optHelp;
-std::string ui::confBlackList, ui::confOverwrite, ui::confRestore, ui::confDel, ui::confCopy;
-std::string ui::confEraseNand, ui::confEraseFolder;
+std::string author, ui::userHelp, ui::titleHelp, ui::folderHelp, ui::optHelp, \
+ui::confBlackList, ui::confOverwrite, ui::confRestore, ui::confDel, ui::confCopy, \
+ui::confEraseNand, ui::confEraseFolder, ui::yt, ui::nt;
 
 //X position of help texts. Calculated to make editing quicker/easier
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
@@ -49,6 +49,8 @@ static void loadTrans()
     ui::titleHelp = lang.getNextLine();
     ui::folderHelp = lang.getNextLine();
     ui::optHelp = lang.getNextLine();
+    ui::yt = lang.getNextLine();
+    ui::nt = lang.getNextLine();
     ui::confBlackList = lang.getNextLine();
     ui::confOverwrite = lang.getNextLine();
     ui::confRestore = lang.getNextLine();
@@ -190,10 +192,12 @@ namespace ui
         drawTextbox(diaBox, 0, 0, 640, 420);
         drawRect(diaBox, 0, 56, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
 
-        util::replaceButtonsInString(userHelp);
-        util::replaceButtonsInString(titleHelp);
-        util::replaceButtonsInString(folderHelp);
-        util::replaceButtonsInString(optHelp);
+        util::replaceButtonsInString(ui::userHelp);
+        util::replaceButtonsInString(ui::titleHelp);
+        util::replaceButtonsInString(ui::folderHelp);
+        util::replaceButtonsInString(ui::optHelp);
+        util::replaceButtonsInString(ui::yt);
+        util::replaceButtonsInString(ui::nt);
 
         //Create graphics to hold guides
         usrGuide = texCreate(textGetWidth(userHelp.c_str(), ui::shared, 18), 28);
@@ -248,6 +252,17 @@ namespace ui
         texDestroy(diaBox);
 
         fontDestroy(shared);
+    }
+
+    void showLoadScreen()
+    {
+        tex *icn = texLoadJPEGFile("romfs:/icon.jpg");
+        gfxBeginFrame();
+        texClearColor(frameBuffer, clrCreateU32(0xFF2D2D2D));
+        texDrawNoAlpha(icn, frameBuffer, 512, 232);
+        drawText("Loading...", frameBuffer, ui::shared, 1100, 673, 16, clrCreateU32(0xFFFFFFFF));
+        gfxEndFrame();
+        texDestroy(icn);
     }
 
     void drawUI()
