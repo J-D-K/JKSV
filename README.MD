@@ -2,7 +2,7 @@
 
 Data Dump/Restore tool for Switch.
 
-<img width="640" src="https://i.imgur.com/3hAVzkQ.jpg"/>
+<img src="https://i.imgur.com/3hAVzkQ.jpg"/>
 
 ## Info
 JKSV on Switch started as a small project/port to test some things and get familiar with libnx. A list of what it currently can do:
