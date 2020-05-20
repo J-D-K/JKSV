@@ -26,7 +26,8 @@ static const std::string optHelpStrings[] =
     "Includes system save data tied to accounts.",
     "Controls whether or not system saves can be restored/overwritten. *THIS CAN BE EXTREMELY DANGEROUS*.",
     "Changes the UI to a text menu based one like the 3DS version of JKSV.",
-    "Directly uses the Switch's FS commands to copy files instead of stdio."
+    "Directly uses the Switch's FS commands to copy files instead of stdio.",
+    "Skips the user selection screen and jumps straight the first account's titles."
 };
 
 static inline void switchBool(bool& sw)
@@ -216,10 +217,11 @@ namespace ui
                         util::getDateTime(util::DATE_FMT_YDM),
                         util::getDateTime(util::DATE_FMT_HOYSTE),
                         util::getDateTime(util::DATE_FMT_JHK),
+                        util::getDateTime(util::DATE_FMT_ASC),
                         data::curUser.getUsernameSafe().c_str(),
                         data::curData.getTitle().length() < 24 ? data::curData.getTitleSafe() : util::generateAbbrev(data::curData)
                     };
-                    folder = util::getStringInput("", "New Folder", 64, 6, dict);
+                    folder = util::getStringInput("", "New Folder", 64, 7, dict);
                 }
                 if(!folder.empty())
                 {
@@ -262,7 +264,7 @@ namespace ui
                 {
                     if(data::autoBack)
                     {
-                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_ASC);
                         mkdir(autoFolder.c_str(), 777);
                         autoFolder += "/";
 
@@ -485,6 +487,7 @@ namespace ui
         optMenu.addOpt("Write to Sys Saves");
         optMenu.addOpt("Text UI Mode");
         optMenu.addOpt("Direct FS");
+        optMenu.addOpt("Skip User");
     }
 
     void updateOptMenu(const uint64_t& down, const uint64_t& held)
@@ -503,6 +506,7 @@ namespace ui
         optMenu.editOpt(8, "Write To Sys. Saves: " + getBoolText(data::sysSaveWrite));
         optMenu.editOpt(9, "Text UI Mode: " + getBoolText(ui::textMode));
         optMenu.editOpt(10, "Direct FS Cmd: " + getBoolText(data::directFsCmd));
+        optMenu.editOpt(11, "Skip User Menu: " + getBoolText(data::skipUser));
 
         if(down & KEY_A)
         {
@@ -550,6 +554,10 @@ namespace ui
 
                 case 10:
                     switchBool(data::directFsCmd);
+                    break;
+
+                case 11:
+                    switchBool(data::skipUser);
                     break;
             }
         }

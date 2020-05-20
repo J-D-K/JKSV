@@ -485,7 +485,7 @@ namespace fs
                 u.titles[i].createDir();
 
                 //sdmc:/JKSV/[title]/[user] - [date]/
-                std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_ASC);
                 mkdir(outPath.c_str(), 777);
                 outPath += "/";
 

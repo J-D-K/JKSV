@@ -56,10 +56,11 @@ namespace ui
                         util::getDateTime(util::DATE_FMT_YDM),
                         util::getDateTime(util::DATE_FMT_HOYSTE),
                         util::getDateTime(util::DATE_FMT_JHK),
+                        util::getDateTime(util::DATE_FMT_ASC),
                         data::curUser.getUsernameSafe().c_str(),
                         data::curData.getTitle().length() < 24 ? data::curData.getTitleSafe() : util::generateAbbrev(data::curData)
                     };
-                    folder = util::getStringInput("", "Enter a folder name", 64, 6, dict);
+                    folder = util::getStringInput("", "Enter a folder name", 64, 7, dict);
                 }
                 if(!folder.empty())
                 {
@@ -102,7 +103,7 @@ namespace ui
                 {
                     if(data::autoBack)
                     {
-                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_ASC);
                         mkdir(autoFolder.c_str(), 777);
                         autoFolder += "/";
 

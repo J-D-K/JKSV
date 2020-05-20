@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.19.2020"
+#define VER_STRING "v. 05.20.2020"
 
 //Don't waste time drawing top and bottom over and over
 //guide graphics are to save cpu drawing that over and over with alpha
@@ -165,10 +165,17 @@ namespace ui
         top = texCreate(1280, 88);
         bot = texCreate(1280, 72);
         diaBox = texCreate(640, 420);
-        texClearColor(diaBox, clrCreateU32(0x00000000));
 
-        if(ui::textMode)
+        if(ui::textMode && data::skipUser)
+        {
+            ui::textTitlePrep(data::curUser);
+            mstate = TXT_TTL;
+        }
+        else if(ui::textMode)
             mstate = TXT_USR;
+        else if(data::skipUser)
+            mstate = TTL_SEL;
+
 
         loadTrans();
         textUserPrep();

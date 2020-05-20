@@ -13,7 +13,8 @@ namespace util
         DATE_FMT_YMD,
         DATE_FMT_YDM,
         DATE_FMT_HOYSTE,
-        DATE_FMT_JHK
+        DATE_FMT_JHK,
+        DATE_FMT_ASC
     };
 
     //Returns string with date S+ time

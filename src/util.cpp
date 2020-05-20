@@ -69,11 +69,21 @@ static inline void replaceStr(std::string& _str, const std::string& _find, const
         _str.replace(pos, _find.length(), _rep);
 }
 
+static inline void replaceCharCStr(char *_s, char _find, char _rep)
+{
+    size_t strLength = strlen(_s);
+    for(unsigned i = 0; i < strLength; i++)
+    {
+        if(_s[i] == _find)
+            _s[i] = _rep;
+    }
+}
+
 namespace util
 {
     std::string getDateTime(int fmt)
     {
-        char ret[64];
+        char ret[128];
 
         time_t raw;
         time(&raw);
@@ -95,6 +105,12 @@ namespace util
 
             case DATE_FMT_JHK:
                 sprintf(ret, "%04d%02d%02d_%02d%02d", Time->tm_year + 1900, Time->tm_mon + 1, Time->tm_mday, Time->tm_hour, Time->tm_min);
+                break;
+
+            case DATE_FMT_ASC:
+                strcpy(ret, asctime(Time));
+                replaceCharCStr(ret, ':', '_');
+                replaceCharCStr(ret, '\n', 0x00);
                 break;
         }
 

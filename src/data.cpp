@@ -128,7 +128,7 @@ namespace data
     bool incDev = false, autoBack = true, ovrClk = false, \
     holdDel = true, holdRest = true, holdOver = true, \
     forceMount = true, accSysSave = false, sysSaveWrite = false, \
-    directFsCmd = false;
+    directFsCmd = false, skipUser = false;
 
     void init()
     {
@@ -512,6 +512,7 @@ namespace data
             data::sysSaveWrite = cfgIn >> 55 & 1;
             ui::textMode = cfgIn >> 54 & 1;
             data::directFsCmd = cfgIn >> 53 & 1;
+            data::skipUser = cfgIn >> 52 & 1;
         }
     }
 
@@ -532,6 +533,7 @@ namespace data
         cfgOut |= (uint64_t)data::sysSaveWrite << 55;
         cfgOut |= (uint64_t)ui::textMode << 54;
         cfgOut |= (uint64_t)data::directFsCmd << 53;
+        cfgOut |= (uint64_t)data::skipUser << 52;
         fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
         fclose(cfg);
