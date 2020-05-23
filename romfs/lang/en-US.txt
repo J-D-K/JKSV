@@ -1,45 +1,86 @@
-#This file's strings must be kept in this order. Lines starting with '#' will be ignored.
-#Not sure yet if the whole thing needs to be translated or just important things
 #Button strings [X] are replaced by JKSV at boot.
-
+#string = set string to this.
 #Translation author. Displayed in UI. NULL is ignored and not displayed.
-NULL
+author = NULL
 
 #Help/Guide strings on bottom
 #User Select
-[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras
+userHelp = [A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras
 
 #Title Select
-[A] Select   [L][R] Change User   [Y] Dump All   [-] Favorite   [X] BlackList   [ZR] Erase   [B] Back
+titleHelp = [A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back
 
 #Folder Select
-[-] File Mode  [L][R] Auto [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase [B] Back
+folderHelp = [-] File Mode  [L][R] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back
 
 #Options Menu
-[A] Toggle   [B] Back
+optHelp = [A] Toggle   [B] Back
 
 #Button prompts.
-Yes [A]
-No  [B]
+yt = Yes [A]
+nt = No  [B]
+
+#On/Off for options. '>' is used to change color to green.
+on = >On>
+off = Off
 
 #Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names.
 #Confirm blacklist.
-Are you sure you want to add #%s# to your blacklist?
+confirmBlacklist = Are you sure you want to add #%s# to your blacklist?
 
 #Confirm overwriting folder
-Are you sure you want to overwrite #%s#?
+confirmOverwrite = Are you sure you want to overwrite #%s#?
 
 #Confirm restoring save
-Are you sure you want to restore #%s#?
+confirmRestore = Are you sure you want to restore #%s#?
 
 #Confirm deleting.
-Are you sure you want to delete #%s#? *This is permanent*!
+confirmDelete = Are you sure you want to delete #%s#? *This is permanent*!
 
 #Confirm file copy in file mode
-Are you sure you want to copy #%s# to #%s#?
+confirmCopy = Are you sure you want to copy #%s# to #%s#?
 
 #Warning for erasing save data from system in title menu
-*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?
+confirmEraseNand = *WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?
 
 #Warning for deleting save data in folder menu
-*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?
+confirmEraseFolder = *WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?
+
+#Menu options are held in arrays of strings.
+#The number is the option to set, string is what to set to.
+#Only the string after the comma needs to be edited.
+#Adv/file mode menu
+#'Copy to ' NEEDS a trailing space
+advMenu = 0, Copy to 
+advMenu = 1, Delete
+advMenu = 2, Rename
+advMenu = 3, Make Dir
+advMenu = 4, Properties
+advMenu = 5, Close
+
+#Extras Menu
+extMenu = 0, SD to SD Browser
+extMenu = 1, BIS: PRODINFOF
+extMenu = 2, BIS: SAFE
+extMenu = 3, BIS: SYSTEM
+extMenu = 4, BIS: USER
+extMenu = 5, Remove Update
+extMenu = 6, Terminate Process
+extMenu = 7, Mount System Save
+extMenu = 8, Rescan Titles
+extMenu = 9, Process RomFS
+
+#Options menu
+#This is always last and all need a trailing space. It is the most likely to have things added to it.
+optMenu = 0, Include Dev Sv: 
+optMenu = 1, AutoBackup: 
+optMenu = 2, Overclock: 
+optMenu = 3, Hold to Delete: 
+optMenu = 4, Hold to Restore: 
+optMenu = 5, Hold to Overwrite: 
+optMenu = 6, Force Mount: 
+optMenu = 7, Account Sys. Saves: 
+optMenu = 8, Write to Sys. Saves:
+optMenu = 9, Text UI Mode: 
+optMenu = 10, Direct FS Cmd: 
+optMenu = 11, Skip User Select: 

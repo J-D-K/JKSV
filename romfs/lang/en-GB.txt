@@ -1,0 +1,2 @@
+#British English translation file
+#Copy en-US.txt here and add a bunch of u's where they don't belong.

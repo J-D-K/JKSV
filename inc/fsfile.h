@@ -23,6 +23,9 @@ typedef struct
 int fsremove(const char *_p);
 Result fsDelDirRec(const char *_p);
 
+char *getDeviceFromPath(char *dev, size_t _max, const char *path);
+char *getFilePath(char *pathOut, size_t _max, const char *path);
+
 /*Opens file. Device is fetched from path. Libnx romfs doesn't work with this.
 Mode needs to be:
     FsOpenMode_Read

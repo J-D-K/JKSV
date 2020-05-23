@@ -90,11 +90,19 @@ namespace fs
 
             bool isOpen() { return opened; }
 
-            //Gets next good line. Returns empty string if no more.
-            std::string getNextLine();
+            bool readNextLine(bool proc);
+            //Finds where variable name ends. When a '(' or '=' is hit. Strips spaces
+            void procLine();
+            std::string getLine() { return line; }
+            std::string getName() { return name; }
+            //Reads until ';', ',', or '\n' is hit and returns as string.
+            std::string getNextValueStr();
+            int getNextValueInt();
 
         private:
             FILE *f;
+            std::string line, name;
+            size_t lPos = 0;
             bool opened = false;
     };
 

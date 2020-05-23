@@ -1,0 +1,2 @@
+#Canadian French translation file
+#Copy en-US.txt here and use as a guide.

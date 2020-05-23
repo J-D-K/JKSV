@@ -40,10 +40,17 @@ namespace ui
     //Both UI modes need access to this
     extern std::string folderMenuInfo;
 
-    //Strings since translation support soonish
+    //Strings since translation support
     extern std::string userHelp, titleHelp, folderHelp, optHelp, \
-    confBlackList, confOverwrite, confRestore, confDel, confCopy, \
-    confEraseNand, confEraseFolder, yt, nt;
+    confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
+    confEraseNand, confEraseFolder, yt, nt, on, off;
+
+    //Strings for file mode menu
+    extern std::string advMenuStr[6];
+    //Strings for extras menu
+    extern std::string exMenuStr[10];
+    //Strings for options menu
+    extern std::string optMenuStr[12];
 
     /*Colors
         clearClr = color to clear buffer
@@ -81,6 +88,12 @@ namespace ui
 
     //switch case so we don't have problems with multiple main loops like 3DS
     void runApp(const uint64_t& down, const uint64_t& held);
+
+    //These are shared by both folder menus
+    void createNewBackup(const uint64_t& held);
+    void overwriteBackup(unsigned ind);
+    void restoreBackup(unsigned ind);
+    void deleteBackup(unsigned ind);
 }
 
 #endif

@@ -3,22 +3,6 @@
 
 #include "gfx.h"
 
-enum buttonEvents
-{
-    BUTTON_NOTHING,
-    BUTTON_PRESSED,
-    BUTTON_RELEASED
-};
-
-enum trackEvents
-{
-    TRACK_NOTHING,
-    TRACK_SWIPE_UP,
-    TRACK_SWIPE_DOWN,
-    TRACK_SWIPE_LEFT,
-    TRACK_SWIPE_RIGHT
-};
-
 #define POP_FRAME_DEFAULT 130
 
 //For smaller classes that aren't easy to get lost in and general functions

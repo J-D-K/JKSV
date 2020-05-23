@@ -1,0 +1,2 @@
+#Latin American Spanish translation file
+#Copy en-US.txt here and use as a guide.

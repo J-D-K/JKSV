@@ -341,189 +341,184 @@ void performCopyMenuOps()
     util::copyDirListToMenu(saveList, saveMenu);
 }
 
-namespace ui
+
+void ui::advCopyMenuPrep()
 {
-    void advCopyMenuPrep()
+    for(unsigned i = 0; i < 6; i++)
+        copyMenu.addOpt(ui::advMenuStr[i]);
+}
+
+void ui::advModePrep(const std::string& svDev, bool commitOnWrite)
+{
+    commit = commitOnWrite;
+    saveMenu.setParams(30, 98, 602);
+    sdMenu.setParams(648, 98, 602);
+    copyMenu.setParams(472, 278, 304);
+
+    savePath = svDev, dev = svDev;
+    sdPath   = "sdmc:/";
+
+    saveList.reassign(savePath);
+    sdList.reassign(sdPath);
+
+    util::copyDirListToMenu(saveList, saveMenu);
+    util::copyDirListToMenu(sdList, sdMenu);
+
+    advMenuCtrl = 0;
+}
+
+void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
+{
+    //0 = save; 1 = sd; 2 = cpy
+    switch(advMenuCtrl)
     {
-        copyMenu.addOpt("Copy From");
-        copyMenu.addOpt("Delete");
-        copyMenu.addOpt("Rename");
-        copyMenu.addOpt("Make Dir");
-        copyMenu.addOpt("Properties");
-        copyMenu.addOpt("Back");
+        case 0:
+            saveMenu.handleInput(down, held);
+            break;
+
+        case 1:
+            sdMenu.handleInput(down, held);
+            break;
+
+        case 2:
+            copyMenu.handleInput(down, held);
+            break;
     }
 
-    void advModePrep(const std::string& svDev, bool commitOnWrite)
+    saveMenu.draw(ui::txtCont);
+    sdMenu.draw(ui::txtCont);
+
+    drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, ui::txtCont, 600);
+    drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, ui::txtCont, 600);
+
+    //OH BOY HERE WE GO
+    if(down & KEY_A)
     {
-        commit = commitOnWrite;
-        saveMenu.setParams(30, 98, 602);
-        sdMenu.setParams(648, 98, 602);
-        copyMenu.setParams(472, 278, 304);
-
-        savePath = svDev, dev = svDev;
-        sdPath   = "sdmc:/";
-
-        saveList.reassign(savePath);
-        sdList.reassign(sdPath);
-
-        util::copyDirListToMenu(saveList, saveMenu);
-        util::copyDirListToMenu(sdList, sdMenu);
-
-        advMenuCtrl = 0;
-    }
-
-    void updateAdvMode(const uint64_t& down, const uint64_t& held)
-    {
-        //0 = save; 1 = sd; 2 = cpy
         switch(advMenuCtrl)
         {
+            //save
             case 0:
-                saveMenu.handleInput(down, held);
+                {
+                    int saveSel = saveMenu.getSelected();
+                    if(saveSel == 1 && savePath != dev)
+                    {
+                        util::removeLastFolderFromString(savePath);
+
+                        saveList.reassign(savePath);
+                        util::copyDirListToMenu(saveList, saveMenu);
+                    }
+                    else if(saveSel > 1 && saveList.isDir(saveSel - 2))
+                    {
+                        savePath += saveList.getItem(saveSel - 2) + "/";
+
+                        saveList.reassign(savePath);
+                        util::copyDirListToMenu(saveList, saveMenu);
+                    }
+                }
+                break;
+
+            //sd
+            case 1:
+                {
+                    int sdSel = sdMenu.getSelected();
+                    if(sdSel == 1 && sdPath != "sdmc:/")
+                    {
+                        util::removeLastFolderFromString(sdPath);
+
+                        sdList.reassign(sdPath);
+                        util::copyDirListToMenu(sdList, sdMenu);
+                    }
+                    else if(sdSel > 1 && sdList.isDir(sdSel - 2))
+                    {
+                        sdPath += sdList.getItem(sdSel - 2) + "/";
+
+                        sdList.reassign(sdPath);
+                        util::copyDirListToMenu(sdList, sdMenu);
+                    }
+                }
+                break;
+
+            //advanced mode
+            case 2:
+                performCopyMenuOps();
+                break;
+        }
+    }
+    else if(down & KEY_B)
+    {
+        //save
+        if(advMenuCtrl == 0 && savePath != dev)
+        {
+            util::removeLastFolderFromString(savePath);
+
+            saveList.reassign(savePath);
+            util::copyDirListToMenu(saveList, saveMenu);
+        }
+        //sd
+        else if(advMenuCtrl == 1 && sdPath != "sdmc:/")
+        {
+            util::removeLastFolderFromString(sdPath);
+
+            sdList.reassign(sdPath);
+            util::copyDirListToMenu(sdList, sdMenu);
+        }
+        else if(advMenuCtrl == 2)
+            advMenuCtrl = advPrev;
+    }
+    else if(down & KEY_X)
+    {
+        if(advMenuCtrl == 2)
+        {
+            advMenuCtrl = advPrev;
+        }
+        else
+        {
+            advPrev = advMenuCtrl;
+            advMenuCtrl = 2;
+        }
+    }
+    else if(down & KEY_ZL || down & KEY_ZR)
+    {
+        if(advMenuCtrl == 0 || advMenuCtrl == 1)
+        {
+            if(advMenuCtrl == 0)
+                advMenuCtrl = 1;
+            else
+                advMenuCtrl = 0;
+        }
+    }
+    else if(down & KEY_MINUS)
+    {
+        if(prevState == EX_MNU)
+            mstate = EX_MNU;
+        else if(prevState == TTL_SEL)
+            mstate = TTL_SEL;
+        else if(ui::textMode)
+            mstate = TXT_FLD;
+        else
+            mstate = FLD_SEL;
+    }
+
+    //draw copy menu if it's supposed to be up
+    if(advMenuCtrl == 2)
+    {
+        switch(advPrev)
+        {
+            case 0:
+                copyMenu.setParams(176, 278, 304);
+                copyMenu.editOpt(0, advMenuStr[0] + "sdmc");
+                ui::drawTextbox(frameBuffer, 168, 236, 320, 268);
+                drawText("SAVE", frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
                 break;
 
             case 1:
-                sdMenu.handleInput(down, held);
+                copyMenu.setParams(816, 278, 304);
+                copyMenu.editOpt(0, advMenuStr[0] + dev);
+                ui::drawTextbox(frameBuffer, 808, 236, 320, 268);
+                drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, ui::txtDiag);
                 break;
-
-            case 2:
-                copyMenu.handleInput(down, held);
-                break;
         }
-
-        saveMenu.draw(ui::txtCont);
-        sdMenu.draw(ui::txtCont);
-
-        drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, ui::txtCont, 600);
-        drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, ui::txtCont, 600);
-
-        //OH BOY HERE WE GO
-        if(down & KEY_A)
-        {
-            switch(advMenuCtrl)
-            {
-                //save
-                case 0:
-                    {
-                        int saveSel = saveMenu.getSelected();
-                        if(saveSel == 1 && savePath != dev)
-                        {
-                            util::removeLastFolderFromString(savePath);
-
-                            saveList.reassign(savePath);
-                            util::copyDirListToMenu(saveList, saveMenu);
-                        }
-                        else if(saveSel > 1 && saveList.isDir(saveSel - 2))
-                        {
-                            savePath += saveList.getItem(saveSel - 2) + "/";
-
-                            saveList.reassign(savePath);
-                            util::copyDirListToMenu(saveList, saveMenu);
-                        }
-                    }
-                    break;
-
-                //sd
-                case 1:
-                    {
-                        int sdSel = sdMenu.getSelected();
-                        if(sdSel == 1 && sdPath != "sdmc:/")
-                        {
-                            util::removeLastFolderFromString(sdPath);
-
-                            sdList.reassign(sdPath);
-                            util::copyDirListToMenu(sdList, sdMenu);
-                        }
-                        else if(sdSel > 1 && sdList.isDir(sdSel - 2))
-                        {
-                            sdPath += sdList.getItem(sdSel - 2) + "/";
-
-                            sdList.reassign(sdPath);
-                            util::copyDirListToMenu(sdList, sdMenu);
-                        }
-                    }
-                    break;
-
-                //advanced mode
-                case 2:
-                    performCopyMenuOps();
-                    break;
-            }
-        }
-        else if(down & KEY_B)
-        {
-            //save
-            if(advMenuCtrl == 0 && savePath != dev)
-            {
-                util::removeLastFolderFromString(savePath);
-
-                saveList.reassign(savePath);
-                util::copyDirListToMenu(saveList, saveMenu);
-            }
-            //sd
-            else if(advMenuCtrl == 1 && sdPath != "sdmc:/")
-            {
-                util::removeLastFolderFromString(sdPath);
-
-                sdList.reassign(sdPath);
-                util::copyDirListToMenu(sdList, sdMenu);
-            }
-            else if(advMenuCtrl == 2)
-                advMenuCtrl = advPrev;
-        }
-        else if(down & KEY_X)
-        {
-            if(advMenuCtrl == 2)
-            {
-                advMenuCtrl = advPrev;
-            }
-            else
-            {
-                advPrev = advMenuCtrl;
-                advMenuCtrl = 2;
-            }
-        }
-        else if(down & KEY_ZL || down & KEY_ZR)
-        {
-            if(advMenuCtrl == 0 || advMenuCtrl == 1)
-            {
-                if(advMenuCtrl == 0)
-                    advMenuCtrl = 1;
-                else
-                    advMenuCtrl = 0;
-            }
-        }
-        else if(down & KEY_MINUS)
-        {
-            if(prevState == EX_MNU)
-                mstate = EX_MNU;
-            else if(prevState == TTL_SEL)
-                mstate = TTL_SEL;
-            else if(ui::textMode)
-                mstate = TXT_FLD;
-            else
-                mstate = FLD_SEL;
-        }
-
-        //draw copy menu if it's supposed to be up
-        if(advMenuCtrl == 2)
-        {
-            switch(advPrev)
-            {
-                case 0:
-                    copyMenu.setParams(176, 278, 304);
-                    copyMenu.editOpt(0, "Copy to SD");
-                    ui::drawTextbox(frameBuffer, 168, 236, 320, 268);
-                    drawText("SAVE", frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
-                    break;
-
-                case 1:
-                    copyMenu.setParams(816, 278, 304);
-                    copyMenu.editOpt(0, "Copy to Save");
-                    ui::drawTextbox(frameBuffer, 808, 236, 320, 268);
-                    drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, ui::txtDiag);
-                    break;
-            }
-            copyMenu.draw(ui::txtDiag);
-        }
+        copyMenu.draw(ui::txtDiag);
     }
 }
+

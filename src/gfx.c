@@ -188,7 +188,6 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
                 continue;
                 break;
 
-            case '"':
             case '#':
                 if(clrGetColor(textClr) == 0xFFEE9900)
                     textClr = c;
@@ -202,6 +201,22 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
                     textClr = c;
                 else
                     textClr = clrCreateU32(0xFF0000FF);
+                continue;
+                break;
+
+            case '<':
+                if(clrGetColor(textClr) == 0xFF00FCF8)
+                    textClr = c;
+                else
+                    textClr = clrCreateU32(0xFF00FCF8);
+                continue;
+                break;
+
+            case '>':
+                if(clrGetColor(textClr) == 0xFF00FF00)
+                    textClr = c;
+                else
+                    textClr = clrCreateU32(0xFF00FF00);
                 continue;
                 break;
         }
@@ -259,7 +274,6 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
                     continue;
                     break;
 
-                case '"':
                 case '#':
                     if(clrGetColor(textClr) == 0xFFEE9900)
                         textClr = c;
@@ -273,6 +287,22 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
                         textClr = c;
                     else
                         textClr = clrCreateU32(0xFF0000FF);
+                    continue;
+                    break;
+
+                case '<':
+                    if(clrGetColor(textClr) == 0xFF00FCF8)
+                        textClr = c;
+                    else
+                        textClr = clrCreateU32(0xFF00FCF8);
+                    continue;
+                    break;
+
+                case '>':
+                    if(clrGetColor(textClr) == 0xFF00FF00)
+                        textClr = c;
+                    else
+                        textClr = clrCreateU32(0xFF00FF00);
                     continue;
                     break;
             }
@@ -503,23 +533,23 @@ tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
     jpeg_start_decompress(&jpegInfo);
 
     JSAMPARRAY row = malloc(sizeof(JSAMPROW));
-        for(unsigned i = 0; i < ret->height; i++)
-            row[0] = malloc(sizeof(JSAMPLE) * ret->width * 3);
+    for(unsigned i = 0; i < ret->height; i++)
+        row[0] = malloc(sizeof(JSAMPLE) * ret->width * 3);
 
-        uint32_t *dataPtr = &ret->data[0];
-        for(int y = 0; y < ret->height; y++)
-        {
-            jpeg_read_scanlines(&jpegInfo, row, 1);
-            uint8_t *jpegPtr = row[0];
-            for(int x = 0; x < ret->width; x++, jpegPtr += 3)
-                *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
-        }
+    uint32_t *dataPtr = &ret->data[0];
+    for(int y = 0; y < ret->height; y++)
+    {
+        jpeg_read_scanlines(&jpegInfo, row, 1);
+        uint8_t *jpegPtr = row[0];
+        for(int x = 0; x < ret->width; x++, jpegPtr += 3)
+            *dataPtr++ = (0xFF << 24 | jpegPtr[2] << 16 | jpegPtr[1] << 8 | jpegPtr[0]);
+    }
 
-        jpeg_finish_decompress(&jpegInfo);
-        jpeg_destroy_decompress(&jpegInfo);
+    jpeg_finish_decompress(&jpegInfo);
+    jpeg_destroy_decompress(&jpegInfo);
 
-        free(row[0]);
-        free(row);
+    free(row[0]);
+    free(row);
 
     return ret;
 }

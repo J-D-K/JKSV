@@ -5,7 +5,7 @@
 
 #include "fsfile.h"
 
-static char *getDeviceFromPath(char *dev, size_t _max, const char *path)
+char *getDeviceFromPath(char *dev, size_t _max, const char *path)
 {
     memset(dev, 0, _max);
     char *c = strchr(path, ':');
@@ -18,7 +18,7 @@ static char *getDeviceFromPath(char *dev, size_t _max, const char *path)
     return dev;
 }
 
-static char *getFilePath(char *pathOut, size_t _max, const char *path)
+char *getFilePath(char *pathOut, size_t _max, const char *path)
 {
     memset(pathOut, 0, _max);
     char *c = strchr(path, '/');
