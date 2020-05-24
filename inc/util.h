@@ -57,5 +57,7 @@ namespace util
     }
 
     void setCPU(uint32_t hz);
+
+    Result fsOpenDataFileSystemByCurrentProcess(FsFileSystem *out);
 }
 #endif // UTIL_H

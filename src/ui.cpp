@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.22.2020"
+#define VER_STRING "v. 05.24.2020"
 
 //text mode
 bool ui::textMode = false;
@@ -49,7 +49,7 @@ static tex *top, *bot, *usrGuide, *ttlGuide, *fldrGuide, *optGuide;
 
 //UI text strings
 //Freedom English stored by default
-std::string author;
+std::string author = "NULL";
 std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras";
 std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back";
 std::string ui::folderHelp = "[-] File Mode  [L][R] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back";
@@ -93,50 +93,51 @@ static void loadTrans()
     fs::dataFile lang(file);
     while(lang.readNextLine(true))
     {
+        std::string varName = lang.getName();
         //Holy shit this'll be fun
-        if(lang.getName() == "author")
+        if(varName == "author")
             author = lang.getNextValueStr();
-        else if(lang.getName() == "userHelp")
+        else if(varName == "userHelp")
             ui::userHelp = lang.getNextValueStr();
-        else if(lang.getName() == "titleHelp")
+        else if(varName == "titleHelp")
             ui::titleHelp = lang.getNextValueStr();
-        else if(lang.getName() == "folderHelp")
+        else if(varName == "folderHelp")
             ui::folderHelp = lang.getNextValueStr();
-        else if(lang.getName() == "optHelp")
+        else if(varName == "optHelp")
             ui::optHelp = lang.getNextValueStr();
-        else if(lang.getName() == "yt")
+        else if(varName == "yt")
             ui::yt = lang.getNextValueStr();
-        else if(lang.getName() == "nt")
+        else if(varName == "nt")
             ui::nt = lang.getNextValueStr();
-        else if(lang.getName() == "on")
+        else if(varName == "on")
             ui::on = lang.getNextValueStr();
-        else if(lang.getName() == "off")
+        else if(varName == "off")
             ui::off = lang.getNextValueStr();
-        else if(lang.getName() == "confirmBlacklist")
+        else if(varName == "confirmBlacklist")
             ui::confBlacklist = lang.getNextValueStr();
-        else if(lang.getName() == "confirmOverwrite")
+        else if(varName == "confirmOverwrite")
             ui::confOverwrite = lang.getNextValueStr();
-        else if(lang.getName() == "confirmRestore")
+        else if(varName == "confirmRestore")
             ui::confRestore = lang.getNextValueStr();
-        else if(lang.getName() == "confirmDelete")
+        else if(varName == "confirmDelete")
             ui::confDel = lang.getNextValueStr();
-        else if(lang.getName() == "confirmCopy")
+        else if(varName == "confirmCopy")
             ui::confCopy = lang.getNextValueStr();
-        else if(lang.getName() == "confirmEraseNand")
+        else if(varName == "confirmEraseNand")
             ui::confEraseNand = lang.getNextValueStr();
-        else if(lang.getName() == "confirmEraseFolder")
+        else if(varName == "confirmEraseFolder")
             ui::confEraseFolder = lang.getNextValueStr();
-        else if(lang.getName() == "advMenu")
+        else if(varName == "advMenu")
         {
             int ind = lang.getNextValueInt();
             ui::advMenuStr[ind] = lang.getNextValueStr();
         }
-        else if(lang.getName() == "extMenu")
+        else if(varName == "extMenu")
         {
             int ind = lang.getNextValueInt();
             ui::exMenuStr[ind] = lang.getNextValueStr();
         }
-        else if(lang.getName() == "optMenu")
+        else if(varName == "optMenu")
         {
             int ind = lang.getNextValueInt();
             ui::optMenuStr[ind] = lang.getNextValueStr();

@@ -15,21 +15,23 @@ namespace data
     //Loads user + title info
     void init();
     void exit();
+    bool loadUsersTitles(bool clearUsers);
     void loadBlacklist();
+    void saveBlackList();
     void loadCfg();
     void saveCfg();
     void loadFav();
     void saveFav();
-    void rescanTitles();
 
     //Class to help not load the same icons over and over
     class icn
     {
         public:
+            icn() = default;
             //Loads jpeg icon from jpegData
-            void load(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
+            icn(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
             //Creates a generic icon for stuff with no icon with id
-            void create(const uint64_t& _id, const std::string& _txt);
+            icn(const uint64_t& _id, const std::string& _txt);
 
             //Creates favorite with heart on it. Needs to be called after icon is loaded
             void createFav();
@@ -53,8 +55,9 @@ namespace data
     class titledata
     {
         public:
+            titledata() = default;
             //Attempts to read title's info
-            void init(const FsSaveDataInfo& inf, NsApplicationControlData *dat);
+            titledata(const FsSaveDataInfo& inf, NsApplicationControlData *dat);
 
             //Attempts to mount data with uID + id. Returns false if fails. For filtering.
             bool isMountable(const AccountUid& uid);
@@ -96,11 +99,9 @@ namespace data
     class user
     {
         public:
-            //Attempts to read user data using _id
-            bool init(const AccountUid& _id);
-
-            //Allows user to init without reading data. For fun.
-            bool initNoChk(const AccountUid& _id, const std::string& _backupName);
+            user() = default;
+            user(const AccountUid& _id, const std::string& _backupName);
+            user(const AccountUid& _id, const std::string& _backupName, tex *img);
 
             //Sets ID
             void setUID(const AccountUid& _id);
@@ -142,8 +143,8 @@ namespace data
     extern std::vector<user> users;
 
     //Stores current data we're using so I don't have to type so much. + Options and info
-    extern titledata curData;
-    extern user      curUser;
+    extern data::titledata curData;
+    extern data::user curUser;
     extern int selUser, selData;
     extern SetLanguage sysLang;
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser;

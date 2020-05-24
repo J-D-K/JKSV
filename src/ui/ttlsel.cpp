@@ -5,8 +5,6 @@
 #include "uiupdate.h"
 #include "file.h"
 #include "util.h"
-#include "ex.h"
-
 
 void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
 {
@@ -170,7 +168,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
         {
             fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
-            data::rescanTitles();
+            data::loadUsersTitles(false);
             data::curUser = data::users[data::selUser];
             data::selData = 0;
         }

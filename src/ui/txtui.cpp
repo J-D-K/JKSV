@@ -8,7 +8,6 @@
 #include "data.h"
 #include "file.h"
 #include "util.h"
-#include "ex.h"
 
 static ui::menu userMenu, titleMenu, exMenu, optMenu;
 extern ui::menu folderMenu;
@@ -180,7 +179,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
         {
             fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
 
-            data::rescanTitles();
+            data::loadUsersTitles(false);
             data::curUser = data::users[data::selUser];
             ui::textTitlePrep(data::curUser);
         }
@@ -336,15 +335,14 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 break;
 
             case 8:
-                data::rescanTitles();
+                data::loadUsersTitles(true);
                 break;
 
             case 9:
                 {
                     FsFileSystem tromfs;
-                    Result res = fsOpenDataFileSystemByCurrentProcess(&tromfs);
                     //Result res = romfsMountFromCurrentProcess("tromfs"); << Works too, but is kinda weird
-                    if(R_SUCCEEDED(res))
+                    if(R_SUCCEEDED(util::fsOpenDataFileSystemByCurrentProcess(&tromfs)))
                     {
                         fsdevMountDevice("tromfs", tromfs);
                         advModePrep("tromfs:/", false);
