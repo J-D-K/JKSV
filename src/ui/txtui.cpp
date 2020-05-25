@@ -87,7 +87,7 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
         if(data::users[userMenu.getSelected()].titles.size() > 0)
         {
-            data::selUser = folderMenu.getSelected();
+            data::selUser = userMenu.getSelected();
             textTitlePrep(data::curUser());
             mstate = TXT_TTL;
         }
