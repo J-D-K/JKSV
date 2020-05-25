@@ -223,7 +223,7 @@ void ui::init()
 
     if(ui::textMode && data::skipUser)
     {
-        ui::textTitlePrep(data::curUser);
+        ui::textTitlePrep(data::curUser());
         mstate = TXT_TTL;
     }
     else if(ui::textMode)

@@ -74,7 +74,7 @@ namespace data
 
             //returns save_data_id string. only used for helping identify nand files
             std::string getTIDStr() { return tidStr; }
-            std::string getSaveIDStr(){ return saveIDStr; }
+            std::string getSaveIDStr() { return saveIDStr; }
 
             uint64_t getID() { return id; }
             uint64_t getSaveID() { return saveID; }
@@ -111,7 +111,7 @@ namespace data
 
             //Returns user ID
             AccountUid getUID() { return userID; }
-            u128 getUID128(){ return uID128; }
+            u128 getUID128() { return uID128; }
 
             //Returns username
             std::string getUsername() { return username; }
@@ -133,21 +133,24 @@ namespace data
     };
 
     //Adds title to blacklist
-    void blacklistAdd(data::user& u, data::titledata& t);
+    void blacklistAdd(data::titledata& t);
     //Adds title to favorite list
-    void favoriteAdd(data::user& u, data::titledata& t);
-    void favoriteRemove(data::user& u, data::titledata& t);
+    void favoriteAdd(data::titledata& t);
+    void favoriteRemove(data::titledata& t);
 
     //User vector
     extern std::vector<icn> icons;
     extern std::vector<user> users;
 
-    //Stores current data we're using so I don't have to type so much. + Options and info
-    extern data::titledata curData;
-    extern data::user curUser;
+    //Options and info
     extern int selUser, selData;
     extern SetLanguage sysLang;
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser;
+
+    //Inline shortcuts to current user and current title. I might need to think of another way.
+    //Previous versions made full copies of vectors in memory, which i didn't like
+    inline data::user& curUser(){ return data::users[data::selUser]; }
+    inline data::titledata& curData(){ return curUser().titles[data::selData]; }
 }
 
 #endif // DATA_H

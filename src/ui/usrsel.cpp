@@ -7,7 +7,6 @@
 #include "uiupdate.h"
 #include "file.h"
 
-
 void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
 {
     //Static so they don't get reset every loop
@@ -83,10 +82,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_A)
     {
         if(data::users[data::selUser].titles.size() > 0)
-        {
-            data::curUser = data::users[data::selUser];
             mstate = TTL_SEL;
-        }
         else
             ui::showPopup("No Saves available for " + data::users[data::selUser].getUsername() + ".", POP_FRAME_DEFAULT);
     }

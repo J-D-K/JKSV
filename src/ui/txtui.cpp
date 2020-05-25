@@ -87,8 +87,8 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
         if(data::users[userMenu.getSelected()].titles.size() > 0)
         {
-            data::curUser = data::users[userMenu.getSelected()];
-            textTitlePrep(data::curUser);
+            data::selUser = folderMenu.getSelected();
+            textTitlePrep(data::curUser());
             mstate = TXT_TTL;
         }
         else
@@ -121,58 +121,58 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
 
     if(down & KEY_A)
     {
-        data::curData = data::curUser.titles[titleMenu.getSelected()];
-
-        if(fs::mountSave(data::curUser, data::curData))
+        data::selData = titleMenu.getSelected();
+        if(fs::mountSave(data::curUser(), data::curData()))
         {
-            textFolderPrep(data::curUser, data::curData);
+            textFolderPrep(data::curUser(), data::curData());
             mstate = TXT_FLD;
         }
     }
     else if(down & KEY_Y)
     {
-        fs::dumpAllUserSaves(data::curUser);
+        fs::dumpAllUserSaves(data::curUser());
     }
     else if(down & KEY_MINUS)
     {
-        if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[titleMenu.getSelected()].getTitle().c_str()))
-            data::blacklistAdd(data::curUser, data::curUser.titles[titleMenu.getSelected()]);
+        data::selData = titleMenu.getSelected();
+        if(ui::confirm(false, ui::confBlacklist.c_str(), data::curData().getTitle().c_str()))
+            data::blacklistAdd(data::curData());
 
-        textTitlePrep(data::curUser);
+        textTitlePrep(data::curUser());
     }
     else if(down & KEY_L)
     {
         if(--data::selUser < 0)
             data::selUser = data::users.size() - 1;
 
-        data::curUser = data::users[data::selUser];
-        textTitlePrep(data::curUser);
+        data::curUser() = data::users[data::selUser];
+        textTitlePrep(data::curUser());
 
-        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(data::curUser().getUsername(), POP_FRAME_DEFAULT);
     }
     else if(down & KEY_R)
     {
         if(++data::selUser > (int)data::users.size() - 1)
             data::selUser = 0;
 
-        data::curUser = data::users[data::selUser];
-        textTitlePrep(data::curUser);
+        data::curUser() = data::users[data::selUser];
+        textTitlePrep(data::curUser());
 
-        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(data::curUser().getUsername(), POP_FRAME_DEFAULT);
     }
     else if(down & KEY_X)
     {
-        unsigned sel = titleMenu.getSelected();
-        if(!data::curUser.titles[sel].getFav())
-            data::favoriteAdd(data::curUser, data::curUser.titles[sel]);
+        data::selData = titleMenu.getSelected();
+        if(!data::curData().getFav())
+            data::favoriteAdd(data::curData());
         else
-            data::favoriteRemove(data::curUser, data::curUser.titles[sel]);
+            data::favoriteRemove(data::curData());
 
-        textTitlePrep(data::curUser);
+        textTitlePrep(data::curUser());
     }
     else if(down & KEY_ZR)
     {
-        data::titledata tempData = data::curUser.titles[titleMenu.getSelected()];
+        data::titledata tempData = data::curUser().titles[titleMenu.getSelected()];
         if(tempData.getType() == FsSaveDataType_System)
             ui::showMessage("*NO*", "Deleting system save archives is disabled.");
         else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
@@ -180,8 +180,8 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
             fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
 
             data::loadUsersTitles(false);
-            data::curUser = data::users[data::selUser];
-            ui::textTitlePrep(data::curUser);
+            data::curUser() = data::users[data::selUser];
+            ui::textTitlePrep(data::curUser());
         }
     }
     else if(down & KEY_B)
@@ -207,10 +207,10 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
         deleteBackup(folderMenu.getSelected() - 1);
     else if(down & KEY_MINUS)
     {
-        advModePrep("sv:/", true);
+        advModePrep("sv:/", data::curData().getType(), true);
         mstate = ADV_MDE;
     }
-    else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
+    else if(down & KEY_ZR && data::curData().getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData().getTitle().c_str()))
     {
         fs::delDir("sv:/");
         fsdevCommitDevice("sv");
@@ -238,12 +238,12 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
     {
         fsdevUnmountDevice("sv");
         FsFileSystem sv;
-        data::curData.setType(FsSaveDataType_System);
+        data::curData().setType(FsSaveDataType_System);
         switch(exMenu.getSelected())
         {
             case 0:
-                data::curData.setType(FsSaveDataType_Bcat);
-                advModePrep("sdmc:/", false);
+                data::curData().setType(FsSaveDataType_Bcat);
+                advModePrep("sdmc:/", data::curData().getType(), false);
                 mstate = ADV_MDE;
                 prevState = EX_MNU;
                 break;
@@ -253,7 +253,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_CalibrationFile, "");
                 fsdevMountDevice("prodInfo-f", sv);
 
-                advModePrep("profInfo-f:/", false);
+                advModePrep("profInfo-f:/", FsSaveDataType_System, false);
                 mstate = ADV_MDE;
                 prevState = EX_MNU;
                 break;
@@ -262,7 +262,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_SafeMode, "");
                 fsdevMountDevice("safe", sv);
 
-                advModePrep("safe:/", false);
+                advModePrep("safe:/", FsSaveDataType_System, false);
                 mstate = ADV_MDE;
                 prevState = EX_MNU;
                 break;
@@ -271,7 +271,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                 fsdevMountDevice("sys", sv);
 
-                advModePrep("sys:/", false);
+                advModePrep("sys:/", FsSaveDataType_System, false);
                 mstate = ADV_MDE;
                 prevState = EX_MNU;
                 break;
@@ -280,7 +280,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_User, "");
                 fsdevMountDevice("user", sv);
 
-                advModePrep("user:/", false);
+                advModePrep("user:/", FsSaveDataType_System, false);
                 mstate = ADV_MDE;
                 prevState = EX_MNU;
                 break;
@@ -326,8 +326,8 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                     if(R_SUCCEEDED(fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
                     {
                         fsdevMountDevice("sv", sv);
-                        advModePrep("sv:/", true);
-                        data::curData.setType(FsSaveDataType_SystemBcat);
+                        advModePrep("sv:/", data::curData().getType(), true);
+                        data::curData().setType(FsSaveDataType_SystemBcat);
                         prevState = EX_MNU;
                         mstate = ADV_MDE;
                     }
@@ -345,8 +345,8 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                     if(R_SUCCEEDED(util::fsOpenDataFileSystemByCurrentProcess(&tromfs)))
                     {
                         fsdevMountDevice("tromfs", tromfs);
-                        advModePrep("tromfs:/", false);
-                        data::curData.setType(FsSaveDataType_System);
+                        advModePrep("tromfs:/", FsSaveDataType_Account, false);
+                        data::curData().setType(FsSaveDataType_System);
                         ui::mstate = ADV_MDE;
                         ui::prevState = EX_MNU;
                     }

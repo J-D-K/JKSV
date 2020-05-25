@@ -22,9 +22,11 @@ fs::dirList saveList(""), sdList("sdmc:/");
 
 static bool commit = false;
 
+static FsSaveDataType type = FsSaveDataType_System;
+
 static inline bool sysSaveCheck()
 {
-    return data::sysSaveWrite || data::curData.getType() != FsSaveDataType_System;
+    return data::sysSaveWrite || type != FsSaveDataType_System;
 }
 
 //Performs copy menu operations. To big to stuff into case IMO.
@@ -348,9 +350,10 @@ void ui::advCopyMenuPrep()
         copyMenu.addOpt(ui::advMenuStr[i]);
 }
 
-void ui::advModePrep(const std::string& svDev, bool commitOnWrite)
+void ui::advModePrep(const std::string& svDev, const FsSaveDataType& _type, bool commitOnWrite)
 {
     commit = commitOnWrite;
+    type = _type;
     saveMenu.setParams(30, 98, 602);
     sdMenu.setParams(648, 98, 602);
     copyMenu.setParams(472, 278, 304);

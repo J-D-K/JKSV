@@ -10,9 +10,6 @@
 #include "file.h"
 #include "util.h"
 
-//Current data
-data::titledata data::curData;
-data::user data::curUser;
 int data::selUser = 0, data::selData = 0;
 
 //Icon/User vectors
@@ -71,7 +68,7 @@ static int findIcnIndex(const uint64_t& titleID)
 
 static bool blacklisted(const uint64_t& tid)
 {
-    for(uint64_t bid : blacklist)
+    for(uint64_t& bid : blacklist)
         if(tid == bid) return true;
 
     return false;
@@ -79,7 +76,7 @@ static bool blacklisted(const uint64_t& tid)
 
 static bool isFavorite(const uint64_t& tid)
 {
-    for(uint64_t fid : favorites)
+    for(uint64_t& fid : favorites)
         if(tid == fid) return true;
 
     return false;
@@ -202,8 +199,6 @@ void data::init()
     setMakeLanguage(lang, &sysLang);
 
     data::loadUsersTitles(false);
-
-    curUser = users[0];
 }
 
 void data::exit()
@@ -378,56 +373,48 @@ void data::loadBlacklist()
 void data::saveBlackList()
 {
     FILE *bl = fopen(std::string(fs::getWorkDir() + "blacklist.txt").c_str(), "w");
-    for(uint64_t id : blacklist)
+    for(uint64_t& id : blacklist)
         fprintf(bl, "0x%016lX\n", id);
 
     fclose(bl);
 }
 
-void data::blacklistAdd(user& u, titledata& t)
+void data::blacklistAdd(titledata& t)
 {
+    uint64_t tid = t.getID();
     for(data::user& _u : data::users)
     {
         for(unsigned i = 0; i < _u.titles.size(); i++)
-            if(_u.titles[i].getID() == t.getID()) _u.titles.erase(_u.titles.begin() + i);
+            if(_u.titles[i].getID() == tid) _u.titles.erase(_u.titles.begin() + i);
     }
-    blacklist.push_back(t.getID());
-    int uInd = getUserIndex(u.getUID());
-    u = users[uInd];
+    blacklist.push_back(tid);
 }
 
-void data::favoriteAdd(data::user& u, titledata& t)
+void data::favoriteAdd(titledata& t)
 {
+    uint64_t tid = t.getID();
     for(data::user& _u : data::users)
     {
         for(unsigned i = 0; i < _u.titles.size(); i++)
-            if(_u.titles[i].getID() == t.getID()) _u.titles[i].setFav(true);
+            if(_u.titles[i].getID() == tid) _u.titles[i].setFav(true);
 
         std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
     }
-    favorites.push_back(t.getID());
-
-    int uInd = getUserIndex(u.getUID());
-    u = users[uInd];
+    favorites.push_back(tid);
 }
 
-void data::favoriteRemove(data::user& u, data::titledata& t)
+void data::favoriteRemove(data::titledata& t)
 {
-    auto ind = std::find(favorites.begin(), favorites.end(), t.getID());
-    if(ind == favorites.end())
-        return;
-
+    uint64_t tid = t.getID();
+    auto ind = std::find(favorites.begin(), favorites.end(), tid);
     favorites.erase(ind);
     for(data::user& _u : data::users)
     {
         for(unsigned i = 0; i < _u.titles.size(); i++)
-            if(_u.titles[i].getID() == t.getID()) _u.titles[i].setFav(false);
+            if(_u.titles[i].getID() == tid) _u.titles[i].setFav(false);
 
         std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
     }
-
-    int uInd = getUserIndex(u.getUID());
-    u = users[uInd];
 }
 
 void data::loadCfg()
@@ -491,7 +478,7 @@ void data::loadFav()
 void data::saveFav()
 {
     FILE *fav = fopen(std::string(fs::getWorkDir() + "favorites.txt").c_str(), "w");
-    for(uint64_t fid : favorites)
+    for(uint64_t& fid : favorites)
         fprintf(fav, "0x%016lX\n", fid);
 
     fclose(fav);
