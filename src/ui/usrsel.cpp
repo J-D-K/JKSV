@@ -15,7 +15,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
     static uint8_t clrShft = 0;
     static bool clrAdd = true;
 
-    static unsigned selRectX = 364, selRectY = 160;
+    static unsigned selRectX = 276, selRectY = 160;
 
     if(clrAdd)
     {
@@ -30,14 +30,14 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
             clrAdd = true;
     }
 
-    unsigned x = 368, y = 164;
+    unsigned x = 280, y = 164;
     unsigned endUser = data::users.size();
 
     drawBoundBox(selRectX, selRectY, 140, 140, clrShft);
 
     for(unsigned i = start; i < endUser; y += 136)
     {
-        unsigned endRow = i + 4;
+        unsigned endRow = i + 5;
         for(unsigned tX = x; i < endRow; i++, tX += 144)
         {
             if(i == endUser)

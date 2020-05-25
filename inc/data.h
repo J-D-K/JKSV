@@ -8,6 +8,9 @@
 
 #include "gfx.h"
 
+#define curUser users[data::selUser]
+#define curData users[data::selUser].titles[data::selData]
+
 namespace data
 {
     extern bool forceMount;
@@ -135,8 +138,7 @@ namespace data
     //Adds title to blacklist
     void blacklistAdd(data::titledata& t);
     //Adds title to favorite list
-    void favoriteAdd(data::titledata& t);
-    void favoriteRemove(data::titledata& t);
+    void favoriteTitle(data::titledata& t);
 
     //User vector
     extern std::vector<icn> icons;
@@ -146,11 +148,6 @@ namespace data
     extern int selUser, selData;
     extern SetLanguage sysLang;
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser;
-
-    //Inline shortcuts to current user and current title. I might need to think of another way.
-    //Previous versions made full copies of vectors in memory, which i didn't like
-    inline data::user& curUser(){ return data::users[data::selUser]; }
-    inline data::titledata& curData(){ return curUser().titles[data::selData]; }
 }
 
 #endif // DATA_H

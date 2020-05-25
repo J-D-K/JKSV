@@ -23,6 +23,9 @@ SetLanguage data::sysLang;
 bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
 bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false;
 
+//For other save types
+static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
+
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 
@@ -118,13 +121,17 @@ bool data::loadUsersTitles(bool clearUsers)
     for(data::user& u : data::users)
         u.titles.clear();
     if(clearUsers)
+    {
         data::users.clear();
+        sysBCATPushed = false;
+        cachePushed = false;
+        tempPushed = false;
+    }
 
     //Push system users
-    users.push_back(data::user(util::u128ToAccountUID(3), "Device Saves", createDeviceIcon()));
-    users.push_back(data::user(util::u128ToAccountUID(2), "BCAT"));
-    users.push_back(data::user(util::u128ToAccountUID(1), "System"));
-    //users.push_back(data::user(util::u128ToAccountUID(4), "Sys. BCAT"));
+    users.emplace_back(util::u128ToAccountUID(3), "Device Saves", createDeviceIcon());
+    users.emplace_back(util::u128ToAccountUID(2), "BCAT");
+    users.emplace_back(util::u128ToAccountUID(1), "System");
 
     NsApplicationControlData *dat = new NsApplicationControlData;
     while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
@@ -145,7 +152,30 @@ bool data::loadUsersTitles(bool clearUsers)
                 break;
 
             case FsSaveDataType_SystemBcat:
-                //info.uid = util::u128ToAccountUID(4);
+                info.uid = util::u128ToAccountUID(4);
+                if(!sysBCATPushed)
+                {
+                    sysBCATPushed = true;
+                    users.emplace_back(util::u128ToAccountUID(4), "Sys. BCAT");
+                }
+                break;
+
+            case FsSaveDataType_Cache:
+                info.uid = util::u128ToAccountUID(5);
+                if(!cachePushed)
+                {
+                    cachePushed = true;
+                    users.emplace_back(util::u128ToAccountUID(5), "Cache");
+                }
+                break;
+
+            case FsSaveDataType_Temporary:
+                info.uid = util::u128ToAccountUID(6);
+                if(!tempPushed)
+                {
+                    tempPushed = true;
+                    users.emplace_back(util::u128ToAccountUID(6), "Temp");
+                }
                 break;
         }
 
@@ -155,7 +185,7 @@ bool data::loadUsersTitles(bool clearUsers)
             int u = getUserIndex(info.uid);
             if(u == -1)
             {
-                users.insert(users.end() - 3, data::user(info.uid, ""));
+                users.emplace(users.end() - 3, info.uid, "");
                 u = getUserIndex(info.uid);
             }
 
@@ -346,6 +376,8 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userIcon = util::createIconGeneric(_backupName.c_str());
     }
+
+    titles.reserve(64);
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName, tex *img) : user(_id, _backupName)
@@ -390,30 +422,31 @@ void data::blacklistAdd(titledata& t)
     blacklist.push_back(tid);
 }
 
-void data::favoriteAdd(titledata& t)
+void data::favoriteTitle(titledata& t)
 {
     uint64_t tid = t.getID();
-    for(data::user& _u : data::users)
+    if(!t.getFav())
     {
-        for(unsigned i = 0; i < _u.titles.size(); i++)
-            if(_u.titles[i].getID() == tid) _u.titles[i].setFav(true);
+        for(data::user& _u : data::users)
+        {
+            for(unsigned i = 0; i < _u.titles.size(); i++)
+                if(_u.titles[i].getID() == tid) _u.titles[i].setFav(true);
 
-        std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
+            std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
+        }
+        favorites.push_back(tid);
     }
-    favorites.push_back(tid);
-}
-
-void data::favoriteRemove(data::titledata& t)
-{
-    uint64_t tid = t.getID();
-    auto ind = std::find(favorites.begin(), favorites.end(), tid);
-    favorites.erase(ind);
-    for(data::user& _u : data::users)
+    else
     {
-        for(unsigned i = 0; i < _u.titles.size(); i++)
-            if(_u.titles[i].getID() == tid) _u.titles[i].setFav(false);
+        auto ind = std::find(favorites.begin(), favorites.end(), tid);
+        favorites.erase(ind);
+        for(data::user& _u : data::users)
+        {
+            for(unsigned i = 0; i < _u.titles.size(); i++)
+                if(_u.titles[i].getID() == tid) _u.titles[i].setFav(false);
 
-        std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
+            std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
+        }
     }
 }
 

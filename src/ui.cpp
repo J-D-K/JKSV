@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.24.2020"
+#define VER_STRING "v. 05.25.2020"
 
 //text mode
 bool ui::textMode = false;
@@ -223,7 +223,7 @@ void ui::init()
 
     if(ui::textMode && data::skipUser)
     {
-        ui::textTitlePrep(data::curUser());
+        ui::textTitlePrep(data::curUser);
         mstate = TXT_TTL;
     }
     else if(ui::textMode)

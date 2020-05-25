@@ -37,8 +37,8 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
     unsigned x = 70, y = 98;
 
     unsigned endTitle = start + 32;
-    if(start + 32 > (int)data::curUser().titles.size())
-        endTitle = data::curUser().titles.size();
+    if(start + 32 > (int)data::curUser.titles.size())
+        endTitle = data::curUser.titles.size();
 
     //draw Rect so it's always behind icons
     drawBoundBox(selRectX, selRectY, 140, 140, clrShft);
@@ -56,7 +56,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
                 selRectX = tX - 6;
                 selRectY = y - 6;
 
-                std::string title = data::curData().getTitle();
+                std::string title = data::curData.getTitle();
                 unsigned titleWidth = textGetWidth(title.c_str(), ui::shared, 18);
                 int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
                 if(rectX < 16)
@@ -68,16 +68,16 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
                 drawText(title.c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
             }
 
-            if(data::curUser().titles[i].getFav())
-                data::curUser().titles[i].icon.drawFavHalf(tX, y);
+            if(data::curUser.titles[i].getFav())
+                data::curUser.titles[i].icon.drawFavHalf(tX, y);
             else
-                data::curUser().titles[i].icon.drawHalf(tX, y);
+                data::curUser.titles[i].icon.drawHalf(tX, y);
         }
     }
 
     if(down & KEY_RIGHT)
     {
-        if(data::selData < (int)data::curUser().titles.size() - 1)
+        if(data::selData < (int)data::curUser.titles.size() - 1)
             data::selData++;
 
         if(data::selData >= (int)start + 32)
@@ -103,26 +103,26 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_DOWN)
     {
         data::selData += 8;
-        if(data::selData > (int)data::curUser().titles.size() - 1)
-            data::selData = data::curUser().titles.size() - 1;
+        if(data::selData > (int)data::curUser.titles.size() - 1)
+            data::selData = data::curUser.titles.size() - 1;
 
         if(data::selData - start >= 32)
             start += 8;
     }
-    else if(down & KEY_A && fs::mountSave(data::curUser(), data::curData()))
+    else if(down & KEY_A && fs::mountSave(data::curUser, data::curData))
     {
-        folderMenuPrepare(data::curUser(), data::curData());
+        folderMenuPrepare(data::curUser, data::curData);
         //Wanna change this sometime
-        ui::folderMenuInfo = util::getInfoString(data::curUser(), data::curData());
+        ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
         mstate = FLD_SEL;
     }
     else if(down & KEY_Y)
-        fs::dumpAllUserSaves(data::curUser());
+        fs::dumpAllUserSaves(data::curUser);
     else if(down & KEY_MINUS)
     {
-        if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser().titles[data::selData].getTitle().c_str()))
-            data::blacklistAdd(data::curData());
+        if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
+            data::blacklistAdd(data::curData);
     }
     else if(down & KEY_B)
     {
@@ -141,9 +141,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         start = 0;
         data::selData = 0;
         selRectX = 64, selRectY = 90;
-        data::curUser() = data::users[data::selUser];
-
-        ui::showPopup(data::curUser().getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
     }
     else if(down & KEY_R)
     {
@@ -153,13 +151,11 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         start = 0;
         data::selData = 0;
         selRectX = 64, selRectY = 90;
-        data::curUser() = data::users[data::selUser];
-
-        ui::showPopup(data::curUser().getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
     }
     else if(down & KEY_ZR)
     {
-        data::titledata tempData = data::curUser().titles[data::selData];
+        data::titledata tempData = data::curUser.titles[data::selData];
         if(tempData.getType() == FsSaveDataType_System)
             ui::showMessage("*NO*", "Deleting system save archives is disabled.");
         else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
@@ -170,11 +166,6 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         }
     }
     else if(down & KEY_X)
-    {
-        if(!data::curData().getFav())
-            data::favoriteAdd(data::curData());
-        else
-            data::favoriteRemove(data::curData());
-    }
+        data::favoriteTitle(data::curData);
 }
 

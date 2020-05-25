@@ -67,6 +67,7 @@ namespace fs
     class dirList
     {
         public:
+            dirList() = default;
             dirList(const std::string& _path);
             void reassign(const std::string& _path);
             void rescan();

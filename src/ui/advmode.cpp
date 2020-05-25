@@ -18,7 +18,7 @@ static std::string savePath, sdPath, dev;
 static int advMenuCtrl, advPrev;
 
 //Dir listings
-fs::dirList saveList(""), sdList("sdmc:/");
+fs::dirList saveList, sdList;
 
 static bool commit = false;
 
