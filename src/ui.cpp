@@ -101,6 +101,11 @@ static void loadTrans()
         file = "romfs:/lang/";
         switch(data::sysLang)
         {
+            case SetLanguage_ZHTW:
+            case SetLanguage_ZHHANT:
+                file += "zh-TW.txt";
+                break;
+
             default:
                 file += "en-US.txt";
                 break;
@@ -172,7 +177,7 @@ static void loadTrans()
             ui::holdingText[ind] = lang.getNextValueStr();
         }
         else
-            ui::showMessage("*Translation File Error:*", "*%s* is not a known or valid string name.", varName.c_str());
+            ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), varName.c_str());
     }
 }
 

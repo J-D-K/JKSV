@@ -323,7 +323,7 @@ bool fs::dataFile::readNextLine(bool proc)
     char tmp[1024];
     while(fgets(tmp, 1024, f))
     {
-        if(tmp[0] != '#' && tmp[0] != '\n')
+        if(tmp[0] != '#' && tmp[0] != '\n' && tmp[0] != '\r')
         {
             line = tmp;
             ret = true;

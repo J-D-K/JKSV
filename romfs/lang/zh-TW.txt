@@ -1,2 +1,109 @@
-#Taiwanese translation file
-#Copy en-US.txt here and use as a guide.
+#JKSV Switch translation guide
+#Button strings [X] are replaced by JKSV at boot.
+#string = set string to this.
+#Translation author. Displayed in UI. NULL is ignored and not displayed.
+author = "Leo"
+
+#Help/Guide strings on bottom
+#User Select
+userHelp = "[A] 選定  [Y] 全部備份  [X] 模式切換  [-] 設定  [ZR] 進階"
+
+#Title Select
+titleHelp = "[A] 選定  [L][R] 變更使用者  [Y] 全部備份  [-] 最愛  [X] 黑名單  [ZR] 抹除  [B] 返回"
+
+#Folder Select
+folderHelp = "[-] 檔案模式  [L][R] 自動命名  [A] 備份  [Y] 還原  [X] 刪除資料夾  [ZR] 抹除  [B] 返回"
+
+#Options Menu
+optHelp = "[A] 切換  [B] 返回"
+
+#Button prompts.
+yt = "是 [A]"
+nt = "否 [B]"
+
+#On/Off for options. '>' is used to change color to green.
+on = ">開>"
+off = "關"
+
+#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
+#Text shown at the top of confirmation boxes
+confirmHead = "再次確認"
+
+#Confirm blacklist.
+confirmBlacklist = "是否確定要將#%s#加入黑名單?"
+
+#Confirm overwriting folder
+confirmOverwrite = "是否確定要覆寫#%s#?"
+
+#Confirm restoring save
+confirmRestore = "是否確定要還原#%s#?"
+
+#Confirm deleting.
+confirmDelete = "是否確定要刪除#%s#? *此為永久性刪除*!"
+
+#Confirm file copy in file mode
+confirmCopy = "是否確定要將#%s#複製到#%s#?"
+
+#Warning for erasing save data from system in title menu
+confirmEraseNand = "*警告*: 此操作將把#%s#檔案從你的主機系統內*徹底抹除*! 如同從#檔案管理器#內將進度檔案刪除! 是否確定要繼續執行抹除?"
+
+#Warning for deleting save data in folder menu
+confirmEraseFolder = "*警告*: 此操作*將把*目前的進度#%s#檔案*從主機系統內刪除*! 是否確定要繼續執行刪除?"
+
+#Text displayed when holding is required. Should have a trailing space
+holdingText = 0, "(請按住) "
+holdingText = 1, "(繼續按住) "
+holdingText = 2, "(確認執行!) "
+
+#Menu options are held in arrays of strings.
+#The number is the option to set, string is what to set to.
+#Only the string after the comma needs to be edited.
+#Adv/file mode menu
+#'Copy to ' NEEDS a trailing space
+advMenu = 0, "複製到"
+advMenu = 1, "刪除"
+advMenu = 2, "改檔名"
+advMenu = 3, "新建資料夾"
+advMenu = 4, "屬性"
+advMenu = 5, "關閉"
+
+#Extras Menu
+extMenu = 0, "檔案管理視窗"
+extMenu = 1, "BIS: PRODINFOF"
+extMenu = 2, "BIS: SAFE"
+extMenu = 3, "BIS: SYSTEM"
+extMenu = 4, "BIS: USER"
+extMenu = 5, "撤銷操作與變動"
+extMenu = 6, "終止指定程序"
+extMenu = 7, "掛載系統進度"
+extMenu = 8, "重新掃瞄Titles"
+extMenu = 9, "掛載RomFS程序"
+
+#Options menu
+#All options need a trailing space. It is the most likely to have things added to it.
+optMenu = 0, "全部遊戲進度: "
+optMenu = 1, "自動備份: "
+optMenu = 2, "超頻: "
+optMenu = 3, "長按確認後刪除: "
+optMenu = 4, "長按確認後還原: "
+optMenu = 5, "長按確認後覆寫: "
+optMenu = 6, "強制掛載: "
+optMenu = 7, "使用者系統進度資料: "
+optMenu = 8, "存取系統進度資料: "
+optMenu = 9, "文字UI模式: "
+optMenu = 10, "使用FS命令: "
+optMenu = 11, "略過選擇使用者: "
+
+#Explanations of what options do.
+optMenuExp = 0, "包括主機使用者帳戶下所有遊戲的進度資料"
+optMenuExp = 1, "在執行還原進度前, 系統主動備份目前進度並自動命名"
+optMenuExp = 2, "啟動程式時, 微調CPU時脈至1224Mhz, 等同開發人員程序單元的執行速度"
+optMenuExp = 3, "當執行刪除資料夾或刪除檔案時, 需要長按[A]數秒, 等待使用者再次確認後才執行"
+optMenuExp = 4, "當還原遊戲進度資料時, 需要長按[A]數秒, 等待使用者再次確認後才執行"
+optMenuExp = 5, "當需要覆寫到記憶卡上原有的進度檔案時, 需要長按[A]數秒, 等待使用者再次確認後才執行"
+optMenuExp = 6, "當啟用此設定後, JKSV僅會顯示可被載入與開啟的進度檔案; 當此設定停用後, 則會顯示所有的項目"
+optMenuExp = 7, "當啟用此設定後, 與使用者帳戶關連的系統儲存資料將會一併顯示"
+optMenuExp = 8, "當儲存進度或刪除檔案時, 控制系統儲存進度與儲存檔案資料的分區是否可供存取 *停用此設定會影響系統穩定性, 請確認你瞭解變更後可能造成的影響!*"
+optMenuExp = 9, "切換操作介面為文字選單模式, 如同JKSM在3DS主機上的介面"
+optMenuExp = 10, "複製檔案時改用主機系統的FS命令, 取代原先的stdio方式"
+optMenuExp = 11, "啟動程式後, 預設直接讀取第一位使用者帳戶的資料, 略過選擇其他使用者的畫面"
