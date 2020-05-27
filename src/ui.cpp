@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.25.2020"
+#define VER_STRING "v. 05.26.2020"
 
 //text mode
 bool ui::textMode = false;
@@ -52,7 +52,7 @@ static tex *top, *bot, *usrGuide, *ttlGuide, *fldrGuide, *optGuide;
 std::string author = "NULL";
 std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras";
 std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back";
-std::string ui::folderHelp = "[-] File Mode  [L][R] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back";
+std::string ui::folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back";
 std::string ui::optHelp = "[A] Toggle   [B] Back";
 std::string ui::yt = "Yes [A]", ui::nt = "No  [B]";
 std::string ui::on = ">On>", ui::off = "Off";
@@ -61,11 +61,28 @@ std::string ui::confOverwrite = "Are you sure you want to overwrite #%s#?";
 std::string ui::confRestore = "Are you sure you want to restore #%s#?";
 std::string ui::confDel = "Are you sure you want to delete #%s#? *This is permanent*!";
 std::string ui::confCopy = "Are you sure you want to copy #%s# to #%s#?";
+std::string ui::confirmHead = "Confirm";
 std::string ui::confEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?";
 std::string ui::confEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
 std::string ui::exMenuStr[10] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS" };
 std::string ui::optMenuStr[12] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: " };
+std::string ui::optMenuExp[12] =
+{
+    "Includes Device Save data in user accounts.",
+    "Automatically creates a save backup before restoring a save.",
+    "Applies a small CPU over clock to 1224Mhz at boot. This is the same speed developer units run at.",
+    "Whether or not holding [A] is required when deleting folders and files.",
+    "Whether or not holding [A] is required when restoring save data.",
+    "Whether or not holding [A] is required when overwriting saves on SD.",
+    "When enabled, JKSV will only load and show save data that can be opened. When disabled, everything found will be shown.",
+    "When enabled, system save data tied to accounts will be shown.",
+    "Controls whether system save data and partitions can have files and data written and deleted from them. *This can be extremely dangerous if you don't know what you're doing!*",
+    "Changes the UI to be text menu based like the original JKSM for 3DS.",
+    "Directly uses the Switch's FS commands to copy files instead of stdio.",
+    "Skips the user selection screen and jumps directly to the first user account found."
+};
+std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 
 //X position of help texts. Calculated to make editing quicker/easier
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
@@ -73,8 +90,8 @@ static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
 static void loadTrans()
 {
     bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
-    if(!transFile && data::sysLang == SetLanguage_ENUS)
-        return;//Don't bother loading from file. It serves as a translation guide
+    //if(!transFile && data::sysLang == SetLanguage_ENUS)
+        //return;//Don't bother loading from file. It serves as a translation guide
 
     std::string file;
     if(transFile)
@@ -127,6 +144,8 @@ static void loadTrans()
             ui::confEraseNand = lang.getNextValueStr();
         else if(varName == "confirmEraseFolder")
             ui::confEraseFolder = lang.getNextValueStr();
+        else if(varName == "confirmHead")
+            ui::confirmHead = lang.getNextValueStr();
         else if(varName == "advMenu")
         {
             int ind = lang.getNextValueInt();
@@ -142,6 +161,18 @@ static void loadTrans()
             int ind = lang.getNextValueInt();
             ui::optMenuStr[ind] = lang.getNextValueStr();
         }
+        else if(varName == "optMenuExp")
+        {
+            int ind = lang.getNextValueInt();
+            ui::optMenuExp[ind] = lang.getNextValueStr();
+        }
+        else if(varName == "holdingText")
+        {
+            int ind = lang.getNextValueInt();
+            ui::holdingText[ind] = lang.getNextValueStr();
+        }
+        else
+            ui::showMessage("*Translation File Error:*", "*%s* is not a known or valid string name.", varName.c_str());
     }
 }
 
@@ -221,6 +252,10 @@ void ui::init()
     bot = texCreate(1280, 72);
     diaBox = texCreate(640, 420);
 
+    //Setup dialog box
+    drawTextbox(diaBox, 0, 0, 640, 420);
+    drawRect(diaBox, 0, 56, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
+
     if(ui::textMode && data::skipUser)
     {
         ui::textTitlePrep(data::curUser);
@@ -231,9 +266,8 @@ void ui::init()
     else if(data::skipUser)
         mstate = TTL_SEL;
 
-
-    loadTrans();
     textUserPrep();
+    loadTrans();
 
     //Replace the button [x] in strings that need it. Needs to be outside loadTrans so even defaults will get replaced
     util::replaceButtonsInString(ui::userHelp);
@@ -242,6 +276,9 @@ void ui::init()
     util::replaceButtonsInString(ui::optHelp);
     util::replaceButtonsInString(ui::yt);
     util::replaceButtonsInString(ui::nt);
+    util::replaceButtonsInString(ui::optMenuExp[3]);
+    util::replaceButtonsInString(ui::optMenuExp[4]);
+    util::replaceButtonsInString(ui::optMenuExp[5]);
 
     //Setup top and bottom gfx
     texClearColor(top, clearClr);
@@ -257,10 +294,6 @@ void ui::init()
 
     //Not needed anymore
     texDestroy(icn);
-
-    //Setup dialog box
-    drawTextbox(diaBox, 0, 0, 640, 420);
-    drawRect(diaBox, 0, 56, 640, 2, ui::thmID == ColorSetId_Light ? clrCreateU32(0xFF6D6D6D) : clrCreateU32(0xFFCCCCCC));
 
     //Create graphics to hold guides
     usrGuide = texCreate(textGetWidth(userHelp.c_str(), ui::shared, 18), 28);

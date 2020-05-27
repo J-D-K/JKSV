@@ -37,13 +37,13 @@ namespace ui
     //Holds theme set id
     extern ColorSetId thmID;
 
-    //Both UI modes need access to this
+    //Both UI modes need access to thi
     extern std::string folderMenuInfo;
 
     //Strings since translation support
     extern std::string userHelp, titleHelp, folderHelp, optHelp, \
     confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
-    confEraseNand, confEraseFolder, yt, nt, on, off;
+    confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead;
 
     //Strings for file mode menu
     extern std::string advMenuStr[6];
@@ -51,6 +51,10 @@ namespace ui
     extern std::string exMenuStr[10];
     //Strings for options menu
     extern std::string optMenuStr[12];
+    //Strings for options explanations
+    extern std::string optMenuExp[12];
+    //Strings for the holding thing
+    extern std::string holdingText[3];
 
     /*Colors
         clearClr = color to clear buffer

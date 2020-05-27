@@ -12,23 +12,6 @@
 static ui::menu userMenu, titleMenu, exMenu, optMenu;
 extern ui::menu folderMenu;
 
-//Help text for options
-static const std::string optHelpStrings[] =
-{
-    "Includes all Device Save data in Account Saves.",
-    "Automatically create a backup before restoring a save. Just to be safe.",
-    "Apply a small overclock to 1224MHz at boot. This is to help the text UI mode run smoothly.",
-    "Whether or not holding \ue0e0 is required when deleting save folders and files.",
-    "Whether or not holding \ue0e0 is required when restoring saves to games.",
-    "Whether or not holding \ue0e0 is required when overwriting save folders.",
-    "When on, JKSV will only show save data that can be opened. When off, JKSV shows everything.",
-    "Includes system save data tied to accounts.",
-    "Controls whether or not system saves can be restored/overwritten. *THIS CAN BE EXTREMELY DANGEROUS*.",
-    "Changes the UI to a text menu based one like the 3DS version of JKSV.",
-    "Directly uses the Switch's FS commands to copy files instead of stdio.",
-    "Skips the user selection screen and jumps straight the first account's titles."
-};
-
 static inline void switchBool(bool& sw)
 {
     sw ? sw = false : sw = true;
@@ -436,6 +419,6 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
         ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
 
     optMenu.draw(ui::txtCont);
-    drawTextWrap(optHelpStrings[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);
+    drawTextWrap(ui::optMenuExp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);
 }
 

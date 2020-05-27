@@ -127,11 +127,11 @@ bool ui::confirm(bool hold, const char *fmt, ...)
             }
 
             if(holdCount <= 40)
-                yesText = "(Hold) ";
+                yesText = ui::holdingText[0];
             else if(holdCount <= 80)
-                yesText = "(Keep Holding) ";
+                yesText = ui::holdingText[1];
             else if(holdCount < 120)
-                yesText = "(Almost There!) ";
+                yesText = ui::holdingText[2];
 
             yesText += loadGlyphArray[loadFrame];
             yesX = 160 - (textGetWidth(yesText.c_str(), ui::shared, 20) / 2);
@@ -166,7 +166,7 @@ bool ui::confirm(bool hold, const char *fmt, ...)
 
         gfxBeginFrame();
         texDraw(diaBox, frameBuffer, 320, 150);
-        drawText("Confirm", frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
+        drawText(ui::confirmHead.c_str(), frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
         drawText(yesText.c_str(), frameBuffer, ui::shared, 320 + yesX, 530, 20, holdClr);
         drawText(ui::nt.c_str(), frameBuffer, ui::shared, 860 - noX, 530, 20, ui::txtDiag);
         drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);

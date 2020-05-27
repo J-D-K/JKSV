@@ -1,86 +1,109 @@
+#JKSV Switch translation guide
 #Button strings [X] are replaced by JKSV at boot.
 #string = set string to this.
 #Translation author. Displayed in UI. NULL is ignored and not displayed.
-author = NULL
+author = "NULL"
 
 #Help/Guide strings on bottom
 #User Select
-userHelp = [A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras
+userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras"
 
 #Title Select
-titleHelp = [A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back
+titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back"
 
 #Folder Select
-folderHelp = [-] File Mode  [L][R] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back
+folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back"
 
 #Options Menu
-optHelp = [A] Toggle   [B] Back
+optHelp = "[A] Toggle   [B] Back"
 
 #Button prompts.
-yt = Yes [A]
-nt = No  [B]
+yt = "Yes [A]"
+nt = "No  [B]"
 
 #On/Off for options. '>' is used to change color to green.
-on = >On>
-off = Off
+on = ">On>"
+off = "Off"
 
-#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names.
+#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
+#Text shown at the top of confirmation boxes
+confirmHead = "Confirm"
+
 #Confirm blacklist.
-confirmBlacklist = Are you sure you want to add #%s# to your blacklist?
+confirmBlacklist = "Are you sure you want to add #%s# to your blacklist?"
 
 #Confirm overwriting folder
-confirmOverwrite = Are you sure you want to overwrite #%s#?
+confirmOverwrite = "Are you sure you want to overwrite #%s#?"
 
 #Confirm restoring save
-confirmRestore = Are you sure you want to restore #%s#?
+confirmRestore = "Are you sure you want to restore #%s#?"
 
 #Confirm deleting.
-confirmDelete = Are you sure you want to delete #%s#? *This is permanent*!
+confirmDelete = "Are you sure you want to delete #%s#? *This is permanent*!"
 
 #Confirm file copy in file mode
-confirmCopy = Are you sure you want to copy #%s# to #%s#?
+confirmCopy = "Are you sure you want to copy #%s# to #%s#?"
 
 #Warning for erasing save data from system in title menu
-confirmEraseNand = *WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?
+confirmEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?"
 
 #Warning for deleting save data in folder menu
-confirmEraseFolder = *WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?
+confirmEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?"
+
+#Text displayed when holding is required. Should have a trailing space
+holdingText = 0, "(Hold) "
+holdingText = 1, "(Keep Holding) "
+holdingText = 2, "(Almost There!) "
 
 #Menu options are held in arrays of strings.
 #The number is the option to set, string is what to set to.
 #Only the string after the comma needs to be edited.
 #Adv/file mode menu
 #'Copy to ' NEEDS a trailing space
-advMenu = 0, Copy to 
-advMenu = 1, Delete
-advMenu = 2, Rename
-advMenu = 3, Make Dir
-advMenu = 4, Properties
-advMenu = 5, Close
+advMenu = 0, "Copy to "
+advMenu = 1, "Delete"
+advMenu = 2, "Rename"
+advMenu = 3, "Make Dir"
+advMenu = 4, "Properties"
+advMenu = 5, "Close"
 
 #Extras Menu
-extMenu = 0, SD to SD Browser
-extMenu = 1, BIS: PRODINFOF
-extMenu = 2, BIS: SAFE
-extMenu = 3, BIS: SYSTEM
-extMenu = 4, BIS: USER
-extMenu = 5, Remove Update
-extMenu = 6, Terminate Process
-extMenu = 7, Mount System Save
-extMenu = 8, Rescan Titles
-extMenu = 9, Process RomFS
+extMenu = 0, "SD to SD Browser"
+extMenu = 1, "BIS: PRODINFOF"
+extMenu = 2, "BIS: SAFE"
+extMenu = 3, "BIS: SYSTEM"
+extMenu = 4, "BIS: USER"
+extMenu = 5, "Remove Update"
+extMenu = 6, "Terminate Process"
+extMenu = 7, "Mount System Save"
+extMenu = 8, "Rescan Titles"
+extMenu = 9, "Mount Process RomFS"
 
 #Options menu
-#This is always last and all need a trailing space. It is the most likely to have things added to it.
-optMenu = 0, Include Dev Sv: 
-optMenu = 1, AutoBackup: 
-optMenu = 2, Overclock: 
-optMenu = 3, Hold to Delete: 
-optMenu = 4, Hold to Restore: 
-optMenu = 5, Hold to Overwrite: 
-optMenu = 6, Force Mount: 
-optMenu = 7, Account Sys. Saves: 
-optMenu = 8, Write to Sys. Saves:
-optMenu = 9, Text UI Mode: 
-optMenu = 10, Direct FS Cmd: 
-optMenu = 11, Skip User Select: 
+#All options need a trailing space. It is the most likely to have things added to it.
+optMenu = 0, "Include Dev Sv: "
+optMenu = 1, "AutoBackup: "
+optMenu = 2, "Overclock: "
+optMenu = 3, "Hold to Delete: "
+optMenu = 4, "Hold to Restore: "
+optMenu = 5, "Hold to Overwrite: "
+optMenu = 6, "Force Mount: "
+optMenu = 7, "Account Sys. Saves: "
+optMenu = 8, "Write to Sys. Saves: "
+optMenu = 9, "Text UI Mode: "
+optMenu = 10, "Direct FS Cmd: "
+optMenu = 11, "Skip User Select: "
+
+#Explanations of what options do.
+optMenuExp = 0, "Includes Device Save data in user accounts."
+optMenuExp = 1, "Automatically creates a save backup before restoring a save."
+optMenuExp = 2, "Applies a small CPU overclock to 1224Mhz at boot. This is the same speed developer units run at."
+optMenuExp = 3, "Whether or not holding [A] is required when deleting folders and files."
+optMenuExp = 4, "Whether or not holding [A] is required when restoring save data."
+optMenuExp = 5, "Whether or not holding [A] is required when overwriting saves on SD."
+optMenuExp = 6, "When enabled, JKSV will only load and show save data that can be opened. When disabled, everything found will be shown."
+optMenuExp = 7, "When enabled, system save data tied to accounts will be shown."
+optMenuExp = 8, "Controls whether system save data and partitions can have files and data written and deleted from them. *This can be extremely dangerous if you don't know what you're doing!*"
+optMenuExp = 9, "Changes the UI to be text menu based like the original JKSM for 3DS."
+optMenuExp = 10, "Directly uses the Switch's FS commands to copy files instead of stdio."
+optMenuExp = 11, "Skips the user selection screen and jumps directly to the first user account found."

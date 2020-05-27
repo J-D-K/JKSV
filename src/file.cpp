@@ -340,8 +340,12 @@ bool fs::dataFile::readNextLine(bool proc)
 
 void fs::dataFile::procLine()
 {
-    if((lPos = line.find_first_of('(')) != line.npos || (lPos = line.find_first_of('=')) != line.npos)
-       name.assign(line.begin(), line.begin() + lPos);
+    size_t pPos = line.find_first_of('('), ePos = line.find_first_of('=');
+    if(pPos != line.npos || ePos != line.npos)
+    {
+        lPos = ePos < pPos ? ePos : pPos;
+        name.assign(line.begin(), line.begin() + lPos);
+    }
     else
         name = "NULL";
     util::stripChar(' ', name);
@@ -350,11 +354,16 @@ void fs::dataFile::procLine()
 
 std::string fs::dataFile::getNextValueStr()
 {
+    std::string ret = "";
     //Skip all spaces until we hit actual text
-    size_t pos1 = line.find_first_not_of(' ', lPos);
-    //Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
-    lPos = line.find_first_of(",;\n", pos1);
-    return std::string(line.substr(pos1, lPos++));
+    size_t pos1 = line.find_first_not_of(", ", lPos);
+    //If reading from quotes
+    if(line[pos1] == '"')
+        lPos = line.find_first_of('"', ++pos1);
+    else
+        lPos = line.find_first_of(",;\n", pos1);//Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
+
+    return line.substr(pos1, lPos++ - pos1);
 }
 
 int fs::dataFile::getNextValueInt()
