@@ -90,8 +90,8 @@ static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
 static void loadTrans()
 {
     bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
-    //if(!transFile && data::sysLang == SetLanguage_ENUS)
-        //return;//Don't bother loading from file. It serves as a translation guide
+    if(!transFile && data::sysLang == SetLanguage_ENUS)
+        return;//Don't bother loading from file. It serves as a translation guide
 
     std::string file;
     if(transFile)
