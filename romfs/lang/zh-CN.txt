@@ -1,2 +1,110 @@
 #Chinese translation file
-#Copy en-US.txt here and use as a guide.
+#JKSV Switch translation guide
+#Button strings [X] are replaced by JKSV at boot.
+#string = set string to this.
+#Translation author. Displayed in UI. NULL is ignored and not displayed.
+author = "JamePeng"
+
+#Help/Guide strings on bottom
+#User Select
+userHelp = "[A] 选择   [Y] 导出全部   [X] 模式切换   [-] 选项   [ZR] 附加选项"
+
+#Title Select
+titleHelp = "[A] 选择   [L][R] 更换用户   [Y] 导出全部   [X] 收藏   [-] 黑名单   [ZR] 擦除   [B] 返回"
+
+#Folder Select
+folderHelp = "[-] 文件模式  [L]/[R]+[A] 自动命名  [A] 备份  [Y] 还原  [X] 删除文件夹  [ZR] 擦除  [B] 返回"
+
+#Options Menu
+optHelp = "[A] 切换   [B] 返回"
+
+#Button prompts.
+yt = "是 [A]"
+nt = "否 [B]"
+
+#On/Off for options. '>' is used to change color to green.
+on = ">开>"
+off = "关"
+
+#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
+#Text shown at the top of confirmation boxes
+confirmHead = "确认窗口"
+
+#Confirm blacklist.
+confirmBlacklist = "您是否确认添加 #%s# 到黑名单?"
+
+#Confirm overwriting folder
+confirmOverwrite = "您是否确认覆写 #%s#?"
+
+#Confirm restoring save
+confirmRestore = "您是否确认恢复 #%s#?"
+
+#Confirm deleting.
+confirmDelete = "您是否确认删除 #%s#? *该操作为永久性操作*"
+
+#Confirm file copy in file mode
+confirmCopy = "您是否确认拷贝 #%s# 到 #%s#?"
+
+#Warning for erasing save data from system in title menu
+confirmEraseNand = "*警告*: *这将会从主机系统擦除* #%s# *的存档数据*. *该操作与系统*#数据管理#*操作相同*! 您是否确认继续擦除操作?"
+
+#Warning for deleting save data in folder menu
+confirmEraseFolder = "*警告*: *这将会从主机系统删除* #%s# *的当前存档数据*! 您是否确认继续删除操作?"
+
+#Text displayed when holding is required. Should have a trailing space
+holdingText = 0, "(需要按住) "
+holdingText = 1, "(保持按住) "
+holdingText = 2, "(差不多了!) "
+
+#Menu options are held in arrays of strings.
+#The number is the option to set, string is what to set to.
+#Only the string after the comma needs to be edited.
+#Adv/file mode menu
+#'Copy to ' NEEDS a trailing space
+advMenu = 0, "复制到"
+advMenu = 1, "删除"
+advMenu = 2, "重命名"
+advMenu = 3, "新建文件夹"
+advMenu = 4, "属性"
+advMenu = 5, "关闭"
+
+#Extras Menu
+extMenu = 0, "存储文件管理器"
+extMenu = 1, "查看BIS: PRODINFOF"
+extMenu = 2, "查看BIS: SAFE"
+extMenu = 3, "查看BIS: SYSTEM"
+extMenu = 4, "查看BIS: USER"
+extMenu = 5, "移除固件更新文件"
+extMenu = 6, "终止指定ID进程"
+extMenu = 7, "挂载系统存档"
+extMenu = 8, "重新扫描Titles"
+extMenu = 9, "挂载RomFS进程"
+
+#Options menu
+#All options need a trailing space. It is the most likely to have things added to it.
+optMenu = 0, "全部存档数据: "
+optMenu = 1, "自动备份: "
+optMenu = 2, "系统超频: "
+optMenu = 3, "长按确认删除: "
+optMenu = 4, "长按确认恢复: "
+optMenu = 5, "长按确认覆写: "
+optMenu = 6, "强制挂载: "
+optMenu = 7, "关联用户的系统存档: "
+optMenu = 8, "是否开启系统存档覆写: "
+optMenu = 9, "默认使用文字列表模式: "
+optMenu = 10, "使用系统FS复制指令: "
+optMenu = 11, "跳过用户选择: "
+
+#Explanations of what options do.
+optMenuExp = 0, "包括设备关联账户中的所有存档数据"
+optMenuExp = 1, "还原存档前，自动创建原存档的备份."
+optMenuExp = 2, "在启动时对CPU进行小幅度超频至1224Mhz. 这与开发人员单元的运行速度相同."
+optMenuExp = 3, "执行删除文件和文件夹的时候，是否提示长按[A]确认操作"
+optMenuExp = 4, "执行恢复存档操作的时候，是否提示长按[A]确认操作"
+optMenuExp = 5, "执行覆写存档数据操作的时候，是否提示长按[A]确认操作"
+optMenuExp = 6, "开启后，JKSV仅显示具有开放权限的存档数据. 关闭后将显示所有存档数据."
+optMenuExp = 7, "开启后，JKSV将显示与账户关联的系统存档数据."
+optMenuExp = 8, "控制系统存档数据和分区是否可以写入和删除文件和数据. *如果您在不熟悉功能的情况下操作，可能会非常危险！*"
+optMenuExp = 9, "切换浏览界面至文字列表模式，类似3DS主机上JKSM的界面"
+optMenuExp = 10, "直接使用Switch系统FS指令取代原有的标准输入输出方式"
+optMenuExp = 11, "跳过用户选择界面直接使用首位用户的资料数据"
