@@ -238,7 +238,6 @@ void data::exit()
 
     saveFav();
     saveBlackList();
-    saveCfg();
     util::setCPU(1020000000);
 }
 
@@ -496,6 +495,22 @@ void data::saveCfg()
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
     fclose(cfg);
+}
+
+void data::restoreDefaultConfig()
+{
+    data::incDev = false;
+    data::autoBack = true;
+    data::ovrClk = false;
+    data::holdDel = true;
+    data::holdRest = true;
+    data::holdOver = true;
+    data::forceMount = true;
+    data::accSysSave = false;
+    data::sysSaveWrite = false;
+    ui::textMode = false;
+    data::directFsCmd = false;
+    data::skipUser = false;
 }
 
 void data::loadFav()

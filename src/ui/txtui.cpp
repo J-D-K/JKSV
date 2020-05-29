@@ -415,8 +415,13 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
                 break;
         }
     }
+    else if(down & KEY_X)
+        data::restoreDefaultConfig();
     else if(down & KEY_B)
+    {
+        data::saveCfg();
         ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
+    }
 
     optMenu.draw(ui::txtCont);
     drawTextWrap(ui::optMenuExp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);

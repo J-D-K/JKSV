@@ -15,7 +15,7 @@ titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-]
 folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back"
 
 #Options Menu
-optHelp = "[A] Toggle   [B] Back"
+optHelp = "[A] Toggle   [X] Defaults   [B] Back"
 
 #Button prompts.
 yt = "Yes [A]"

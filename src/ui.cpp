@@ -53,7 +53,7 @@ std::string author = "NULL";
 std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras";
 std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back";
 std::string ui::folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back";
-std::string ui::optHelp = "[A] Toggle   [B] Back";
+std::string ui::optHelp = "[A] Toggle   [X] Defaults   [B] Back";
 std::string ui::yt = "Yes [A]", ui::nt = "No  [B]";
 std::string ui::on = ">On>", ui::off = "Off";
 std::string ui::confBlacklist = "Are you sure you want to add #%s# to your blacklist?";

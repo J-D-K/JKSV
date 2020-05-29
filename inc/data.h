@@ -145,6 +145,8 @@ namespace data
     extern std::vector<user> users;
 
     //Options and info
+    //Restores config to default
+    void restoreDefaultConfig();
     extern int selUser, selData;
     extern SetLanguage sysLang;
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser;
