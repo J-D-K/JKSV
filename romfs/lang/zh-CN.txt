@@ -16,7 +16,7 @@ titleHelp = "[A] 选择   [L][R] 更换用户   [Y] 导出全部   [X] 收藏   
 folderHelp = "[-] 文件模式  [L]/[R]+[A] 自动命名  [A] 备份  [Y] 还原  [X] 删除文件夹  [ZR] 擦除  [B] 返回"
 
 #Options Menu
-optHelp = "[A] 切换   [B] 返回"
+optHelp = "[A] 切换   [X] 恢复默认值   [B] 返回"
 
 #Button prompts.
 yt = "是 [A]"
