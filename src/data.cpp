@@ -122,16 +122,17 @@ bool data::loadUsersTitles(bool clearUsers)
         u.titles.clear();
     if(clearUsers)
     {
+        for(data::user& u : data::users)
+            u.delIcon();
+
         data::users.clear();
         sysBCATPushed = false;
         cachePushed = false;
         tempPushed = false;
+        users.emplace_back(util::u128ToAccountUID(3), "Device Saves", createDeviceIcon());
+        users.emplace_back(util::u128ToAccountUID(2), "BCAT");
+        users.emplace_back(util::u128ToAccountUID(1), "System");
     }
-
-    //Push system users
-    users.emplace_back(util::u128ToAccountUID(3), "Device Saves", createDeviceIcon());
-    users.emplace_back(util::u128ToAccountUID(2), "BCAT");
-    users.emplace_back(util::u128ToAccountUID(1), "System");
 
     NsApplicationControlData *dat = new NsApplicationControlData;
     while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
@@ -179,20 +180,20 @@ bool data::loadUsersTitles(bool clearUsers)
                 break;
         }
 
-        //If save data, not black listed or just ignore
-        if(!blacklisted(info.application_id) && !blacklisted(info.save_data_id) && accountSystemSaveCheck(info))
-        {
-            int u = getUserIndex(info.uid);
-            if(u == -1)
-            {
-                users.emplace(users.end() - 3, info.uid, "");
-                u = getUserIndex(info.uid);
-            }
+        //Don't bother with this stuff
+        if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info))
+            continue;
 
-            data::titledata newData(info, dat);
-            if(!forceMount || newData.isMountable(data::users[u].getUID()))
-                users[u].titles.push_back(newData);
+        int u = getUserIndex(info.uid);
+        if(u == -1)
+        {
+            users.emplace(users.end() - 3, info.uid, "");
+            u = getUserIndex(info.uid);
         }
+
+        data::titledata newData(info, dat);
+        if(!forceMount || newData.isMountable(data::users[u].getUID()))
+            users[u].titles.push_back(newData);
     }
     delete dat;
     fsSaveDataInfoReaderClose(&it);
@@ -228,7 +229,7 @@ void data::init()
     setGetSystemLanguage(&lang);
     setMakeLanguage(lang, &sysLang);
 
-    data::loadUsersTitles(false);
+    data::loadUsersTitles(true);
 }
 
 void data::exit()
@@ -327,7 +328,8 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
 
 bool data::titledata::isMountable(const AccountUid& uid)
 {
-    data::user tmpUser(uid, "");
+    data::user tmpUser;
+    tmpUser.setUID(uid);
     if(fs::mountSave(tmpUser, *this))
     {
         fs::unmountSave();
@@ -375,8 +377,6 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userIcon = util::createIconGeneric(_backupName.c_str());
     }
-
-    titles.reserve(64);
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName, tex *img) : user(_id, _backupName)

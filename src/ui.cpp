@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 05.26.2020"
+#define VER_STRING "v. 06.01.2020"
 
 //text mode
 bool ui::textMode = false;

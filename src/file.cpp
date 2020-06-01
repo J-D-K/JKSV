@@ -19,6 +19,8 @@ static std::string wd;
 
 static FSFILE *log;
 
+static FsFileSystem sv;
+
 static struct
 {
     bool operator()(fs::dirItem& a, fs::dirItem& b)
@@ -214,8 +216,6 @@ void fs::exit()
 bool fs::mountSave(data::user& usr, data::titledata& open)
 {
     Result svOpen;
-    FsFileSystem sv;
-
     switch(open.getType())
     {
         case FsSaveDataType_System:
@@ -368,7 +368,14 @@ std::string fs::dataFile::getNextValueStr()
 
 int fs::dataFile::getNextValueInt()
 {
-    return strtol(getNextValueStr().c_str(), 0, 10);
+    int ret = 0;
+    std::string no = getNextValueStr();
+    if(no[0] == '0' && tolower(no[1]) == 'x')
+        ret = strtoul(no.c_str(), NULL, 16);
+    else
+        ret = strtoul(no.c_str(), NULL, 10);
+
+    return ret;
 }
 
 void fs::copyFile(const std::string& from, const std::string& to)

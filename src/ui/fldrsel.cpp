@@ -135,7 +135,6 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
     data::curData.icon.draw(96, 98);
     drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
 
-
     if(down & KEY_A)
     {
         if(folderMenu.getSelected() == 0)
@@ -159,7 +158,7 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
     }
     else if(down & KEY_B)
     {
-        fsdevUnmountDevice("sv");
+        fs::unmountSave();
         mstate = TTL_SEL;
     }
 }

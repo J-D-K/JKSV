@@ -155,12 +155,11 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
     }
     else if(down & KEY_ZR)
     {
-        data::titledata tempData = data::curUser.titles[data::selData];
-        if(tempData.getType() == FsSaveDataType_System)
+        if(data::curData.getType() == FsSaveDataType_System)
             ui::showMessage("*NO*", "Deleting system save archives is disabled.");
-        else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
+        else if(confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
         {
-            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
+            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
             data::loadUsersTitles(false);
             data::selData = 0;
         }
