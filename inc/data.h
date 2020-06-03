@@ -25,6 +25,7 @@ namespace data
     void saveCfg();
     void loadFav();
     void saveFav();
+    void loadDefs();
 
     //Class to help not load the same icons over and over
     class icn

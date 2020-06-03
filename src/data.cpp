@@ -1,4 +1,5 @@
 #include <vector>
+#include <map>
 #include <string>
 #include <cstring>
 #include <algorithm>
@@ -28,6 +29,7 @@ static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
+static std::unordered_map<uint64_t, std::string> pathDefs;
 
 //Sorts titles sort-of alphabetically
 static struct
@@ -81,6 +83,17 @@ static bool isFavorite(const uint64_t& tid)
 {
     for(uint64_t& fid : favorites)
         if(tid == fid) return true;
+
+    return false;
+}
+
+static bool isDefined(const uint64_t& id)
+{
+    for(auto& def : pathDefs)
+    {
+        if(def.first == id)
+            return true;
+    }
 
     return false;
 }
@@ -221,6 +234,7 @@ void data::init()
     loadBlacklist();
     loadFav();
     loadCfg();
+    loadDefs();
 
     if(data::ovrClk)
         util::setCPU(1224000000);
@@ -297,9 +311,10 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
     if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL && icnSize > 0)
     {
         title.assign(ent->name);
-        titleSafe.assign(util::safeString(title));
         author.assign(ent->author);
-        if(titleSafe.empty())
+        if(isDefined(id))
+            titleSafe = util::safeString(pathDefs[id]);
+        else if((titleSafe = util::safeString(title)) == "")
             titleSafe = getIDStr(id);
 
         if(icnInd == -1)
@@ -534,4 +549,18 @@ void data::saveFav()
         fprintf(fav, "0x%016lX\n", fid);
 
     fclose(fav);
+}
+
+void data::loadDefs()
+{
+    std::string defPath = fs::getWorkDir() + "titleDefs.txt";
+    if(fs::fileExists(defPath))
+    {
+        fs::dataFile def(defPath);
+        while(def.readNextLine(true))
+        {
+            uint64_t id = strtoull(def.getName().c_str(), NULL, 16);
+            pathDefs[id] = def.getNextValueStr();
+        }
+    }
 }
