@@ -27,21 +27,22 @@ JKSV on Switch started as a small project/port to test some things and get famil
 	* A opens the selected user's save files. 
 	* Y Dumps __all__ save data from __all users__, device save data, and BCAT save data. System save data is not included in this.
 	* X Changes the UI mode to a text menu based one for people that prefer 3DS JKSM style text menus instead.
-	* ZR Opens the Options menu.
-	* Minus opens a small menu of extras.
+	* Minus Opens the Options menu.
+	* ZR opens a small menu of extras.
 	
 2. Title Select
 	* A Opens the title for backup and restore.
 	* L and R change the current user.
 	* Y Dumps all saves for the currently selected user.
-	* X Adds the selected title to a list of ignored titles.
-	* Minus adds the selected title to a list of favorites that are pushed to the top of the title list/icons.
+	* X adds the selected title to a list of favorites that are pushed to the top of the title list/icons.
+	* Minus adds the selected title to a list of ignored titles.
 	* ZR __ERASES__ The selected title's save from the system. This is the same as going into settings and deleting via data management. __THIS DOES NOT DELETE JKSV's SAVE FOLDERS__.
 	
 3. Backup/Folder Menu
 	* Minus opens file mode. File mode is a basic file browser for moving individual files and folders. This also adds the ability to restore saves from any location on your SD card.
 	* Holding L or R while selecting new with A will automatically name the backup for you without opening the keyboard.
 	* A creates a new backup
+	    * JKSV adds some suggestions to the keyboard's dictionary such as: date strings, the current user's name **if it's safe**, and the current title or a generated abbreviation.
 	* Y Restores save data from the selected folder.
 	* X Deletes the selected folder.
 	* ZR __ERASES__ the current save data for the title from __your system__, but leaves the archive on NAND.

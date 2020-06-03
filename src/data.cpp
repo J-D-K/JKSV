@@ -32,7 +32,7 @@ static std::vector<uint64_t> favorites;
 //Sorts titles sort-of alphabetically
 static struct
 {
-    bool operator()(data::titledata& a, data::titledata& b)
+    bool operator()(const data::titledata& a, const data::titledata& b)
     {
         if(a.getFav() != b.getFav()) return a.getFav();
 
@@ -338,7 +338,7 @@ bool data::titledata::isMountable(const AccountUid& uid)
     return false;
 }
 
-void data::titledata::createDir()
+void data::titledata::createDir() const
 {
     mkdir(std::string(fs::getWorkDir() + titleSafe).c_str(), 777);
 }
@@ -403,7 +403,8 @@ void data::loadBlacklist()
 
 void data::saveBlackList()
 {
-    FILE *bl = fopen(std::string(fs::getWorkDir() + "blacklist.txt").c_str(), "w");
+    std::string blPath = fs::getWorkDir() + "blacklist.txt";
+    FILE *bl = fopen(blPath.c_str(), "w");
     for(uint64_t& id : blacklist)
         fprintf(bl, "0x%016lX\n", id);
 
@@ -451,9 +452,10 @@ void data::favoriteTitle(titledata& t)
 
 void data::loadCfg()
 {
-    if(fs::fileExists(fs::getWorkDir() + "cfg.bin"))
+    std::string cfgPath = fs::getWorkDir() + "cfg.bin";
+    if(fs::fileExists(cfgPath))
     {
-        FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "rb");
+        FILE *cfg = fopen(cfgPath.c_str(), "rb");
 
         uint64_t cfgIn = 0;
         fread(&cfgIn, sizeof(uint64_t), 1, cfg);
@@ -476,7 +478,8 @@ void data::loadCfg()
 
 void data::saveCfg()
 {
-    FILE *cfg = fopen(std::string(fs::getWorkDir() + "cfg.bin").c_str(), "wb");
+    std::string cfgPath = fs::getWorkDir() + "cfg.bin";
+    FILE *cfg = fopen(cfgPath.c_str(), "wb");
 
     //Use 64bit int for space future stuff. Like this for readability.
     uint64_t cfgOut = 0;
@@ -525,7 +528,8 @@ void data::loadFav()
 
 void data::saveFav()
 {
-    FILE *fav = fopen(std::string(fs::getWorkDir() + "favorites.txt").c_str(), "w");
+    std::string favPath = fs::getWorkDir() + "favorites.txt";
+    FILE *fav = fopen(favPath.c_str(), "w");
     for(uint64_t& fid : favorites)
         fprintf(fav, "0x%016lX\n", fid);
 

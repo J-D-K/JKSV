@@ -23,7 +23,7 @@ static FsFileSystem sv;
 
 static struct
 {
-    bool operator()(fs::dirItem& a, fs::dirItem& b)
+    bool operator()(const fs::dirItem& a, const fs::dirItem& b)
     {
         if(a.isDir() != b.isDir())
             return a.isDir();
@@ -213,7 +213,7 @@ void fs::exit()
     fs::logClose();
 }
 
-bool fs::mountSave(data::user& usr, data::titledata& open)
+bool fs::mountSave(const data::user& usr, const data::titledata& open)
 {
     Result svOpen;
     switch(open.getType())
@@ -510,7 +510,7 @@ void fs::delDir(const std::string& path)
     rmdir(path.c_str());
 }
 
-bool fs::dumpAllUserSaves(data::user& u)
+bool fs::dumpAllUserSaves(const data::user& u)
 {
     for(unsigned i = 0; i < u.titles.size(); i++)
     {
@@ -527,10 +527,7 @@ bool fs::dumpAllUserSaves(data::user& u)
             std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_ASC);
             mkdir(outPath.c_str(), 777);
             outPath += "/";
-
-            std::string root = "sv:/";
-
-            fs::copyDirToDir(root, outPath);
+            fs::copyDirToDir("sv:/", outPath);
 
             fsdevUnmountDevice("sv");
         }

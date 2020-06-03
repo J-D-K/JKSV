@@ -11,7 +11,7 @@
 
 static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '™', '©', '®'};
 
-static bool isVerboten(uint32_t t)
+static bool isVerboten(const uint32_t& t)
 {
     for(unsigned i = 0; i < 13; i++)
     {
@@ -20,6 +20,11 @@ static bool isVerboten(uint32_t t)
     }
 
     return false;
+}
+
+static inline bool isASCII(const uint32_t& t)
+{
+    return t > 30 && t < 127;
 }
 
 //Missing swkbd config funcs for now
@@ -79,7 +84,6 @@ static inline void replaceCharCStr(char *_s, char _find, char _rep)
     }
 }
 
-
 std::string util::getDateTime(int fmt)
 {
     char ret[128];
@@ -116,7 +120,7 @@ std::string util::getDateTime(int fmt)
     return std::string(ret);
 }
 
-void util::copyDirListToMenu(fs::dirList& d, ui::menu& m)
+void util::copyDirListToMenu(const fs::dirList& d, ui::menu& m)
 {
     m.reset();
     m.addOpt(".");
@@ -152,7 +156,7 @@ std::string util::safeString(const std::string& s)
 
         if(isVerboten(tmpChr))
             ret += ' ';
-        else if(tmpChr < 31 || tmpChr > 126)
+        else if(!isASCII(tmpChr))
             return ""; //return empty string so titledata::init defaults to titleID
         else
             ret += (char)tmpChr;
@@ -165,7 +169,7 @@ std::string util::safeString(const std::string& s)
     return ret;
 }
 
-std::string util::getInfoString(data::user& u, data::titledata& d)
+std::string util::getInfoString(const data::user& u, const data::titledata& d)
 {
     std::string ret = d.getTitle() + "\n\n";
 
@@ -239,7 +243,7 @@ std::string util::getStringInput(const std::string& def, const std::string& head
     return std::string(out);
 }
 
-std::string util::generateAbbrev(data::titledata& dat)
+std::string util::generateAbbrev(const data::titledata& dat)
 {
     size_t titleLength = dat.getTitle().length();
 
@@ -251,10 +255,10 @@ std::string util::generateAbbrev(data::titledata& dat)
     char *tok = strtok(temp, " ");
     while(tok)
     {
-        ret += tok[0];
+        if(isASCII(tok[0]))
+            ret += tok[0];
         tok = strtok(NULL, " ");
     }
-
     return ret;
 }
 

@@ -16,7 +16,7 @@ namespace fs
     void exit();
 
     //Mounts usr's save data for open. Returns false it fails
-    bool mountSave(data::user& usr, data::titledata& open);
+    bool mountSave(const data::user& usr, const data::titledata& open);
     inline bool unmountSave(){ return fsdevUnmountDevice("sv") == 0; }
 
     void copyFile(const std::string& from, const std::string& to);
@@ -34,7 +34,7 @@ namespace fs
     void delDir(const std::string& path);
 
     //Dumps all titles for 'user'. returns false to bail
-    bool dumpAllUserSaves(data::user& u);
+    bool dumpAllUserSaves(const data::user& u);
 
     //returns file properties as C++ string
     std::string getFileProps(const std::string& _path);
@@ -55,8 +55,8 @@ namespace fs
     {
         public:
             dirItem(const std::string& pathTo, const std::string& sItem);
-            std::string getItm() { return itm; }
-            bool isDir() { return dir; }
+            std::string getItm() const { return itm; }
+            bool isDir() const { return dir; }
 
         private:
             std::string itm;
@@ -72,9 +72,9 @@ namespace fs
             void reassign(const std::string& _path);
             void rescan();
 
-            std::string getItem(int index) { return item[index].getItm(); }
-            bool isDir(int index) { return item[index].isDir(); }
-            unsigned getCount() { return item.size(); }
+            std::string getItem(int index) const { return item[index].getItm(); }
+            bool isDir(int index) const { return item[index].isDir(); }
+            unsigned getCount() const { return item.size(); }
 
         private:
             DIR *d;
@@ -89,13 +89,13 @@ namespace fs
             dataFile(const std::string& _path);
             ~dataFile();
 
-            bool isOpen() { return opened; }
+            bool isOpen() const { return opened; }
 
             bool readNextLine(bool proc);
             //Finds where variable name ends. When a '(' or '=' is hit. Strips spaces
             void procLine();
-            std::string getLine() { return line; }
-            std::string getName() { return name; }
+            std::string getLine() const { return line; }
+            std::string getName() const { return name; }
             //Reads until ';', ',', or '\n' is hit and returns as string.
             std::string getNextValueStr();
             int getNextValueInt();

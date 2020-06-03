@@ -21,18 +21,18 @@ namespace util
     std::string getDateTime(int fmt);
 
     //Copys dir list to a menu with 'D: ' + 'F: '
-    void copyDirListToMenu(fs::dirList& d, ui::menu& m);
+    void copyDirListToMenu(const fs::dirList& d, ui::menu& m);
 
     //Removes last folder from '_path'
     void removeLastFolderFromString(std::string& _path);
 
     std::string safeString(const std::string& s);
 
-    std::string getInfoString(data::user& u, data::titledata& d);
+    std::string getInfoString(const data::user& u, const data::titledata& d);
 
     std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 
-    std::string generateAbbrev(data::titledata& dat);
+    std::string generateAbbrev(const data::titledata& dat);
 
     //removes char from C++ string
     void stripChar(char _c, std::string& _s);

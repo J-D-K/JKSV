@@ -44,7 +44,7 @@ namespace data
             void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, frameBuffer, x, y); }
             void drawFavHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconFav, frameBuffer, x, y); }
 
-            uint64_t getTitleID() { return titleID; }
+            uint64_t getTitleID() const { return titleID; }
             tex *getTex() { return iconTex; }
 
             void deleteData() { texDestroy(iconTex); texDestroy(iconFav); }
@@ -66,26 +66,26 @@ namespace data
             bool isMountable(const AccountUid& uid);
 
             //Returns title + title without forbidden chars
-            std::string getTitle() { return title;}
-            std::string getTitleSafe() { return titleSafe; }
-            std::string getAuthor() { return author; }
+            std::string getTitle() const { return title;}
+            std::string getTitleSafe() const { return titleSafe; }
+            std::string getAuthor() const { return author; }
 
             //Creates title folder
-            void createDir();
+            void createDir() const;
             //Returns folder path
-            std::string getPath() { return path; }
+            std::string getPath() const { return path; }
 
             //returns save_data_id string. only used for helping identify nand files
-            std::string getTIDStr() { return tidStr; }
-            std::string getSaveIDStr() { return saveIDStr; }
+            std::string getTIDStr() const { return tidStr; }
+            std::string getSaveIDStr() const { return saveIDStr; }
 
-            uint64_t getID() { return id; }
-            uint64_t getSaveID() { return saveID; }
-            uint16_t getSaveIndex() { return saveIndex; }
-            FsSaveDataType getType() { return (FsSaveDataType)saveDataType; }
+            uint64_t getID() const { return id; }
+            uint64_t getSaveID() const { return saveID; }
+            uint16_t getSaveIndex() const { return saveIndex; }
+            FsSaveDataType getType() const { return (FsSaveDataType)saveDataType; }
             void setType(FsSaveDataType type) { saveDataType = type; }
             void setFav(bool setFav) { favorite = setFav; }
-            bool getFav() { return favorite; }
+            bool getFav() const { return favorite; }
 
             //Game icon
             icn icon;
@@ -113,12 +113,12 @@ namespace data
             void assignIcon(tex *_icn) { userIcon = _icn; }
 
             //Returns user ID
-            AccountUid getUID() { return userID; }
-            u128 getUID128() { return uID128; }
+            AccountUid getUID() const { return userID; }
+            u128 getUID128() const { return uID128; }
 
             //Returns username
-            std::string getUsername() { return username; }
-            std::string getUsernameSafe() { return userSafe; }
+            std::string getUsername() const { return username; }
+            std::string getUsernameSafe() const { return userSafe; }
 
             //Vector for storing save data info for user
             std::vector<titledata> titles;

@@ -43,9 +43,10 @@ void ui::createNewBackup(const uint64_t& held)
             util::getDateTime(util::DATE_FMT_JHK),
             util::getDateTime(util::DATE_FMT_ASC),
             data::curUser.getUsernameSafe(),
-            data::curData.getTitleSafe().length() < 24 ? data::curData.getTitleSafe() : util::generateAbbrev(data::curData)
+            data::curData.getTitleSafe(),
+            util::generateAbbrev(data::curData)
         };
-        folder = util::getStringInput("", "Enter a folder name", 64, 7, dict);
+        folder = util::getStringInput("", "Enter a folder name", 64, 8, dict);
     }
 
     if(!folder.empty())
