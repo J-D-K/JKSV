@@ -30,6 +30,9 @@ off = "关"
 #Text shown at the top of confirmation boxes
 confirmHead = "确认窗口"
 
+#Text shown at top of progress dialog when copying files
+copyHead = "正在复制文件..."
+
 #Confirm blacklist.
 confirmBlacklist = "您是否确认添加 #%s# 到黑名单?"
 
@@ -50,6 +53,9 @@ confirmEraseNand = "*警告*: *这将会从主机系统擦除* #%s# *的存档�
 
 #Warning for deleting save data in folder menu
 confirmEraseFolder = "*警告*: *这将会从主机系统删除* #%s# *的当前存档数据*! 您是否确认继续删除操作?"
+
+#Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
+noSavesFound = "沒有找到 #%s# 的存档数据!"
 
 #Text displayed when holding is required. Should have a trailing space
 holdingText = 0, "(需要按住) "
