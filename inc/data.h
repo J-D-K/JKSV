@@ -27,34 +27,6 @@ namespace data
     void saveFav();
     void loadDefs();
 
-    //Class to help not load the same icons over and over
-    class icn
-    {
-        public:
-            icn() = default;
-            //Loads jpeg icon from jpegData
-            icn(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize);
-            //Creates a generic icon for stuff with no icon with id
-            icn(const uint64_t& _id, const std::string& _txt);
-
-            //Creates favorite with heart on it. Needs to be called after icon is loaded
-            void createFav();
-
-            void draw(unsigned x, unsigned y) { texDrawNoAlpha(iconTex, frameBuffer, x, y); }
-            void drawFav(unsigned x, unsigned y) { texDrawNoAlpha(iconFav, frameBuffer, x, y); }
-            void drawHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconTex, frameBuffer, x, y); }
-            void drawFavHalf(unsigned x, unsigned y) { texDrawSkipNoAlpha(iconFav, frameBuffer, x, y); }
-
-            uint64_t getTitleID() const { return titleID; }
-            tex *getTex() { return iconTex; }
-
-            void deleteData() { texDestroy(iconTex); texDestroy(iconFav); }
-
-        private:
-            uint64_t titleID;
-            tex *iconTex, *iconFav = NULL;
-    };
-
     //Class to store title info
     class titledata
     {
@@ -87,11 +59,12 @@ namespace data
             void setType(FsSaveDataType type) { saveDataType = type; }
             void setFav(bool setFav) { favorite = setFav; }
             bool getFav() const { return favorite; }
-
-            //Game icon
-            icn icon;
+            void assignIcons();
+            tex *getIcon() const { return icon; }
+            tex *getIconFav() const { return favIcon; }
 
         private:
+            tex *icon, *favIcon;
             uint8_t saveDataType;
             std::string title, titleSafe, author, path, tidStr, saveIDStr;
             uint64_t id, saveID;
@@ -142,7 +115,6 @@ namespace data
     void favoriteTitle(data::titledata& t);
 
     //User vector
-    extern std::vector<icn> icons;
     extern std::vector<user> users;
 
     //Options and info

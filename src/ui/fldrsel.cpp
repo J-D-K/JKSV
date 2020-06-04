@@ -133,7 +133,7 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
     //Draw folder menu
     folderMenu.draw(ui::txtCont);
 
-    data::curData.icon.draw(96, 98);
+    texDraw(data::curData.getIcon(), frameBuffer, 96, 98);
     drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
 
     if(down & KEY_A)

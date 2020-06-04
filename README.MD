@@ -60,6 +60,7 @@ JKSV on Switch started as a small project/port to test some things and get famil
 		* Properties gets file size and directory size.
 	* ZL or ZR Change the controlled menu.
 		
+**NOTE**: Press Plus to Exit JKSV. JKSV saves all config, favorites, and the blacklist when exited. Pressing the home button and closing that way will not allow this to take place.
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)

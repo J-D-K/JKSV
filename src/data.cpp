@@ -13,8 +13,7 @@
 
 int data::selUser = 0, data::selData = 0;
 
-//Icon/User vectors
-std::vector<data::icn> data::icons;
+//User vector
 std::vector<data::user> data::users;
 
 //System language
@@ -30,6 +29,7 @@ static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
+static std::unordered_map<uint64_t, std::pair<tex *, tex *>> icons;
 
 //Sorts titles sort-of alphabetically
 static struct
@@ -59,14 +59,6 @@ static int getUserIndex(const AccountUid& id)
     u128 nId = util::accountUIDToU128(id);
     for(unsigned i = 0; i < data::users.size(); i++)
         if(data::users[i].getUID128() == nId) return i;
-
-    return -1;
-}
-
-static int findIcnIndex(const uint64_t& titleID)
-{
-    for(unsigned i = 0; i < data::icons.size(); i++)
-        if(data::icons[i].getTitleID() == titleID) return i;
 
     return -1;
 }
@@ -102,6 +94,29 @@ static tex *createDeviceIcon()
     unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 188) / 2);
     drawText("\ue121", ret, ui::shared, x, 34, 188, ui::txtCont);
     return ret;
+}
+
+static inline tex *createFavIcon(const tex *_icn)
+{
+    tex *ret = texCreate(256, 256);
+    memcpy(ret->data, _icn->data, 256 * 256 * sizeof(uint32_t));
+    drawText("♥", ret, ui::shared, 0, 0, 48, clrCreateU32(0xFF4444FF));
+    return ret;
+}
+
+static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsApplicationControlData *_d)
+{
+    icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
+    icons[_id].second = createFavIcon(icons[_id].first);
+}
+
+static void loadCreateSystemIcon(const uint64_t& _id)
+{
+    char tmp[16];
+    sprintf(tmp, "%08X", (uint32_t)_id);
+
+    icons[_id].first = util::createIconGeneric(tmp);
+    icons[_id].second = createFavIcon(icons[_id].first);
 }
 
 static inline std::string getIDStr(const uint64_t& _id)
@@ -246,43 +261,16 @@ void data::init()
 void data::exit()
 {
     for(data::user& u : data::users) u.delIcon();
-    for(data::icn& i : data::icons) i.deleteData();
+    for(auto& icn : icons)
+    {
+        texDestroy(icn.second.first);
+        texDestroy(icn.second.second);
+    }
 
     saveFav();
     saveBlackList();
     saveCfg();
     util::setCPU(1020000000);
-}
-
-data::icn::icn(const uint64_t& _id, const uint8_t *jpegData, const size_t& jpegSize)
-{
-    titleID = _id;
-    iconTex = texLoadJPEGMem(jpegData, jpegSize);
-    createFav();
-}
-
-data::icn::icn(const uint64_t& _id, const std::string& _txt)
-{
-    titleID = _id;
-
-    if(_txt.empty())
-    {
-        //use last 4 bytes of ID
-        char tmp[10];
-        sprintf(tmp, "%08X", (unsigned int)(_id & 0xFFFFFFFF));
-        iconTex = util::createIconGeneric(tmp);
-    }
-    else
-        iconTex = util::createIconGeneric(_txt.c_str());
-
-    createFav();
-}
-
-void data::icn::createFav()
-{
-    iconFav = texCreate(256, 256);
-    memcpy(iconFav->data, iconTex->data, 256 * 256 * sizeof(uint32_t));
-    drawText("♥", iconFav, ui::shared, 0, 0, 48, clrCreateU32(0xFF4444FF));
 }
 
 data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *dat)
@@ -305,7 +293,7 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
     Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
     Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
     size_t icnSize = outSz - sizeof(dat->nacp);
-    int icnInd = findIcnIndex(id);
+    auto icnInd = icons.find(id);
     if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL && icnSize > 0)
     {
         title.assign(ent->name);
@@ -315,24 +303,18 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
         else if((titleSafe = util::safeString(title)) == "")
             titleSafe = getIDStr(id);
 
-        if(icnInd == -1)
-        {
-            data::icons.emplace_back(id, dat->icon, icnSize);
-            icnInd = data::icons.size() - 1;
-        }
+        if(icnInd == icons.end())
+            loadCreateIcon(id, icnSize, dat);
 
-        icon = icons[icnInd];
+        assignIcons();
     }
     else
     {
-        if(icnInd == -1)
-        {
-            data::icons.emplace_back(id, "");
-            icnInd = data::icons.size() - 1;
-        }
+        if(icnInd == icons.end())
+            loadCreateSystemIcon(id);
         title = getIDStr(id);
         titleSafe = getIDStr(id);
-        icon = icons[icnInd];
+        assignIcons();
     }
 
     favorite = isFavorite(id);
@@ -354,6 +336,12 @@ bool data::titledata::isMountable(const AccountUid& uid)
 void data::titledata::createDir() const
 {
     mkdir(std::string(fs::getWorkDir() + titleSafe).c_str(), 777);
+}
+
+void data::titledata::assignIcons()
+{
+    icon = icons[id].first;
+    favIcon = icons[id].second;
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName)

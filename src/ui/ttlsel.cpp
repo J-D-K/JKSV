@@ -67,11 +67,10 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
                 drawTextbox(frameBuffer, rectX, y - 50, rectWidth, 38);
                 drawText(title.c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
             }
-
             if(data::curUser.titles[i].getFav())
-                data::curUser.titles[i].icon.drawFavHalf(tX, y);
+                texDrawSkipNoAlpha(data::curUser.titles[i].getIconFav(), frameBuffer, tX, y);
             else
-                data::curUser.titles[i].icon.drawHalf(tX, y);
+                texDrawSkipNoAlpha(data::curUser.titles[i].getIcon(), frameBuffer, tX, y);
         }
     }
 
