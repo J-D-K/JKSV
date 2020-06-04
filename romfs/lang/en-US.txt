@@ -29,6 +29,9 @@ off = "Off"
 #Text shown at the top of confirmation boxes
 confirmHead = "Confirm"
 
+#Text shown at top of progress dialog when copying files
+copyHead = "Copying File..."
+
 #Confirm blacklist.
 confirmBlacklist = "Are you sure you want to add #%s# to your blacklist?"
 
@@ -49,6 +52,9 @@ confirmEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from yo
 
 #Warning for deleting save data in folder menu
 confirmEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?"
+
+#Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
+noSavesFound = "No save data found for #%s#!"
 
 #Text displayed when holding is required. Should have a trailing space
 holdingText = 0, "(Hold) "

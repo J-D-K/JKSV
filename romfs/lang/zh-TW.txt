@@ -12,7 +12,7 @@ userHelp = "[A] 選定  [Y] 全部備份  [X] 模式切換  [-] 設定  [ZR] 進
 titleHelp = "[A] 選定  [L][R] 變更使用者  [Y] 全部備份  [-] 最愛  [X] 黑名單  [ZR] 抹除  [B] 返回"
 
 #Folder Select
-folderHelp = "[-] 檔案模式  [L][R] 自動命名  [A] 備份  [Y] 還原  [X] 刪除資料夾  [ZR] 抹除  [B] 返回"
+folderHelp = "[-] 檔案模式  [L]/[R]+[A] 自動命名  [A] 備份  [Y] 還原  [X] 刪除資料夾  [ZR] 抹除  [B] 返回"
 
 #Options Menu
 optHelp = "[A] 切換   [X] 恢復預設值   [B] 返回"
@@ -28,6 +28,9 @@ off = "關"
 #Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
 #Text shown at the top of confirmation boxes
 confirmHead = "再次確認"
+
+#Text shown at top of progress dialog when copying files
+copyHead = "正在複製檔案..."
 
 #Confirm blacklist.
 confirmBlacklist = "是否確定要將 #%s# 加入黑名單?"
@@ -49,6 +52,9 @@ confirmEraseNand = "*警告*: 此操作將把 #%s# 檔案從你的主機系統�
 
 #Warning for deleting save data in folder menu
 confirmEraseFolder = "*警告*: 此操作*將把*目前的進度 #%s# 檔案*從主機系統內刪除*! 是否確定要繼續執行刪除?"
+
+#Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
+noSavesFound = "沒有找到#%s#的存檔資料!"
 
 #Text displayed when holding is required. Should have a trailing space
 holdingText = 0, "(請按住) "

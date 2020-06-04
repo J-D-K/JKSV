@@ -43,7 +43,8 @@ namespace ui
     //Strings since translation support
     extern std::string userHelp, titleHelp, folderHelp, optHelp, \
     confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
-    confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead;
+    confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead, \
+    copyHead, noSavesFound;
 
     //Strings for file mode menu
     extern std::string advMenuStr[6];

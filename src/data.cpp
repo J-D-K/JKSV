@@ -90,10 +90,7 @@ static bool isFavorite(const uint64_t& tid)
 static bool isDefined(const uint64_t& id)
 {
     for(auto& def : pathDefs)
-    {
-        if(def.first == id)
-            return true;
-    }
+        if(def.first == id) return true;
 
     return false;
 }
@@ -253,6 +250,7 @@ void data::exit()
 
     saveFav();
     saveBlackList();
+    saveCfg();
     util::setCPU(1020000000);
 }
 
@@ -319,7 +317,7 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
 
         if(icnInd == -1)
         {
-            data::icons.push_back(data::icn(id, dat->icon, icnSize));
+            data::icons.emplace_back(id, dat->icon, icnSize);
             icnInd = data::icons.size() - 1;
         }
 
@@ -329,7 +327,7 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
     {
         if(icnInd == -1)
         {
-            icons.push_back(data::icn(id, ""));
+            data::icons.emplace_back(id, "");
             icnInd = data::icons.size() - 1;
         }
         title = getIDStr(id);

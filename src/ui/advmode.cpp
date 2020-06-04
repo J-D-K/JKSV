@@ -511,7 +511,7 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
                 copyMenu.setParams(176, 278, 304);
                 copyMenu.editOpt(0, advMenuStr[0] + "sdmc");
                 ui::drawTextbox(frameBuffer, 168, 236, 320, 268);
-                drawText("SAVE", frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
+                drawText(dev.c_str(), frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
                 break;
 
             case 1:

@@ -141,7 +141,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         start = 0;
         data::selData = 0;
         selRectX = 64, selRectY = 90;
-        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
     }
     else if(down & KEY_R)
     {
@@ -151,7 +151,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         start = 0;
         data::selData = 0;
         selRectX = 64, selRectY = 90;
-        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
     }
     else if(down & KEY_ZR)
     {

@@ -59,6 +59,7 @@ void ui::showMessage(const char *head, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
+    va_end(args);
 
     unsigned headX = (640 / 2) - (textGetWidth(head, ui::shared, 20) / 2);
     unsigned okX = (640 / 2) - (textGetWidth(okt, ui::shared, 20) / 2);
@@ -76,7 +77,7 @@ void ui::showMessage(const char *head, const char *fmt, ...)
         texDraw(diaBox, frameBuffer, 320, 150);
         drawText(head, frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
         drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);
-        drawText(okt, frameBuffer, ui::shared, 320 + okX, 530, 20, ui::txtDiag);
+        drawText(okt, frameBuffer, ui::shared, 320 + okX, 522, 20, ui::txtDiag);
         gfxEndFrame();
     }
 }
@@ -90,6 +91,7 @@ bool ui::confirm(bool hold, const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
+    va_end(args);
 
     bool ret = false, heldDown = false;
     unsigned loadFrame = 0, holdCount = 0;
@@ -167,8 +169,8 @@ bool ui::confirm(bool hold, const char *fmt, ...)
         gfxBeginFrame();
         texDraw(diaBox, frameBuffer, 320, 150);
         drawText(ui::confirmHead.c_str(), frameBuffer, ui::shared, 320 + headX, 168, 20, ui::txtDiag);
-        drawText(yesText.c_str(), frameBuffer, ui::shared, 320 + yesX, 530, 20, holdClr);
-        drawText(ui::nt.c_str(), frameBuffer, ui::shared, 860 - noX, 530, 20, ui::txtDiag);
+        drawText(yesText.c_str(), frameBuffer, ui::shared, 320 + yesX, 522, 20, holdClr);
+        drawText(ui::nt.c_str(), frameBuffer, ui::shared, 640 + noX, 522, 20, ui::txtDiag);
         drawTextWrap(tmp, frameBuffer, ui::shared, 352, 230, 16, ui::txtDiag, 576);
         gfxEndFrame();
     }
@@ -221,14 +223,20 @@ void ui::drawTextboxInvert(tex *target, int x, int y, int w, int h)
     texDrawInvert(ui::cornerBottomRight, target, (x + w) - 32, (y + h) - 32);
 }
 
-void ui::showPopup(const std::string& mess, unsigned frames)
+void ui::showPopup(unsigned frames, const char *fmt, ...)
 {
+    char tmp[256];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(tmp, fmt, args);
+    va_end(args);
+
     frameCount = 0;
     frameHold = frames;
-    popWidth = textGetWidth(mess.c_str(), ui::shared, 24) + 32;
+    popWidth = textGetWidth(tmp, ui::shared, 24) + 32;
     popX = 640 - (popWidth / 2);
 
-    popText = mess;
+    popText = tmp;
     popY = 721;
     popState = popRise;
     popDraw = true;

@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 06.01.2020"
+#define VER_STRING "v. 06.03.2020"
 
 //text mode
 bool ui::textMode = false;
@@ -62,8 +62,10 @@ std::string ui::confRestore = "Are you sure you want to restore #%s#?";
 std::string ui::confDel = "Are you sure you want to delete #%s#? *This is permanent*!";
 std::string ui::confCopy = "Are you sure you want to copy #%s# to #%s#?";
 std::string ui::confirmHead = "Confirm";
+std::string ui::copyHead = "Copying File...";
 std::string ui::confEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?";
 std::string ui::confEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?";
+std::string ui::noSavesFound = "No saves found for #%s#!";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
 std::string ui::exMenuStr[10] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS" };
 std::string ui::optMenuStr[12] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: " };
@@ -112,7 +114,7 @@ static void loadTrans()
                 break;
 
             default:
-                file += "en-US.txt";
+                return;
                 break;
         }
     }
@@ -156,6 +158,10 @@ static void loadTrans()
             ui::confEraseFolder = lang.getNextValueStr();
         else if(varName == "confirmHead")
             ui::confirmHead = lang.getNextValueStr();
+        else if(varName == "copyHead")
+            ui::copyHead = lang.getNextValueStr();
+        else if(varName == "noSavesFound")
+            ui::noSavesFound = lang.getNextValueStr();
         else if(varName == "advMenu")
         {
             int ind = lang.getNextValueInt();

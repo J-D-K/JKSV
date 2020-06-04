@@ -36,7 +36,7 @@ namespace ui
     void drawTextboxInvert(tex *target, int x, int y, int w, int h);
 
     //Popup from freebird
-    void showPopup(const std::string& mess, unsigned frames);
+    void showPopup(unsigned frames, const char *fmt, ...);
     void drawPopup(const uint64_t& down);
 }
 

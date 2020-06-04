@@ -333,11 +333,15 @@ size_t textGetWidth(const char *str, const font *f, int sz)
     for(unsigned i = 0; i < length; )
     {
         untCnt = decode_utf8(&tmpChr, (const uint8_t *)&str[i]);
+        i += untCnt;
+
+        //Ignore color changing chars
+        if(tmpChr == '\n' || tmpChr == '#' || tmpChr == '*' || tmpChr == '<' || tmpChr == '>')
+            continue;
 
         if(untCnt <= 0)
             break;
 
-        i += untCnt;
         FT_GlyphSlot slot = loadGlyph(tmpChr, f, FT_LOAD_DEFAULT);
         if(ret)
             return 0;

@@ -66,16 +66,17 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
     userMenu.handleInput(down, held);
     userMenu.draw(ui::txtCont);
 
+    data::selUser = userMenu.getSelected();
+
     if(down & KEY_A)
     {
-        if(data::users[userMenu.getSelected()].titles.size() > 0)
+        if(data::curUser.titles.size() > 0)
         {
-            data::selUser = userMenu.getSelected();
             textTitlePrep(data::curUser);
             mstate = TXT_TTL;
         }
         else
-            ui::showPopup("No saves available for " + data::users[userMenu.getSelected()].getUsername() + ".", POP_FRAME_DEFAULT);
+            ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
     }
     else if(down & KEY_Y)
     {
@@ -102,9 +103,10 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
     titleMenu.handleInput(down, held);
     titleMenu.draw(ui::txtCont);
 
+    data::selData = titleMenu.getSelected();
+
     if(down & KEY_A)
     {
-        data::selData = titleMenu.getSelected();
         if(fs::mountSave(data::curUser, data::curData))
         {
             textFolderPrep(data::curUser, data::curData);
@@ -117,7 +119,6 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
     }
     else if(down & KEY_MINUS)
     {
-        data::selData = titleMenu.getSelected();
         if(ui::confirm(false, ui::confBlacklist.c_str(), data::curData.getTitle().c_str()))
             data::blacklistAdd(data::curData);
 
@@ -128,29 +129,27 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
         if(--data::selUser < 0)
             data::selUser = data::users.size() - 1;
         textTitlePrep(data::curUser);
-        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
     }
     else if(down & KEY_R)
     {
         if(++data::selUser > (int)data::users.size() - 1)
             data::selUser = 0;
         textTitlePrep(data::curUser);
-        ui::showPopup(data::curUser.getUsername(), POP_FRAME_DEFAULT);
+        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
     }
     else if(down & KEY_X)
     {
-        data::selData = titleMenu.getSelected();
         data::favoriteTitle(data::curData);
         textTitlePrep(data::curUser);
     }
     else if(down & KEY_ZR)
     {
-        data::titledata tempData = data::curUser.titles[titleMenu.getSelected()];
-        if(tempData.getType() == FsSaveDataType_System)
+        if(data::curData.getType() == FsSaveDataType_System)
             ui::showMessage("*NO*", "Deleting system save archives is disabled.");
-        else if(confirm(true, ui::confEraseNand.c_str(), tempData.getTitle().c_str()))
+        else if(confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
         {
-            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tempData.getSaveID());
+            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
             data::loadUsersTitles(false);
             ui::textTitlePrep(data::curUser);
         }
@@ -418,10 +417,7 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_X)
         data::restoreDefaultConfig();
     else if(down & KEY_B)
-    {
-        data::saveCfg();
         ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
-    }
 
     optMenu.draw(ui::txtCont);
     drawTextWrap(ui::optMenuExp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);

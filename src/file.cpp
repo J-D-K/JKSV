@@ -394,7 +394,7 @@ void fs::copyFile(const std::string& from, const std::string& to)
     {
         fileProg.update(*thr->pos);
         gfxBeginFrame();
-        fileProg.draw(from, "Copying File...");
+        fileProg.draw(from, ui::copyHead);
         gfxEndFrame();
     }
     threadClose(&cpyThread);
@@ -417,7 +417,7 @@ void fs::copyFileCommit(const std::string& from, const std::string& to, const st
     {
         fileProg.update(*thr->pos);
         gfxBeginFrame();
-        fileProg.draw(from, "Copying File...");
+        fileProg.draw(from, ui::copyHead);
         gfxEndFrame();
     }
     threadClose(&cpyThread);
@@ -553,7 +553,7 @@ std::string fs::getFileProps(const std::string& _path)
         //Probably add more later
 
         char tmp[256];
-        std::sprintf(tmp, "Path: \"%s\"\nSize: %u", _path.c_str(), fileSize);
+        std::sprintf(tmp, "Path: #%s#\nSize: %u", _path.c_str(), fileSize);
 
         ret = tmp;
     }
@@ -652,6 +652,7 @@ void fs::logWrite(const char *fmt, ...)
     va_list args;
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
+    va_end(args);
     fsfwrite(tmp, 1, strlen(tmp), log);
 }
 

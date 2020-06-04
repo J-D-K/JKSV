@@ -84,7 +84,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
         if(data::users[data::selUser].titles.size() > 0)
             mstate = TTL_SEL;
         else
-            ui::showPopup("No Saves available for " + data::users[data::selUser].getUsername() + ".", POP_FRAME_DEFAULT);
+            ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
     }
     else if(down & KEY_Y)
     {
