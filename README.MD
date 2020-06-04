@@ -23,6 +23,8 @@ JKSV on Switch started as a small project/port to test some things and get famil
 ## Quick Guide
 **A custom path can be defined by creating "sdmc:/switch/jksv_dir.txt" and typing the path you want to use. For example, `sdmc:/switch/JKSV/` will force JKSV to create its folder in the switch homebrew folder.**
 
+**Custom "safe titles" can be set by creating a file named `titleDefs.txt` in your JKSV directory. These are the folders on SD in which game saves are stored. For example, creating this file and adding the line `0100BFE00E9CA000 = "The Witcher 3 CE"` will set The Witcher 3 to use `[pathto]/JKSV/The Witcher 3 CE/` directory instead of its title id. These need to be ASCII or they will fail to work.**
+
 1. User Select
 	* A opens the selected user's save files. 
 	* Y Dumps __all__ save data from __all users__, device save data, and BCAT save data. System save data is not included in this.
