@@ -219,7 +219,7 @@ bool fs::mountSave(const data::user& usr, const data::titledata& open)
     switch(open.getType())
     {
         case FsSaveDataType_System:
-            svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID128() == 1 ? (AccountUid) { 0 } : usr.getUID());
+            svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID());
             break;
 
         case FsSaveDataType_Account:

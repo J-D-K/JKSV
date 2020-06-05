@@ -35,9 +35,6 @@ namespace data
             //Attempts to read title's info
             titledata(const FsSaveDataInfo& inf, NsApplicationControlData *dat);
 
-            //Attempts to mount data with uID + id. Returns false if fails. For filtering.
-            bool isMountable(const AccountUid& uid);
-
             //Returns title + title without forbidden chars
             std::string getTitle() const { return title;}
             std::string getTitleSafe() const { return titleSafe; }
@@ -56,6 +53,8 @@ namespace data
             uint64_t getSaveID() const { return saveID; }
             uint16_t getSaveIndex() const { return saveIndex; }
             FsSaveDataType getType() const { return (FsSaveDataType)saveDataType; }
+            void setID(const uint64_t& _id){ id = _id; }
+            void setIndex(const uint16_t& _ind){ saveIndex = _ind; }
             void setType(FsSaveDataType type) { saveDataType = type; }
             void setFav(bool setFav) { favorite = setFav; }
             bool getFav() const { return favorite; }

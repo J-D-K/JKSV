@@ -128,10 +128,37 @@ static inline std::string getIDStr(const uint64_t& _id)
 
 static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 {
-    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 1 && !data::accSysSave)
+    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !data::accSysSave)
         return false;
 
     return true;
+}
+
+//Minimal init/test to avoid loading and creating things I don't need
+static bool testMount(const FsSaveDataInfo& _inf)
+{
+    if(!data::forceMount)
+        return true;
+
+    bool ret = false;
+    uint64_t id;
+    data::user tmpusr;
+    data::titledata tmpdat;
+
+    if(_inf.save_data_type == FsSaveDataType_System || _inf.save_data_type == FsSaveDataType_SystemBcat)
+        id = _inf.system_save_data_id;
+    else
+        id = _inf.application_id;
+
+    tmpusr.setUID(_inf.uid);
+    tmpdat.setID(id);
+    tmpdat.setIndex(_inf.save_data_index);
+    tmpdat.setType((FsSaveDataType)_inf.save_data_type);
+
+    if((ret = fs::mountSave(tmpusr, tmpdat)))
+        fs::unmountSave();
+
+    return ret;
 }
 
 bool data::loadUsersTitles(bool clearUsers)
@@ -156,7 +183,7 @@ bool data::loadUsersTitles(bool clearUsers)
         tempPushed = false;
         users.emplace_back(util::u128ToAccountUID(3), "Device Saves", createDeviceIcon());
         users.emplace_back(util::u128ToAccountUID(2), "BCAT");
-        users.emplace_back(util::u128ToAccountUID(1), "System");
+        users.emplace_back(util::u128ToAccountUID(0), "System");
     }
 
     NsApplicationControlData *dat = new NsApplicationControlData;
@@ -164,11 +191,6 @@ bool data::loadUsersTitles(bool clearUsers)
     {
         switch(info.save_data_type)
         {
-            case FsSaveDataType_System:
-                if(util::accountUIDToU128(info.uid) == 0)
-                    info.uid = util::u128ToAccountUID(1);
-                break;
-
             case FsSaveDataType_Bcat:
                 info.uid = util::u128ToAccountUID(2);
                 break;
@@ -206,7 +228,7 @@ bool data::loadUsersTitles(bool clearUsers)
         }
 
         //Don't bother with this stuff
-        if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info))
+        if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info) || !testMount(info))
             continue;
 
         int u = getUserIndex(info.uid);
@@ -215,10 +237,7 @@ bool data::loadUsersTitles(bool clearUsers)
             users.emplace(users.end() - 3, info.uid, "");
             u = getUserIndex(info.uid);
         }
-
-        data::titledata newData(info, dat);
-        if(!forceMount || newData.isMountable(data::users[u].getUID()))
-            users[u].titles.push_back(newData);
+        users[u].titles.emplace_back(info, dat);
     }
     delete dat;
     fsSaveDataInfoReaderClose(&it);
@@ -319,18 +338,6 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
 
     favorite = isFavorite(id);
     path = fs::getWorkDir() + titleSafe + "/";
-}
-
-bool data::titledata::isMountable(const AccountUid& uid)
-{
-    data::user tmpUser;
-    tmpUser.setUID(uid);
-    if(fs::mountSave(tmpUser, *this))
-    {
-        fs::unmountSave();
-        return true;
-    }
-    return false;
 }
 
 void data::titledata::createDir() const
