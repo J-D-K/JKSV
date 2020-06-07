@@ -125,6 +125,9 @@ void ui::restoreBackup(unsigned ind)
             }
         }
 
+        fs::delDir("sv:/");
+        fsdevCommitDevice("sv");
+
         if(!list.isDir(ind))
         {
             std::string path = data::curData.getPath() + list.getItem(ind);
@@ -135,9 +138,6 @@ void ui::restoreBackup(unsigned ind)
         else
         {
             std::string fromPath = data::curData.getPath() + folderName + "/";
-            fs::delDir("sv:/");
-            fsdevCommitDevice("sv");
-
             fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
         }
     }
