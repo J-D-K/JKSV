@@ -49,7 +49,7 @@ namespace ui
     //Strings for file mode menu
     extern std::string advMenuStr[6];
     //Strings for extras menu
-    extern std::string exMenuStr[10];
+    extern std::string exMenuStr[11];
     //Strings for options menu
     extern std::string optMenuStr[13];
     //Strings for options explanations

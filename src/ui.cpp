@@ -67,7 +67,7 @@ std::string ui::confEraseNand = "*WARNING*: This *will* erase the save data for 
 std::string ui::confEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?";
 std::string ui::noSavesFound = "No saves found for #%s#!";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
-std::string ui::exMenuStr[10] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS" };
+std::string ui::exMenuStr[11] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS", "Backup JKSV Folder" };
 std::string ui::optMenuStr[13] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: ", "Export to ZIP: " };
 std::string ui::optMenuExp[13] =
 {

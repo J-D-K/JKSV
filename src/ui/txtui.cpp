@@ -196,7 +196,7 @@ void ui::exMenuPrep()
 {
     exMenu.reset();
     exMenu.setParams(76, 98, 310);
-    for(unsigned i = 0; i < 10; i++)
+    for(unsigned i = 0; i < 11; i++)
         exMenu.addOpt(ui::exMenuStr[i]);
 }
 
@@ -318,6 +318,19 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                         ui::mstate = ADV_MDE;
                         ui::prevState = EX_MNU;
                     }
+                }
+                break;
+
+            case 10:
+                {
+                    fs::logClose();
+                    remove(std::string(fs::getWorkDir() + "log.txt").c_str());
+                    std::string zipName = "JKSV - " + util::getDateTime(util::DATE_FMT_ASC) + ".zip";
+                    zipFile jksv = zipOpen(std::string("sdmc:/" + zipName).c_str(), 0);
+                    fs::copyDirToZip(fs::getWorkDir(), &jksv);
+                    zipClose(jksv, NULL);
+                    rename(std::string("sdmc:/" + zipName).c_str(), std::string(fs::getWorkDir() + zipName).c_str());
+                    fs::logOpen();
                 }
                 break;
         }

@@ -25,14 +25,14 @@ void ui::folderMenuPrepare(data::user& usr, data::titledata& dat)
 
 void ui::createNewBackup(const uint64_t& held)
 {
-    std::string folder;
+    std::string out;
 
     if(held & KEY_R)
-        folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+        out = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
     else if(held & KEY_L)
-        folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
+        out = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
     else if(held & KEY_ZL)
-        folder = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
+        out = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
     else
     {
         const std::string dict[] =
@@ -46,21 +46,18 @@ void ui::createNewBackup(const uint64_t& held)
             data::curData.getTitleSafe(),
             util::generateAbbrev(data::curData)
         };
-        folder = util::getStringInput("", "Enter a folder name", 64, 8, dict);
+        out = util::getStringInput("", "Enter a name", 64, 8, dict);
     }
 
-    if(!folder.empty())
+    if(!out.empty())
     {
-        std::string path = data::curData.getPath() + "/" + folder;
+        std::string path = data::curData.getPath() + "/" + out;
         if(data::zip)
         {
             path += ".zip";
-            zipFile cpyTo = zipOpen(path.c_str(), 0);
-            if(cpyTo != NULL)
-            {
-                fs::copyDirToZip("sv:/", &cpyTo);
-                zipClose(cpyTo, "");
-            }
+            zipFile zip = zipOpen(path.c_str(), 0);
+            fs::copyDirToZip("sv:/", &zip);
+            zipClose(zip, NULL);
         }
         else
         {
@@ -68,7 +65,6 @@ void ui::createNewBackup(const uint64_t& held)
             path += "/";
             fs::copyDirToDir("sv:/", path);
         }
-
         folderMenuPrepare(data::curUser, data::curData);
     }
 }
@@ -77,63 +73,95 @@ void ui::overwriteBackup(unsigned ind)
 {
     fs::dirList list(data::curData.getPath());
 
-    std::string folderName = list.getItem(ind);
-    if(confirm(data::holdOver, ui::confOverwrite.c_str(), folderName.c_str()))
+    std::string itemName = list.getItem(ind);
+    if(confirm(data::holdOver, ui::confOverwrite.c_str(), itemName.c_str()))
     {
-        std::string toPath = data::curData.getPath() + folderName + "/";
-        //Delete and recreate
-        fs::delDir(toPath);
-        mkdir(toPath.c_str(), 777);
-
-        std::string root = "sv:/";
-
-        fs::copyDirToDir(root, toPath);
+        if(list.isDir(ind))
+        {
+            std::string toPath = data::curData.getPath() + itemName + "/";
+            //Delete and recreate
+            fs::delDir(toPath);
+            mkdir(toPath.c_str(), 777);
+            fs::copyDirToDir("sv:/", toPath);
+        }
+        else
+        {
+            std::string toPath = data::curData.getPath() + itemName;
+            fs::delfile(toPath);
+            zipFile zip = zipOpen(toPath.c_str(), 0);
+            fs::copyDirToZip("sv:/", &zip);
+            zipClose(zip, NULL);
+        }
     }
 }
 
 void ui::restoreBackup(unsigned ind)
 {
-    if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0)
+    fs::dirList list(data::curData.getPath());
+    std::string folderName = list.getItem(ind);
+    if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0 && confirm(data::holdRest, ui::confRestore.c_str(), folderName.c_str()))
     {
-        fs::dirList list(data::curData.getPath());
-
-        std::string folderName = list.getItem(ind);
-        if(confirm(data::holdRest, ui::confRestore.c_str(), folderName.c_str()))
+        if(data::autoBack)
         {
-            if(data::autoBack)
+            switch(data::zip)
             {
-                std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_ASC);
-                mkdir(autoFolder.c_str(), 777);
-                autoFolder += "/";
+                case true:
+                    {
+                        std::string autoZip = data::curData.getPath() + "/AUTO " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+                        zipFile zip = zipOpen(autoZip.c_str(), 0);
+                        fs::copyDirToZip("sv:/", &zip);
+                        zipClose(zip, NULL);
+                    }
+                    break;
 
-                std::string root = "sv:/";
-                fs::copyDirToDir(root, autoFolder);
+                case false:
+                    {
+                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+                        mkdir(autoFolder.c_str(), 777);
+                        autoFolder += "/";
+                        fs::copyDirToDir("sv:/", autoFolder);
+                    }
+                    break;
             }
+        }
 
+        if(!list.isDir(ind))
+        {
+            std::string path = data::curData.getPath() + list.getItem(ind);
+            unzFile unz = unzOpen(path.c_str());
+            fs::copyZipToDir(&unz, "sv:/", "sv");
+            unzClose(unz);
+        }
+        else
+        {
             std::string fromPath = data::curData.getPath() + folderName + "/";
-            std::string root = "sv:/";
-
-            fs::delDir(root);
+            fs::delDir("sv:/");
             fsdevCommitDevice("sv");
 
-            fs::copyDirToDirCommit(fromPath, root, "sv");
-
-            //Rescan init folder menu if autobak to show changes
-            if(data::autoBack)
-                folderMenuPrepare(data::curUser, data::curData);
+            fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
         }
     }
+    if(data::autoBack)
+        folderMenuPrepare(data::curUser, data::curData);
 }
 
 void ui::deleteBackup(unsigned ind)
 {
     fs::dirList list(data::curData.getPath());
 
-    std::string folderName = list.getItem(folderMenu.getSelected() - 1);
-    if(ui::confirmDelete(folderName))
+    std::string itemName = list.getItem(folderMenu.getSelected() - 1);
+    if(ui::confirmDelete(itemName))
     {
-        std::string delPath = data::curData.getPath() + folderName + "/";
-        fs::delDir(delPath);
+        if(list.isDir(ind))
+        {
+            std::string delPath = data::curData.getPath() + itemName + "/";
+            fs::delDir(delPath);
+        }
+        else
+        {
+            std::string delPath = data::curData.getPath() + itemName;
+            fs::delfile(delPath);
+        }
     }
 
     folderMenuPrepare(data::curUser, data::curData);

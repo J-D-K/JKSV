@@ -7,6 +7,7 @@
 #include <switch.h>
 #include <dirent.h>
 #include <minizip/zip.h>
+#include <minizip/unzip.h>
 
 #include "fsfile.h"
 #include "data.h"
@@ -31,6 +32,9 @@ namespace fs
 
     //Same as above, but commits data to 'dev' after every file is closed
     void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
+
+    //Copies unzfile to 'to'
+    void copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev);
 
     //deletes file
     void delfile(const std::string& path);
