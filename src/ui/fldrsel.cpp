@@ -163,7 +163,6 @@ void ui::deleteBackup(unsigned ind)
             fs::delfile(delPath);
         }
     }
-
     folderMenuPrepare(data::curUser, data::curData);
 }
 

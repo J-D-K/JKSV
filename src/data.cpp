@@ -305,8 +305,6 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
 
     saveID = inf.save_data_id;
     saveIndex = inf.save_data_index;
-    tidStr    = getIDStr(id);
-    saveIDStr = getIDStr(saveID);
     saveDataType = inf.save_data_type;
 
     Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
@@ -335,14 +333,27 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
         titleSafe = getIDStr(id);
         assignIcons();
     }
-
     favorite = isFavorite(id);
-    path = fs::getWorkDir() + titleSafe + "/";
 }
 
 void data::titledata::createDir() const
 {
     mkdir(std::string(fs::getWorkDir() + titleSafe).c_str(), 777);
+}
+
+std::string data::titledata::getPath() const
+{
+    return std::string(fs::getWorkDir() + titleSafe + "/");
+}
+
+std::string data::titledata::getTIDStr() const
+{
+    return getIDStr(id);
+}
+
+std::string data::titledata::getSaveIDStr() const
+{
+    return getIDStr(saveID);
 }
 
 void data::titledata::assignIcons()
@@ -385,6 +396,7 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userIcon = util::createIconGeneric(_backupName.c_str());
     }
+    titles.reserve(32);
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName, tex *img) : user(_id, _backupName)
@@ -524,6 +536,7 @@ void data::restoreDefaultConfig()
     ui::textMode = false;
     data::directFsCmd = false;
     data::skipUser = false;
+    data::zip = false;
 }
 
 void data::loadFav()

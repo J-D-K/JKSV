@@ -84,6 +84,7 @@ extMenu = 6, "Terminate Process"
 extMenu = 7, "Mount System Save"
 extMenu = 8, "Rescan Titles"
 extMenu = 9, "Mount Process RomFS"
+extMenu = 10, "Backup JKSV Folder"
 
 #Options menu
 #All options need a trailing space. It is the most likely to have things added to it.

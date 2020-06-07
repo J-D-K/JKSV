@@ -99,6 +99,7 @@ optMenu = 8, "存取系統進度資料: "
 optMenu = 9, "文字UI模式: "
 optMenu = 10, "使用FS命令: "
 optMenu = 11, "略過選擇使用者: "
+optMenu = 12, "匯出時自動壓縮檔案: "
 
 #Explanations of what options do.
 optMenuExp = 0, "包括主機使用者帳戶下所有遊戲的進度資料"
@@ -113,3 +114,4 @@ optMenuExp = 8, "當儲存進度或刪除檔案時, 控制系統儲存進度與�
 optMenuExp = 9, "切換操作介面為文字選單模式, 如同JKSM在3DS主機上的介面"
 optMenuExp = 10, "複製檔案時改用主機系統的FS命令, 取代原先的stdio方式"
 optMenuExp = 11, "啟動程式後, 預設直接讀取第一位使用者帳戶的資料, 略過選擇其他使用者的畫面"
+optMenuExp = 12, "備份遊戲存檔時, 自動將檔案進行壓縮處理後儲存"

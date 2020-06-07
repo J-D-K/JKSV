@@ -46,11 +46,11 @@ namespace data
             //Creates title folder
             void createDir() const;
             //Returns folder path
-            std::string getPath() const { return path; }
+            std::string getPath() const;
 
             //returns save_data_id string. only used for helping identify nand files
-            std::string getTIDStr() const { return tidStr; }
-            std::string getSaveIDStr() const { return saveIDStr; }
+            std::string getTIDStr() const;
+            std::string getSaveIDStr() const;
 
             uint64_t getID() const { return id; }
             uint64_t getSaveID() const { return saveID; }
@@ -68,7 +68,7 @@ namespace data
         private:
             tex *icon, *favIcon;
             uint8_t saveDataType;
-            std::string title, titleSafe, author, path, tidStr, saveIDStr;
+            std::string title, titleSafe, author;
             uint64_t id, saveID;
             uint16_t saveIndex;
             bool favorite = false;

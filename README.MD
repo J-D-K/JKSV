@@ -68,14 +68,17 @@ JKSV on Switch started as a small project/port to test some things and get famil
 	* Mount System Save asks for the save ID to mount. This is for when JKSV is unable to rescan with a process terminated.
 	* Rescan Titles reloads save data information. This can be used to reload after a process is terminated or when options are changed.
 	* Mount Process RomFS opens the title's romfs that is taken over to launch the homebrew menu. This only works as an NRO. The NSP will only open JKSV's own RomFS.
-		
+	* Backup JKSV folder writes the entire JKSV folder to a ZIP archive and places it in your JKSV folder.
+
 **NOTE**: Press Plus to Exit JKSV. JKSV saves all config, favorites, and the blacklist when exited. Pressing the home button and closing that way will not allow this to take place.
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)
-2. Requires switch-freetype, libpng, and libjpeg-turbo
+2. Requires switch-freetype, libpng, zlib, and libjpeg-turbo
 
 ## Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8
 * Authors of switch-examples for account and save mounting code.
 * [Iguniisu](https://github.com/igniscitrinus) for the icon.
+* [Leo](https://github.com/qazrfv1234) For the Traditional Chinese translation
+* [JamePeng](https://github.com/JamePeng) For the Simplified Chinese translation.
