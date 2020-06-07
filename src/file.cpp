@@ -490,13 +490,25 @@ bool fs::dumpAllUserSaves(const data::user& u)
         if(fs::mountSave(u, u.titles[i]))
         {
             u.titles[i].createDir();
+            switch(data::zip)
+            {
+                case true:
+                    {
+                        std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+                        zipFile zip = zipOpen(outPath.c_str(), 0);
+                        fs::copyDirToZip("sv:/", &zip);
+                        zipClose(zip, NULL);
+                    }
+                    break;
 
-            //sdmc:/JKSV/[title]/[user] - [date]/
-            std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_ASC);
-            mkdir(outPath.c_str(), 777);
-            outPath += "/";
-            fs::copyDirToDir("sv:/", outPath);
-
+                case false:
+                    {
+                        std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+                        mkdir(outPath.substr(0, outPath.length() - 1).c_str(), 777);
+                        fs::copyDirToDir("sv:/", outPath);
+                    }
+                    break;
+            }
             fsdevUnmountDevice("sv");
         }
     }
