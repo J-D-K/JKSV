@@ -107,38 +107,6 @@ FSFILE *fsfopenWithSystem(FsFileSystem *_s, const char *_p, uint32_t mode)
     return ret;
 }
 
-void fsfclose(FSFILE *_f)
-{
-    if(_f != NULL)
-    {
-        fsFileClose(&_f->_f);
-        free(_f);
-    }
-}
-
-void fsfseek(FSFILE *_f, int offset, int origin)
-{
-    switch(origin)
-    {
-        case FS_SEEK_SET:
-            _f->offset = offset;
-            break;
-
-        case FS_SEEK_CUR:
-            _f->offset += offset;
-            break;
-
-        case FS_SEEK_END:
-            _f->offset = offset + _f->fsize;
-            break;
-    }
-}
-
-size_t fsftell(FSFILE *_f)
-{
-    return _f->offset;
-}
-
 size_t fsfwrite(const void *buf, size_t sz, size_t count, FSFILE *_f)
 {
     size_t fullSize = sz * count;
@@ -152,26 +120,4 @@ size_t fsfwrite(const void *buf, size_t sz, size_t count, FSFILE *_f)
     _f->offset += fullSize;
 
     return fullSize;
-}
-
-size_t fsfread(void *buf, size_t sz, size_t count, FSFILE *_f)
-{
-    uint64_t read = 0;
-    uint64_t fullSize = sz * count;
-    _f->error = fsFileRead(&_f->_f, _f->offset, buf, fullSize, 0, &read);
-    _f->offset += read;
-    return read;
-}
-
-char fsfgetc(FSFILE *_f)
-{
-    char ret = 0;
-    uint64_t read = 0;
-    _f->error = fsFileRead(&_f->_f, _f->offset++, &ret, 1, 0, &read);
-    return ret;
-}
-
-void fsfputc(int ch, FSFILE *_f)
-{
-    fsfwrite(&ch, 1, 1, _f);
 }

@@ -5,6 +5,7 @@
 #include <dirent.h>
 #include <unistd.h>
 #include <cstdarg>
+#include <minizip/zip.h>
 #include <sys/stat.h>
 
 #include "file.h"
@@ -448,6 +449,45 @@ void fs::copyDirToDir(const std::string& from, const std::string& to)
                 copyFile(fullFrom, fullTo);
             else
                 ui::showMessage("*Error*", "Not enough free space to copy #%s#!", fullFrom.c_str());
+        }
+    }
+}
+
+void copyFileToZip(const std::string& from, zipFile *to)
+{
+    FILE *cpy = fopen(from.c_str(), "rb");
+
+    size_t readIn = 0;
+    uint8_t *inBuff= new uint8_t[BUFF_SIZE];
+    while((readIn = fread(inBuff, 1, BUFF_SIZE, cpy)) > 0)
+    {
+        if(zipWriteInFileInZip(*to, inBuff, readIn) != 0)
+            ui::showMessage("fail", "here");
+    }
+
+    delete[] inBuff;
+    fclose(cpy);
+}
+
+void fs::copyDirToZip(const std::string& from, zipFile *to)
+{
+    fs::dirList list(from);
+
+    for(unsigned i = 0; i < list.getCount(); i++)
+    {
+        if(list.isDir(i))
+        {
+            std::string newFrom = from + list.getItem(i) + "/";
+            fs::copyDirToZip(newFrom, to);
+        }
+        else
+        {
+            zip_fileinfo inf = { 0 };
+            std::string filename = from + list.getItem(i);
+            size_t devPos = filename.find_first_of('/') + 1;
+            if(zipOpenNewFileInZip(*to, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, "", Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK)
+                copyFileToZip(std::string(from) + list.getItem(i).c_str(), to);
+            zipCloseFileInZip(*to);
         }
     }
 }

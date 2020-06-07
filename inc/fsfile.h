@@ -38,25 +38,60 @@ FSFILE *fsfopen(const char *_p, uint32_t mode);
 FSFILE *fsfopenWithSystem(FsFileSystem *_s, const char *_p, uint32_t mode);
 
 //Closes _f
-void fsfclose(FSFILE *_f);
+inline void fsfclose(FSFILE *_f)
+{
+    if(_f != NULL)
+    {
+        fsFileClose(&_f->_f);
+        free(_f);
+    }
+}
 
 //Seeks like stdio
-void fsfseek(FSFILE *_f, int offset, int origin);
+inline void fsfseek(FSFILE *_f, int offset, int origin)
+{
+    switch(origin)
+    {
+        case FS_SEEK_SET:
+            _f->offset = offset;
+            break;
+
+        case FS_SEEK_CUR:
+            _f->offset += offset;
+            break;
+
+        case FS_SEEK_END:
+            _f->offset = offset + _f->fsize;
+            break;
+    }
+}
 
 //Returns offset
-size_t fsftell(FSFILE *_f);
+inline size_t fsftell(FSFILE *_f) { return _f->offset; }
 
 //Writes buf to file. Automatically resizes _f to fit buf
 size_t fsfwrite(const void *buf, size_t sz, size_t count, FSFILE *_f);
 
 //Reads to buff
-size_t fsfread(void *buf, size_t sz, size_t count, FSFILE *_f);
+inline size_t fsfread(void *buf, size_t sz, size_t count, FSFILE *_f)
+{
+    uint64_t read = 0;
+    _f->error = fsFileRead(&_f->_f, _f->offset, buf, sz * count, 0, &read);
+    _f->offset += read;
+    return read;
+}
 
 //Gets byte from file
-char fsfgetc(FSFILE *_f);
+inline char fsfgetc(FSFILE *_f)
+{
+    char ret = 0;
+    uint64_t read = 0;
+    _f->error = fsFileRead(&_f->_f, _f->offset++, &ret, 1, 0, &read);
+    return ret;
+}
 
 //Writes byte to file
-void fsfputc(int ch, FSFILE *_f);
+inline void fsfputc(int ch, FSFILE *_f) { fsfwrite(&ch, 1, 1, _f); }
 #ifdef __cplusplus
 }
 #endif

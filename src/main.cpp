@@ -37,6 +37,8 @@ extern "C"
     }
 }
 
+bool debDataStats = false;
+
 int main(int argc, const char *argv[])
 {
     fs::init();
@@ -52,12 +54,16 @@ int main(int argc, const char *argv[])
 
         uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
         uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-
-        if(down & KEY_PLUS)
+        if(held & KEY_LSTICK && held & KEY_RSTICK)
+            debDataStats = true;
+        else if(down & KEY_PLUS)
             break;
 
         gfxBeginFrame();
         ui::runApp(down, held);
+
+        if(debDataStats)
+            data::dispStats();
         gfxEndFrame();
     }
 

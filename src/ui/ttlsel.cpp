@@ -7,20 +7,27 @@
 #include "file.h"
 #include "util.h"
 
+//Where to start in titles
+static int start = 0;
+
+//Color shift for rect
+static uint8_t clrShft = 0;
+//Whether or not we're adding or subtracting from clrShft
+static bool clrAdd = true;
+
+//Selected rectangle X and Y.
+static unsigned selRectX = 66, selRectY = 94;
+
+static inline void reset()
+{
+    start = 0;
+    selRectX = 66;
+    selRectY = 94;
+    data::selData = 0;
+}
+
 void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
 {
-    //Static vars so they don't change on every loop
-    //Where to start in titles, selected title
-    static int start = 0;
-
-    //Color shift for rect
-    static uint8_t clrShft = 0;
-    //Whether or not we're adding or subtracting from clrShft
-    static bool clrAdd = true;
-
-    //Selected rectangle X and Y.
-    static unsigned selRectX = 66, selRectY = 94;
-
     if(clrAdd)
     {
         clrShft += 6;
@@ -56,8 +63,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
                 selRectX = tX - 6;
                 selRectY = y - 6;
 
-                std::string title = data::curData.getTitle();
-                unsigned titleWidth = textGetWidth(title.c_str(), ui::shared, 18);
+                unsigned titleWidth = textGetWidth(data::curData.getTitle().c_str(), ui::shared, 18);
                 int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
                 if(rectX < 16)
                     rectX = 16;
@@ -65,7 +71,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
                     rectX = 1264 - rectWidth;
 
                 drawTextbox(frameBuffer, rectX, y - 50, rectWidth, 38);
-                drawText(title.c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
+                drawText(data::curData.getTitle().c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
             }
             if(data::curUser.titles[i].getFav())
                 texDrawSkipNoAlpha(data::curUser.titles[i].getIconFav(), frameBuffer, tX, y);
@@ -125,10 +131,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
     }
     else if(down & KEY_B)
     {
-        start = 0;
-        data::selData = 0;
-        selRectX = 64;
-        selRectY = 90;
+        reset();
         mstate = USR_SEL;
         return;
     }
@@ -137,9 +140,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         if(--data::selUser < 0)
             data::selUser = data::users.size() - 1;
 
-        start = 0;
-        data::selData = 0;
-        selRectX = 64, selRectY = 90;
+        reset();
         ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
     }
     else if(down & KEY_R)
@@ -147,9 +148,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         if(++data::selUser > (int)data::users.size() - 1)
             data::selUser = 0;
 
-        start = 0;
-        data::selData = 0;
-        selRectX = 64, selRectY = 90;
+        reset();
         ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
     }
     else if(down & KEY_ZR)

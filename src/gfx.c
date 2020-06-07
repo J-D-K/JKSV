@@ -111,6 +111,7 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y)
     if(bmp->pixel_mode != FT_PIXEL_MODE_GRAY)
         return;
 
+    clr txClr = textClr, tgtClr;
     uint8_t *bmpPtr = bmp->buffer;
     for(int y = _y; y < _y + bmp->rows; y++)
     {
@@ -125,9 +126,8 @@ static void drawGlyph(const FT_Bitmap *bmp, tex *target, int _x, int _y)
 
             if(*bmpPtr > 0)
             {
-                clr txClr = clrCreateRGBA(textClr.r, textClr.g, textClr.b, *bmpPtr);
-                clr tgtClr = clrCreateU32(*rowPtr);
-
+                txClr.a = *bmpPtr;
+                tgtClr = clrCreateU32(*rowPtr);
                 *rowPtr = blend(txClr, tgtClr);
             }
         }
@@ -232,6 +232,17 @@ void drawText(const char *str, tex *target, const font *f, int x, int y, int sz,
     }
 }
 
+void drawTextf(tex *target, const font *f, int x, int y, int sz, clr c, const char *fmt, ...)
+{
+    char tmp[512];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(tmp, fmt, args);
+    va_end(args);
+
+    drawText(tmp, target, f, x, y, sz, c);
+}
+
 void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int sz, clr c, int maxWidth)
 {
     char wordBuf[128];
@@ -241,10 +252,9 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
     resizeFont(f, sz);
     textClr = c;
 
-
     for(unsigned i = 0; i < strLength; )
     {
-        nextbreak = strcspn(&str[i], " /");
+        nextbreak = strcspn(&str[i], " /_");
 
         memset(wordBuf, 0, 128);
         memcpy(wordBuf, &str[i], nextbreak + 1);
@@ -316,9 +326,19 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
                 tmpX += slot->advance.x >> 6;
             }
         }
-
         i += strlen(wordBuf);
     }
+}
+
+void drawTextfWrap(tex *target, const font *f, int x, int y, int sz, clr c, int maxWidth, const char *fmt, ...)
+{
+    char tmp[512];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(tmp, fmt, args);
+    va_end(args);
+
+    drawTextWrap(tmp, target, f, x, y, sz, c, maxWidth);
 }
 
 size_t textGetWidth(const char *str, const font *f, int sz)

@@ -21,7 +21,7 @@ SetLanguage data::sysLang;
 
 //Options
 bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
-bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false;
+bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false;
 
 //For other save types
 static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
@@ -189,6 +189,10 @@ bool data::loadUsersTitles(bool clearUsers)
     NsApplicationControlData *dat = new NsApplicationControlData;
     while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
     {
+        //Don't bother with this stuff
+        if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info) || !testMount(info))
+            continue;
+
         switch(info.save_data_type)
         {
             case FsSaveDataType_Bcat:
@@ -227,14 +231,10 @@ bool data::loadUsersTitles(bool clearUsers)
                 break;
         }
 
-        //Don't bother with this stuff
-        if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info) || !testMount(info))
-            continue;
-
         int u = getUserIndex(info.uid);
         if(u == -1)
         {
-            users.emplace(users.end() - 3, info.uid, "");
+            users.emplace(data::users.end() - 3, info.uid, "");
             u = getUserIndex(info.uid);
         }
         users[u].titles.emplace_back(info, dat);
@@ -481,6 +481,7 @@ void data::loadCfg()
         ui::textMode = cfgIn >> 54 & 1;
         data::directFsCmd = cfgIn >> 53 & 1;
         data::skipUser = cfgIn >> 52 & 1;
+        data::zip = cfgIn >> 51 & 1;
     }
 }
 
@@ -503,6 +504,7 @@ void data::saveCfg()
     cfgOut |= (uint64_t)ui::textMode << 54;
     cfgOut |= (uint64_t)data::directFsCmd << 53;
     cfgOut |= (uint64_t)data::skipUser << 52;
+    cfgOut |= (uint64_t)data::zip << 51;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
     fclose(cfg);
@@ -556,4 +558,17 @@ void data::loadDefs()
             pathDefs[id] = def.getNextValueStr();
         }
     }
+}
+
+void data::dispStats()
+{
+    //Easiest/laziest way to do this
+    std::string stats = "User Count: " + std::to_string(users.size()) + "\n";
+    for(data::user& u : data::users)
+        stats += u.getUsername() + ": " + std::to_string(u.titles.size()) + "\n";
+    stats += "Current User: " + data::curUser.getUsername() + "\n";
+    stats += "Current Title: " + data::curData.getTitle() + "\n";
+    stats += "Safe Title: " + data::curData.getTitleSafe() + "\n";
+    stats += "Icon count: " + std::to_string(icons.size()) + "\n";
+    drawText(stats.c_str(), frameBuffer, ui::shared, 2, 2, 16, clrCreateU32(0xFF00DD00));
 }

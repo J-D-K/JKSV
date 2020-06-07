@@ -6,6 +6,7 @@
 #include <vector>
 #include <switch.h>
 #include <dirent.h>
+#include <minizip/zip.h>
 
 #include "fsfile.h"
 #include "data.h"
@@ -24,6 +25,9 @@ namespace fs
 
     //Recursively copies 'from' to 'to'
     void copyDirToDir(const std::string& from, const std::string& to);
+
+    //Copies from to zipFile to
+    void copyDirToZip(const std::string& from, zipFile *to);
 
     //Same as above, but commits data to 'dev' after every file is closed
     void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);

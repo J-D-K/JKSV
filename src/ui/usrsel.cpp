@@ -48,8 +48,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
                 selRectX = tX - 6;
                 selRectY = y - 6;
 
-                std::string username = data::users[data::selUser].getUsername();
-                unsigned userWidth = textGetWidth(username.c_str(), ui::shared, 18);
+                unsigned userWidth = textGetWidth(data::curUser.getUsername().c_str(), ui::shared, 18);
                 int userRectWidth = userWidth + 32, userRectX = (tX + 64) - (userRectWidth  / 2);
                 if(userRectX < 16)
                     userRectX = 16;
@@ -57,7 +56,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
                     userRectX = 1264 - userRectWidth;
 
                 drawTextbox(frameBuffer, userRectX, y - 50, userRectWidth, 38);
-                drawText(username.c_str(), frameBuffer, ui::shared, userRectX + 16, y - 40, 18, ui::txtDiag);
+                drawText(data::curUser.getUsername().c_str(), frameBuffer, ui::shared, userRectX + 16, y - 40, 18, ui::txtDiag);
             }
             data::users[i].drawIconHalf(tX, y);
         }

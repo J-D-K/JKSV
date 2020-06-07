@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 06.04.2020"
+#define VER_STRING "v. 06.06.2020"
 
 //text mode
 bool ui::textMode = false;
@@ -68,8 +68,8 @@ std::string ui::confEraseFolder = "*WARNING*: This *will* delete the current sav
 std::string ui::noSavesFound = "No saves found for #%s#!";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
 std::string ui::exMenuStr[10] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS" };
-std::string ui::optMenuStr[12] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: " };
-std::string ui::optMenuExp[12] =
+std::string ui::optMenuStr[13] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: ", "Export to ZIP: " };
+std::string ui::optMenuExp[13] =
 {
     "Includes Device Save data in user accounts.",
     "Automatically creates a save backup before restoring a save.",
@@ -82,7 +82,8 @@ std::string ui::optMenuExp[12] =
     "Controls whether system save data and partitions can have files and data written and deleted from them. *This can be extremely dangerous if you don't know what you're doing!*",
     "Changes the UI to be text menu based like the original JKSM for 3DS.",
     "Directly uses the Switch's FS commands to copy files instead of stdio.",
-    "Skips the user selection screen and jumps directly to the first user account found."
+    "Skips the user selection screen and jumps directly to the first user account found.",
+    "Exports saves to ZIP files."
 };
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 

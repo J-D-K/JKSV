@@ -27,6 +27,9 @@ namespace data
     void saveFav();
     void loadDefs();
 
+    //Draws some stats to the upper left corner
+    void dispStats();
+
     //Class to store title info
     class titledata
     {
@@ -121,7 +124,7 @@ namespace data
     void restoreDefaultConfig();
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser;
+    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser, zip;
 }
 
 #endif // DATA_H

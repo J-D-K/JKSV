@@ -52,9 +52,22 @@ void ui::createNewBackup(const uint64_t& held)
     if(!folder.empty())
     {
         std::string path = data::curData.getPath() + "/" + folder;
-        mkdir(path.c_str(), 777);
-        path += "/";
-        fs::copyDirToDir("sv:/", path);
+        if(data::zip)
+        {
+            path += ".zip";
+            zipFile cpyTo = zipOpen(path.c_str(), 0);
+            if(cpyTo != NULL)
+            {
+                fs::copyDirToZip("sv:/", &cpyTo);
+                zipClose(cpyTo, "");
+            }
+        }
+        else
+        {
+            mkdir(path.c_str(), 777);
+            path += "/";
+            fs::copyDirToDir("sv:/", path);
+        }
 
         folderMenuPrepare(data::curUser, data::curData);
     }

@@ -99,6 +99,7 @@ optMenu = 8, "Write to Sys. Saves: "
 optMenu = 9, "Text UI Mode: "
 optMenu = 10, "Direct FS Cmd: "
 optMenu = 11, "Skip User Select: "
+optMenu = 12, "Export to ZIP: "
 
 #Explanations of what options do.
 optMenuExp = 0, "Includes Device Save data in user accounts."
@@ -113,3 +114,4 @@ optMenuExp = 8, "Controls whether system save data and partitions can have files
 optMenuExp = 9, "Changes the UI to be text menu based like the original JKSM for 3DS."
 optMenuExp = 10, "Directly uses the Switch's FS commands to copy files instead of stdio."
 optMenuExp = 11, "Skips the user selection screen and jumps directly to the first user account found."
+optMenuExp = 12, "Exports saves to zip files."

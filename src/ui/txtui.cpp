@@ -339,7 +339,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
 void ui::optMenuInit()
 {
     optMenu.setParams(76, 98, 310);
-    for(unsigned i = 0; i < 12; i++)
+    for(unsigned i = 0; i < 13; i++)
         optMenu.addOpt(ui::optMenuStr[i]);
 }
 
@@ -360,6 +360,7 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
     optMenu.editOpt(9, optMenuStr[9] + getBoolText(ui::textMode));
     optMenu.editOpt(10, optMenuStr[10] + getBoolText(data::directFsCmd));
     optMenu.editOpt(11, optMenuStr[11] + getBoolText(data::skipUser));
+    optMenu.editOpt(12, optMenuStr[12] + getBoolText(data::zip));
 
     if(down & KEY_A)
     {
@@ -411,6 +412,10 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
 
             case 11:
                 switchBool(data::skipUser);
+                break;
+
+            case 12:
+                switchBool(data::zip);
                 break;
         }
     }
