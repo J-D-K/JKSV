@@ -8,6 +8,7 @@ Data Dump/Restore tool for Switch.
 JKSV on Switch started as a small project/port to test some things and get familiar with libnx. A list of what it currently can do:
 1. Dump and restore save data.
     * This includes the ability to dump and restore to/from any location on SD by pressing minus and using the Advanced Mode.
+	* Save Data can be dumped and restored directly to and from ZIP archives by enabling `Export To ZIP` in the options menus. Folders will still be detected and usable even with this enabled.
 2. Dump system save data
     * Dumping this data is always enabled, but writing back needs to be enabled from the options menu. Writing to this can be very dangerous.
 3. Open and explore bis storage partitions via the Extras menu
