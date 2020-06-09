@@ -22,21 +22,6 @@ static inline std::string getBoolText(bool b)
     return b ? ui::on : ui::off;
 }
 
-void textFolderPrep(data::user& usr, data::titledata& dat)
-{
-    folderMenu.setParams(466, 98, 730);
-    folderMenu.reset();
-
-    dat.createDir();
-
-    fs::dirList list(dat.getPath());
-    folderMenu.addOpt("New");
-    for(unsigned i = 0; i < list.getCount(); i++)
-        folderMenu.addOpt(list.getItem(i));
-
-    folderMenu.adjust();
-}
-
 void ui::textUserPrep()
 {
     userMenu.reset();
@@ -109,7 +94,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
     {
         if(fs::mountSave(data::curUser, data::curData))
         {
-            textFolderPrep(data::curUser, data::curData);
+            folderMenuPrepare(data::curUser, data::curData);
             mstate = TXT_FLD;
         }
     }
@@ -155,7 +140,10 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
         }
     }
     else if(down & KEY_B)
+    {
+        data::selData = 0;
         mstate = TXT_USR;
+    }
 }
 
 void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)

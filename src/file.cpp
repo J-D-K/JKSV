@@ -15,7 +15,7 @@
 #include "gfx.h"
 #include "data.h"
 
-#define BUFF_SIZE 512 * 1024
+#define BUFF_SIZE 0x80000
 
 static std::string wd;
 
@@ -134,7 +134,7 @@ fs::dirList::dirList(const std::string& _path)
     d = opendir(path.c_str());
 
     while((ent = readdir(d)))
-        item.push_back(dirItem(path, ent->d_name));
+        item.emplace_back(path, ent->d_name);
 
     closedir(d);
 
@@ -150,7 +150,7 @@ void fs::dirList::reassign(const std::string& _path)
     item.clear();
 
     while((ent = readdir(d)))
-        item.push_back(dirItem(path, ent->d_name));
+        item.emplace_back(path, ent->d_name);
 
     closedir(d);
 
@@ -163,7 +163,7 @@ void fs::dirList::rescan()
     d = opendir(path.c_str());
 
     while((ent = readdir(d)))
-        item.push_back(dirItem(path, ent->d_name));
+        item.emplace_back(path, ent->d_name);
 
     closedir(d);
 
@@ -360,7 +360,7 @@ void fs::copyDirToZip(const std::string& from, zipFile *to)
             zip_fileinfo inf = { 0 };
             std::string filename = from + list.getItem(i);
             size_t devPos = filename.find_first_of('/') + 1;
-            if(zipOpenNewFileInZip(*to, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, "", Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK)
+            if(zipOpenNewFileInZip(*to, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK)
                 copyFileToZip(std::string(from) + list.getItem(i).c_str(), to);
             zipCloseFileInZip(*to);
         }
@@ -512,7 +512,6 @@ bool fs::dumpAllUserSaves(const data::user& u)
             fsdevUnmountDevice("sv");
         }
     }
-
     return true;//?
 }
 

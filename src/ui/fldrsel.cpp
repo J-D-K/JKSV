@@ -7,6 +7,7 @@
 #include "util.h"
 
 ui::menu folderMenu;
+static fs::dirList fldList;
 
 void ui::folderMenuPrepare(data::user& usr, data::titledata& dat)
 {
@@ -15,10 +16,10 @@ void ui::folderMenuPrepare(data::user& usr, data::titledata& dat)
 
     dat.createDir();
 
-    fs::dirList list(dat.getPath());
+    fldList.reassign(dat.getPath());
     folderMenu.addOpt("New");
-    for(unsigned i = 0; i < list.getCount(); i++)
-        folderMenu.addOpt(list.getItem(i));
+    for(unsigned i = 0; i < fldList.getCount(); i++)
+        folderMenu.addOpt(fldList.getItem(i));
 
     folderMenu.adjust();
 }
@@ -71,12 +72,10 @@ void ui::createNewBackup(const uint64_t& held)
 
 void ui::overwriteBackup(unsigned ind)
 {
-    fs::dirList list(data::curData.getPath());
-
-    std::string itemName = list.getItem(ind);
+    std::string itemName = fldList.getItem(ind);
     if(confirm(data::holdOver, ui::confOverwrite.c_str(), itemName.c_str()))
     {
-        if(list.isDir(ind))
+        if(fldList.isDir(ind))
         {
             std::string toPath = data::curData.getPath() + itemName + "/";
             //Delete and recreate
@@ -97,8 +96,7 @@ void ui::overwriteBackup(unsigned ind)
 
 void ui::restoreBackup(unsigned ind)
 {
-    fs::dirList list(data::curData.getPath());
-    std::string folderName = list.getItem(ind);
+    std::string folderName = fldList.getItem(ind);
     if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0 && confirm(data::holdRest, ui::confRestore.c_str(), folderName.c_str()))
     {
         if(data::autoBack)
@@ -128,9 +126,9 @@ void ui::restoreBackup(unsigned ind)
         fs::delDir("sv:/");
         fsdevCommitDevice("sv");
 
-        if(!list.isDir(ind))
+        if(!fldList.isDir(ind))
         {
-            std::string path = data::curData.getPath() + list.getItem(ind);
+            std::string path = data::curData.getPath() + fldList.getItem(ind);
             unzFile unz = unzOpen(path.c_str());
             fs::copyZipToDir(&unz, "sv:/", "sv");
             unzClose(unz);
@@ -147,12 +145,10 @@ void ui::restoreBackup(unsigned ind)
 
 void ui::deleteBackup(unsigned ind)
 {
-    fs::dirList list(data::curData.getPath());
-
-    std::string itemName = list.getItem(folderMenu.getSelected() - 1);
+    std::string itemName = fldList.getItem(folderMenu.getSelected() - 1);
     if(ui::confirmDelete(itemName))
     {
-        if(list.isDir(ind))
+        if(fldList.isDir(ind))
         {
             std::string delPath = data::curData.getPath() + itemName + "/";
             fs::delDir(delPath);

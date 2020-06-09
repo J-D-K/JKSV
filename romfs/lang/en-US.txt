@@ -12,7 +12,7 @@ userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras"
 titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back"
 
 #Folder Select
-folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Folder  [ZR] Erase  [B] Back"
+folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Selected  [ZR] Erase  [B] Back"
 
 #Options Menu
 optHelp = "[A] Toggle   [X] Defaults   [B] Back"

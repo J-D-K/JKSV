@@ -23,6 +23,7 @@ typedef struct
     uint32_t sz;
 } rgbaHead;
 
+#pragma GCC optimize ("Ofast")
 static inline uint32_t blend(const clr px, const clr fb)
 {
     if(px.a == 0x00)
