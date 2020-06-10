@@ -8,7 +8,6 @@
 
 static const clr menuColorLight = clrCreateU32(0xFFF05032), menuColorDark = clrCreateU32(0xFFC5FF00);
 
-
 void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW)
 {
     x = _x;

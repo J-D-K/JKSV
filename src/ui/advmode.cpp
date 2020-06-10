@@ -149,9 +149,7 @@ void performCopyMenuOps()
                                         std::remove(delPath.c_str());
                                 }
                                 if(commit)
-                                {
                                     fsdevCommitDevice(dev.c_str());
-                                };
                             }
                         }
                         break;
@@ -354,6 +352,7 @@ void ui::advModePrep(const std::string& svDev, const FsSaveDataType& _type, bool
 {
     commit = commitOnWrite;
     type = _type;
+
     saveMenu.setParams(30, 98, 602);
     sdMenu.setParams(648, 98, 602);
     copyMenu.setParams(472, 278, 304);

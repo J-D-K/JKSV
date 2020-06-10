@@ -369,7 +369,6 @@ size_t textGetWidth(const char *str, const font *f, int sz)
 
         width += slot->advance.x >> 6;
     }
-
     return width;
 }
 

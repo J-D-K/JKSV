@@ -159,9 +159,9 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
         else
             overwriteBackup(folderMenu.getSelected() - 1);
     }
-    else if(down & KEY_Y)
+    else if(down & KEY_Y && folderMenu.getSelected() > 0)
         restoreBackup(folderMenu.getSelected() - 1);
-    else if(down & KEY_X)
+    else if(down & KEY_X && folderMenu.getSelected() > 0)
         deleteBackup(folderMenu.getSelected() - 1);
     else if(down & KEY_MINUS)
     {

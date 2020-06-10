@@ -10,6 +10,9 @@
 #include "util.h"
 #include "file.h"
 
+//for ui translation loading
+#include "uistrmap.h"
+
 #define VER_STRING "v. 06.07.2020"
 
 //text mode
@@ -120,77 +123,129 @@ static void loadTrans()
         }
     }
 
+    transLoadInit();
     fs::dataFile lang(file);
     while(lang.readNextLine(true))
     {
-        std::string varName = lang.getName();
-        //Holy shit this'll be fun
-        if(varName == "author")
-            author = lang.getNextValueStr();
-        else if(varName == "userHelp")
-            ui::userHelp = lang.getNextValueStr();
-        else if(varName == "titleHelp")
-            ui::titleHelp = lang.getNextValueStr();
-        else if(varName == "folderHelp")
-            ui::folderHelp = lang.getNextValueStr();
-        else if(varName == "optHelp")
-            ui::optHelp = lang.getNextValueStr();
-        else if(varName == "yt")
-            ui::yt = lang.getNextValueStr();
-        else if(varName == "nt")
-            ui::nt = lang.getNextValueStr();
-        else if(varName == "on")
-            ui::on = lang.getNextValueStr();
-        else if(varName == "off")
-            ui::off = lang.getNextValueStr();
-        else if(varName == "confirmBlacklist")
-            ui::confBlacklist = lang.getNextValueStr();
-        else if(varName == "confirmOverwrite")
-            ui::confOverwrite = lang.getNextValueStr();
-        else if(varName == "confirmRestore")
-            ui::confRestore = lang.getNextValueStr();
-        else if(varName == "confirmDelete")
-            ui::confDel = lang.getNextValueStr();
-        else if(varName == "confirmCopy")
-            ui::confCopy = lang.getNextValueStr();
-        else if(varName == "confirmEraseNand")
-            ui::confEraseNand = lang.getNextValueStr();
-        else if(varName == "confirmEraseFolder")
-            ui::confEraseFolder = lang.getNextValueStr();
-        else if(varName == "confirmHead")
-            ui::confirmHead = lang.getNextValueStr();
-        else if(varName == "copyHead")
-            ui::copyHead = lang.getNextValueStr();
-        else if(varName == "noSavesFound")
-            ui::noSavesFound = lang.getNextValueStr();
-        else if(varName == "advMenu")
+        switch(uistrdef[lang.getName()])
         {
-            int ind = lang.getNextValueInt();
-            ui::advMenuStr[ind] = lang.getNextValueStr();
+            case 0:
+                author = lang.getNextValueStr();
+                break;
+
+            case 1:
+                ui::userHelp = lang.getNextValueStr();
+                break;
+
+            case 2:
+                ui::titleHelp = lang.getNextValueStr();
+                break;
+
+            case 3:
+                ui::folderHelp = lang.getNextValueStr();
+                break;
+
+            case 4:
+                ui::optHelp = lang.getNextValueStr();
+                break;
+
+            case 5:
+                ui::yt = lang.getNextValueStr();
+                break;
+
+            case 6:
+                ui::nt = lang.getNextValueStr();
+                break;
+
+            case 7:
+                ui::on = lang.getNextValueStr();
+                break;
+
+            case 8:
+                ui::off = lang.getNextValueStr();
+                break;
+
+            case 9:
+                ui::confBlacklist = lang.getNextValueStr();
+                break;
+
+            case 10:
+                ui::confOverwrite = lang.getNextValueStr();
+                break;
+
+            case 11:
+                ui::confRestore = lang.getNextValueStr();
+                break;
+
+            case 12:
+                ui::confDel = lang.getNextValueStr();
+                break;
+
+            case 13:
+                ui::confCopy = lang.getNextValueStr();
+                break;
+
+            case 14:
+                ui::confEraseNand = lang.getNextValueStr();
+                break;
+
+            case 15:
+                ui::confEraseFolder = lang.getNextValueStr();
+                break;
+
+            case 16:
+                ui::confirmHead = lang.getNextValueStr();
+                break;
+
+            case 17:
+                ui::copyHead = lang.getNextValueStr();
+                break;
+
+            case 18:
+                ui::noSavesFound = lang.getNextValueStr();
+                break;
+
+            case 19:
+                {
+                    int ind = lang.getNextValueInt();
+                    ui::advMenuStr[ind] = lang.getNextValueStr();
+                }
+                break;
+
+            case 20:
+                {
+                    int ind = lang.getNextValueInt();
+                    ui::exMenuStr[ind] = lang.getNextValueStr();
+                }
+                break;
+
+            case 21:
+                {
+                    int ind = lang.getNextValueInt();
+                    ui::optMenuStr[ind] = lang.getNextValueStr();
+                }
+                break;
+
+            case 22:
+                {
+                    int ind = lang.getNextValueInt();
+                    ui::optMenuExp[ind] = lang.getNextValueStr();
+                }
+                break;
+
+            case 23:
+                {
+                    int ind = lang.getNextValueInt();
+                    ui::holdingText[ind] = lang.getNextValueStr();
+                }
+                break;
+
+            default:
+                ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), lang.getName());
+                break;
         }
-        else if(varName == "extMenu")
-        {
-            int ind = lang.getNextValueInt();
-            ui::exMenuStr[ind] = lang.getNextValueStr();
-        }
-        else if(varName == "optMenu")
-        {
-            int ind = lang.getNextValueInt();
-            ui::optMenuStr[ind] = lang.getNextValueStr();
-        }
-        else if(varName == "optMenuExp")
-        {
-            int ind = lang.getNextValueInt();
-            ui::optMenuExp[ind] = lang.getNextValueStr();
-        }
-        else if(varName == "holdingText")
-        {
-            int ind = lang.getNextValueInt();
-            ui::holdingText[ind] = lang.getNextValueStr();
-        }
-        else
-            ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), varName.c_str());
     }
+    transLoadExit();
 }
 
 void ui::initTheme()
