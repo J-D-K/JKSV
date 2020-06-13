@@ -19,7 +19,7 @@ namespace fs
 
     //Mounts usr's save data for open. Returns false it fails
     bool mountSave(const data::user& usr, const data::titledata& open);
-    inline bool unmountSave(){ return fsdevUnmountDevice("sv") == 0; }
+    inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
 
     void copyFile(const std::string& from, const std::string& to);
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
@@ -40,6 +40,12 @@ namespace fs
     void delfile(const std::string& path);
     //Recursively deletes 'path'
     void delDir(const std::string& path);
+
+    inline void wipeSave()
+    {
+        fs::delDir("sv:/");
+        fsdevCommitDevice("sv");
+    }
 
     //Dumps all titles for 'user'. returns false to bail
     bool dumpAllUserSaves(const data::user& u);
@@ -64,6 +70,7 @@ namespace fs
         public:
             dirItem(const std::string& pathTo, const std::string& sItem);
             std::string getItm() const { return itm; }
+            std::string getExt() const;
             bool isDir() const { return dir; }
 
         private:
@@ -81,6 +88,7 @@ namespace fs
             void rescan();
 
             std::string getItem(int index) const { return item[index].getItm(); }
+            std::string getItemExt(int index) const { return item[index].getExt(); }
             bool isDir(int index) const { return item[index].isDir(); }
             unsigned getCount() const { return item.size(); }
 

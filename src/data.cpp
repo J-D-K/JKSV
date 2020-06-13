@@ -23,6 +23,8 @@ SetLanguage data::sysLang;
 bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
 bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false;
 
+bool dumpIcn = false;
+
 //For other save types
 static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 
@@ -106,6 +108,15 @@ static inline tex *createFavIcon(const tex *_icn)
 
 static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsApplicationControlData *_d)
 {
+    if(dumpIcn)
+    {
+        char path[FS_MAX_PATH];
+        sprintf(path, "%s/icons/%016lX.jpg", fs::getWorkDir().c_str(), _id);
+        FILE *jpegOut = fopen(path, "wb");
+        fwrite(_d->icon, 1, _sz, jpegOut);
+        fclose(jpegOut);
+    }
+
     icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
     icons[_id].second = createFavIcon(icons[_id].first);
 }
@@ -494,6 +505,7 @@ void data::loadCfg()
         data::directFsCmd = cfgIn >> 53 & 1;
         data::skipUser = cfgIn >> 52 & 1;
         data::zip = cfgIn >> 51 & 1;
+        dumpIcn = cfgIn >> 50 & 1;
     }
 }
 
@@ -517,6 +529,7 @@ void data::saveCfg()
     cfgOut |= (uint64_t)data::directFsCmd << 53;
     cfgOut |= (uint64_t)data::skipUser << 52;
     cfgOut |= (uint64_t)data::zip << 51;
+    cfgOut |= (uint64_t)0 << 50;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
     fclose(cfg);

@@ -53,18 +53,24 @@ void ui::createNewBackup(const uint64_t& held)
     if(!out.empty())
     {
         std::string path = data::curData.getPath() + "/" + out;
-        if(data::zip)
+        switch(data::zip)
         {
-            path += ".zip";
-            zipFile zip = zipOpen(path.c_str(), 0);
-            fs::copyDirToZip("sv:/", &zip);
-            zipClose(zip, NULL);
-        }
-        else
-        {
-            mkdir(path.c_str(), 777);
-            path += "/";
-            fs::copyDirToDir("sv:/", path);
+            case true:
+                {
+                    path += ".zip";
+                    zipFile zip = zipOpen(path.c_str(), 0);
+                    fs::copyDirToZip("sv:/", &zip);
+                    zipClose(zip, NULL);
+                }
+                break;
+
+            case false:
+                {
+                    mkdir(path.c_str(), 777);
+                    path += "/";
+                    fs::copyDirToDir("sv:/", path);
+                }
+                break;
         }
         folderMenuPrepare(data::curUser, data::curData);
     }
@@ -83,7 +89,7 @@ void ui::overwriteBackup(unsigned ind)
             mkdir(toPath.c_str(), 777);
             fs::copyDirToDir("sv:/", toPath);
         }
-        else
+        else if(!fldList.isDir(ind) && fldList.getItemExt(ind) == "zip")
         {
             std::string toPath = data::curData.getPath() + itemName;
             fs::delfile(toPath);
@@ -96,8 +102,8 @@ void ui::overwriteBackup(unsigned ind)
 
 void ui::restoreBackup(unsigned ind)
 {
-    std::string folderName = fldList.getItem(ind);
-    if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0 && confirm(data::holdRest, ui::confRestore.c_str(), folderName.c_str()))
+    std::string itemName = fldList.getItem(ind);
+    if((data::curData.getType() != FsSaveDataType_System || data::sysSaveWrite) && folderMenu.getSelected() > 0 && confirm(data::holdRest, ui::confRestore.c_str(), itemName.c_str()))
     {
         if(data::autoBack)
         {
@@ -114,29 +120,34 @@ void ui::restoreBackup(unsigned ind)
 
                 case false:
                     {
-                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
-                        mkdir(autoFolder.c_str(), 777);
-                        autoFolder += "/";
+                        std::string autoFolder = data::curData.getPath() + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+                        mkdir(autoFolder.substr(0, autoFolder.length() - 1).c_str(), 777);
                         fs::copyDirToDir("sv:/", autoFolder);
                     }
                     break;
             }
         }
 
-        fs::delDir("sv:/");
-        fsdevCommitDevice("sv");
-
-        if(!fldList.isDir(ind))
+        if(fldList.isDir(ind))
         {
-            std::string path = data::curData.getPath() + fldList.getItem(ind);
+            fs::wipeSave();
+            std::string fromPath = data::curData.getPath() + itemName + "/";
+            fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
+        }
+        else if(!fldList.isDir(ind) && fldList.getItemExt(ind) == "zip")
+        {
+            fs::wipeSave();
+            std::string path = data::curData.getPath() + itemName;
             unzFile unz = unzOpen(path.c_str());
             fs::copyZipToDir(&unz, "sv:/", "sv");
             unzClose(unz);
         }
         else
         {
-            std::string fromPath = data::curData.getPath() + folderName + "/";
-            fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
+            //Just copy file over
+            std::string fromPath = data::curData.getPath() + itemName;
+            std::string toPath = "sv:/" + itemName;
+            fs::copyFileCommit(fromPath, toPath, "sv");
         }
     }
     if(data::autoBack)
@@ -186,7 +197,7 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_MINUS)
     {
         advModePrep("sv:/", data::curData.getType(), true);
-        mstate = ADV_MDE;
+        ui::changeState(ADV_MDE);
     }
     else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
     {
@@ -196,7 +207,7 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_B)
     {
         fs::unmountSave();
-        mstate = TTL_SEL;
+        ui::changeState(TTL_SEL);
     }
 }
 

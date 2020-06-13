@@ -26,6 +26,7 @@ namespace data
     void loadFav();
     void saveFav();
     void loadDefs();
+    void exportIcons();
 
     //Draws some stats to the upper left corner
     void dispStats();

@@ -482,23 +482,24 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_ZL || down & KEY_ZR)
     {
         if(advMenuCtrl == 0 || advMenuCtrl == 1)
-        {
-            if(advMenuCtrl == 0)
-                advMenuCtrl = 1;
-            else
-                advMenuCtrl = 0;
-        }
+            advMenuCtrl = advMenuCtrl == 0 ? 1 : 0;
     }
     else if(down & KEY_MINUS)
     {
-        if(prevState == EX_MNU)
-            mstate = EX_MNU;
-        else if(prevState == TTL_SEL)
-            mstate = TTL_SEL;
-        else if(ui::textMode)
-            mstate = TXT_FLD;
-        else
-            mstate = FLD_SEL;
+        switch(prevState)
+        {
+            case EX_MNU:
+                mstate = EX_MNU;
+                break;
+
+            case TTL_SEL:
+                mstate = TTL_SEL;
+                break;
+
+            default:
+                mstate = ui::textMode ? TXT_FLD : FLD_SEL;
+                break;
+        }
     }
 
     //draw copy menu if it's supposed to be up

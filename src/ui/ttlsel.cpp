@@ -120,7 +120,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
         //Wanna change this sometime
         ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
 
-        mstate = FLD_SEL;
+        ui::changeState(FLD_SEL);
     }
     else if(down & KEY_Y)
         fs::dumpAllUserSaves(data::curUser);
@@ -132,7 +132,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_B)
     {
         reset();
-        mstate = USR_SEL;
+        ui::changeState(USR_SEL);
         return;
     }
     else if(down & KEY_L)

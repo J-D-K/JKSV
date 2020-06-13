@@ -81,7 +81,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_A)
     {
         if(data::users[data::selUser].titles.size() > 0)
-            mstate = TTL_SEL;
+            ui::changeState(TTL_SEL);
         else
             ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
     }
@@ -97,16 +97,14 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_X)
     {
         ui::textMode = true;
-        mstate = TXT_USR;
+        ui::changeState(TXT_USR);
     }
     else if(down & KEY_ZR)
     {
         fs::unmountSave();
-        ui::mstate = EX_MNU;
+        ui::changeState(EX_MNU);
     }
     else if(down & KEY_MINUS)
-    {
-        ui::mstate = OPT_MNU;
-    }
+        ui::changeState(OPT_MNU);
 }
 

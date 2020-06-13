@@ -5,6 +5,7 @@
 #include <string>
 
 #include "data.h"
+#include "uistr.h"
 #include "gfx.h"
 
 //ui headers - split up to keep a bit more organized
@@ -34,28 +35,17 @@ namespace ui
     //Current menu/ui state
     extern int mstate, prevState;
 
+    inline void changeState(int newState)
+    {
+        prevState = mstate;
+        mstate = newState;
+    }
+
     //Holds theme set id
     extern ColorSetId thmID;
 
     //Both UI modes need access to thi
     extern std::string folderMenuInfo;
-
-    //Strings since translation support
-    extern std::string userHelp, titleHelp, folderHelp, optHelp, \
-    confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
-    confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead, \
-    copyHead, noSavesFound;
-
-    //Strings for file mode menu
-    extern std::string advMenuStr[6];
-    //Strings for extras menu
-    extern std::string exMenuStr[11];
-    //Strings for options menu
-    extern std::string optMenuStr[13];
-    //Strings for options explanations
-    extern std::string optMenuExp[13];
-    //Strings for the holding thing
-    extern std::string holdingText[3];
 
     /*Colors
         clearClr = color to clear buffer

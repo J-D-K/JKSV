@@ -58,7 +58,7 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
         if(data::curUser.titles.size() > 0)
         {
             textTitlePrep(data::curUser);
-            mstate = TXT_TTL;
+            ui::changeState(TXT_TTL);
         }
         else
             ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
@@ -71,16 +71,16 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_X)
     {
         ui::textMode = false;
-        mstate = USR_SEL;
+        ui::changeState(USR_SEL);
     }
     else if(down & KEY_ZR)
     {
         fs::unmountSave();
         ui::exMenuPrep();
-        ui::mstate = EX_MNU;
+        ui::changeState(EX_MNU);
     }
     else if(down & KEY_MINUS)
-        ui::mstate = OPT_MNU;
+        ui::changeState(OPT_MNU);
 }
 
 void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
@@ -95,7 +95,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
         if(fs::mountSave(data::curUser, data::curData))
         {
             folderMenuPrepare(data::curUser, data::curData);
-            mstate = TXT_FLD;
+            ui::changeState(TXT_FLD);
         }
     }
     else if(down & KEY_Y)
@@ -142,7 +142,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_B)
     {
         data::selData = 0;
-        mstate = TXT_USR;
+        ui::changeState(TXT_USR);
     }
 }
 
@@ -166,7 +166,7 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_MINUS)
     {
         advModePrep("sv:/", data::curData.getType(), true);
-        mstate = ADV_MDE;
+        ui::changeState(ADV_MDE);
     }
     else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
     {
@@ -176,7 +176,7 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_B)
     {
         fsdevUnmountDevice("sv");
-        mstate = TXT_TTL;
+        ui::changeState(TXT_TTL);
     }
 }
 
@@ -202,45 +202,36 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
             case 0:
                 data::curData.setType(FsSaveDataType_Bcat);
                 advModePrep("sdmc:/", data::curData.getType(), false);
-                mstate = ADV_MDE;
-                prevState = EX_MNU;
+                ui::changeState(ADV_MDE);
                 break;
 
             case 1:
                 fsdevUnmountDevice("sv");
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_CalibrationFile, "");
                 fsdevMountDevice("prodInfo-f", sv);
-
                 advModePrep("profInfo-f:/", FsSaveDataType_System, false);
-                mstate = ADV_MDE;
-                prevState = EX_MNU;
+                ui::changeState(ADV_MDE);
                 break;
 
             case 2:
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_SafeMode, "");
                 fsdevMountDevice("safe", sv);
-
                 advModePrep("safe:/", FsSaveDataType_System, false);
-                mstate = ADV_MDE;
-                prevState = EX_MNU;
+                ui::changeState(ADV_MDE);
                 break;
 
             case 3:
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_System, "");
                 fsdevMountDevice("sys", sv);
-
                 advModePrep("sys:/", FsSaveDataType_System, false);
-                mstate = ADV_MDE;
-                prevState = EX_MNU;
+                ui::changeState(ADV_MDE);
                 break;
 
             case 4:
                 fsOpenBisFileSystem(&sv, FsBisPartitionId_User, "");
                 fsdevMountDevice("user", sv);
-
                 advModePrep("user:/", FsSaveDataType_System, false);
-                mstate = ADV_MDE;
-                prevState = EX_MNU;
+                ui::changeState(ADV_MDE);
                 break;
 
             case 5:
@@ -285,8 +276,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                     {
                         fsdevMountDevice("sv", sv);
                         advModePrep("sv:/", data::curData.getType(), true);
-                        prevState = EX_MNU;
-                        mstate = ADV_MDE;
+                        ui::changeState(ADV_MDE);
                     }
                 }
                 break;
@@ -303,8 +293,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                     {
                         fsdevMountDevice("tromfs", tromfs);
                         advModePrep("tromfs:/", FsSaveDataType_Account, false);
-                        ui::mstate = ADV_MDE;
-                        ui::prevState = EX_MNU;
+                        ui::changeState(ADV_MDE);
                     }
                 }
                 break;
@@ -326,11 +315,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_B)
     {
         fsdevUnmountDevice("sv");
-        if(ui::textMode)
-            mstate = TXT_USR;
-        else
-            mstate = USR_SEL;
-
+        ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
         prevState = USR_SEL;
     }
 
@@ -423,7 +408,7 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
     else if(down & KEY_X)
         data::restoreDefaultConfig();
     else if(down & KEY_B)
-        ui::mstate = ui::textMode ? TXT_USR : USR_SEL;
+        ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
 
     optMenu.draw(ui::txtCont);
     drawTextWrap(ui::optMenuExp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);

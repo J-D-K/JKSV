@@ -128,6 +128,14 @@ fs::dirItem::dirItem(const std::string& pathTo, const std::string& sItem)
         dir = true;
 }
 
+std::string fs::dirItem::getExt() const
+{
+    size_t extPos = itm.find_last_of('.');
+    if(extPos == itm.npos)
+        return "";//Folder or no extension
+    return itm.substr(extPos + 1, itm.npos);
+}
+
 fs::dirList::dirList(const std::string& _path)
 {
     path = _path;
@@ -251,6 +259,12 @@ void fs::copyFile(const std::string& from, const std::string& to)
     {
         FSFILE *in = fsfopen(from.c_str(), FsOpenMode_Read);
         FSFILE *out = fsfopen(to.c_str(), FsOpenMode_Write);
+        if(!in || !out)
+        {
+            fsfclose(in);
+            fsfclose(out);
+            return;
+        }
 
         size_t readIn = 0;
         while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
@@ -269,6 +283,12 @@ void fs::copyFile(const std::string& from, const std::string& to)
     {
         FILE *in = fopen(from.c_str(), "rb");
         FILE *out = fopen(to.c_str(), "wb");
+        if(!in || !out)
+        {
+            fclose(in);
+            fclose(out);
+            return;
+        }
 
         size_t readIn = 0;
         while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
@@ -302,9 +322,8 @@ void fs::copyDirToDir(const std::string& from, const std::string& to)
         if(list.isDir(i))
         {
             std::string newFrom = from + list.getItem(i) + "/";
-            std::string newTo   = to + list.getItem(i);
-            mkdir(newTo.c_str(), 0777);
-            newTo += "/";
+            std::string newTo   = to + list.getItem(i) + "/";
+            mkdir(newTo.substr(0, newTo.length() - 1).c_str(), 0777);
 
             copyDirToDir(newFrom, newTo);
         }
@@ -547,7 +566,7 @@ void fs::getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fil
     {
         if(list.isDir(i))
         {
-            dirCount++;
+            ++dirCount;
             std::string newPath = _path + list.getItem(i) + "/";
             uint32_t dirAdd = 0, fileAdd = 0;
             uint64_t sizeAdd = 0;
@@ -559,7 +578,7 @@ void fs::getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fil
         }
         else
         {
-            fileCount++;
+            ++fileCount;
             std::string filePath = _path + list.getItem(i);
 
             FILE *gSize = fopen(filePath.c_str(), "rb");
@@ -592,7 +611,6 @@ size_t fs::fsize(const std::string& _f)
     {
         fseek(get, 0, SEEK_END);
         ret = ftell(get);
-        fseek(get, 0, SEEK_SET);
     }
     fclose(get);
     return ret;
