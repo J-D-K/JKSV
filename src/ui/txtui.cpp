@@ -49,135 +49,163 @@ void ui::textTitlePrep(data::user& u)
 void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
 {
     userMenu.handleInput(down, held);
-    userMenu.draw(ui::txtCont);
 
     data::selUser = userMenu.getSelected();
 
-    if(down & KEY_A)
+    switch(down)
     {
-        if(data::curUser.titles.size() > 0)
-        {
-            textTitlePrep(data::curUser);
-            ui::changeState(TXT_TTL);
-        }
-        else
-            ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
+        case KEY_A:
+            if(data::curUser.titles.size() > 0)
+            {
+                ui::textTitlePrep(data::curUser);
+                ui::changeState(TXT_TTL);
+            }
+            else
+                ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
+            break;
+
+        case KEY_X:
+            ui::textMode = false;
+            ui::changeState(USR_SEL);
+            break;
+
+        case KEY_Y:
+            {
+                bool cont = true;
+                for(unsigned i = 0; i < data::users.size() - 2; i++)
+                {
+                    if(cont)
+                        cont = fs::dumpAllUserSaves(data::users[i]);
+                }
+            }
+            break;
+
+        case KEY_ZR:
+            ui::changeState(EX_MNU);
+            break;
+
+        case KEY_MINUS:
+            ui::changeState(OPT_MNU);
+            break;
     }
-    else if(down & KEY_Y)
-    {
-        for(unsigned i = 0; i < data::users.size(); i++)
-            fs::dumpAllUserSaves(data::users[i]);
-    }
-    else if(down & KEY_X)
-    {
-        ui::textMode = false;
-        ui::changeState(USR_SEL);
-    }
-    else if(down & KEY_ZR)
-    {
-        fs::unmountSave();
-        ui::exMenuPrep();
-        ui::changeState(EX_MNU);
-    }
-    else if(down & KEY_MINUS)
-        ui::changeState(OPT_MNU);
+}
+
+void ui::drawTextUserMenu()
+{
+    userMenu.draw(ui::txtCont);
 }
 
 void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
 {
     titleMenu.handleInput(down, held);
-    titleMenu.draw(ui::txtCont);
 
     data::selData = titleMenu.getSelected();
 
-    if(down & KEY_A)
+    switch(down)
     {
-        if(fs::mountSave(data::curUser, data::curData))
-        {
-            folderMenuPrepare(data::curUser, data::curData);
-            ui::changeState(TXT_FLD);
-        }
-    }
-    else if(down & KEY_Y)
-    {
-        fs::dumpAllUserSaves(data::curUser);
-    }
-    else if(down & KEY_MINUS)
-    {
-        if(ui::confirm(false, ui::confBlacklist.c_str(), data::curData.getTitle().c_str()))
-            data::blacklistAdd(data::curData);
+        case KEY_A:
+            if(fs::mountSave(data::curUser, data::curData))
+            {
+                folderMenuPrepare(data::curUser, data::curData);
+                ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
+                ui::changeState(TXT_FLD);
+            }
+            break;
 
-        textTitlePrep(data::curUser);
-    }
-    else if(down & KEY_L)
-    {
-        if(--data::selUser < 0)
-            data::selUser = data::users.size() - 1;
-        textTitlePrep(data::curUser);
-        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
-    }
-    else if(down & KEY_R)
-    {
-        if(++data::selUser > (int)data::users.size() - 1)
-            data::selUser = 0;
-        textTitlePrep(data::curUser);
-        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
-    }
-    else if(down & KEY_X)
-    {
-        data::favoriteTitle(data::curData);
-        textTitlePrep(data::curUser);
-    }
-    else if(down & KEY_ZR)
-    {
-        if(data::curData.getType() == FsSaveDataType_System)
-            ui::showMessage("*NO*", "Deleting system save archives is disabled.");
-        else if(confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
-        {
-            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
-            data::loadUsersTitles(false);
+        case KEY_B:
+            ui::changeState(TXT_USR);
+            break;
+
+        case KEY_X:
+            data::favoriteTitle(data::curData);
+            break;
+
+        case KEY_Y:
+            fs::dumpAllUserSaves(data::curUser);
+            break;
+
+        case KEY_L:
+            if(--data::selUser < 0)
+                data::selUser = data::users.size() - 1;
             ui::textTitlePrep(data::curUser);
-        }
+            ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
+            break;
+
+        case KEY_R:
+            if(++data::selUser == (int)data::users.size())
+                data::selUser = 0;
+            ui::textTitlePrep(data::curUser);
+            ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
+            break;
+
+        case KEY_ZR:
+            if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
+            {
+                fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
+                data::loadUsersTitles(false);
+                data::selData = 0;
+            }
+            break;
+
+        case KEY_MINUS:
+            if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
+                data::blacklistAdd(data::curData);
+            break;
     }
-    else if(down & KEY_B)
-    {
-        data::selData = 0;
-        ui::changeState(TXT_USR);
-    }
+}
+
+void ui::drawTextTitleMenu()
+{
+    titleMenu.draw(ui::txtCont);
 }
 
 void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
 {
-    titleMenu.draw(ui::txtCont);
     folderMenu.handleInput(down, held);
-    folderMenu.draw(ui::txtCont);
 
-    if(down & KEY_A)
+    switch(down)
     {
-        if(folderMenu.getSelected() == 0)
-            createNewBackup(held);
-        else
-            overwriteBackup(folderMenu.getSelected() - 1);
+        case KEY_A:
+            if(folderMenu.getSelected() == 0)
+                ui::createNewBackup(held);
+            else
+                ui::overwriteBackup(folderMenu.getSelected() - 1);
+            break;
+
+        case KEY_B:
+            fs::unmountSave();
+            ui::changeState(TXT_TTL);
+            break;
+
+        case KEY_X:
+            if(folderMenu.getSelected() > 0)
+                ui::deleteBackup(folderMenu.getSelected() - 1);
+            break;
+
+        case KEY_Y:
+            if(folderMenu.getSelected() > 0)
+                ui::restoreBackup(folderMenu.getSelected() - 1);
+            break;
+
+        case KEY_ZR:
+            if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
+            {
+                fs::delDir("sv:/");
+                fsdevCommitDevice("sv");
+            }
+            break;
+
+        case KEY_MINUS:
+            advModePrep("sv:/", data::curData.getType(), true);
+            ui::changeState(ADV_MDE);
+            break;
     }
-    else if(down & KEY_Y && folderMenu.getSelected() > 0)
-        restoreBackup(folderMenu.getSelected() - 1);
-    else if(down & KEY_X && folderMenu.getSelected() > 0)
-        deleteBackup(folderMenu.getSelected() - 1);
-    else if(down & KEY_MINUS)
-    {
-        advModePrep("sv:/", data::curData.getType(), true);
-        ui::changeState(ADV_MDE);
-    }
-    else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
-    {
-        fs::delDir("sv:/");
-        fsdevCommitDevice("sv");
-    }
-    else if(down & KEY_B)
-    {
-        fsdevUnmountDevice("sv");
-        ui::changeState(TXT_TTL);
-    }
+}
+
+void ui::drawTextFolderMenu()
+{
+    titleMenu.draw(ui::txtCont);
+    folderMenu.draw(ui::txtCont);
 }
 
 void ui::exMenuPrep()
@@ -318,7 +346,10 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
         ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
         prevState = USR_SEL;
     }
+}
 
+void ui::drawExMenu()
+{
     exMenu.draw(ui::txtCont);
 }
 
@@ -409,7 +440,10 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
         data::restoreDefaultConfig();
     else if(down & KEY_B)
         ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
+}
 
+void ui::drawOptMenu()
+{
     optMenu.draw(ui::txtCont);
     drawTextWrap(ui::optMenuExp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);
 }

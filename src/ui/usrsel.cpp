@@ -7,7 +7,7 @@
 #include "uiupdate.h"
 #include "file.h"
 
-void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
+void ui::drawUserMenu()
 {
     //Static so they don't get reset every loop
     static int start = 0;
@@ -61,50 +61,63 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
             data::users[i].drawIconHalf(tX, y);
         }
     }
-
-    if(down & KEY_RIGHT && data::selUser < (int)data::users.size() - 1)
-        data::selUser++;
-    else if(down & KEY_LEFT && data::selUser > 0)
-        data::selUser--;
-    else if(down & KEY_UP)
-    {
-        data::selUser -= 4;
-        if(data::selUser < 0)
-            data::selUser = 0;
-    }
-    else if(down & KEY_DOWN)
-    {
-        data::selUser += 4;
-        if(data::selUser > (int)data::users.size() - 1)
-            data::selUser = data::users.size() - 1;
-    }
-    else if(down & KEY_A)
-    {
-        if(data::users[data::selUser].titles.size() > 0)
-            ui::changeState(TTL_SEL);
-        else
-            ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
-    }
-    else if(down & KEY_Y)
-    {
-        bool cont = true;
-        for(unsigned i = 0; i < data::users.size() - 2; i++)
-        {
-            if(cont)
-                cont = fs::dumpAllUserSaves(data::users[i]);
-        }
-    }
-    else if(down & KEY_X)
-    {
-        ui::textMode = true;
-        ui::changeState(TXT_USR);
-    }
-    else if(down & KEY_ZR)
-    {
-        fs::unmountSave();
-        ui::changeState(EX_MNU);
-    }
-    else if(down & KEY_MINUS)
-        ui::changeState(OPT_MNU);
 }
 
+void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
+{
+    switch(down)
+    {
+        case KEY_A:
+            if(data::curUser.titles.size() > 0)
+                ui::changeState(TTL_SEL);
+            else
+                ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
+            break;
+
+        case KEY_X:
+            ui::textMode = true;
+            ui::changeState(TXT_USR);
+            break;
+
+        case KEY_Y:
+            {
+                bool cont = true;
+                for(unsigned i = 0; i < data::users.size() - 2; i++)
+                {
+                    if(cont)
+                        cont = fs::dumpAllUserSaves(data::users[i]);
+                }
+            }
+            break;
+
+        case KEY_ZR:
+            ui::changeState(EX_MNU);
+            break;
+
+        case KEY_MINUS:
+            ui::changeState(OPT_MNU);
+            break;
+
+        case KEY_LSTICK_UP:
+        case KEY_DUP:
+            data::selUser - 5 < 0 ? data::selUser = 0 : data::selUser -= 4;
+            break;
+
+        case KEY_LSTICK_DOWN:
+        case KEY_DDOWN:
+            data::selUser + 5 > (int)data::users.size() - 1 ? data::selUser = data::users.size() - 1 : data::selUser += 5;
+            break;
+
+        case KEY_LSTICK_LEFT:
+        case KEY_DLEFT:
+            if(data::selUser > 0)
+                --data::selUser;
+            break;
+
+        case KEY_LSTICK_RIGHT:
+        case KEY_DRIGHT:
+            if(data::selUser < (int)data::users.size() - 1)
+                ++data::selUser;
+            break;
+    }
+}

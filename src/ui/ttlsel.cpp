@@ -26,7 +26,7 @@ static inline void reset()
     data::selData = 0;
 }
 
-void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
+void ui::drawTitleMenu()
 {
     if(clrAdd)
     {
@@ -79,90 +79,92 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
                 texDrawSkipNoAlpha(data::curUser.titles[i].getIcon(), frameBuffer, tX, y);
         }
     }
+}
 
-    if(down & KEY_RIGHT)
+void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
+{
+    switch(down)
     {
-        if(data::selData < (int)data::curUser.titles.size() - 1)
-            data::selData++;
+        case KEY_A:
+            if(fs::mountSave(data::curUser, data::curData))
+            {
+                folderMenuPrepare(data::curUser, data::curData);
+                ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
+                ui::changeState(FLD_SEL);
+            }
+            break;
 
-        if(data::selData >= (int)start + 32)
-            start += 8;
-    }
-    else if(down & KEY_LEFT)
-    {
-        if(data::selData > 0)
-            data::selData--;
+        case KEY_B:
+            reset();
+            ui::changeState(USR_SEL);
+            break;
 
-        if(data::selData < (int)start)
-            start -= 8;
-    }
-    else if(down & KEY_UP)
-    {
-        data::selData -= 8;
-        if(data::selData < 0)
-            data::selData = 0;
+        case KEY_X:
+            data::favoriteTitle(data::curData);
+            break;
 
-        if(data::selData < start)
-            start -= 8;
-    }
-    else if(down & KEY_DOWN)
-    {
-        data::selData += 8;
-        if(data::selData > (int)data::curUser.titles.size() - 1)
-            data::selData = data::curUser.titles.size() - 1;
+        case KEY_Y:
+            fs::dumpAllUserSaves(data::curUser);
+            break;
 
-        if(data::selData - start >= 32)
-            start += 8;
-    }
-    else if(down & KEY_A && fs::mountSave(data::curUser, data::curData))
-    {
-        folderMenuPrepare(data::curUser, data::curData);
-        //Wanna change this sometime
-        ui::folderMenuInfo = util::getInfoString(data::curUser, data::curData);
+        case KEY_L:
+            if(--data::selUser < 0)
+                data::selUser = data::users.size() - 1;
+            reset();
+            ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
+            break;
 
-        ui::changeState(FLD_SEL);
-    }
-    else if(down & KEY_Y)
-        fs::dumpAllUserSaves(data::curUser);
-    else if(down & KEY_MINUS)
-    {
-        if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
-            data::blacklistAdd(data::curData);
-    }
-    else if(down & KEY_B)
-    {
-        reset();
-        ui::changeState(USR_SEL);
-        return;
-    }
-    else if(down & KEY_L)
-    {
-        if(--data::selUser < 0)
-            data::selUser = data::users.size() - 1;
+        case KEY_R:
+            if(++data::selUser == (int)data::users.size())
+                data::selUser = 0;
+            reset();
+            ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
+            break;
 
-        reset();
-        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
-    }
-    else if(down & KEY_R)
-    {
-        if(++data::selUser > (int)data::users.size() - 1)
-            data::selUser = 0;
+        case KEY_ZR:
+            if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
+            {
+                fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
+                data::loadUsersTitles(false);
+                data::selData = 0;
+            }
+            break;
 
-        reset();
-        ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
+        case KEY_MINUS:
+            if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
+                data::blacklistAdd(data::curData);
+            break;
+
+        case KEY_LSTICK_UP:
+        case KEY_DUP:
+            data::selData -= 8;
+            if(data::selData < 0)
+                data::selData = 0;
+            break;
+
+        case KEY_LSTICK_DOWN:
+        case KEY_DDOWN:
+            data::selData += 8;
+            if(data::selData > (int)data::curUser.titles.size() - 1)
+                data::selData = data::curUser.titles.size() - 1;
+            break;
+
+        case KEY_LSTICK_LEFT:
+        case KEY_DLEFT:
+            if(data::selData > 0)
+                --data::selData;
+            break;
+
+        case KEY_LSTICK_RIGHT:
+        case KEY_DRIGHT:
+            if(data::selData < (int)data::curUser.titles.size() - 1)
+                ++data::selData;
+            break;
     }
-    else if(down & KEY_ZR)
-    {
-        if(data::curData.getType() == FsSaveDataType_System)
-            ui::showMessage("*NO*", "Deleting system save archives is disabled.");
-        else if(confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
-        {
-            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
-            data::loadUsersTitles(false);
-            data::selData = 0;
-        }
-    }
-    else if(down & KEY_X)
-        data::favoriteTitle(data::curData);
+
+    if(data::selData < start)
+        start -= 8;
+    else if(data::selData - start >= 32)
+        start += 8;
 }
 

@@ -173,41 +173,53 @@ void ui::deleteBackup(unsigned ind)
     folderMenuPrepare(data::curUser, data::curData);
 }
 
+void ui::drawFolderMenu()
+{
+    texDraw(data::curData.getIcon(), frameBuffer, 96, 98);
+    drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
+    folderMenu.draw(ui::txtCont);
+}
+
 void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
 {
     folderMenu.handleInput(down, held);
 
-    //Draw folder menu
-    folderMenu.draw(ui::txtCont);
+    switch(down)
+    {
+        case KEY_A:
+            if(folderMenu.getSelected() == 0)
+                ui::createNewBackup(held);
+            else
+                ui::overwriteBackup(folderMenu.getSelected() - 1);
+            break;
 
-    texDraw(data::curData.getIcon(), frameBuffer, 96, 98);
-    drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
+        case KEY_B:
+            fs::unmountSave();
+            ui::changeState(TTL_SEL);
+            break;
 
-    if(down & KEY_A)
-    {
-        if(folderMenu.getSelected() == 0)
-            ui::createNewBackup(held);
-        else
-            ui::overwriteBackup(folderMenu.getSelected() - 1);
-    }
-    else if(down & KEY_Y)
-        ui::restoreBackup(folderMenu.getSelected() - 1);
-    else if(down & KEY_X && folderMenu.getSelected() > 0)
-        ui::deleteBackup(folderMenu.getSelected() - 1);
-    else if(down & KEY_MINUS)
-    {
-        advModePrep("sv:/", data::curData.getType(), true);
-        ui::changeState(ADV_MDE);
-    }
-    else if(down & KEY_ZR && data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
-    {
-        fs::delDir("sv:/");
-        fsdevCommitDevice("sv");
-    }
-    else if(down & KEY_B)
-    {
-        fs::unmountSave();
-        ui::changeState(TTL_SEL);
+        case KEY_X:
+            if(folderMenu.getSelected() > 0)
+                ui::deleteBackup(folderMenu.getSelected() - 1);
+            break;
+
+        case KEY_Y:
+            if(folderMenu.getSelected() > 0)
+                ui::restoreBackup(folderMenu.getSelected() - 1);
+            break;
+
+        case KEY_ZR:
+            if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
+            {
+                fs::delDir("sv:/");
+                fsdevCommitDevice("sv");
+            }
+            break;
+
+        case KEY_MINUS:
+            advModePrep("sv:/", data::curData.getType(), true);
+            ui::changeState(ADV_MDE);
+            break;
     }
 }
 

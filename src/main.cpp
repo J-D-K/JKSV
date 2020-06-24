@@ -22,6 +22,7 @@ extern "C"
         setInitialize();
         accountInitialize(AccountServiceType_System);
         pmshellInitialize();
+        //socketInitializeDefault();
     }
 
     void userAppExit(void)
@@ -34,6 +35,7 @@ extern "C"
         setExit();
         accountExit();
         pmshellExit();
+        //socketExit();
     }
 }
 

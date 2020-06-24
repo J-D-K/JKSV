@@ -31,7 +31,7 @@ static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
-static std::unordered_map<uint64_t, std::pair<tex *, tex *>> icons;
+std::unordered_map<uint64_t, std::pair<tex *, tex *>> data::icons;
 
 //Sorts titles sort-of alphabetically
 static struct
@@ -117,8 +117,8 @@ static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsAppli
         fclose(jpegOut);
     }
 
-    icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
-    icons[_id].second = createFavIcon(icons[_id].first);
+    data::icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
+    data::icons[_id].second = createFavIcon(data::icons[_id].first);
 }
 
 static void loadCreateSystemIcon(const uint64_t& _id)
@@ -126,8 +126,8 @@ static void loadCreateSystemIcon(const uint64_t& _id)
     char tmp[16];
     sprintf(tmp, "%08X", (uint32_t)_id);
 
-    icons[_id].first = util::createIconGeneric(tmp);
-    icons[_id].second = createFavIcon(icons[_id].first);
+    data::icons[_id].first = util::createIconGeneric(tmp);
+    data::icons[_id].second = createFavIcon(data::icons[_id].first);
 }
 
 static inline std::string getIDStr(const uint64_t& _id)
@@ -174,6 +174,7 @@ static bool testMount(const FsSaveDataInfo& _inf)
 
 bool data::loadUsersTitles(bool clearUsers)
 {
+    static unsigned systemUserCount = 3;
     FsSaveDataInfoReader it;
     FsSaveDataInfo info;
     s64 total = 0;
@@ -185,6 +186,7 @@ bool data::loadUsersTitles(bool clearUsers)
         u.titles.clear();
     if(clearUsers)
     {
+        systemUserCount = 3;
         for(data::user& u : data::users)
             u.delIcon();
 
@@ -218,6 +220,7 @@ bool data::loadUsersTitles(bool clearUsers)
                 info.uid = util::u128ToAccountUID(4);
                 if(!sysBCATPushed)
                 {
+                    ++systemUserCount;
                     sysBCATPushed = true;
                     users.emplace_back(util::u128ToAccountUID(4), "Sys. BCAT");
                 }
@@ -227,6 +230,7 @@ bool data::loadUsersTitles(bool clearUsers)
                 info.uid = util::u128ToAccountUID(5);
                 if(!cachePushed)
                 {
+                    ++systemUserCount;
                     cachePushed = true;
                     users.emplace_back(util::u128ToAccountUID(5), "Cache");
                 }
@@ -236,6 +240,7 @@ bool data::loadUsersTitles(bool clearUsers)
                 info.uid = util::u128ToAccountUID(6);
                 if(!tempPushed)
                 {
+                    ++systemUserCount;
                     tempPushed = true;
                     users.emplace_back(util::u128ToAccountUID(6), "Temp");
                 }
@@ -245,7 +250,7 @@ bool data::loadUsersTitles(bool clearUsers)
         int u = getUserIndex(info.uid);
         if(u == -1)
         {
-            users.emplace(data::users.end() - 3, info.uid, "");
+            users.emplace(data::users.end() - systemUserCount, info.uid, "");
             u = getUserIndex(info.uid);
         }
         users[u].titles.emplace_back(info, dat);
@@ -293,8 +298,11 @@ void data::exit()
     for(data::user& u : data::users) u.delIcon();
     for(auto& icn : icons)
     {
-        texDestroy(icn.second.first);
-        texDestroy(icn.second.second);
+        if(icn.second.first)
+            texDestroy(icn.second.first);
+
+        if(icn.second.second)
+            texDestroy(icn.second.second);
     }
 
     saveFav();

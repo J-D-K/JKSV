@@ -369,6 +369,37 @@ void ui::advModePrep(const std::string& svDev, const FsSaveDataType& _type, bool
     advMenuCtrl = 0;
 }
 
+void ui::drawAdvMode()
+{
+    saveMenu.draw(ui::txtCont);
+    sdMenu.draw(ui::txtCont);
+
+    drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, ui::txtCont, 600);
+    drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, ui::txtCont, 600);
+
+    //draw copy menu if it's supposed to be up
+    if(advMenuCtrl == 2)
+    {
+        switch(advPrev)
+        {
+            case 0:
+                copyMenu.setParams(176, 278, 304);
+                copyMenu.editOpt(0, advMenuStr[0] + "sdmc");
+                ui::drawTextbox(frameBuffer, 168, 236, 320, 268);
+                drawText(dev.c_str(), frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
+                break;
+
+            case 1:
+                copyMenu.setParams(816, 278, 304);
+                copyMenu.editOpt(0, advMenuStr[0] + dev);
+                ui::drawTextbox(frameBuffer, 808, 236, 320, 268);
+                drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, ui::txtDiag);
+                break;
+        }
+        copyMenu.draw(ui::txtDiag);
+    }
+}
+
 void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
 {
     //0 = save; 1 = sd; 2 = cpy
@@ -386,12 +417,6 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
             copyMenu.handleInput(down, held);
             break;
     }
-
-    saveMenu.draw(ui::txtCont);
-    sdMenu.draw(ui::txtCont);
-
-    drawTextWrap(savePath.c_str(), frameBuffer, ui::shared, 30, 654, 14, ui::txtCont, 600);
-    drawTextWrap(sdPath.c_str(), frameBuffer, ui::shared, 640, 654, 14, ui::txtCont, 600);
 
     //OH BOY HERE WE GO
     if(down & KEY_A)
@@ -500,28 +525,6 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
                 mstate = ui::textMode ? TXT_FLD : FLD_SEL;
                 break;
         }
-    }
-
-    //draw copy menu if it's supposed to be up
-    if(advMenuCtrl == 2)
-    {
-        switch(advPrev)
-        {
-            case 0:
-                copyMenu.setParams(176, 278, 304);
-                copyMenu.editOpt(0, advMenuStr[0] + "sdmc");
-                ui::drawTextbox(frameBuffer, 168, 236, 320, 268);
-                drawText(dev.c_str(), frameBuffer, ui::shared, 176, 250, 18, ui::txtDiag);
-                break;
-
-            case 1:
-                copyMenu.setParams(816, 278, 304);
-                copyMenu.editOpt(0, advMenuStr[0] + dev);
-                ui::drawTextbox(frameBuffer, 808, 236, 320, 268);
-                drawText("SDMC", frameBuffer, ui::shared, 816, 250, 18, ui::txtDiag);
-                break;
-        }
-        copyMenu.draw(ui::txtDiag);
     }
 }
 

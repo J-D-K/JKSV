@@ -5,6 +5,7 @@
 
 #include <vector>
 #include <string>
+#include <unordered_map>
 
 #include "gfx.h"
 
@@ -119,6 +120,7 @@ namespace data
 
     //User vector
     extern std::vector<user> users;
+    extern std::unordered_map<uint64_t, std::pair<tex *, tex *>> icons;
 
     //Options and info
     //Restores config to default

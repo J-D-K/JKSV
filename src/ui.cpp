@@ -10,7 +10,7 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 06.10.2020"
+#define VER_STRING "v. 06.23.2020"
 
 //text mode
 bool ui::textMode = false;
@@ -408,43 +408,52 @@ void ui::drawUI()
     {
         case USR_SEL:
             texDrawNoAlpha(usrGuide, frameBuffer, userHelpX, 673);
+            ui::drawUserMenu();
             break;
 
         case TTL_SEL:
             texDrawNoAlpha(ttlGuide, frameBuffer, titleHelpX, 673);
+            ui::drawTitleMenu();
             break;
 
         case FLD_SEL:
             texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
             texDrawNoAlpha(fldrGuide, frameBuffer, folderHelpX, 673);
+            ui::drawFolderMenu();
             break;
 
         case TXT_USR:
             texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
             texDrawNoAlpha(usrGuide, frameBuffer, userHelpX, 673);
+            ui::drawTextUserMenu();
             break;
 
         case TXT_TTL:
             texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
             texDrawNoAlpha(ttlGuide, frameBuffer, titleHelpX, 673);
+            ui::drawTextTitleMenu();
             break;
 
         case TXT_FLD:
             texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
             texDrawNoAlpha(fldrGuide, frameBuffer, folderHelpX, 673);
+            ui::drawTextFolderMenu();
             break;
 
         case EX_MNU:
             texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
+            ui::drawExMenu();
             break;
 
         case OPT_MNU:
             texDrawNoAlpha(sideBar, frameBuffer, 0, 88);
             texDrawNoAlpha(optGuide, frameBuffer, optHelpX, 673);
+            ui::drawOptMenu();
             break;
 
         case ADV_MDE:
             drawRect(frameBuffer, 640, 88, 1, 559, ui::txtCont);
+            drawAdvMode();
             break;
     }
 }
@@ -492,9 +501,6 @@ void ui::drawBoundBox(int x, int y, int w, int h, int clrSh)
 
 void ui::runApp(const uint64_t& down, const uint64_t& held)
 {
-    //Draw first. Shouldn't, but it simplifies the showX functions
-    drawUI();
-
     switch(mstate)
     {
         case USR_SEL:
@@ -533,5 +539,6 @@ void ui::runApp(const uint64_t& down, const uint64_t& held)
             updateOptMenu(down, held);
             break;
     }
+    drawUI();
     drawPopup(down);
 }

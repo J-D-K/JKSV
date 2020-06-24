@@ -38,7 +38,7 @@ INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  06.10.2020
+APP_VERSION :=  06.23.2020
 ROMFS	    :=	romfs
 ICON		:= romfs/icon.jpg
 
@@ -50,14 +50,14 @@ ARCH	:=	-march=armv8-a -mtune=cortex-a57 -mtp=soft -fPIE
 override CFLAGS	+=	-g -Wall -O2 -ffunction-sections \
 			$(ARCH) $(DEFINES)
 
-override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags`
+override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags` `curl-config --cflags`
 
 CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `freetype-config --libs` -lpng -ljpeg -lz -lminizip -lnx
+LIBS	:= `freetype-config --libs` `curl-config --libs` -lpng -ljpeg -lz -lminizip -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
