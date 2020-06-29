@@ -118,6 +118,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
 
         case KEY_X:
             data::favoriteTitle(data::curData);
+            textTitlePrep(data::curUser);
             break;
 
         case KEY_Y:

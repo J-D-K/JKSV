@@ -2,24 +2,35 @@
 #include <vector>
 #include <curl/curl.h>
 
-size_t writeDataString(void *buff, size_t sz, size_t cnt, void *u)
+#include "ui.h"
+
+size_t writeDataString(const char *buff, size_t sz, size_t cnt, void *u)
 {
-    std::string *json = (std::string *)u;
-    json->append((const char *)buff);
+    std::string *str = (std::string *)u;
+    str->append(buff, 0, sz * cnt);
     return sz * cnt;
 }
 
-std::string getJSONURL(std::string *headers, const std::string& _url)
+size_t writeDataHead(const char *buff, size_t sz, size_t cnt, void *u)
+{
+    std::vector<std::string> *headers = (std::vector<std::string> *)u;
+    headers->push_back(buff);
+    return sz * cnt;
+}
+
+std::string getJSONURL(std::vector<std::string> *headers, const std::string& _url)
 {
     std::string ret;
     CURL *handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_URL, _url.c_str());
     curl_easy_setopt(handle, CURLOPT_HTTPGET, 1);
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "JKSV");
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeDataString);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &ret);
+    curl_easy_setopt(handle, CURLOPT_TIMEOUT, 15);
     if(headers)
     {
-        curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, writeDataString);
+        curl_easy_setopt(handle, CURLOPT_HEADERFUNCTION, writeDataHead);
         curl_easy_setopt(handle, CURLOPT_HEADERDATA, headers);
     }
 
@@ -45,8 +56,10 @@ bool getBinURL(std::vector<uint8_t> *out, const std::string& _url)
     CURL *handle = curl_easy_init();
     curl_easy_setopt(handle, CURLOPT_URL, _url.c_str());
     curl_easy_setopt(handle, CURLOPT_HTTPGET, 1);
+    curl_easy_setopt(handle, CURLOPT_USERAGENT, "JKSV");
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeDataBin);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, out);
+    curl_easy_setopt(handle, CURLOPT_TIMEOUT, 15);
     if(curl_easy_perform(handle) == CURLE_OK)
         ret = true;
 
