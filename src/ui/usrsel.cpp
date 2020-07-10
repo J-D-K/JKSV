@@ -6,6 +6,7 @@
 #include "ui.h"
 #include "uiupdate.h"
 #include "file.h"
+#include "util.h"
 
 void ui::drawUserMenu()
 {
@@ -88,6 +89,10 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
                         cont = fs::dumpAllUserSaves(data::users[i]);
                 }
             }
+            break;
+
+        case KEY_R:
+            util::checkForUpdate();
             break;
 
         case KEY_ZR:

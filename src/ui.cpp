@@ -40,6 +40,8 @@ tex *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
 //Select box + top left icon
 tex *ui::sideBar;
 
+alphaMask *ui::iconMask;
+
 //Shared font
 font *ui::shared;
 
@@ -57,7 +59,8 @@ static std::unordered_map<std::string, unsigned> uistrdef =
     {"yt", 5}, {"nt", 6}, {"on", 7}, {"off", 8}, {"confirmBlacklist", 9}, {"confirmOverwrite", 10},
     {"confirmRestore", 11}, {"confirmDelete", 12}, {"confirmCopy", 13}, {"confirmEraseNand", 14},
     {"confirmEraseFolder", 15}, {"confirmHead", 16}, {"copyHead", 17}, {"noSavesFound", 18},
-    {"advMenu", 19}, {"extMenu", 20}, {"optMenu", 21}, {"optMenuExp", 22}, {"holdingText", 23}
+    {"advMenu", 19}, {"extMenu", 20}, {"optMenu", 21}, {"optMenuExp", 22}, {"holdingText", 23},
+    {"errorConnecting", 24}, {"noUpdate", 25}
 };
 
 static void loadTrans()
@@ -206,6 +209,14 @@ static void loadTrans()
                 }
                 break;
 
+            case 24:
+                ui::errorConnecting = lang.getNextValueStr();
+                break;
+
+            case 25:
+                ui::noUpdate = lang.getNextValueStr();
+                break;
+
             default:
                 ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), lang.getName());
                 break;
@@ -219,6 +230,8 @@ void ui::initTheme()
         shared = fontLoadTTF(std::string(fs::getWorkDir() + "font.ttf").c_str());
     else
         shared = fontLoadSharedFonts();
+
+    iconMask = alphaMaskLoad(256, 256, "romfs:/img/icn/icon.msk");
 
     setsysGetColorSetId(&thmID);
 
@@ -252,6 +265,7 @@ void ui::initTheme()
 void ui::init()
 {
     tex *icn;
+    char verStr[16];
     mnuTopLeft = texLoadPNGFile("romfs:/img/fb/menuTopLeft.png");
     mnuTopRight = texLoadPNGFile("romfs:/img/fb/menuTopRight.png");
     mnuBotLeft = texLoadPNGFile("romfs:/img/fb/menuBotLeft.png");
@@ -325,7 +339,8 @@ void ui::init()
 
     texClearColor(bot, clearClr);
     drawRect(bot, 30, 0, 1220, 1, ui::txtCont);
-    drawText(VER_STRING, bot, shared, 8, author == "NULL" ? 56 : 38, 12, ui::txtCont);
+    sprintf(verStr, "v. %02d.%02d.%04d", BLD_MON, BLD_DAY, BLD_YEAR);
+    drawText(verStr, bot, shared, 8, author == "NULL" ? 56 : 38, 12, ui::txtCont);
     if(author != "NULL")
         drawText(std::string("Translation: " + author).c_str(), bot, ui::shared, 8, 56, 12, ui::txtCont);
 
@@ -383,6 +398,8 @@ void ui::exit()
     texDestroy(top);
     texDestroy(bot);
     texDestroy(diaBox);
+
+    alphaMaskDestroy(iconMask);
 
     fontDestroy(shared);
 }

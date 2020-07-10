@@ -62,6 +62,8 @@ namespace ui
     //Side bar from Freebird. RIP. NEVERMIND
     extern tex *sideBar;
 
+    extern alphaMask *iconMask;
+
     //Shared font
     extern font *shared;
 

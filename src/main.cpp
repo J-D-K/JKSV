@@ -15,27 +15,25 @@ extern "C"
     void userAppInit(void)
     {
         appletInitialize();
-        romfsInit();
         hidInitialize();
         nsInitialize();
         setsysInitialize();
         setInitialize();
         accountInitialize(AccountServiceType_System);
         pmshellInitialize();
-        //socketInitializeDefault();
+        socketInitializeDefault();
     }
 
     void userAppExit(void)
     {
         appletExit();
-        romfsExit();
         hidExit();
         nsExit();
         setsysExit();
         setExit();
         accountExit();
         pmshellExit();
-        //socketExit();
+        socketExit();
     }
 }
 
@@ -43,12 +41,14 @@ bool debDataStats = false;
 
 int main(int argc, const char *argv[])
 {
+    romfsInit();
     fs::init();
     graphicsInit(1280, 720);
     ui::initTheme();
     ui::showLoadScreen();
     data::init();
     ui::init();
+    romfsExit();
 
     while(appletMainLoop())
     {

@@ -74,9 +74,9 @@ void ui::drawTitleMenu()
                 drawText(data::curData.getTitle().c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
             }
             if(data::curUser.titles[i].getFav())
-                texDrawSkipNoAlpha(data::curUser.titles[i].getIconFav(), frameBuffer, tX, y);
+                texDrawSkip(data::curUser.titles[i].getIconFav(), frameBuffer, tX, y);
             else
-                texDrawSkipNoAlpha(data::curUser.titles[i].getIcon(), frameBuffer, tX, y);
+                texDrawSkip(data::curUser.titles[i].getIcon(), frameBuffer, tX, y);
         }
     }
 }

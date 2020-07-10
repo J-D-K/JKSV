@@ -12,6 +12,10 @@
 #define curUser users[data::selUser]
 #define curData users[data::selUser].titles[data::selData]
 
+#define BLD_MON 7
+#define BLD_DAY 10
+#define BLD_YEAR 2020
+
 namespace data
 {
     extern bool forceMount;
@@ -101,8 +105,8 @@ namespace data
             //Vector for storing save data info for user
             std::vector<titledata> titles;
 
-            void drawIcon(int x, int y) { texDrawNoAlpha(userIcon, frameBuffer, x, y); }
-            void drawIconHalf(int x, int y) { texDrawSkipNoAlpha(userIcon, frameBuffer, x, y); }
+            void drawIcon(int x, int y) { texDraw(userIcon, frameBuffer, x, y); }
+            void drawIconHalf(int x, int y) { texDrawSkip(userIcon, frameBuffer, x, y); }
             void delIcon() { texDestroy(userIcon); }
 
         private:

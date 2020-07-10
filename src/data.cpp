@@ -95,6 +95,7 @@ static tex *createDeviceIcon()
     texClearColor(ret, ui::rectLt);
     unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 188) / 2);
     drawText("\ue121", ret, ui::shared, x, 34, 188, ui::txtCont);
+    texApplyAlphaMask(ret, ui::iconMask);
     return ret;
 }
 
@@ -102,7 +103,7 @@ static inline tex *createFavIcon(const tex *_icn)
 {
     tex *ret = texCreate(256, 256);
     memcpy(ret->data, _icn->data, 256 * 256 * sizeof(uint32_t));
-    drawText("♥", ret, ui::shared, 0, 0, 48, clrCreateU32(0xFF4444FF));
+    drawText("♥", ret, ui::shared, 12, 12, 48, clrCreateU32(0xFF4444FF));
     return ret;
 }
 
@@ -118,6 +119,8 @@ static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsAppli
     }
 
     data::icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
+    texApplyAlphaMask(data::icons[_id].first, ui::iconMask);
+
     data::icons[_id].second = createFavIcon(data::icons[_id].first);
 }
 
@@ -127,6 +130,8 @@ static void loadCreateSystemIcon(const uint64_t& _id)
     sprintf(tmp, "%08X", (uint32_t)_id);
 
     data::icons[_id].first = util::createIconGeneric(tmp);
+    texApplyAlphaMask(data::icons[_id].first, ui::iconMask);
+
     data::icons[_id].second = createFavIcon(data::icons[_id].first);
 }
 
@@ -405,6 +410,7 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         uint8_t *jpegData = new uint8_t[jpgSize];
         accountProfileLoadImage(&prof, jpegData, jpgSize, &jpgSize);
         userIcon = texLoadJPEGMem(jpegData, jpgSize);
+        texApplyAlphaMask(userIcon, ui::iconMask);
         delete[] jpegData;
 
         accountProfileClose(&prof);
@@ -414,6 +420,7 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         username = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userIcon = util::createIconGeneric(_backupName.c_str());
+        texApplyAlphaMask(userIcon, ui::iconMask);
     }
     titles.reserve(32);
 }

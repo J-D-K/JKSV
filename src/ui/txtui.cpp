@@ -80,6 +80,10 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
             }
             break;
 
+        case KEY_R:
+            util::checkForUpdate();
+            break;
+
         case KEY_ZR:
             ui::changeState(EX_MNU);
             break;

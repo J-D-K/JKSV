@@ -75,7 +75,7 @@ JKSV on Switch started as a small project/port to test some things and get famil
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)
-2. Requires switch-freetype, libpng, zlib, and libjpeg-turbo
+2. Requires switch-freetype, libpng, zlib, libjpeg-turbo, lib-curl, and lib-json-c
 
 ## Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8

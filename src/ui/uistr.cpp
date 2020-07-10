@@ -3,7 +3,7 @@
 #include "uistr.h"
 
 std::string ui::author = "NULL";
-std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras";
+std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [R] Update   [-] Options   [ZR] Extras";
 std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back";
 std::string ui::folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Selected  [ZR] Erase  [B] Back";
 std::string ui::optHelp = "[A] Toggle   [X] Defaults   [B] Back";
@@ -19,6 +19,8 @@ std::string ui::copyHead = "Copying File...";
 std::string ui::confEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?";
 std::string ui::confEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?";
 std::string ui::noSavesFound = "No saves found for #%s#!";
+std::string ui::errorConnecting = "Error Connecting!";
+std::string ui::noUpdate = "No updates available!";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
 std::string ui::exMenuStr[11] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS", "Backup JKSV Folder" };
 std::string ui::optMenuStr[13] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: ", "Export to ZIP: " };

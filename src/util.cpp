@@ -2,12 +2,14 @@
 #include <cstdio>
 #include <ctime>
 #include <sys/stat.h>
+#include <json-c/json.h>
 
 #include "data.h"
 #include "gfx.h"
 #include "util.h"
 #include "file.h"
 #include "ui.h"
+#include "curlfuncs.h"
 
 static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '™', '©', '®'};
 
@@ -25,6 +27,21 @@ static bool isVerboten(const uint32_t& t)
 static inline bool isASCII(const uint32_t& t)
 {
     return t > 30 && t < 127;
+}
+
+inline void replaceStr(std::string& _str, const std::string& _find, const std::string& _rep)
+{
+    size_t pos = 0;
+    while((pos = _str.find(_find)) != _str.npos)
+        _str.replace(pos, _find.length(), _rep);
+}
+
+//Used to split version tag git
+static void getVersionFromTag(const std::string& tag, unsigned& _year, unsigned& _month, unsigned& _day)
+{
+    _month = strtoul(tag.substr(0, 2).c_str(), NULL, 10);
+    _day = strtoul(tag.substr(3, 5).c_str(), NULL, 10);
+    _year = strtoul(tag.substr(6, 10).c_str(), NULL, 10);
 }
 
 //Missing swkbd config funcs for now
@@ -65,13 +82,6 @@ uint32_t replaceChar(uint32_t c)
     }
 
     return c;
-}
-
-static inline void replaceStr(std::string& _str, const std::string& _find, const std::string& _rep)
-{
-    size_t pos = 0;
-    while((pos = _str.find(_find)) != _str.npos)
-        _str.replace(pos, _find.length(), _rep);
 }
 
 static inline void replaceCharCStr(char *_s, char _find, char _rep)
@@ -316,3 +326,39 @@ Result util::fsOpenDataFileSystemByCurrentProcess(FsFileSystem *out)
     return serviceDispatch(fsGetServiceSession(), 2, 0, .out_num_objects = 1, .out_objects = &out->s);
 }
 
+void util::checkForUpdate()
+{
+    std::string gitJson = getJSONURL(NULL, "https://api.github.com/repos/J-D-K/JKSV/releases/latest");
+    if(gitJson.empty())
+    {
+        ui::showPopup(POP_FRAME_DEFAULT, ui::errorConnecting.c_str());
+        return;
+    }
+
+    std::string tagStr;
+    unsigned month, day, year;
+    json_object *jobj = json_tokener_parse(gitJson.c_str()), *tag;
+    json_object_object_get_ex(jobj, "tag_name", &tag);
+    tagStr = json_object_get_string(tag);
+    getVersionFromTag(tagStr, year, month, day);
+    //This can throw false positives as is. need to fix sometime
+    if(year > BLD_YEAR || month > BLD_MON || month > BLD_DAY)
+    {
+        //dunno about NSP yet...
+        json_object *assets, *asset0, *dlUrl;
+        json_object_object_get_ex(jobj, "assets", &assets);
+        asset0 = json_object_array_get_idx(assets, 0);
+        json_object_object_get_ex(asset0, "browser_download_url", &dlUrl);
+
+        std::vector<uint8_t> jksvBuff;
+        std::string url = json_object_get_string(dlUrl);
+        getBinURL(&jksvBuff, url);
+        FILE *jksvOut = fopen("sdmc:/switch/JKSV.nro", "wb");
+        fwrite(jksvBuff.data(), 1, jksvBuff.size(), jksvOut);
+        fclose(jksvOut);
+    }
+    else
+        ui::showPopup(POP_FRAME_DEFAULT, ui::noUpdate.c_str());
+
+    json_object_put(jobj);
+}

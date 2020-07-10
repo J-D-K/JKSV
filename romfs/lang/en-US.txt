@@ -6,7 +6,7 @@ author = "NULL"
 
 #Help/Guide strings on bottom
 #User Select
-userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [-] Options   [ZR] Extras"
+userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [R] Update   [-] Options   [ZR] Extras"
 
 #Title Select
 titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back"
@@ -55,6 +55,12 @@ confirmEraseFolder = "*WARNING*: This *will* delete the current save data for #%
 
 #Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
 noSavesFound = "No save data found for #%s#!"
+
+#Error pop-up displayed when git can't be connected to
+errorConnecting = "Error Connecting!"
+
+#Pop-up shown when no updates are found on git
+noUpdate = "No updates available!"
 
 #Text displayed when holding is required. Should have a trailing space
 holdingText = 0, "(Hold) "

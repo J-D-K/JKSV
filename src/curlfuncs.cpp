@@ -2,8 +2,6 @@
 #include <vector>
 #include <curl/curl.h>
 
-#include "ui.h"
-
 size_t writeDataString(const char *buff, size_t sz, size_t cnt, void *u)
 {
     std::string *str = (std::string *)u;
@@ -27,6 +25,7 @@ std::string getJSONURL(std::vector<std::string> *headers, const std::string& _ur
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "JKSV");
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeDataString);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, &ret);
+    curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(handle, CURLOPT_TIMEOUT, 15);
     if(headers)
     {
@@ -59,6 +58,7 @@ bool getBinURL(std::vector<uint8_t> *out, const std::string& _url)
     curl_easy_setopt(handle, CURLOPT_USERAGENT, "JKSV");
     curl_easy_setopt(handle, CURLOPT_WRITEFUNCTION, writeDataBin);
     curl_easy_setopt(handle, CURLOPT_WRITEDATA, out);
+    curl_easy_setopt(handle, CURLOPT_FOLLOWLOCATION, 1);
     curl_easy_setopt(handle, CURLOPT_TIMEOUT, 15);
     if(curl_easy_perform(handle) == CURLE_OK)
         ret = true;

@@ -7,7 +7,7 @@ namespace ui
     extern std::string author, userHelp, titleHelp, folderHelp, optHelp, \
     confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
     confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead, \
-    copyHead, noSavesFound;
+    copyHead, noSavesFound, errorConnecting, noUpdate;
 
     //Strings for file mode menu
     extern std::string advMenuStr[6];

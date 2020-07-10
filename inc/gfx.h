@@ -34,6 +34,13 @@ typedef struct
     uint32_t *data;
 } tex;
 
+typedef struct
+{
+    size_t size;
+    unsigned width, height;
+    uint8_t *dat;
+} alphaMask;
+
 //Inits needed graphics stuff
 bool graphicsInit(int windowWidth, int windowHeight);
 
@@ -143,9 +150,14 @@ void texScaleToTex(const tex *in, tex *out, int scale);
 
 //Creates and copies data from another image returns tex
 tex *texCreateFromPart(const tex *src, int x, int y, int w, int h);
+
+void texApplyAlphaMask(tex *target, const alphaMask *a);
 /*
 TEX END
 */
+
+alphaMask *alphaMaskLoad(unsigned w, unsigned h, const char *file);
+void alphaMaskDestroy(alphaMask *a);
 
 //Loads and returns font with Switch shared font loaded
 font *fontLoadSharedFonts();

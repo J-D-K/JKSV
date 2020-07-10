@@ -26,21 +26,42 @@ typedef struct
 #pragma GCC optimize ("Ofast")
 static inline uint32_t blend(const clr px, const clr fb)
 {
-    if(px.a == 0x00)
-        return clrGetColor(fb);
-    else if(px.a == 0xFF)
-        return clrGetColor(px);
+    uint32_t ret;
+    switch(px.a)
+    {
+        case 0x00:
+            ret = clrGetColor(fb);
+            break;
 
-    uint8_t subAl = 0xFF - px.a;
+        case 0xFF:
+            ret = clrGetColor(px);
+            break;
 
-    uint8_t fR = (px.r * px.a + fb.r * subAl) / 0xFF;
-    uint8_t fG = (px.g * px.a + fb.g * subAl) / 0xFF;
-    uint8_t fB = (px.b * px.a + fb.b * subAl) / 0xFF;
+        default:
+            {
+                uint8_t subAl = 0xFF - px.a;
 
-    return (0xFF << 24 | fB << 16 | fG << 8 | fR);
+                uint8_t fR = (px.r * px.a + fb.r * subAl) / 0xFF;
+                uint8_t fG = (px.g * px.a + fb.g * subAl) / 0xFF;
+                uint8_t fB = (px.b * px.a + fb.b * subAl) / 0xFF;
+                ret = (0xFF << 24 | fB << 16 | fG << 8 | fR);
+            }
+            break;
+    }
+    return ret;
 }
 
-static inline uint32_t smooth(const clr px1, const clr px2)
+static inline clr smooth(const clr px1, const clr px2)
+{
+    clr ret;
+    ret.r = (px1.r + px2.r) / 2;
+    ret.g = (px1.g + px2.g) / 2;
+    ret.b = (px1.b + px2.b) / 2;
+    ret.a = (px1.a + px2.a) / 2;
+    return ret;
+}
+
+static inline uint32_t smooth_32t(const clr px1, const clr px2)
 {
     uint8_t fR = (px1.r + px2.r) / 2;
     uint8_t fG = (px1.g + px2.g) / 2;
@@ -255,7 +276,7 @@ void drawTextWrap(const char *str, tex *target, const font *f, int x, int y, int
 
     for(unsigned i = 0; i < strLength; )
     {
-        nextbreak = strcspn(&str[i], " /_");
+        nextbreak = strcspn(&str[i], " /_-");
 
         memset(wordBuf, 0, 128);
         memcpy(wordBuf, &str[i], nextbreak + 1);
@@ -686,8 +707,7 @@ void texDrawSkip(const tex *t, tex *target, int x, int y)
                 clr px1 = clrCreateU32(*dataPtr++);
                 clr px2 = clrCreateU32(*dataPtr++);
                 clr fbPx = clrCreateU32(*rowPtr);
-
-                *rowPtr = blend(clrCreateU32(smooth(px1, px2)), fbPx);
+                *rowPtr = blend(smooth(px1, px2), fbPx);
             }
         }
     }
@@ -712,7 +732,7 @@ void texDrawSkipNoAlpha(const tex *t, tex *target, int x, int y)
                 clr px1 = clrCreateU32(*dataPtr++);
                 clr px2 = clrCreateU32(*dataPtr++);
 
-                *rowPtr = smooth(px1, px2);
+                *rowPtr = smooth_32t(px1, px2);
             }
         }
     }
@@ -788,6 +808,48 @@ void texScaleToTex(const tex *in, tex *out, int scale)
             }
         }
     }
+}
+
+//todo. make this better
+void texApplyAlphaMask(tex *target, const alphaMask *a)
+{
+    if(target->width != a->width || target->height != a->height)
+        return;
+
+    uint32_t *pix = &target->data[0];
+    for(unsigned i = 0; i < target->size; i++, pix++)
+    {
+        clr msk = clrCreateU32(*pix);
+        msk.a = a->dat[i];
+        *pix = clrGetColor(msk);
+    }
+}
+
+alphaMask *alphaMaskLoad(unsigned w, unsigned h, const char *file)
+{
+    FILE *mskIn = fopen(file, "rb");
+    if(!mskIn)
+        return NULL;
+
+    fseek(mskIn, 0, SEEK_END);
+    size_t mskSize = ftell(mskIn);
+    fseek(mskIn, 0, SEEK_SET);
+
+    alphaMask *ret = malloc(sizeof(alphaMask));
+    ret->width = w;
+    ret->height = h;
+    ret->dat = malloc(w * h);
+
+    fread(ret->dat, 1, mskSize, mskIn);
+    fclose(mskIn);
+
+    return ret;
+}
+
+void alphaMaskDestroy(alphaMask *a)
+{
+    free(a->dat);
+    free(a);
 }
 
 font *fontLoadSharedFonts()
