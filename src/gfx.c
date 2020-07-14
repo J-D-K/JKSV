@@ -6,6 +6,7 @@
 #include <png.h>
 #include <jpeglib.h>
 #include <zlib.h>
+#include <setjmp.h>
 
 #include "gfx.h"
 
@@ -23,32 +24,27 @@ typedef struct
     uint32_t sz;
 } rgbaHead;
 
+typedef struct
+{
+    struct jpeg_error_mgr mgr;
+    jmp_buf jmpBuffer;
+} jpegError;
+
 #pragma GCC optimize ("Ofast")
 static inline uint32_t blend(const clr px, const clr fb)
 {
-    uint32_t ret;
-    switch(px.a)
-    {
-        case 0x00:
-            ret = clrGetColor(fb);
-            break;
+    if(px.a == 0x00)
+        return clrGetColor(fb);
+    else if(px.a == 0xFF)
+        return clrGetColor(px);
 
-        case 0xFF:
-            ret = clrGetColor(px);
-            break;
+    uint8_t subAl = 0xFF - px.a;
 
-        default:
-            {
-                uint8_t subAl = 0xFF - px.a;
+    uint8_t fR = (px.r * px.a + fb.r * subAl) / 0xFF;
+    uint8_t fG = (px.g * px.a + fb.g * subAl) / 0xFF;
+    uint8_t fB = (px.b * px.a + fb.b * subAl) / 0xFF;
 
-                uint8_t fR = (px.r * px.a + fb.r * subAl) / 0xFF;
-                uint8_t fG = (px.g * px.a + fb.g * subAl) / 0xFF;
-                uint8_t fB = (px.b * px.a + fb.b * subAl) / 0xFF;
-                ret = (0xFF << 24 | fB << 16 | fG << 8 | fR);
-            }
-            break;
-    }
-    return ret;
+    return (0xFF << 24 | fB << 16 | fG << 8 | fR);
 }
 
 static inline clr smooth(const clr px1, const clr px2)
@@ -505,15 +501,28 @@ tex *texLoadPNGFile(const char *path)
     return NULL;
 }
 
+static void jpegExit(j_common_ptr ptr)
+{
+    jpegError *err = (jpegError *)ptr->err;
+    longjmp(err->jmpBuffer, 1);
+}
+
 tex *texLoadJPEGFile(const char *path)
 {
     FILE *jpegIn = fopen(path, "rb");
-    if(jpegIn != NULL)
+    if(jpegIn)
     {
         struct jpeg_decompress_struct jpegInfo;
-        struct jpeg_error_mgr error;
+        jpegError jpgError;
 
-        jpegInfo.err = jpeg_std_error(&error);
+        jpegInfo.err = jpeg_std_error(&jpgError.mgr);
+        jpgError.mgr.error_exit = jpegExit;
+        if(setjmp(jpgError.jmpBuffer))
+        {
+            jpeg_destroy_decompress(&jpegInfo);
+            fclose(jpegIn);
+            return NULL;
+        }
 
         jpeg_create_decompress(&jpegInfo);
         jpeg_stdio_src(&jpegInfo, jpegIn);
@@ -559,9 +568,15 @@ tex *texLoadJPEGFile(const char *path)
 tex *texLoadJPEGMem(const uint8_t *jpegData, size_t jpegSize)
 {
     struct jpeg_decompress_struct jpegInfo;
-    struct jpeg_error_mgr error;
+    jpegError jpgError;
 
-    jpegInfo.err = jpeg_std_error(&error);
+    jpegInfo.err = jpeg_std_error(&jpgError.mgr);
+    jpgError.mgr.error_exit = jpegExit;
+    if(setjmp(jpgError.jmpBuffer))
+    {
+        jpeg_destroy_decompress(&jpegInfo);
+        return NULL;
+    }
 
     jpeg_create_decompress(&jpegInfo);
     jpeg_mem_src(&jpegInfo, jpegData, jpegSize);
@@ -810,7 +825,6 @@ void texScaleToTex(const tex *in, tex *out, int scale)
     }
 }
 
-//todo. make this better
 void texApplyAlphaMask(tex *target, const alphaMask *a)
 {
     if(target->width != a->width || target->height != a->height)
