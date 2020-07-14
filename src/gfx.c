@@ -31,20 +31,32 @@ typedef struct
 } jpegError;
 
 #pragma GCC optimize ("Ofast")
+#pragma GCC optimize ("Ofast")
 static inline uint32_t blend(const clr px, const clr fb)
 {
-    if(px.a == 0x00)
-        return clrGetColor(fb);
-    else if(px.a == 0xFF)
-        return clrGetColor(px);
+    uint32_t ret;
+    switch(px.a)
+    {
+        case 0x00:
+            ret = clrGetColor(fb);
+            break;
 
-    uint8_t subAl = 0xFF - px.a;
+        case 0xFF:
+            ret = clrGetColor(px);
+            break;
 
-    uint8_t fR = (px.r * px.a + fb.r * subAl) / 0xFF;
-    uint8_t fG = (px.g * px.a + fb.g * subAl) / 0xFF;
-    uint8_t fB = (px.b * px.a + fb.b * subAl) / 0xFF;
+        default:
+            {
+                uint8_t subAl = 0xFF - px.a;
 
-    return (0xFF << 24 | fB << 16 | fG << 8 | fR);
+                uint8_t fR = (px.r * px.a + fb.r * subAl) / 0xFF;
+                uint8_t fG = (px.g * px.a + fb.g * subAl) / 0xFF;
+                uint8_t fB = (px.b * px.a + fb.b * subAl) / 0xFF;
+                ret = (0xFF << 24 | fB << 16 | fG << 8 | fR);
+            }
+            break;
+    }
+    return ret;
 }
 
 static inline clr smooth(const clr px1, const clr px2)
