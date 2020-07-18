@@ -17,6 +17,17 @@
 
 #define BUFF_SIZE 0x80000
 
+typedef struct
+{
+    uint64_t appID;
+    uint8_t saveType;
+    uint8_t saveRank;
+    uint16_t saveIndex;
+    uint64_t saveSize;
+    uint64_t availableSize;
+    uint64_t journalSize;
+} svInfo;
+
 static std::string wd;
 
 static FSFILE *log;
@@ -331,11 +342,7 @@ void fs::copyDirToDir(const std::string& from, const std::string& to)
         {
             std::string fullFrom = from + list.getItem(i);
             std::string fullTo   = to   + list.getItem(i);
-
-            if(hasFreeSpace(fullTo, fsize(fullFrom)))
-                copyFile(fullFrom, fullTo);
-            else
-                ui::showMessage("*Error*", "Not enough free space to copy #%s#!", fullFrom.c_str());
+            copyFile(fullFrom, fullTo);
         }
     }
 }
@@ -459,12 +466,51 @@ void fs::copyDirToDirCommit(const std::string& from, const std::string& to, cons
             std::string fullFrom = from + list.getItem(i);
             std::string fullTo   = to   + list.getItem(i);
 
-            if(hasFreeSpace(fullTo, fsize(fullFrom)))
-                copyFileCommit(fullFrom, fullTo, dev);
-            else
-                ui::showMessage("*Error*", "Not enough free space to copy #%s#!", fullFrom.c_str());
+            copyFileCommit(fullFrom, fullTo, dev);
         }
     }
+}
+
+bool fs::readSvi(const std::string& _path, FsSaveDataAttribute *attr, FsSaveDataCreationInfo *crInfo)
+{
+    FILE *sviIn = fopen(_path.c_str(), "rb");
+    if(!sviIn)
+        return false;
+
+    svInfo infoIn;
+    fread(&infoIn, sizeof(svInfo), 1, sviIn);
+    fclose(sviIn);
+
+    attr->application_id = infoIn.appID;
+    attr->save_data_type = infoIn.saveType;
+    attr->save_data_rank = infoIn.saveRank;
+    attr->save_data_index = infoIn.saveIndex;
+
+    crInfo->owner_id = infoIn.appID;
+    crInfo->save_data_size = infoIn.saveSize;
+    crInfo->available_size = infoIn.availableSize;
+    crInfo->journal_size = infoIn.journalSize;
+    crInfo->save_data_space_id = FsSaveDataSpaceId_User;
+
+    return true;
+}
+
+Result fs::createSaveDataFileSystem(const FsSaveDataAttribute *attr, const FsSaveDataCreationInfo *crInfo)
+{
+    Service *fs = fsGetServiceSession();
+    struct
+    {
+        FsSaveDataAttribute attr;
+        FsSaveDataCreationInfo create;
+        uint32_t unk0;
+        uint8_t unk1[0x06];
+    } in = {*attr, *crInfo, 0, {0}};
+
+    if(attr->save_data_type != FsSaveDataType_Device)
+        in.unk0 = 0x40060;
+    in.unk1[0] = 1;
+
+    return serviceDispatchIn(fs, 22, in);
 }
 
 void fs::delfile(const std::string& path)
@@ -614,18 +660,6 @@ size_t fs::fsize(const std::string& _f)
     }
     fclose(get);
     return ret;
-}
-
-bool fs::hasFreeSpace(const std::string& _f, int needed)
-{
-    s64 free = 0;
-    //grab device from _f
-    size_t endDevPos = _f.find(':', 0);
-    std::string dev;
-    dev.assign(_f.begin(), _f.begin() + endDevPos);
-    fsFsGetFreeSpace(fsdevGetDeviceFileSystem(dev.c_str()), "/", &free);
-
-    return free > needed;
 }
 
 std::string fs::getWorkDir() { return wd; }

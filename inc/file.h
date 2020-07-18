@@ -36,6 +36,12 @@ namespace fs
     //Copies unzfile to 'to'
     void copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev);
 
+    //Reads svi from path and writes needed info to attr and crInfo. Does NOT set account id for attr
+    bool readSvi(const std::string& _path, FsSaveDataAttribute *attr, FsSaveDataCreationInfo *crInfo);
+
+    //Creates save data filesystem on NAND
+    Result createSaveDataFileSystem(const FsSaveDataAttribute *attr, const FsSaveDataCreationInfo *crInfo);
+
     //deletes file
     void delfile(const std::string& path);
     //Recursively deletes 'path'
@@ -59,8 +65,6 @@ namespace fs
     bool fileExists(const std::string& _path);
     //Returns file size
     size_t fsize(const std::string& _f);
-    //Returns if device in path has space needed. Device is gotten from file path.
-    bool hasFreeSpace(const std::string& _f, int needed);
     bool isDir(const std::string& _path);
 
     std::string getWorkDir();

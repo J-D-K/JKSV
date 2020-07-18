@@ -13,7 +13,7 @@
 #define curData users[data::selUser].titles[data::selData]
 
 #define BLD_MON 7
-#define BLD_DAY 14
+#define BLD_DAY 17
 #define BLD_YEAR 2020
 
 namespace data

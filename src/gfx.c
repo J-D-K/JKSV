@@ -31,7 +31,6 @@ typedef struct
 } jpegError;
 
 #pragma GCC optimize ("Ofast")
-#pragma GCC optimize ("Ofast")
 static inline uint32_t blend(const clr px, const clr fb)
 {
     uint32_t ret;
