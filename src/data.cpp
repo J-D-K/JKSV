@@ -11,6 +11,12 @@
 #include "file.h"
 #include "util.h"
 
+//FsSaveDataSpaceId_All doesn't work for SD
+static const unsigned saveOrder [] =
+{
+    0, 1, 2, 3, 4, 100, 101
+};
+
 int data::selUser = 0, data::selData = 0;
 
 //User vector
@@ -22,8 +28,6 @@ SetLanguage data::sysLang;
 //Options
 bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
 bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false;
-
-bool dumpIcn = false;
 
 //For other save types
 static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
@@ -103,24 +107,14 @@ static inline tex *createFavIcon(const tex *_icn)
 {
     tex *ret = texCreate(256, 256);
     memcpy(ret->data, _icn->data, 256 * 256 * sizeof(uint32_t));
-    drawText("♥", ret, ui::shared, 12, 12, 48, clrCreateU32(0xFF4444FF));
+    drawText("♥", ret, ui::shared, 16, 16, 48, clrCreateU32(0xFF4444FF));
     return ret;
 }
 
 static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsApplicationControlData *_d)
 {
-    if(dumpIcn)
-    {
-        char path[FS_MAX_PATH];
-        sprintf(path, "%s/icons/%016lX.jpg", fs::getWorkDir().c_str(), _id);
-        FILE *jpegOut = fopen(path, "wb");
-        fwrite(_d->icon, 1, _sz, jpegOut);
-        fclose(jpegOut);
-    }
-
     data::icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
     texApplyAlphaMask(data::icons[_id].first, ui::iconMask);
-
     data::icons[_id].second = createFavIcon(data::icons[_id].first);
 }
 
@@ -131,7 +125,6 @@ static void loadCreateSystemIcon(const uint64_t& _id)
 
     data::icons[_id].first = util::createIconGeneric(tmp);
     texApplyAlphaMask(data::icons[_id].first, ui::iconMask);
-
     data::icons[_id].second = createFavIcon(data::icons[_id].first);
 }
 
@@ -183,8 +176,6 @@ bool data::loadUsersTitles(bool clearUsers)
     FsSaveDataInfoReader it;
     FsSaveDataInfo info;
     s64 total = 0;
-    if(R_FAILED(fsOpenSaveDataInfoReader(&it, FsSaveDataSpaceId_All)))
-        return false;
 
     //Clear titles
     for(data::user& u : data::users)
@@ -205,63 +196,69 @@ bool data::loadUsersTitles(bool clearUsers)
     }
 
     NsApplicationControlData *dat = new NsApplicationControlData;
-    while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
+    for(unsigned i = 0; i < 7; i++)
     {
-        //Don't bother with this stuff
-        if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info) || !testMount(info))
+        if(R_FAILED(fsOpenSaveDataInfoReader(&it, (FsSaveDataSpaceId)saveOrder[i])))
             continue;
 
-        switch(info.save_data_type)
+        while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
         {
-            case FsSaveDataType_Bcat:
-                info.uid = util::u128ToAccountUID(2);
-                break;
+            //Don't bother with this stuff
+            if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info) || !testMount(info))
+                continue;
 
-            case FsSaveDataType_Device:
-                info.uid = util::u128ToAccountUID(3);
-                break;
+            switch(info.save_data_type)
+            {
+                case FsSaveDataType_Bcat:
+                    info.uid = util::u128ToAccountUID(2);
+                    break;
 
-            case FsSaveDataType_SystemBcat:
-                info.uid = util::u128ToAccountUID(4);
-                if(!sysBCATPushed)
-                {
-                    ++systemUserCount;
-                    sysBCATPushed = true;
-                    users.emplace_back(util::u128ToAccountUID(4), "Sys. BCAT");
-                }
-                break;
+                case FsSaveDataType_Device:
+                    info.uid = util::u128ToAccountUID(3);
+                    break;
 
-            case FsSaveDataType_Cache:
-                info.uid = util::u128ToAccountUID(5);
-                if(!cachePushed)
-                {
-                    ++systemUserCount;
-                    cachePushed = true;
-                    users.emplace_back(util::u128ToAccountUID(5), "Cache");
-                }
-                break;
+                case FsSaveDataType_SystemBcat:
+                    info.uid = util::u128ToAccountUID(4);
+                    if(!sysBCATPushed)
+                    {
+                        ++systemUserCount;
+                        sysBCATPushed = true;
+                        users.emplace_back(util::u128ToAccountUID(4), "Sys. BCAT");
+                    }
+                    break;
 
-            case FsSaveDataType_Temporary:
-                info.uid = util::u128ToAccountUID(6);
-                if(!tempPushed)
-                {
-                    ++systemUserCount;
-                    tempPushed = true;
-                    users.emplace_back(util::u128ToAccountUID(6), "Temp");
-                }
-                break;
+                case FsSaveDataType_Cache:
+                    info.uid = util::u128ToAccountUID(5);
+                    if(!cachePushed)
+                    {
+                        ++systemUserCount;
+                        cachePushed = true;
+                        users.emplace_back(util::u128ToAccountUID(5), "Cache");
+                    }
+                    break;
+
+                case FsSaveDataType_Temporary:
+                    info.uid = util::u128ToAccountUID(6);
+                    if(!tempPushed)
+                    {
+                        ++systemUserCount;
+                        tempPushed = true;
+                        users.emplace_back(util::u128ToAccountUID(6), "Temp");
+                    }
+                    break;
+            }
+
+            int u = getUserIndex(info.uid);
+            if(u == -1)
+            {
+                users.emplace(data::users.end() - systemUserCount, info.uid, "");
+                u = getUserIndex(info.uid);
+            }
+            users[u].titles.emplace_back(info, dat);
         }
-
-        int u = getUserIndex(info.uid);
-        if(u == -1)
-        {
-            users.emplace(data::users.end() - systemUserCount, info.uid, "");
-            u = getUserIndex(info.uid);
-        }
-        users[u].titles.emplace_back(info, dat);
+        fsSaveDataInfoReaderClose(&it);
     }
     delete dat;
-    fsSaveDataInfoReaderClose(&it);
 
     if(data::incDev)
     {
@@ -410,7 +407,6 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         uint8_t *jpegData = new uint8_t[jpgSize];
         accountProfileLoadImage(&prof, jpegData, jpgSize, &jpgSize);
         userIcon = texLoadJPEGMem(jpegData, jpgSize);
-        texApplyAlphaMask(userIcon, ui::iconMask);
         delete[] jpegData;
 
         accountProfileClose(&prof);
@@ -420,8 +416,8 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         username = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userIcon = util::createIconGeneric(_backupName.c_str());
-        texApplyAlphaMask(userIcon, ui::iconMask);
     }
+    texApplyAlphaMask(userIcon, ui::iconMask);
     titles.reserve(32);
 }
 
@@ -520,7 +516,6 @@ void data::loadCfg()
         data::directFsCmd = cfgIn >> 53 & 1;
         data::skipUser = cfgIn >> 52 & 1;
         data::zip = cfgIn >> 51 & 1;
-        dumpIcn = cfgIn >> 50 & 1;
     }
 }
 
@@ -544,7 +539,6 @@ void data::saveCfg()
     cfgOut |= (uint64_t)data::directFsCmd << 53;
     cfgOut |= (uint64_t)data::skipUser << 52;
     cfgOut |= (uint64_t)data::zip << 51;
-    cfgOut |= (uint64_t)0 << 50;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
 
     fclose(cfg);

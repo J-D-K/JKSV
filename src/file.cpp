@@ -465,7 +465,6 @@ void fs::copyDirToDirCommit(const std::string& from, const std::string& to, cons
         {
             std::string fullFrom = from + list.getItem(i);
             std::string fullTo   = to   + list.getItem(i);
-
             copyFileCommit(fullFrom, fullTo, dev);
         }
     }
@@ -507,8 +506,10 @@ Result fs::createSaveDataFileSystem(const FsSaveDataAttribute *attr, const FsSav
     } in = {*attr, *crInfo, 0, {0}};
 
     if(attr->save_data_type != FsSaveDataType_Device)
+    {
         in.unk0 = 0x40060;
-    in.unk1[0] = 1;
+        in.unk1[0] = 1;
+    }
 
     return serviceDispatchIn(fs, 22, in);
 }
