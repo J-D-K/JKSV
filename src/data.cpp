@@ -273,7 +273,10 @@ bool data::loadUsersTitles(bool clearUsers)
     }
 
     for(data::user& u : data::users)
+    {
+        u.loadPlayTimes();
         std::sort(u.titles.begin(), u.titles.end(), sortTitles);
+    }
 
     return true;
 }
@@ -431,6 +434,30 @@ void data::user::setUID(const AccountUid& _id)
 {
     userID = _id;
     uID128 = util::accountUIDToU128(_id);
+}
+
+void data::user::loadPlayTimes()
+{
+    PdmPlayStatistics stats;
+    for(data::titledata& _d : titles)
+    {
+        switch(_d.getType())//Users can hold device saves
+        {
+            case FsSaveDataType_Account:
+                pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(_d.getID(), userID, false, &stats);
+                _d.setPlayTime(stats.playtimeMinutes);
+                break;
+
+            case FsSaveDataType_Device:
+                pdmqryQueryPlayStatisticsByApplicationId(_d.getID(), false, &stats);
+                _d.setPlayTime(stats.playtimeMinutes);
+                break;
+
+            default:
+                _d.setPlayTime(0);
+                break;
+        }
+    }
 }
 
 void data::loadBlacklist()

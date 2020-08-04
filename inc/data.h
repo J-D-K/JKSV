@@ -12,8 +12,8 @@
 #define curUser users[data::selUser]
 #define curData users[data::selUser].titles[data::selData]
 
-#define BLD_MON 7
-#define BLD_DAY 17
+#define BLD_MON 8
+#define BLD_DAY 4
 #define BLD_YEAR 2020
 
 namespace data
@@ -70,6 +70,8 @@ namespace data
             void assignIcons();
             tex *getIcon() const { return icon; }
             tex *getIconFav() const { return favIcon; }
+            void setPlayTime(const uint32_t& _p){ playMins = _p; }
+            uint32_t getPlayTime() const { return playMins; }
 
         private:
             tex *icon, *favIcon;
@@ -77,6 +79,7 @@ namespace data
             std::string title, titleSafe, author;
             uint64_t id, saveID;
             uint16_t saveIndex;
+            uint32_t playMins;
             bool favorite = false;
     };
 
@@ -104,6 +107,7 @@ namespace data
 
             //Vector for storing save data info for user
             std::vector<titledata> titles;
+            void loadPlayTimes();
 
             void drawIcon(int x, int y) { texDraw(userIcon, frameBuffer, x, y); }
             void drawIconHalf(int x, int y) { texDrawSkip(userIcon, frameBuffer, x, y); }

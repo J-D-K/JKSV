@@ -181,39 +181,45 @@ std::string util::safeString(const std::string& s)
 
 std::string util::getInfoString(const data::user& u, const data::titledata& d)
 {
-    std::string ret = d.getTitle() + "\n\n";
+    std::string ret = d.getTitle() + "\n";
 
-    ret += "TID: " + d.getTIDStr() + "\n\n";
-    ret += "SID: " + d.getSaveIDStr() + "\n\n";
+    ret += "TID: " + d.getTIDStr() + "\n";
+    ret += "SID: " + d.getSaveIDStr() + "\n";
+
+    uint32_t hours, mins;
+    hours = d.getPlayTime() / 60;
+    mins = d.getPlayTime() - (hours * 60);
+
+    ret += "Play Time: " + std::to_string(hours) + ":" + std::to_string(mins) + "\n";
 
     switch(d.getType())
     {
         case FsSaveDataType_System:
-            ret += "System Save\n\n";
+            ret += "System Save\n";
             break;
 
         case FsSaveDataType_Account:
-            ret += "Save Data\n\n";
+            ret += "Save Data\n";
             break;
 
         case FsSaveDataType_Bcat:
-            ret += "BCAT\n\n";
+            ret += "BCAT\n";
             break;
 
         case FsSaveDataType_Device:
-            ret += "Device Save\n\n";
+            ret += "Device Save\n";
             break;
 
         case FsSaveDataType_Temporary:
-            ret += "Temp Storage\n\n";
+            ret += "Temp Storage\n";
             break;
 
         case FsSaveDataType_Cache:
-            ret += "Cache Storage\n\n";
+            ret += "Cache Storage\n";
             break;
 
         case FsSaveDataType_SystemBcat:
-            ret += "System BCAT\n\n";
+            ret += "System BCAT\n";
             break;
     }
 

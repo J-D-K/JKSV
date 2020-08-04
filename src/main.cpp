@@ -22,6 +22,7 @@ extern "C"
         accountInitialize(AccountServiceType_System);
         pmshellInitialize();
         socketInitializeDefault();
+        pdmqryInitialize();
     }
 
     void userAppExit(void)
@@ -34,6 +35,7 @@ extern "C"
         accountExit();
         pmshellExit();
         socketExit();
+        pdmqryExit();
     }
 }
 
