@@ -179,6 +179,13 @@ std::string util::safeString(const std::string& s)
     return ret;
 }
 
+static inline std::string getTimeString(const uint32_t& _h, const uint32_t& _m)
+{
+    char tmp[32];
+    sprintf(tmp, "%02d:%02d", _h, _m);
+    return std::string(tmp);
+}
+
 std::string util::getInfoString(const data::user& u, const data::titledata& d)
 {
     std::string ret = d.getTitle() + "\n";
@@ -190,7 +197,8 @@ std::string util::getInfoString(const data::user& u, const data::titledata& d)
     hours = d.getPlayTime() / 60;
     mins = d.getPlayTime() - (hours * 60);
 
-    ret += "Play Time: " + std::to_string(hours) + ":" + std::to_string(mins) + "\n";
+    ret += "Play Time: " + getTimeString(hours, mins) + "\n";
+    ret += "Total Launches: " + std::to_string(d.getLaunchCount()) + "\n";
 
     switch(d.getType())
     {

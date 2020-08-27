@@ -60,7 +60,7 @@ static std::unordered_map<std::string, unsigned> uistrdef =
     {"confirmRestore", 11}, {"confirmDelete", 12}, {"confirmCopy", 13}, {"confirmEraseNand", 14},
     {"confirmEraseFolder", 15}, {"confirmHead", 16}, {"copyHead", 17}, {"noSavesFound", 18},
     {"advMenu", 19}, {"extMenu", 20}, {"optMenu", 21}, {"optMenuExp", 22}, {"holdingText", 23},
-    {"errorConnecting", 24}, {"noUpdate", 25}
+    {"errorConnecting", 24}, {"noUpdate", 25}, {"sortType", 26}
 };
 
 static void loadTrans()
@@ -215,6 +215,13 @@ static void loadTrans()
 
             case 25:
                 ui::noUpdate = lang.getNextValueStr();
+                break;
+
+            case 26:
+                {
+                    int ind = lang.getNextValueInt();
+                    ui::sortString[ind] = lang.getNextValueStr();
+                }
                 break;
 
             default:

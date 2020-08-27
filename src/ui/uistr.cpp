@@ -23,8 +23,8 @@ std::string ui::errorConnecting = "Error Connecting!";
 std::string ui::noUpdate = "No updates available!";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
 std::string ui::exMenuStr[11] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS", "Backup JKSV Folder" };
-std::string ui::optMenuStr[13] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: ", "Export to ZIP: " };
-std::string ui::optMenuExp[13] =
+std::string ui::optMenuStr[14] = { "Include Dev Sv: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: ", "Export to ZIP: ", "Sort: " };
+std::string ui::optMenuExp[14] =
 {
     "Includes Device Save data in user accounts.",
     "Automatically creates a save backup before restoring a save.",
@@ -38,6 +38,8 @@ std::string ui::optMenuExp[13] =
     "Changes the UI to be text menu based like the original JKSM for 3DS.",
     "Directly uses the Switch's FS commands to copy files instead of stdio.",
     "Skips the user selection screen and jumps directly to the first user account found.",
-    "Exports saves to ZIP files."
+    "Exports saves to ZIP files.",
+    "Changes the way titles are sorted and listed."
 };
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
+std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };

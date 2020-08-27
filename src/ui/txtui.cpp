@@ -12,16 +12,6 @@
 static ui::menu userMenu, titleMenu, exMenu, optMenu;
 extern ui::menu folderMenu;
 
-static inline void switchBool(bool& sw)
-{
-    sw ? sw = false : sw = true;
-}
-
-static inline std::string getBoolText(bool b)
-{
-    return b ? ui::on : ui::off;
-}
-
 void ui::textUserPrep()
 {
     userMenu.reset();
@@ -358,10 +348,26 @@ void ui::drawExMenu()
     exMenu.draw(ui::txtCont);
 }
 
+static inline void switchBool(bool& sw)
+{
+    sw ? sw = false : sw = true;
+}
+
+static inline std::string getBoolText(bool b)
+{
+    return b ? ui::on : ui::off;
+}
+
+static inline void changeSort()
+{
+    if(++data::sortType > 2)
+        data::sortType = 0;
+}
+
 void ui::optMenuInit()
 {
     optMenu.setParams(76, 98, 310);
-    for(unsigned i = 0; i < 13; i++)
+    for(unsigned i = 0; i < 14; i++)
         optMenu.addOpt(ui::optMenuStr[i]);
 }
 
@@ -383,6 +389,7 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
     optMenu.editOpt(10, optMenuStr[10] + getBoolText(data::directFsCmd));
     optMenu.editOpt(11, optMenuStr[11] + getBoolText(data::skipUser));
     optMenu.editOpt(12, optMenuStr[12] + getBoolText(data::zip));
+    optMenu.editOpt(13, optMenuStr[13] + ui::sortString[data::sortType]);
 
     if(down & KEY_A)
     {
@@ -439,12 +446,20 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
             case 12:
                 switchBool(data::zip);
                 break;
+
+            case 13:
+                changeSort();
+                data::loadUsersTitles(false);
+                break;
         }
     }
     else if(down & KEY_X)
         data::restoreDefaultConfig();
     else if(down & KEY_B)
+    {
+        data::saveCfg();
         ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
+    }
 }
 
 void ui::drawOptMenu()

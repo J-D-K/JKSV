@@ -28,6 +28,7 @@ SetLanguage data::sysLang;
 //Options
 bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
 bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false;
+uint8_t data::sortType = 0;
 
 //For other save types
 static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
@@ -37,23 +38,39 @@ static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 std::unordered_map<uint64_t, std::pair<tex *, tex *>> data::icons;
 
-//Sorts titles sort-of alphabetically
+//Sorts titles by sortType
 static struct
 {
     bool operator()(const data::titledata& a, const data::titledata& b)
     {
+        //Favorites override EVERYTHING
         if(a.getFav() != b.getFav()) return a.getFav();
 
-        uint32_t tmpA, tmpB;
-        for(unsigned i = 0; i < a.getTitle().length(); )
+        switch(data::sortType)
         {
-            ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&a.getTitle().data()[i]);
-            decode_utf8(&tmpB, (const uint8_t *)&b.getTitle().data()[i]);
-            tmpA = tolower(tmpA), tmpB = tolower(tmpB);
-            if(tmpA != tmpB)
-                return tmpA < tmpB;
+            case 0://Alpha
+                {
+                    uint32_t tmpA, tmpB;
+                    for(unsigned i = 0; i < a.getTitle().length(); )
+                    {
+                        ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&a.getTitle().data()[i]);
+                        decode_utf8(&tmpB, (const uint8_t *)&b.getTitle().data()[i]);
+                        tmpA = tolower(tmpA), tmpB = tolower(tmpB);
+                        if(tmpA != tmpB)
+                            return tmpA < tmpB;
 
-            i += uCnt;
+                        i += uCnt;
+                    }
+                }
+                break;
+
+            case 1://Most played
+                return a.getPlayTime() > b.getPlayTime();
+                break;
+
+            case 2://Last Played
+                return a.getLastTimeStamp() > b.getLastTimeStamp();
+                break;
         }
         return false;
     }
@@ -312,7 +329,6 @@ void data::exit()
 
     saveFav();
     saveBlackList();
-    saveCfg();
     util::setCPU(1020000000);
 }
 
@@ -441,20 +457,26 @@ void data::user::loadPlayTimes()
     PdmPlayStatistics stats;
     for(data::titledata& _d : titles)
     {
-        switch(_d.getType())//Users can hold device saves
+        switch(_d.getType())
         {
             case FsSaveDataType_Account:
                 pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(_d.getID(), userID, false, &stats);
                 _d.setPlayTime(stats.playtimeMinutes);
+                _d.setLastTimeStamp(stats.last_timestampUser);
+                _d.setLaunchCount(stats.totalLaunches);
                 break;
 
             case FsSaveDataType_Device:
                 pdmqryQueryPlayStatisticsByApplicationId(_d.getID(), false, &stats);
                 _d.setPlayTime(stats.playtimeMinutes);
+                _d.setLastTimeStamp(stats.last_timestampNetwork);
+                _d.setLaunchCount(stats.totalLaunches);
                 break;
 
             default:
                 _d.setPlayTime(0);
+                _d.setLastTimeStamp(0);
+                _d.setLaunchCount(0);
                 break;
         }
     }
@@ -528,6 +550,7 @@ void data::loadCfg()
 
         uint64_t cfgIn = 0;
         fread(&cfgIn, sizeof(uint64_t), 1, cfg);
+        fread(&data::sortType, 1, 1, cfg);
         fclose(cfg);
 
         data::incDev = cfgIn >> 63 & 1;
@@ -567,6 +590,7 @@ void data::saveCfg()
     cfgOut |= (uint64_t)data::skipUser << 52;
     cfgOut |= (uint64_t)data::zip << 51;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
+    fwrite(&data::sortType, 1, 1, cfg);
 
     fclose(cfg);
 }
@@ -586,6 +610,7 @@ void data::restoreDefaultConfig()
     data::directFsCmd = false;
     data::skipUser = false;
     data::zip = false;
+    data::sortType = 0;
 }
 
 void data::loadFav()
@@ -632,5 +657,6 @@ void data::dispStats()
     stats += "Current Title: " + data::curData.getTitle() + "\n";
     stats += "Safe Title: " + data::curData.getTitleSafe() + "\n";
     stats += "Icon count: " + std::to_string(icons.size()) + "\n";
+    stats += "Sort Type: " + std::to_string(data::sortType) + "\n";
     drawText(stats.c_str(), frameBuffer, ui::shared, 2, 2, 16, clrCreateU32(0xFF00DD00));
 }

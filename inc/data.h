@@ -13,7 +13,7 @@
 #define curData users[data::selUser].titles[data::selData]
 
 #define BLD_MON 8
-#define BLD_DAY 4
+#define BLD_DAY 27
 #define BLD_YEAR 2020
 
 namespace data
@@ -72,6 +72,10 @@ namespace data
             tex *getIconFav() const { return favIcon; }
             void setPlayTime(const uint32_t& _p){ playMins = _p; }
             uint32_t getPlayTime() const { return playMins; }
+            void setLastTimeStamp(const uint32_t& _ts){ lastTimeStamp = _ts; }
+            uint32_t getLastTimeStamp() const { return lastTimeStamp; }
+            void setLaunchCount(const uint32_t& _lc) { launchCount = _lc; }
+            uint32_t getLaunchCount() const { return launchCount; }
 
         private:
             tex *icon, *favIcon;
@@ -79,7 +83,7 @@ namespace data
             std::string title, titleSafe, author;
             uint64_t id, saveID;
             uint16_t saveIndex;
-            uint32_t playMins;
+            uint32_t playMins, lastTimeStamp, launchCount;
             bool favorite = false;
     };
 
@@ -136,6 +140,7 @@ namespace data
     extern int selUser, selData;
     extern SetLanguage sysLang;
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser, zip;
+    extern uint8_t sortType;
 }
 
 #endif // DATA_H
