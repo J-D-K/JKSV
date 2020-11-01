@@ -1,6 +1,7 @@
 #include <cstdio>
 #include <algorithm>
 #include <cstring>
+#include <vector>
 #include <switch.h>
 #include <dirent.h>
 #include <unistd.h>
@@ -29,6 +30,8 @@ typedef struct
 } svInfo;
 
 static std::string wd;
+
+static std::vector<std::string> pathFilter;
 
 static FSFILE *log;
 
@@ -137,6 +140,15 @@ fs::dirItem::dirItem(const std::string& pathTo, const std::string& sItem)
     struct stat s;
     if(stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode))
         dir = true;
+}
+
+std::string fs::dirItem::getName() const
+{
+    size_t extPos = itm.find_last_of('.'), slPos = itm.find_last_of('/');
+    if(extPos == itm.npos)
+        return "";
+
+    return itm.substr(slPos + 1, extPos);
 }
 
 std::string fs::dirItem::getExt() const
@@ -330,6 +342,9 @@ void fs::copyDirToDir(const std::string& from, const std::string& to)
 
     for(unsigned i = 0; i < list.getCount(); i++)
     {
+        if(pathIsFiltered(from + list.getItem(i)))
+            continue;
+
         if(list.isDir(i))
         {
             std::string newFrom = from + list.getItem(i) + "/";
@@ -376,6 +391,9 @@ void fs::copyDirToZip(const std::string& from, zipFile *to)
 
     for(unsigned i = 0; i < list.getCount(); i++)
     {
+        if(pathIsFiltered(from + list.getItem(i)))
+            continue;
+
         if(list.isDir(i))
         {
             std::string newFrom = from + list.getItem(i) + "/";
@@ -527,6 +545,9 @@ void fs::delDir(const std::string& path)
     dirList list(path);
     for(unsigned i = 0; i < list.getCount(); i++)
     {
+        if(pathIsFiltered(path + list.getItem(i)))
+            continue;
+
         if(list.isDir(i))
         {
             std::string newPath = path + list.getItem(i) + "/";
@@ -542,6 +563,35 @@ void fs::delDir(const std::string& path)
         }
     }
     rmdir(path.c_str());
+}
+
+void fs::loadPathFilters(const std::string& _file)
+{
+    if(fs::fileExists(_file))
+    {
+        fs::dataFile filter(_file);
+        while(filter.readNextLine(false))
+            pathFilter.push_back(filter.getLine());
+    }
+}
+
+bool fs::pathIsFiltered(const std::string& _path)
+{
+    if(pathFilter.empty())
+        return false;
+
+    for(std::string& _p : pathFilter)
+    {
+        if(_path == _p)
+            return true;
+    }
+
+    return false;
+}
+
+void fs::freePathFilters()
+{
+    pathFilter.clear();
 }
 
 bool fs::dumpAllUserSaves(const data::user& u)

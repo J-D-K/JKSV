@@ -169,6 +169,7 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
 
         case KEY_B:
             fs::unmountSave();
+            fs::freePathFilters();
             ui::changeState(TXT_TTL);
             break;
 

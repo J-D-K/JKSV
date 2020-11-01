@@ -47,6 +47,11 @@ namespace fs
     //Recursively deletes 'path'
     void delDir(const std::string& path);
 
+    //Loads paths to filter from backup/deletion
+    void loadPathFilters(const std::string& _file);
+    bool pathIsFiltered(const std::string& _path);
+    void freePathFilters();
+
     inline void wipeSave()
     {
         fs::delDir("sv:/");
@@ -74,6 +79,7 @@ namespace fs
         public:
             dirItem(const std::string& pathTo, const std::string& sItem);
             std::string getItm() const { return itm; }
+            std::string getName() const;
             std::string getExt() const;
             bool isDir() const { return dir; }
 

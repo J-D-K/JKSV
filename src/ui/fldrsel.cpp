@@ -17,6 +17,7 @@ void ui::folderMenuPrepare(data::user& usr, data::titledata& dat)
     dat.createDir();
 
     fldList.reassign(dat.getPath());
+    fs::loadPathFilters(dat.getPath() + "pathFilters.txt");
     folderMenu.addOpt("New");
     for(unsigned i = 0; i < fldList.getCount(); i++)
         folderMenu.addOpt(fldList.getItem(i));
@@ -195,6 +196,7 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
 
         case KEY_B:
             fs::unmountSave();
+            fs::freePathFilters();
             ui::changeState(TTL_SEL);
             break;
 
