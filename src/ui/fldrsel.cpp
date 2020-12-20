@@ -29,11 +29,11 @@ void ui::createNewBackup(const uint64_t& held)
 {
     std::string out;
 
-    if(held & KEY_R)
+    if(held & HidNpadButton_R)
         out = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
-    else if(held & KEY_L)
+    else if(held & HidNpadButton_L)
         out = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
-    else if(held & KEY_ZL)
+    else if(held & HidNpadButton_ZL)
         out = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
     else
     {
@@ -176,7 +176,7 @@ void ui::deleteBackup(unsigned ind)
 
 void ui::drawFolderMenu()
 {
-    texDraw(data::curData.getIcon(), frameBuffer, 96, 98);
+    data::curData.drawIcon(true, 96, 98);
     drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
     folderMenu.draw(ui::txtCont);
 }
@@ -187,30 +187,30 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
 
     switch(down)
     {
-        case KEY_A:
+        case HidNpadButton_A:
             if(folderMenu.getSelected() == 0)
                 ui::createNewBackup(held);
             else
                 ui::overwriteBackup(folderMenu.getSelected() - 1);
             break;
 
-        case KEY_B:
+        case HidNpadButton_B:
             fs::unmountSave();
             fs::freePathFilters();
             ui::changeState(TTL_SEL);
             break;
 
-        case KEY_X:
+        case HidNpadButton_X:
             if(folderMenu.getSelected() > 0)
                 ui::deleteBackup(folderMenu.getSelected() - 1);
             break;
 
-        case KEY_Y:
+        case HidNpadButton_Y:
             if(folderMenu.getSelected() > 0)
                 ui::restoreBackup(folderMenu.getSelected() - 1);
             break;
 
-        case KEY_ZR:
+        case HidNpadButton_ZR:
             if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
             {
                 fs::delDir("sv:/");
@@ -218,7 +218,7 @@ void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_MINUS:
+        case HidNpadButton_Minus:
             advModePrep("sv:/", data::curData.getType(), true);
             ui::changeState(ADV_MDE);
             break;

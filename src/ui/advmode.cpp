@@ -419,7 +419,7 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
     }
 
     //OH BOY HERE WE GO
-    if(down & KEY_A)
+    if(down & HidNpadButton_A)
     {
         switch(advMenuCtrl)
         {
@@ -471,7 +471,7 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
                 break;
         }
     }
-    else if(down & KEY_B)
+    else if(down & HidNpadButton_B)
     {
         //save
         if(advMenuCtrl == 0 && savePath != dev)
@@ -492,7 +492,7 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
         else if(advMenuCtrl == 2)
             advMenuCtrl = advPrev;
     }
-    else if(down & KEY_X)
+    else if(down & HidNpadButton_X)
     {
         if(advMenuCtrl == 2)
         {
@@ -504,12 +504,12 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
             advMenuCtrl = 2;
         }
     }
-    else if(down & KEY_ZL || down & KEY_ZR)
+    else if(down & HidNpadButton_ZL || down & HidNpadButton_ZR)
     {
         if(advMenuCtrl == 0 || advMenuCtrl == 1)
             advMenuCtrl = advMenuCtrl == 0 ? 1 : 0;
     }
-    else if(down & KEY_MINUS)
+    else if(down & HidNpadButton_Minus)
     {
         switch(prevState)
         {

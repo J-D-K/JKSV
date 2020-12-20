@@ -11,6 +11,9 @@
 #include "file.h"
 #include "util.h"
 
+//Color for favorite hearts
+const clr heartColor = clrCreateRGBA(0xFF, 0x44, 0x44, 0xFF);
+
 //FsSaveDataSpaceId_All doesn't work for SD
 static const unsigned saveOrder [] =
 {
@@ -36,7 +39,7 @@ static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
-std::unordered_map<uint64_t, std::pair<tex *, tex *>> data::icons;
+std::unordered_map<uint64_t, tex *> data::icons;
 
 //Sorts titles by sortType
 static struct
@@ -130,9 +133,8 @@ static inline tex *createFavIcon(const tex *_icn)
 
 static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsApplicationControlData *_d)
 {
-    data::icons[_id].first = texLoadJPEGMem(_d->icon, _sz);
-    texApplyAlphaMask(data::icons[_id].first, ui::iconMask);
-    data::icons[_id].second = createFavIcon(data::icons[_id].first);
+    data::icons[_id] = texLoadJPEGMem(_d->icon, _sz);
+    texApplyAlphaMask(data::icons[_id], ui::iconMask);
 }
 
 static void loadCreateSystemIcon(const uint64_t& _id)
@@ -140,9 +142,8 @@ static void loadCreateSystemIcon(const uint64_t& _id)
     char tmp[16];
     sprintf(tmp, "%08X", (uint32_t)_id);
 
-    data::icons[_id].first = util::createIconGeneric(tmp);
-    texApplyAlphaMask(data::icons[_id].first, ui::iconMask);
-    data::icons[_id].second = createFavIcon(data::icons[_id].first);
+    data::icons[_id] = util::createIconGeneric(tmp);
+    texApplyAlphaMask(data::icons[_id], ui::iconMask);
 }
 
 static inline std::string getIDStr(const uint64_t& _id)
@@ -320,14 +321,12 @@ void data::exit()
     for(data::user& u : data::users) u.delIcon();
     for(auto& icn : icons)
     {
-        if(icn.second.first)
-            texDestroy(icn.second.first);
-
-        if(icn.second.second)
-            texDestroy(icn.second.second);
+        if(icn.second)
+            texDestroy(icn.second);
     }
 
     saveFav();
+    saveCfg();
     saveBlackList();
     util::setCPU(1020000000);
 }
@@ -363,7 +362,7 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
         if(icnInd == icons.end())
             loadCreateIcon(id, icnSize, dat);
 
-        assignIcons();
+        assignIcon();
     }
     else
     {
@@ -371,7 +370,7 @@ data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *
             loadCreateSystemIcon(id);
         title = getIDStr(id);
         titleSafe = getIDStr(id);
-        assignIcons();
+        assignIcon();
     }
     favorite = isFavorite(id);
 }
@@ -396,10 +395,31 @@ std::string data::titledata::getSaveIDStr() const
     return getIDStr(saveID);
 }
 
-void data::titledata::assignIcons()
+void data::titledata::assignIcon()
 {
-    icon = icons[id].first;
-    favIcon = icons[id].second;
+    icon = icons[id];
+}
+
+void data::titledata::drawIcon(bool full, unsigned x, unsigned y)
+{
+    if(full)
+        texDraw(icon, frameBuffer, x, y);
+    else
+        texDrawSkip(icon, frameBuffer, x, y);
+}
+
+void data::titledata::drawIconFav(bool full, unsigned x, unsigned y)
+{
+    if(full)
+    {
+        texDraw(icon, frameBuffer, x, y);
+        drawText("♥", frameBuffer, ui::shared, x + 16, y + 16, 48, heartColor);
+    }
+    else
+    {
+        texDrawSkip(icon, frameBuffer, x, y);
+        drawText("♥", frameBuffer, ui::shared, x + 8, y + 8, 24, heartColor);
+    }
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName)

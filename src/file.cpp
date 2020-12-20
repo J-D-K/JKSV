@@ -488,50 +488,6 @@ void fs::copyDirToDirCommit(const std::string& from, const std::string& to, cons
     }
 }
 
-bool fs::readSvi(const std::string& _path, FsSaveDataAttribute *attr, FsSaveDataCreationInfo *crInfo)
-{
-    FILE *sviIn = fopen(_path.c_str(), "rb");
-    if(!sviIn)
-        return false;
-
-    svInfo infoIn;
-    fread(&infoIn, sizeof(svInfo), 1, sviIn);
-    fclose(sviIn);
-
-    attr->application_id = infoIn.appID;
-    attr->save_data_type = infoIn.saveType;
-    attr->save_data_rank = infoIn.saveRank;
-    attr->save_data_index = infoIn.saveIndex;
-
-    crInfo->owner_id = infoIn.appID;
-    crInfo->save_data_size = infoIn.saveSize;
-    crInfo->available_size = infoIn.availableSize;
-    crInfo->journal_size = infoIn.journalSize;
-    crInfo->save_data_space_id = FsSaveDataSpaceId_User;
-
-    return true;
-}
-
-Result fs::createSaveDataFileSystem(const FsSaveDataAttribute *attr, const FsSaveDataCreationInfo *crInfo)
-{
-    Service *fs = fsGetServiceSession();
-    struct
-    {
-        FsSaveDataAttribute attr;
-        FsSaveDataCreationInfo create;
-        uint32_t unk0;
-        uint8_t unk1[0x06];
-    } in = {*attr, *crInfo, 0, {0}};
-
-    if(attr->save_data_type != FsSaveDataType_Device)
-    {
-        in.unk0 = 0x40060;
-        in.unk1[0] = 1;
-    }
-
-    return serviceDispatchIn(fs, 22, in);
-}
-
 void fs::delfile(const std::string& path)
 {
     if(data::directFsCmd)
@@ -598,9 +554,9 @@ bool fs::dumpAllUserSaves(const data::user& u)
 {
     for(unsigned i = 0; i < u.titles.size(); i++)
     {
-        hidScanInput();
+        ui::updatePad();
 
-        if(hidKeysHeld(CONTROLLER_P1_AUTO) & KEY_B)
+        if(ui::padKeysDown() & HidNpadButton_B)
             return false;
 
         if(fs::mountSave(u, u.titles[i]))

@@ -66,11 +66,9 @@ void ui::showMessage(const char *head, const char *fmt, ...)
 
     while(true)
     {
-        hidScanInput();
+        ui::updatePad();
 
-        uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-
-        if(down)
+        if(ui::padKeysDown())
             break;
 
         gfxBeginFrame();
@@ -106,12 +104,12 @@ bool ui::confirm(bool hold, const char *fmt, ...)
 
     while(true)
     {
-        hidScanInput();
+        ui::updatePad();
 
-        uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-        uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
+        uint64_t down = ui::padKeysDown();
+        uint64_t held = ui::padKeysHeld();
 
-        if(hold && held & KEY_A)
+        if(hold && held & HidNpadButton_A)
         {
             heldDown = true;
             holdCount++, holdClrDiff++;
@@ -147,12 +145,12 @@ bool ui::confirm(bool hold, const char *fmt, ...)
             yesText = ui::yt;
             holdClr = ui::txtDiag;
         }
-        else if(down & KEY_A)
+        else if(down & HidNpadButton_A)
         {
             ret = true;
             break;
         }
-        else if(down & KEY_B)
+        else if(down & HidNpadButton_B)
         {
             ret = false;
             break;

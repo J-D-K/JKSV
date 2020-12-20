@@ -74,9 +74,9 @@ void ui::drawTitleMenu()
                 drawText(data::curData.getTitle().c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
             }
             if(data::curUser.titles[i].getFav())
-                texDrawSkip(data::curUser.titles[i].getIconFav(), frameBuffer, tX, y);
+                data::curUser.titles[i].drawIconFav(false, tX, y);
             else
-                texDrawSkip(data::curUser.titles[i].getIcon(), frameBuffer, tX, y);
+                data::curUser.titles[i].drawIcon(false, tX, y);
         }
     }
 }
@@ -85,7 +85,7 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
 {
     switch(down)
     {
-        case KEY_A:
+        case HidNpadButton_A:
             if(fs::mountSave(data::curUser, data::curData))
             {
                 folderMenuPrepare(data::curUser, data::curData);
@@ -94,34 +94,34 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_B:
+        case HidNpadButton_B:
             reset();
             ui::changeState(USR_SEL);
             break;
 
-        case KEY_X:
+        case HidNpadButton_X:
             data::favoriteTitle(data::curData);
             break;
 
-        case KEY_Y:
+        case HidNpadButton_Y:
             fs::dumpAllUserSaves(data::curUser);
             break;
 
-        case KEY_L:
+        case HidNpadButton_L:
             if(--data::selUser < 0)
                 data::selUser = data::users.size() - 1;
             reset();
             ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
             break;
 
-        case KEY_R:
+        case HidNpadButton_R:
             if(++data::selUser == (int)data::users.size())
                 data::selUser = 0;
             reset();
             ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
             break;
 
-        case KEY_ZR:
+        case HidNpadButton_ZR:
             if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
             {
                 fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
@@ -130,33 +130,33 @@ void ui::updateTitleMenu(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_MINUS:
+        case HidNpadButton_Minus:
             if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
                 data::blacklistAdd(data::curData);
             break;
 
-        case KEY_LSTICK_UP:
-        case KEY_DUP:
+        case HidNpadButton_StickLUp:
+        case HidNpadButton_Up:
             data::selData -= 8;
             if(data::selData < 0)
                 data::selData = 0;
             break;
 
-        case KEY_LSTICK_DOWN:
-        case KEY_DDOWN:
+        case HidNpadButton_StickLDown:
+        case HidNpadButton_Down:
             data::selData += 8;
             if(data::selData > (int)data::curUser.titles.size() - 1)
                 data::selData = data::curUser.titles.size() - 1;
             break;
 
-        case KEY_LSTICK_LEFT:
-        case KEY_DLEFT:
+        case HidNpadButton_StickLLeft:
+        case HidNpadButton_Left:
             if(data::selData > 0)
                 --data::selData;
             break;
 
-        case KEY_LSTICK_RIGHT:
-        case KEY_DRIGHT:
+        case HidNpadButton_StickLRight:
+        case HidNpadButton_Right:
             if(data::selData < (int)data::curUser.titles.size() - 1)
                 ++data::selData;
             break;

@@ -10,13 +10,14 @@
 #include "util.h"
 #include "file.h"
 
-#define VER_STRING "v. 06.23.2020"
-
 //text mode
 bool ui::textMode = false;
 
 //Current menu state
 int ui::mstate = USR_SEL, ui::prevState = USR_SEL;
+
+//pad data?
+PadState ui::pad;
 
 //Theme id
 ColorSetId ui::thmID;
@@ -377,6 +378,10 @@ void ui::init()
     titleHelpX = 1220 - ttlGuide->width;
     folderHelpX = 1220 - fldrGuide->width;
     optHelpX = 1220 - optGuide->width;
+
+    //setup pad
+    padConfigureInput(1, HidNpadStyleSet_NpadStandard);
+    padInitializeDefault(&ui::pad);
 
     advCopyMenuPrep();
     ui::exMenuPrep();

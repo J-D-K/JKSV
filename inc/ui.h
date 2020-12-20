@@ -1,6 +1,7 @@
 #ifndef UI_H
 #define UI_H
 
+#include <switch.h>
 #include <vector>
 #include <string>
 
@@ -34,6 +35,13 @@ namespace ui
 
     //Current menu/ui state
     extern int mstate, prevState;
+
+    //pad data cause i don't know where else to put it
+    extern PadState pad;
+    static inline void updatePad() { padUpdate(&pad); }
+    inline uint64_t padKeysDown() { return padGetButtonsDown(&pad); }
+    inline uint64_t padKeysHeld() { return padGetButtons(&pad); }
+    inline uint64_t padKeysUp() { return padGetButtonsUp(&pad); }
 
     inline void changeState(int newState)
     {

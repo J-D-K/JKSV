@@ -83,7 +83,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
         if(selected == 0)
             start = 0;
     }
-    else if(down & KEY_RIGHT)
+    else if(down & HidNpadButton_Right)
     {
         selected += 7;
         if(selected > size)
@@ -91,7 +91,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
         if((selected - 14) > start)
             start = selected - 14;
     }
-    else if(down & KEY_LEFT)
+    else if(down & HidNpadButton_Left)
     {
         selected -= 7;
         if(selected < 0)

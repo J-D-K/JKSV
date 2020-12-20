@@ -44,7 +44,7 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
 
     switch(down)
     {
-        case KEY_A:
+        case HidNpadButton_A:
             if(data::curUser.titles.size() > 0)
             {
                 ui::textTitlePrep(data::curUser);
@@ -54,12 +54,12 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
                 ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
             break;
 
-        case KEY_X:
+        case HidNpadButton_X:
             ui::textMode = false;
             ui::changeState(USR_SEL);
             break;
 
-        case KEY_Y:
+        case HidNpadButton_Y:
             {
                 bool cont = true;
                 for(unsigned i = 0; i < data::users.size() - 2; i++)
@@ -70,15 +70,15 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_R:
+        case HidNpadButton_R:
             util::checkForUpdate();
             break;
 
-        case KEY_ZR:
+        case HidNpadButton_ZR:
             ui::changeState(EX_MNU);
             break;
 
-        case KEY_MINUS:
+        case HidNpadButton_Minus:
             ui::changeState(OPT_MNU);
             break;
     }
@@ -97,7 +97,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
 
     switch(down)
     {
-        case KEY_A:
+        case HidNpadButton_A:
             if(fs::mountSave(data::curUser, data::curData))
             {
                 folderMenuPrepare(data::curUser, data::curData);
@@ -106,34 +106,34 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_B:
+        case HidNpadButton_B:
             ui::changeState(TXT_USR);
             break;
 
-        case KEY_X:
+        case HidNpadButton_X:
             data::favoriteTitle(data::curData);
             textTitlePrep(data::curUser);
             break;
 
-        case KEY_Y:
+        case HidNpadButton_Y:
             fs::dumpAllUserSaves(data::curUser);
             break;
 
-        case KEY_L:
+        case HidNpadButton_L:
             if(--data::selUser < 0)
                 data::selUser = data::users.size() - 1;
             ui::textTitlePrep(data::curUser);
             ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
             break;
 
-        case KEY_R:
+        case HidNpadButton_R:
             if(++data::selUser == (int)data::users.size())
                 data::selUser = 0;
             ui::textTitlePrep(data::curUser);
             ui::showPopup(POP_FRAME_DEFAULT, data::curUser.getUsername().c_str());
             break;
 
-        case KEY_ZR:
+        case HidNpadButton_ZR:
             if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseNand.c_str(), data::curData.getTitle().c_str()))
             {
                 fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, data::curData.getSaveID());
@@ -142,7 +142,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_MINUS:
+        case HidNpadButton_Minus:
             if(ui::confirm(false, ui::confBlacklist.c_str(), data::curUser.titles[data::selData].getTitle().c_str()))
                 data::blacklistAdd(data::curData);
             break;
@@ -160,30 +160,30 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
 
     switch(down)
     {
-        case KEY_A:
+        case HidNpadButton_A:
             if(folderMenu.getSelected() == 0)
                 ui::createNewBackup(held);
             else
                 ui::overwriteBackup(folderMenu.getSelected() - 1);
             break;
 
-        case KEY_B:
+        case HidNpadButton_B:
             fs::unmountSave();
             fs::freePathFilters();
             ui::changeState(TXT_TTL);
             break;
 
-        case KEY_X:
+        case HidNpadButton_X:
             if(folderMenu.getSelected() > 0)
                 ui::deleteBackup(folderMenu.getSelected() - 1);
             break;
 
-        case KEY_Y:
+        case HidNpadButton_Y:
             if(folderMenu.getSelected() > 0)
                 ui::restoreBackup(folderMenu.getSelected() - 1);
             break;
 
-        case KEY_ZR:
+        case HidNpadButton_ZR:
             if(data::curData.getType() != FsSaveDataType_System && confirm(true, ui::confEraseFolder.c_str(), data::curData.getTitle().c_str()))
             {
                 fs::delDir("sv:/");
@@ -191,7 +191,7 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_MINUS:
+        case HidNpadButton_Minus:
             advModePrep("sv:/", data::curData.getType(), true);
             ui::changeState(ADV_MDE);
             break;
@@ -216,7 +216,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
 {
     exMenu.handleInput(down, held);
 
-    if(down & KEY_A)
+    if(down & HidNpadButton_A)
     {
         fsdevUnmountDevice("sv");
         FsFileSystem sv;
@@ -313,7 +313,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 {
                     FsFileSystem tromfs;
                     //Result res = romfsMountFromCurrentProcess("tromfs"); << Works too, but is kinda weird
-                    if(R_SUCCEEDED(util::fsOpenDataFileSystemByCurrentProcess(&tromfs)))
+                    if(R_SUCCEEDED(fsOpenDataFileSystemByCurrentProcess(&tromfs)))
                     {
                         fsdevMountDevice("tromfs", tromfs);
                         advModePrep("tromfs:/", FsSaveDataType_Account, false);
@@ -336,7 +336,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
                 break;
         }
     }
-    else if(down & KEY_B)
+    else if(down & HidNpadButton_B)
     {
         fsdevUnmountDevice("sv");
         ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
@@ -392,7 +392,7 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
     optMenu.editOpt(12, optMenuStr[12] + getBoolText(data::zip));
     optMenu.editOpt(13, optMenuStr[13] + ui::sortString[data::sortType]);
 
-    if(down & KEY_A)
+    if(down & HidNpadButton_A)
     {
         switch(optMenu.getSelected())
         {
@@ -454,13 +454,10 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
                 break;
         }
     }
-    else if(down & KEY_X)
+    else if(down & HidNpadButton_X)
         data::restoreDefaultConfig();
-    else if(down & KEY_B)
-    {
-        data::saveCfg();
+    else if(down & HidNpadButton_B)
         ui::changeState(ui::textMode ? TXT_USR : USR_SEL);
-    }
 }
 
 void ui::drawOptMenu()

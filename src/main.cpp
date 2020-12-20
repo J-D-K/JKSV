@@ -54,13 +54,13 @@ int main(int argc, const char *argv[])
 
     while(appletMainLoop())
     {
-        hidScanInput();
+        ui::updatePad();
 
-        uint64_t down = hidKeysDown(CONTROLLER_P1_AUTO);
-        uint64_t held = hidKeysHeld(CONTROLLER_P1_AUTO);
-        if(held & KEY_LSTICK && held & KEY_RSTICK)
+        uint64_t down = ui::padKeysDown(), held = ui::padKeysHeld();
+
+        if(held & HidNpadButton_StickL && held & HidNpadButton_StickR)
             debDataStats = true;
-        else if(down & KEY_PLUS)
+        else if(down & HidNpadButton_Plus)
             break;
 
         gfxBeginFrame();

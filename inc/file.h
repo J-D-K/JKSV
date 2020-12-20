@@ -36,12 +36,6 @@ namespace fs
     //Copies unzfile to 'to'
     void copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev);
 
-    //Reads svi from path and writes needed info to attr and crInfo. Does NOT set account id for attr
-    bool readSvi(const std::string& _path, FsSaveDataAttribute *attr, FsSaveDataCreationInfo *crInfo);
-
-    //Creates save data filesystem on NAND
-    Result createSaveDataFileSystem(const FsSaveDataAttribute *attr, const FsSaveDataCreationInfo *crInfo);
-
     //deletes file
     void delfile(const std::string& path);
     //Recursively deletes 'path'

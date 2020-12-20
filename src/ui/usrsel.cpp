@@ -68,19 +68,19 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
 {
     switch(down)
     {
-        case KEY_A:
+        case HidNpadButton_A:
             if(data::curUser.titles.size() > 0)
                 ui::changeState(TTL_SEL);
             else
                 ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
             break;
 
-        case KEY_X:
+        case HidNpadButton_X:
             ui::textMode = true;
             ui::changeState(TXT_USR);
             break;
 
-        case KEY_Y:
+        case HidNpadButton_Y:
             {
                 bool cont = true;
                 for(unsigned i = 0; i < data::users.size() - 2; i++)
@@ -91,36 +91,36 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
             }
             break;
 
-        case KEY_R:
+        case HidNpadButton_R:
             util::checkForUpdate();
             break;
 
-        case KEY_ZR:
+        case HidNpadButton_ZR:
             ui::changeState(EX_MNU);
             break;
 
-        case KEY_MINUS:
+        case HidNpadButton_Minus:
             ui::changeState(OPT_MNU);
             break;
 
-        case KEY_LSTICK_UP:
-        case KEY_DUP:
+        case HidNpadButton_StickLUp:
+        case HidNpadButton_Up:
             data::selUser - 5 < 0 ? data::selUser = 0 : data::selUser -= 4;
             break;
 
-        case KEY_LSTICK_DOWN:
-        case KEY_DDOWN:
+        case HidNpadButton_StickLDown:
+        case HidNpadButton_Down:
             data::selUser + 5 > (int)data::users.size() - 1 ? data::selUser = data::users.size() - 1 : data::selUser += 5;
             break;
 
-        case KEY_LSTICK_LEFT:
-        case KEY_DLEFT:
+        case HidNpadButton_StickLLeft:
+        case HidNpadButton_Left:
             if(data::selUser > 0)
                 --data::selUser;
             break;
 
-        case KEY_LSTICK_RIGHT:
-        case KEY_DRIGHT:
+        case HidNpadButton_StickLRight:
+        case HidNpadButton_Right:
             if(data::selUser < (int)data::users.size() - 1)
                 ++data::selUser;
             break;

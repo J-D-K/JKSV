@@ -123,7 +123,7 @@ optMenuExp = 9, "Changes the UI to be text menu based like the original JKSM for
 optMenuExp = 10, "Directly uses the Switch's FS commands to copy files instead of stdio."
 optMenuExp = 11, "Skips the user selection screen and jumps directly to the first user account found."
 optMenuExp = 12, "Exports saves to zip files."
-optMenuExp = 13, ""Changes the way titles are sorted and listed."
+optMenuExp = 13, "Changes the way titles are sorted and listed."
 
 #Sort Types
 sortType = 0, "Alphabetical"

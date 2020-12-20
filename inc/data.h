@@ -12,8 +12,8 @@
 #define curUser users[data::selUser]
 #define curData users[data::selUser].titles[data::selData]
 
-#define BLD_MON 11
-#define BLD_DAY 01
+#define BLD_MON 12
+#define BLD_DAY 20
 #define BLD_YEAR 2020
 
 namespace data
@@ -67,9 +67,9 @@ namespace data
             void setType(FsSaveDataType type) { saveDataType = type; }
             void setFav(bool setFav) { favorite = setFav; }
             bool getFav() const { return favorite; }
-            void assignIcons();
-            tex *getIcon() const { return icon; }
-            tex *getIconFav() const { return favIcon; }
+            void assignIcon();
+            void drawIcon(bool full, unsigned x, unsigned y);
+            void drawIconFav(bool full, unsigned x, unsigned y);
             void setPlayTime(const uint32_t& _p){ playMins = _p; }
             uint32_t getPlayTime() const { return playMins; }
             void setLastTimeStamp(const uint32_t& _ts){ lastTimeStamp = _ts; }
@@ -78,7 +78,7 @@ namespace data
             uint32_t getLaunchCount() const { return launchCount; }
 
         private:
-            tex *icon, *favIcon;
+            tex *icon;
             uint8_t saveDataType;
             std::string title, titleSafe, author;
             uint64_t id, saveID;
@@ -132,7 +132,7 @@ namespace data
 
     //User vector
     extern std::vector<user> users;
-    extern std::unordered_map<uint64_t, std::pair<tex *, tex *>> icons;
+    extern std::unordered_map<uint64_t, tex *> icons;
 
     //Options and info
     //Restores config to default
