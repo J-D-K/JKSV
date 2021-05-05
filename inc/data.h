@@ -12,9 +12,9 @@
 #define curUser users[data::selUser]
 #define curData users[data::selUser].titles[data::selData]
 
-#define BLD_MON 12
-#define BLD_DAY 20
-#define BLD_YEAR 2020
+#define BLD_MON 05
+#define BLD_DAY 05
+#define BLD_YEAR 2021
 
 namespace data
 {

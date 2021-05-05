@@ -51,7 +51,7 @@ ui::menu::~menu()
 
 void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
 {
-    if( (held & KEY_UP) || (held & KEY_DOWN))
+    if( (held & HidNpadButton_Up) || (held & HidNpadButton_Down))
         fc++;
     else
         fc = 0;
@@ -59,7 +59,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
         fc = 0;
 
     int size = opt.size() - 1;
-    if((down & KEY_UP) || ((held & KEY_UP) && fc == 10))
+    if((down & HidNpadButton_Up) || ((held & HidNpadButton_Up) && fc == 10))
     {
         selected--;
         if(selected < 0)
@@ -72,7 +72,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
         if((selected - 14) > start)
             start = selected - 14;
     }
-    else if((down & KEY_DOWN) || ((held & KEY_DOWN) && fc == 10))
+    else if((down & HidNpadButton_Down) || ((held & HidNpadButton_Down) && fc == 10))
     {
         selected++;
         if(selected > size)

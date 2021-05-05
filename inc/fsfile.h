@@ -32,6 +32,8 @@ Mode needs to be:
     FsOpenMode_Write
     FsOpenMode_Append
 */
+bool fsfcreate(const char *_p, int64_t crSize);
+
 FSFILE *fsfopen(const char *_p, uint32_t mode);
 
 /*Same as above, but FsFileSystem _s is used. Path cannot have device in it*/

@@ -18,17 +18,6 @@
 
 #define BUFF_SIZE 0x80000
 
-typedef struct
-{
-    uint64_t appID;
-    uint8_t saveType;
-    uint8_t saveRank;
-    uint16_t saveIndex;
-    uint64_t saveSize;
-    uint64_t availableSize;
-    uint64_t journalSize;
-} svInfo;
-
 static std::string wd;
 
 static std::vector<std::string> pathFilter;
@@ -36,6 +25,31 @@ static std::vector<std::string> pathFilter;
 static FSFILE *log;
 
 static FsFileSystem sv;
+
+typedef struct
+{
+    std::string to, from, dev;
+    uint64_t *offset;
+    zipFile *z;
+    bool fin;
+} copyArgs;
+
+static copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile *z, uint64_t *offset)
+{
+    copyArgs *ret = new copyArgs;
+    ret->to = to;
+    ret->from = from;
+    ret->dev = dev;
+    ret->z = z;
+    ret->offset = offset;
+    ret->fin = false;
+    return ret;
+}
+
+static inline void copyArgsDestroy(copyArgs *args)
+{
+    delete args;
+}
 
 static struct
 {
@@ -64,6 +78,31 @@ static void mkdirRec(const std::string& _p)
         mkdir(_p.substr(0, pos).c_str(), 777);
         ++pos;
     }
+}
+
+//This is mostly for Pokemon snap, but it also seems to work better? Stops commit errors from journal space
+static bool fwriteCommit(const std::string& _path, const void *buf, size_t _size, const std::string& _dev)
+{
+    size_t written = 0;
+    if(data::directFsCmd)
+    {
+        FSFILE *out = fsfopen(_path.c_str(), FsOpenMode_Write | FsOpenMode_Append);
+        written = fsfwrite(buf, 1, _size, out);
+        fsfclose(out);
+    }
+    else
+    {
+        FILE *out = fopen(_path.c_str(), "ab");
+        written = fwrite(buf, 1, _size, out);
+        fclose(out);
+    }
+
+    Result commit = fsdevCommitDevice(_dev.c_str());
+
+    if(R_FAILED(commit) || written == 0)
+        fs::logWrite("Error writing/committing to file \"%s\"\n", _path.c_str());
+
+    return written > 0 && R_SUCCEEDED(commit);
 }
 
 void fs::init()
@@ -274,18 +313,21 @@ int fs::dataFile::getNextValueInt()
     return ret;
 }
 
-void fs::copyFile(const std::string& from, const std::string& to)
+static void copyfile_t(void *a)
 {
+    copyArgs *args = (copyArgs *)a;
+
     uint8_t *buff = new uint8_t[BUFF_SIZE];
-    ui::progBar prog(fs::fsize(from));
     if(data::directFsCmd)
     {
-        FSFILE *in = fsfopen(from.c_str(), FsOpenMode_Read);
-        FSFILE *out = fsfopen(to.c_str(), FsOpenMode_Write);
+        FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
+        FSFILE *out = fsfopen(args->to.c_str(), FsOpenMode_Write);
+
         if(!in || !out)
         {
             fsfclose(in);
             fsfclose(out);
+            args->fin = true;
             return;
         }
 
@@ -293,23 +335,20 @@ void fs::copyFile(const std::string& from, const std::string& to)
         while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
         {
             fsfwrite(buff, 1, readIn, out);
-
-            prog.update(fsftell(in));
-            gfxBeginFrame();
-            prog.draw(from, ui::copyHead);
-            gfxEndFrame();
+            *args->offset = in->offset;
         }
         fsfclose(in);
         fsfclose(out);
     }
     else
     {
-        FILE *in = fopen(from.c_str(), "rb");
-        FILE *out = fopen(to.c_str(), "wb");
+        FILE *in = fopen(args->from.c_str(), "rb");
+        FILE *out = fopen(args->to.c_str(), "wb");
         if(!in || !out)
         {
             fclose(in);
             fclose(out);
+            args->fin = true;
             return;
         }
 
@@ -317,23 +356,114 @@ void fs::copyFile(const std::string& from, const std::string& to)
         while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
         {
             fwrite(buff, 1, readIn, out);
-
-            prog.update(ftell(in));
-            gfxBeginFrame();
-            prog.draw(from, ui::copyHead);
-            gfxEndFrame();
+            *args->offset = ftell(in);
         }
         fclose(in);
         fclose(out);
     }
     delete[] buff;
+    args->fin = true;
+}
+
+void fs::copyFile(const std::string& from, const std::string& to)
+{
+    uint64_t progress = 0;
+    copyArgs *send = copyArgsCreate(from, to, "", NULL, &progress);
+
+    //Setup progress bar. This thread updates screen, other handles copying
+    ui::progBar prog(fsize(from));
+
+    Thread cpyThread;
+    threadCreate(&cpyThread, copyfile_t, send, NULL, 0x4000, 0x2B, 1);
+    threadStart(&cpyThread);
+    while(!send->fin)
+    {
+        prog.update(progress);
+        gfxBeginFrame();
+        prog.draw(from, ui::copyHead);
+        gfxEndFrame();
+    }
+    threadClose(&cpyThread);
+    copyArgsDestroy(send);
+}
+
+void copyFileCommit_t(void *a)
+{
+    copyArgs *args = (copyArgs *)a;
+
+    uint8_t *buff = new uint8_t[BUFF_SIZE];
+
+    //Create empty destination file using fs
+    fsfcreate(args->to.c_str(), 0);
+
+    if(data::directFsCmd)
+    {
+        FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
+
+        if(!in)
+        {
+            fsfclose(in);
+            args->fin = true;
+            return;
+        }
+
+        size_t readIn = 0;
+        while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
+        {
+            if(!fwriteCommit(args->to, buff, readIn, args->dev))
+                break;
+            *args->offset = in->offset;
+        }
+        fsfclose(in);
+    }
+    else
+    {
+        FILE *in = fopen(args->from.c_str(), "rb");
+
+        if(!in)
+        {
+            fclose(in);
+            args->fin = true;
+            return;
+        }
+
+        size_t readIn = 0;
+        while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
+        {
+            if(!fwriteCommit(args->to, buff, readIn, args->dev))
+                break;
+
+            *args->offset = ftell(in);
+        }
+        fclose(in);
+    }
+    delete[] buff;
+
+    Result res = 0;
+    if(R_FAILED(res = fsdevCommitDevice(args->dev.c_str())))
+        fs::logWrite("Error committing file \"%s\"\n", args->to.c_str());
+
+    args->fin = true;
 }
 
 void fs::copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
-    fs::copyFile(from, to);
-    if(R_FAILED(fsdevCommitDevice(dev.c_str())))
-        ui::showMessage("*Error*", "Error committing file to device.");
+    uint64_t offset = 0;
+    ui::progBar prog(fsize(from));
+    copyArgs *send = copyArgsCreate(from, to, dev, NULL, &offset);
+
+    Thread cpyThread;
+    threadCreate(&cpyThread, copyFileCommit_t, send, NULL, 0x4000, 0x2B, 1);
+    threadStart(&cpyThread);
+    while(!send->fin)
+    {
+        prog.update(offset);
+        gfxBeginFrame();
+        prog.draw(from, ui::copyHead);
+        gfxEndFrame();
+    }
+    threadClose(&cpyThread);
+    copyArgsDestroy(send);
 }
 
 void fs::copyDirToDir(const std::string& from, const std::string& to)
@@ -362,27 +492,47 @@ void fs::copyDirToDir(const std::string& from, const std::string& to)
     }
 }
 
-void copyFileToZip(const std::string& from, zipFile *to)
+void copyFileToZip_t(void *a)
 {
-    ui::progBar prog(fs::fsize(from));
-    FILE *cpy = fopen(from.c_str(), "rb");
+    copyArgs *args = (copyArgs *)a;
+    FILE *cpy = fopen(args->from.c_str(), "rb");
 
-    size_t readIn = 0, offset = 0;
+    size_t readIn = 0;
     uint8_t *inBuff= new uint8_t[BUFF_SIZE];
     while((readIn = fread(inBuff, 1, BUFF_SIZE, cpy)) > 0)
     {
-        if(zipWriteInFileInZip(*to, inBuff, readIn) != 0)
-            ui::showMessage("Failed", "zipWriteInFileInZip");
+        if(zipWriteInFileInZip(*args->z, inBuff, readIn) != 0)
+        {
+            fs::logWrite("Failed", "zipWriteInFileInZip -> \"%s\"\n", args->from.c_str());
+            break;
+        }
 
-        offset += readIn;
-        prog.update(offset);
-        gfxBeginFrame();
-        prog.draw(from, ui::copyHead);
-        gfxEndFrame();
+        *args->offset = ftell(cpy);
     }
 
     delete[] inBuff;
     fclose(cpy);
+    args->fin = true;
+}
+
+void copyFileToZip(const std::string& from, zipFile *z)
+{
+    ui::progBar prog(fs::fsize(from));
+    uint64_t progress = 0;
+    copyArgs *send = copyArgsCreate(from, "", "", z, &progress);
+
+    Thread cpyThread;
+    threadCreate(&cpyThread, copyFileToZip_t, send, NULL, 0x4000, 0x2B, 1);
+    threadStart(&cpyThread);
+    while(!send->fin)
+    {
+        prog.update(progress);
+        gfxBeginFrame();
+        prog.draw(from, ui::copyHead);
+        gfxEndFrame();
+    }
+    threadClose(&cpyThread);
+    copyArgsDestroy(send);
 }
 
 void fs::copyDirToZip(const std::string& from, zipFile *to)
@@ -420,44 +570,46 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
     do
     {
         unzGetCurrentFileInfo(*unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
-        unzOpenCurrentFile(*unz);
-        std::string path = to + filename;
-        mkdirRec(path.substr(0, path.find_last_of('/') + 1));
-        ui::progBar prog(info.uncompressed_size);
-        size_t done = 0;
-        if(data::directFsCmd)
+        if(unzOpenCurrentFile(*unz) == UNZ_OK)
         {
-            FSFILE *out = fsfopen(path.c_str(), FsOpenMode_Write);
-            while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
-            {
-                done += readIn;
-                fsfwrite(buff, 1, readIn, out);
-                prog.update(done);
+            std::string path = to + filename;
+            mkdirRec(path.substr(0, path.find_last_of('/') + 1));
+            ui::progBar prog(info.uncompressed_size);
+            size_t done = 0;
 
-                gfxBeginFrame();
-                prog.draw(filename, ui::copyHead);
-                gfxEndFrame();
-            }
-            fsfclose(out);
-        }
-        else
-        {
-            FILE *out = fopen(path.c_str(), "wb");
-            while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
-            {
-                done += readIn;
-                fwrite(buff, 1, readIn, out);
-                prog.update(done);
+            //Create new empty file using FS
+            fsfcreate(path.c_str(), 0);
 
-                gfxBeginFrame();
-                prog.draw(filename, ui::copyHead);
-                gfxEndFrame();
+            if(data::directFsCmd)
+            {
+                while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
+                {
+                    done += readIn;
+                    fwriteCommit(path, buff, readIn, dev);
+                    prog.update(done);
+
+                    gfxBeginFrame();
+                    prog.draw(filename, ui::copyHead);
+                    gfxEndFrame();
+                }
             }
-            fclose(out);
+            else
+            {
+                while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
+                {
+                    done += readIn;
+                    fwriteCommit(path, buff, readIn, dev);
+                    prog.update(done);
+
+                    gfxBeginFrame();
+                    prog.draw(filename, ui::copyHead);
+                    gfxEndFrame();
+                }
+            }
+            unzCloseCurrentFile(*unz);
+            if(R_FAILED(fsdevCommitDevice(dev.c_str())))
+                ui::showMessage("*Error*", "Error committing file to device.");
         }
-        unzCloseCurrentFile(*unz);
-        if(R_FAILED(fsdevCommitDevice(dev.c_str())))
-            ui::showMessage("*Error*", "Error committing file to device.");
     }
     while(unzGoToNextFile(*unz) != UNZ_END_OF_LIST_OF_FILE);
 

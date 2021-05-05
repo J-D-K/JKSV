@@ -52,6 +52,24 @@ Result fsDelDirRec(const char *_p)
     return fsFsDeleteDirectoryRecursively(fsdevGetDeviceFileSystem(devStr), path);
 }
 
+bool fsfcreate(const char *_p, int64_t crSize)
+{
+    char devStr[16];
+    char filePath[FS_MAX_PATH];
+    if(!getDeviceFromPath(devStr, 16, _p) || !getFilePath(filePath, FS_MAX_PATH, _p))
+        return false;
+
+    FsFileSystem *s = fsdevGetDeviceFileSystem(devStr);
+    if(s == NULL)
+        return false;
+
+    Result res = fsFsCreateFile(s, filePath, crSize, 0);
+    if(R_SUCCEEDED(res))
+        res = fsdevCommitDevice(devStr);
+
+    return R_SUCCEEDED(res) ? true : false;
+}
+
 FSFILE *fsfopen(const char *_p, uint32_t mode)
 {
     char devStr[16];
@@ -63,13 +81,11 @@ FSFILE *fsfopen(const char *_p, uint32_t mode)
     if(s == NULL)
         return NULL;
 
-    if(mode & FsOpenMode_Write)
+    if(mode == FsOpenMode_Write)
     {
         fsFsDeleteFile(s, filePath);
         fsFsCreateFile(s, filePath, 0, 0);
     }
-    else if(mode & FsOpenMode_Append)
-        fsFsCreateFile(s, filePath, 0, 0);
 
     FSFILE *ret = malloc(sizeof(FSFILE));
     ret->error = fsFsOpenFile(s, filePath, mode, &ret->_f);
