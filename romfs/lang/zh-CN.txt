@@ -85,6 +85,7 @@ extMenu = 6, "终止指定ID进程"
 extMenu = 7, "挂载系统存档"
 extMenu = 8, "重新扫描Titles"
 extMenu = 9, "挂载RomFS进程"
+extMenu = 10, "备份JKSV目录"
 
 #Options menu
 #All options need a trailing space. It is the most likely to have things added to it.
@@ -100,6 +101,8 @@ optMenu = 8, "是否开启系统存档覆写: "
 optMenu = 9, "默认使用文字列表模式: "
 optMenu = 10, "使用系统FS复制指令: "
 optMenu = 11, "跳过用户选择: "
+optMenu = 12, "导出ZIP压缩包: "
+optMenu = 13, "排序: "
 
 #Explanations of what options do.
 optMenuExp = 0, "包括设备关联账户中的所有存档数据"
@@ -114,3 +117,10 @@ optMenuExp = 8, "控制系统存档数据和分区是否可以写入和删除文
 optMenuExp = 9, "切换浏览界面至文字列表模式，类似3DS主机上JKSM的界面"
 optMenuExp = 10, "直接使用Switch系统FS指令取代原有的标准输入输出方式"
 optMenuExp = 11, "跳过用户选择界面直接使用首位用户的资料数据"
+optMenuExp = 12, "导出存档到zip文件"
+optMenuExp = 13, "更改标题排列排序方式"
+
+#Sort Types
+sortType = 0, "字母顺序"
+sortType = 1, "游戏时间"
+sortType = 2, "最后游戏"
