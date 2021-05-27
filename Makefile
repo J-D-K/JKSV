@@ -38,7 +38,7 @@ INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  05.05.2021
+APP_VERSION :=  05.27.2021
 ROMFS	    :=	romfs
 ICON		:=	romfs/icon.jpg
 

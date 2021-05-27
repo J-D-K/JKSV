@@ -13,13 +13,11 @@
 #define curData users[data::selUser].titles[data::selData]
 
 #define BLD_MON 05
-#define BLD_DAY 05
+#define BLD_DAY 27
 #define BLD_YEAR 2021
 
 namespace data
 {
-    extern bool forceMount;
-
     //Loads user + title info
     void init();
     void exit();

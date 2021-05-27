@@ -503,7 +503,7 @@ void copyFileToZip_t(void *a)
     {
         if(zipWriteInFileInZip(*args->z, inBuff, readIn) != 0)
         {
-            fs::logWrite("Failed", "zipWriteInFileInZip -> \"%s\"\n", args->from.c_str());
+            fs::logWrite("zipWriteInFileInZip failed -> \"%s\"\n", args->from.c_str());
             break;
         }
 
@@ -714,6 +714,8 @@ bool fs::dumpAllUserSaves(const data::user& u)
         if(fs::mountSave(u, u.titles[i]))
         {
             u.titles[i].createDir();
+            std::string filtersPath = u.titles[i].getPath() + "pathFilters.txt";
+            fs::loadPathFilters(filtersPath);
             switch(data::zip)
             {
                 case true:
@@ -734,6 +736,7 @@ bool fs::dumpAllUserSaves(const data::user& u)
                     break;
             }
             fsdevUnmountDevice("sv");
+            fs::freePathFilters();
         }
     }
     return true;//?
