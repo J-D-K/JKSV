@@ -27,7 +27,7 @@ namespace ui
             int getSelected() { return selected; }
 
             //Draws the menu at x and y. rectWidth is the width of the rectangle drawn under the selected
-            void draw(const clr& textClr);
+            void draw(const SDL_Color *textClr);
 
             //Clears and resets menu
             void reset();

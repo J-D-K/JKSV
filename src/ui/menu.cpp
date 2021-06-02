@@ -6,7 +6,10 @@
 #include "ui.h"
 #include "miscui.h"
 
-static const clr menuColorLight = clrCreateU32(0xFFF05032), menuColorDark = clrCreateU32(0xFFC5FF00);
+static const SDL_Color menuColorLight = {0x32, 0x50, 0xF0, 0xFF};
+static const SDL_Color menuColorDark  = {0x00, 0xFF, 0xC5, 0xFF};
+
+#define HOLD_FC 10
 
 void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW)
 {
@@ -18,7 +21,7 @@ void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned&
 
 void ui::menu::addOpt(const std::string& add)
 {
-    if(textGetWidth(add.c_str(), ui::shared, 18) < rW - 32 || rW == 0)
+    if(gfx::getTextWidth(add.c_str(), 18) < rW - 32 || rW == 0)
         opt.push_back(add);
     else
     {
@@ -30,7 +33,7 @@ void ui::menu::addOpt(const std::string& add)
 
             tmp += add.substr(i, untCnt);
             i += untCnt;
-            if(textGetWidth(tmp.c_str(), ui::shared, 18) >= rW - 32)
+            if(gfx::getTextWidth(tmp.c_str(), 18) >= rW - 32)
             {
                 opt.push_back(tmp);
                 break;
@@ -59,7 +62,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
         fc = 0;
 
     int size = opt.size() - 1;
-    if((down & HidNpadButton_Up) || ((held & HidNpadButton_Up) && fc == 10))
+    if((down & HidNpadButton_Up) || ((held & HidNpadButton_Up) && fc == HOLD_FC))
     {
         selected--;
         if(selected < 0)
@@ -72,7 +75,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
         if((selected - 14) > start)
             start = selected - 14;
     }
-    else if((down & HidNpadButton_Down) || ((held & HidNpadButton_Down) && fc == 10))
+    else if((down & HidNpadButton_Down) || ((held & HidNpadButton_Down) && fc == HOLD_FC))
     {
         selected++;
         if(selected > size)
@@ -101,7 +104,7 @@ void ui::menu::handleInput(const uint64_t& down, const uint64_t& held)
     }
 }
 
-void ui::menu::draw(const clr& textClr)
+void ui::menu::draw(const SDL_Color *textClr)
 {
     if(opt.size() < 1)
         return;
@@ -129,11 +132,11 @@ void ui::menu::draw(const clr& textClr)
     {
         if(i == selected)
         {
-            drawBoundBox(x, y + ((i - start) * 36), rW, 36, clrSh);
-            drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, ui::thmID == ColorSetId_Light ? menuColorLight : menuColorDark);
+            ui::drawBoundBox(x, y + ((i - start) * 36), rW, 36, clrSh);
+            gfx::drawTextf(18, x + 8, (y + 8) + ((i - start) * 36), ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].c_str());
         }
         else
-            drawText(opt[i].c_str(), frameBuffer, shared, x + 8, (y + 8) + ((i - start) * 36), 18, textClr);
+            gfx::drawTextf(18, x + 8, (y + 8) + ((i - start) * 36), textClr, opt[i].c_str());
     }
 }
 

@@ -177,8 +177,8 @@ void ui::deleteBackup(unsigned ind)
 void ui::drawFolderMenu()
 {
     data::curData.drawIcon(true, 96, 98);
-    drawTextWrap(folderMenuInfo.c_str(), frameBuffer, ui::shared, 60, 370, 16, ui::txtCont, 360);
-    folderMenu.draw(ui::txtCont);
+    gfx::drawTextfWrap(16, 60, 370, 360, &ui::txtCont, folderMenuInfo.c_str());
+    folderMenu.draw(&ui::txtCont);
 }
 
 void ui::updateFolderMenu(const uint64_t& down, const uint64_t& held)

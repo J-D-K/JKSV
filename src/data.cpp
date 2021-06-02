@@ -12,7 +12,7 @@
 #include "util.h"
 
 //Color for favorite hearts
-const clr heartColor = clrCreateRGBA(0xFF, 0x44, 0x44, 0xFF);
+const SDL_Color heartColor = {0xFF, 0x44, 0x44, 0xFF};
 
 //FsSaveDataSpaceId_All doesn't work for SD
 static const unsigned saveOrder [] =
@@ -39,7 +39,7 @@ static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
-std::unordered_map<uint64_t, tex *> data::icons;
+std::unordered_map<uint64_t, SDL_Texture *> data::icons;
 
 //Sorts titles by sortType
 static struct
@@ -113,28 +113,14 @@ static bool isDefined(const uint64_t& id)
     return false;
 }
 
-static tex *createDeviceIcon()
+static SDL_Texture *createDeviceIcon()
 {
-    tex *ret = texCreate(256, 256);
-    texClearColor(ret, ui::rectLt);
-    unsigned x = 128 - (textGetWidth("\ue121", ui::shared, 188) / 2);
-    drawText("\ue121", ret, ui::shared, x, 34, 188, ui::txtCont);
-    texApplyAlphaMask(ret, ui::iconMask);
-    return ret;
-}
-
-static inline tex *createFavIcon(const tex *_icn)
-{
-    tex *ret = texCreate(256, 256);
-    memcpy(ret->data, _icn->data, 256 * 256 * sizeof(uint32_t));
-    drawText("♥", ret, ui::shared, 16, 16, 48, clrCreateU32(0xFF4444FF));
-    return ret;
+    return util::createIconGeneric("\ue121", 192);
 }
 
 static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsApplicationControlData *_d)
 {
-    data::icons[_id] = texLoadJPEGMem(_d->icon, _sz);
-    texApplyAlphaMask(data::icons[_id], ui::iconMask);
+    data::icons[_id] = gfx::loadJPEGMem(_d->icon, _sz);
 }
 
 static void loadCreateSystemIcon(const uint64_t& _id)
@@ -142,8 +128,7 @@ static void loadCreateSystemIcon(const uint64_t& _id)
     char tmp[16];
     sprintf(tmp, "%08X", (uint32_t)_id);
 
-    data::icons[_id] = util::createIconGeneric(tmp);
-    texApplyAlphaMask(data::icons[_id], ui::iconMask);
+    data::icons[_id] = util::createIconGeneric(tmp, 32);
 }
 
 static inline std::string getIDStr(const uint64_t& _id)
@@ -322,7 +307,7 @@ void data::exit()
     for(auto& icn : icons)
     {
         if(icn.second)
-            texDestroy(icn.second);
+            SDL_DestroyTexture(icn.second);
     }
 
     saveFav();
@@ -403,22 +388,22 @@ void data::titledata::assignIcon()
 void data::titledata::drawIcon(bool full, unsigned x, unsigned y)
 {
     if(full)
-        texDraw(icon, frameBuffer, x, y);
+        gfx::texDraw(icon, x, y);
     else
-        texDrawSkip(icon, frameBuffer, x, y);
+        gfx::texDrawStretch(icon, x, y, 128, 128);
 }
 
 void data::titledata::drawIconFav(bool full, unsigned x, unsigned y)
 {
     if(full)
     {
-        texDraw(icon, frameBuffer, x, y);
-        drawText("♥", frameBuffer, ui::shared, x + 16, y + 16, 48, heartColor);
+        gfx::texDraw(icon, x, y);
+        gfx::drawTextf(48, x + 16, y + 16, &heartColor, "♥");
     }
     else
     {
-        texDrawSkip(icon, frameBuffer, x, y);
-        drawText("♥", frameBuffer, ui::shared, x + 8, y + 8, 24, heartColor);
+        gfx::texDrawStretch(icon, x, y, 128, 128);
+        gfx::drawTextf(24, x + 8, y + 8, &heartColor, "♥");
     }
 }
 
@@ -445,7 +430,7 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
         accountProfileGetImageSize(&prof, &jpgSize);
         uint8_t *jpegData = new uint8_t[jpgSize];
         accountProfileLoadImage(&prof, jpegData, jpgSize, &jpgSize);
-        userIcon = texLoadJPEGMem(jpegData, jpgSize);
+        userIcon = gfx::loadJPEGMem(jpegData, jpgSize);
         delete[] jpegData;
 
         accountProfileClose(&prof);
@@ -454,13 +439,12 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
     {
         username = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
         userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
-        userIcon = util::createIconGeneric(_backupName.c_str());
+        userIcon = util::createIconGeneric(_backupName.c_str(), 32);
     }
-    texApplyAlphaMask(userIcon, ui::iconMask);
     titles.reserve(32);
 }
 
-data::user::user(const AccountUid& _id, const std::string& _backupName, tex *img) : user(_id, _backupName)
+data::user::user(const AccountUid& _id, const std::string& _backupName, SDL_Texture *img) : user(_id, _backupName)
 {
     delIcon();
     userIcon = img;
@@ -667,6 +651,8 @@ void data::loadDefs()
     }
 }
 
+static const SDL_Color green = {0x00, 0xDD, 0x00, 0xFF};
+
 void data::dispStats()
 {
     //Easiest/laziest way to do this
@@ -678,5 +664,5 @@ void data::dispStats()
     stats += "Safe Title: " + data::curData.getTitleSafe() + "\n";
     stats += "Icon count: " + std::to_string(icons.size()) + "\n";
     stats += "Sort Type: " + std::to_string(data::sortType) + "\n";
-    drawText(stats.c_str(), frameBuffer, ui::shared, 2, 2, 16, clrCreateU32(0xFF00DD00));
+    gfx::drawTextf(16, 8, 8, &green, stats.c_str());
 }

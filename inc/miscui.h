@@ -24,7 +24,6 @@ namespace ui
         private:
             uint64_t max, prog;
             float width;
-            tex *bg;
     };
 
     //General use
@@ -32,8 +31,7 @@ namespace ui
     bool confirm(bool hold, const char *fmt, ...);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
-    void drawTextbox(tex *target, int x, int y, int w, int h);
-    void drawTextboxInvert(tex *target, int x, int y, int w, int h);
+    void drawTextbox(int x, int y, int w, int h);
 
     //Popup from freebird
     void showPopup(unsigned frames, const char *fmt, ...);

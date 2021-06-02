@@ -12,8 +12,8 @@
 #define curUser users[data::selUser]
 #define curData users[data::selUser].titles[data::selData]
 
-#define BLD_MON 05
-#define BLD_DAY 27
+#define BLD_MON 06
+#define BLD_DAY 02
 #define BLD_YEAR 2021
 
 namespace data
@@ -76,7 +76,7 @@ namespace data
             uint32_t getLaunchCount() const { return launchCount; }
 
         private:
-            tex *icon;
+            SDL_Texture *icon;
             uint8_t saveDataType;
             std::string title, titleSafe, author;
             uint64_t id, saveID;
@@ -91,13 +91,13 @@ namespace data
         public:
             user() = default;
             user(const AccountUid& _id, const std::string& _backupName);
-            user(const AccountUid& _id, const std::string& _backupName, tex *img);
+            user(const AccountUid& _id, const std::string& _backupName, SDL_Texture *img);
 
             //Sets ID
             void setUID(const AccountUid& _id);
 
             //Assigns icon
-            void assignIcon(tex *_icn) { userIcon = _icn; }
+            void assignIcon(SDL_Texture *_icn) { userIcon = _icn; }
 
             //Returns user ID
             AccountUid getUID() const { return userID; }
@@ -111,16 +111,16 @@ namespace data
             std::vector<titledata> titles;
             void loadPlayTimes();
 
-            void drawIcon(int x, int y) { texDraw(userIcon, frameBuffer, x, y); }
-            void drawIconHalf(int x, int y) { texDrawSkip(userIcon, frameBuffer, x, y); }
-            void delIcon() { texDestroy(userIcon); }
+            void drawIcon(int x, int y) { gfx::texDraw(userIcon, x, y); }
+            void drawIconHalf(int x, int y) { gfx::texDrawStretch(userIcon, x, y, 128, 128); }
+            void delIcon() { SDL_DestroyTexture(userIcon); }
 
         private:
             AccountUid userID;
             u128 uID128;
             std::string username, userSafe;
             //User icon
-            tex* userIcon;
+            SDL_Texture *userIcon;
     };
 
     //Adds title to blacklist
@@ -130,7 +130,7 @@ namespace data
 
     //User vector
     extern std::vector<user> users;
-    extern std::unordered_map<uint64_t, tex *> icons;
+    extern std::unordered_map<uint64_t, SDL_Texture *> icons;
 
     //Options and info
     //Restores config to default

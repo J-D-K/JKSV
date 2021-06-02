@@ -22,7 +22,7 @@ static std::string wd;
 
 static std::vector<std::string> pathFilter;
 
-static FSFILE *log;
+static FSFILE *debLog;
 
 static FsFileSystem sv;
 
@@ -379,9 +379,8 @@ void fs::copyFile(const std::string& from, const std::string& to)
     while(!send->fin)
     {
         prog.update(progress);
-        gfxBeginFrame();
         prog.draw(from, ui::copyHead);
-        gfxEndFrame();
+        gfx::present();
     }
     threadClose(&cpyThread);
     copyArgsDestroy(send);
@@ -458,9 +457,8 @@ void fs::copyFileCommit(const std::string& from, const std::string& to, const st
     while(!send->fin)
     {
         prog.update(offset);
-        gfxBeginFrame();
         prog.draw(from, ui::copyHead);
-        gfxEndFrame();
+        gfx::present();
     }
     threadClose(&cpyThread);
     copyArgsDestroy(send);
@@ -527,9 +525,8 @@ void copyFileToZip(const std::string& from, zipFile *z)
     while(!send->fin)
     {
         prog.update(progress);
-        gfxBeginFrame();
         prog.draw(from, ui::copyHead);
-        gfxEndFrame();
+        gfx::present();
     }
     threadClose(&cpyThread);
     copyArgsDestroy(send);
@@ -587,10 +584,8 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
                     done += readIn;
                     fwriteCommit(path, buff, readIn, dev);
                     prog.update(done);
-
-                    gfxBeginFrame();
                     prog.draw(filename, ui::copyHead);
-                    gfxEndFrame();
+                    gfx::present();
                 }
             }
             else
@@ -600,10 +595,8 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
                     done += readIn;
                     fwriteCommit(path, buff, readIn, dev);
                     prog.update(done);
-
-                    gfxBeginFrame();
                     prog.draw(filename, ui::copyHead);
-                    gfxEndFrame();
+                    gfx::present();
                 }
             }
             unzCloseCurrentFile(*unz);
@@ -836,7 +829,7 @@ void fs::logOpen()
 {
     std::string logPath = wd + "log.txt";
     remove(logPath.c_str());
-    log = fsfopen(logPath.c_str(), FsOpenMode_Write);
+    debLog = fsfopen(logPath.c_str(), FsOpenMode_Write);
 }
 
 void fs::logWrite(const char *fmt, ...)
@@ -846,11 +839,11 @@ void fs::logWrite(const char *fmt, ...)
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
     va_end(args);
-    fsfwrite(tmp, 1, strlen(tmp), log);
+    fsfwrite(tmp, 1, strlen(tmp), debLog);
 }
 
 void fs::logClose()
 {
-    fsfclose(log);
+    fsfclose(debLog);
 }
 

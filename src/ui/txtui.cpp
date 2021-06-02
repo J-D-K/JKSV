@@ -86,7 +86,7 @@ void ui::textUserMenuUpdate(const uint64_t& down, const uint64_t& held)
 
 void ui::drawTextUserMenu()
 {
-    userMenu.draw(ui::txtCont);
+    userMenu.draw(&ui::txtCont);
 }
 
 void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
@@ -151,7 +151,7 @@ void ui::textTitleMenuUpdate(const uint64_t& down, const uint64_t& held)
 
 void ui::drawTextTitleMenu()
 {
-    titleMenu.draw(ui::txtCont);
+    titleMenu.draw(&ui::txtCont);
 }
 
 void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
@@ -200,8 +200,8 @@ void ui::textFolderMenuUpdate(const uint64_t& down, const uint64_t& held)
 
 void ui::drawTextFolderMenu()
 {
-    titleMenu.draw(ui::txtCont);
-    folderMenu.draw(ui::txtCont);
+    titleMenu.draw(&ui::txtCont);
+    folderMenu.draw(&ui::txtCont);
 }
 
 void ui::exMenuPrep()
@@ -346,7 +346,7 @@ void ui::updateExMenu(const uint64_t& down, const uint64_t& held)
 
 void ui::drawExMenu()
 {
-    exMenu.draw(ui::txtCont);
+    exMenu.draw(&ui::txtCont);
 }
 
 static inline void switchBool(bool& sw)
@@ -462,7 +462,7 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
 
 void ui::drawOptMenu()
 {
-    optMenu.draw(ui::txtCont);
-    drawTextWrap(ui::optMenuExp[optMenu.getSelected()].c_str(), frameBuffer, ui::shared, 466, 98, 18, ui::txtCont, 730);
+    optMenu.draw(&ui::txtCont);
+    gfx::drawTextfWrap(18, 466, 98, 730, &ui::txtCont, ui::optMenuExp[optMenu.getSelected()].c_str());
 }
 

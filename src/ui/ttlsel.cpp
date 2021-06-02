@@ -63,15 +63,15 @@ void ui::drawTitleMenu()
                 selRectX = tX - 6;
                 selRectY = y - 6;
 
-                unsigned titleWidth = textGetWidth(data::curData.getTitle().c_str(), ui::shared, 18);
+                unsigned titleWidth = gfx::getTextWidth(data::curData.getTitle().c_str(), 18);
                 int rectWidth = titleWidth + 32, rectX = (tX + 64) - (rectWidth / 2);
                 if(rectX < 16)
                     rectX = 16;
                 else if(rectX + rectWidth > 1264)
                     rectX = 1264 - rectWidth;
 
-                drawTextbox(frameBuffer, rectX, y - 50, rectWidth, 38);
-                drawText(data::curData.getTitle().c_str(), frameBuffer, ui::shared, rectX + 16, y - 40, 18, ui::txtDiag);
+                ui::drawTextbox(rectX, y - 50, rectWidth, 38);
+                gfx::drawTextf(18, rectX + 16, y - 40, &ui::txtDiag, data::curData.getTitle().c_str());
             }
             if(data::curUser.titles[i].getFav())
                 data::curUser.titles[i].drawIconFav(false, tX, y);

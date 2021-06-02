@@ -314,12 +314,16 @@ void util::replaceButtonsInString(std::string& rep)
     replaceStr(rep, "[-]", "\ue0f0");
 }
 
-tex *util::createIconGeneric(const char *txt)
+SDL_Texture *util::createIconGeneric(const char *txt, int fontSize)
 {
-    tex *ret = texCreate(256, 256);
-    texClearColor(ret, ui::rectLt);
-    unsigned int x = 128 - (textGetWidth(txt, ui::shared, 32) / 2);
-    drawText(txt, ret, ui::shared, x, 112, 32, ui::txtCont);
+    SDL_Texture *ret = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, 256, 256);
+    SDL_SetRenderTarget(gfx::render, ret);
+    SDL_SetRenderDrawColor(gfx::render, ui::rectLt.r, ui::rectLt.g, ui::rectLt.b, ui::rectLt.a);
+    SDL_RenderClear(gfx::render);
+    unsigned int x = 128 - (gfx::getTextWidth(txt, fontSize) / 2);
+    unsigned int y = 128 - (fontSize / 2);
+    gfx::drawTextf(fontSize, x, y, &ui::txtCont, txt);
+    SDL_SetRenderTarget(gfx::render, NULL);
     return ret;
 }
 

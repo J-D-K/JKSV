@@ -60,20 +60,15 @@ namespace ui
         txtCont = text that contrasts clearClr
         txtDiag = text color for dialogs
     */
-    extern clr clearClr, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect;
+    extern SDL_Color clearClr, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect;
 
     //Textbox graphics
-    extern tex *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
+    extern SDL_Texture *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
     //Covers left and right of progress bar to fake being not a rectangle.
-    extern tex *progCovLeft, *progCovRight, *diaBox;
+    extern SDL_Texture *progCovLeft, *progCovRight, *diaBox;
 
-    //Side bar from Freebird. RIP. NEVERMIND
-    extern tex *sideBar;
-
-    extern alphaMask *iconMask;
-
-    //Shared font
-    extern font *shared;
+    //Side bar from Freebird. RIP.
+    extern SDL_Texture *sideBar;
 
     //Sets colors and loads font for icon creation
     void initTheme();

@@ -45,7 +45,7 @@ int main(int argc, const char *argv[])
 {
     romfsInit();
     fs::init();
-    graphicsInit(1280, 720);
+    gfx::init();
     ui::initTheme();
     ui::showLoadScreen();
     data::init();
@@ -63,16 +63,15 @@ int main(int argc, const char *argv[])
         else if(down & HidNpadButton_Plus)
             break;
 
-        gfxBeginFrame();
         ui::runApp(down, held);
 
         if(debDataStats)
             data::dispStats();
-        gfxEndFrame();
+        gfx::present();
     }
 
     ui::exit();
     data::exit();
-    graphicsExit();
+    gfx::exit();
     fs::exit();
 }

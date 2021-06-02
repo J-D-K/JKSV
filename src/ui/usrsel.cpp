@@ -49,15 +49,15 @@ void ui::drawUserMenu()
                 selRectX = tX - 6;
                 selRectY = y - 6;
 
-                unsigned userWidth = textGetWidth(data::curUser.getUsername().c_str(), ui::shared, 18);
+                unsigned userWidth = gfx::getTextWidth(data::curUser.getUsername().c_str(), 18);
                 int userRectWidth = userWidth + 32, userRectX = (tX + 64) - (userRectWidth  / 2);
                 if(userRectX < 16)
                     userRectX = 16;
                 else if(userRectX + userRectWidth > 1264)
                     userRectX = 1264 - userRectWidth;
 
-                drawTextbox(frameBuffer, userRectX, y - 50, userRectWidth, 38);
-                drawText(data::curUser.getUsername().c_str(), frameBuffer, ui::shared, userRectX + 16, y - 40, 18, ui::txtDiag);
+                drawTextbox(userRectX, y - 50, userRectWidth, 38);
+                gfx::drawTextf(18, userRectX + 16, y - 40, &ui::txtDiag, data::curUser.getUsername().c_str());
             }
             data::users[i].drawIconHalf(tX, y);
         }
