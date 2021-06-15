@@ -2,6 +2,13 @@
 
 #include "uistr.h"
 
+//8
+const std::string ui::loadGlyphArray[8] =
+{
+    "\ue020", "\ue021", "\ue022", "\ue023",
+    "\ue024", "\ue025", "\ue026", "\ue027"
+};
+
 std::string ui::author = "NULL";
 std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [R] Update   [-] Options   [ZR] Extras";
 std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back";

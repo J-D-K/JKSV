@@ -42,7 +42,6 @@ SDL_Texture *mnuTopLeft, *mnuTopRight, *mnuBotLeft, *mnuBotRight;
 SDL_Texture *ui::sideBar;
 
 static SDL_Texture *icn;
-static SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
 
 //X position of help texts. Calculated to make editing quicker/easier
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
@@ -349,11 +348,10 @@ void ui::exit()
 
 void ui::showLoadScreen()
 {
-    SDL_Texture *icon = gfx::loadImageFile("romfs:/icon.jpg");
-    SDL_SetRenderDrawColor(gfx::render, 0x2D, 0x2D, 0x2D, 0xFF);
-    SDL_RenderClear(gfx::render);
-    gfx::texDraw(icon, 512, 232);
-    gfx::drawTextf(16, 1100, 673, &white, "Loading...");
+    SDL_Texture *icon = gfx::loadImageFile("romfs:/icon.png");
+    gfx::clear(&ui::clearClr);
+    gfx::texDraw(icon, 512, 226);
+    gfx::drawTextf(18, 1100, 673, &ui::txtCont, "Loading...");
     gfx::present();
     SDL_DestroyTexture(icon);
 }
@@ -435,7 +433,12 @@ void ui::drawBoundBox(int x, int y, int w, int h, int clrSh)
 
     gfx::drawRect(&rectClr, x + 4, y + 4, w - 8, h - 8);
 
-    rectClr = {0x00, 0x88, 0xC5, 0xFF};
+    rectClr = {0x00,(uint8_t)(0x88 + clrSh), (uint8_t)(0xC5 + (clrSh / 2)), 0xFF};
+
+    SDL_SetTextureColorMod(mnuTopLeft, rectClr.r, rectClr.g, rectClr.b);
+    SDL_SetTextureColorMod(mnuTopRight, rectClr.r, rectClr.g, rectClr.b);
+    SDL_SetTextureColorMod(mnuBotLeft, rectClr.r, rectClr.g, rectClr.b);
+    SDL_SetTextureColorMod(mnuBotRight, rectClr.r, rectClr.g, rectClr.b);
 
     //top
     gfx::texDraw(mnuTopLeft, x, y);

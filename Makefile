@@ -38,9 +38,9 @@ INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  06.02.2021
+APP_VERSION :=  06.14.2021
 ROMFS	    :=	romfs
-ICON		:=	romfs/icon.jpg
+ICON		:=	icon.jpg
 
 #---------------------------------------------------------------------------------
 # options for code generation

@@ -105,7 +105,7 @@ void ui::updateUserMenu(const uint64_t& down, const uint64_t& held)
 
         case HidNpadButton_StickLUp:
         case HidNpadButton_Up:
-            data::selUser - 5 < 0 ? data::selUser = 0 : data::selUser -= 4;
+            data::selUser - 5 < 0 ? data::selUser = 0 : data::selUser -= 5;
             break;
 
         case HidNpadButton_StickLDown:

@@ -3,6 +3,7 @@
 
 #include "gfx.h"
 
+#define PROG_MAX_WIDTH_DEFAULT 576
 #define POP_FRAME_DEFAULT 130
 
 //For smaller classes that aren't easy to get lost in and general functions
@@ -12,17 +13,26 @@ namespace ui
     class progBar
     {
         public:
+            progBar() = default;
+
             //Constructor. _max is the maximum value
-            progBar(const uint64_t& _max) { max = _max; }
+            progBar(const uint64_t& _max, const uint64_t& _maxWidth) { max = _max; maxWidth = _maxWidth; }
+
+            void setMax(const uint64_t& _max, const uint64_t& _maxWidth){ max = _max; maxWidth = _maxWidth; }
 
             //Updates progress
             void update(const uint64_t& _prog);
 
+            void incProgress(unsigned inc){ prog += inc; }
+
             //Draws with text at top
             void draw(const std::string& text, const std::string& head);
 
+            //Draws without dialog box
+            void drawNoDialog(int x, int y);
+
         private:
-            uint64_t max, prog;
+            uint64_t max, prog, maxWidth;
             float width;
     };
 

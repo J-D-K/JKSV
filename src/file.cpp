@@ -371,7 +371,7 @@ void fs::copyFile(const std::string& from, const std::string& to)
     copyArgs *send = copyArgsCreate(from, to, "", NULL, &progress);
 
     //Setup progress bar. This thread updates screen, other handles copying
-    ui::progBar prog(fsize(from));
+    ui::progBar prog(fsize(from), PROG_MAX_WIDTH_DEFAULT);
 
     Thread cpyThread;
     threadCreate(&cpyThread, copyfile_t, send, NULL, 0x4000, 0x2B, 1);
@@ -448,7 +448,7 @@ void copyFileCommit_t(void *a)
 void fs::copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
     uint64_t offset = 0;
-    ui::progBar prog(fsize(from));
+    ui::progBar prog(fsize(from), PROG_MAX_WIDTH_DEFAULT);
     copyArgs *send = copyArgsCreate(from, to, dev, NULL, &offset);
 
     Thread cpyThread;
@@ -515,7 +515,7 @@ void copyFileToZip_t(void *a)
 
 void copyFileToZip(const std::string& from, zipFile *z)
 {
-    ui::progBar prog(fs::fsize(from));
+    ui::progBar prog(fs::fsize(from), PROG_MAX_WIDTH_DEFAULT);
     uint64_t progress = 0;
     copyArgs *send = copyArgsCreate(from, "", "", z, &progress);
 
@@ -571,7 +571,7 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
         {
             std::string path = to + filename;
             mkdirRec(path.substr(0, path.find_last_of('/') + 1));
-            ui::progBar prog(info.uncompressed_size);
+            ui::progBar prog(info.uncompressed_size, PROG_MAX_WIDTH_DEFAULT);
             size_t done = 0;
 
             //Create new empty file using FS

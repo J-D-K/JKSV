@@ -13,7 +13,7 @@
 #define curData users[data::selUser].titles[data::selData]
 
 #define BLD_MON 06
-#define BLD_DAY 02
+#define BLD_DAY 14
 #define BLD_YEAR 2021
 
 namespace data
@@ -122,6 +122,9 @@ namespace data
             //User icon
             SDL_Texture *userIcon;
     };
+
+    //Gets total count of save containers
+    unsigned getTotalSaves();
 
     //Adds title to blacklist
     void blacklistAdd(data::titledata& t);

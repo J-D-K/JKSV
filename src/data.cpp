@@ -486,6 +486,24 @@ void data::user::loadPlayTimes()
     }
 }
 
+unsigned data::getTotalSaves()
+{
+    unsigned ret = 0;
+    FsSaveDataInfoReader read;
+    FsSaveDataInfo tmp;
+    int64_t out = 0;
+    for(unsigned i = 0; i < 7; i++)
+    {
+        if(R_FAILED(fsOpenSaveDataInfoReader(&read, (FsSaveDataSpaceId)saveOrder[i])))
+            continue;
+
+        while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&read, &tmp, 1, &out)) && out != 0)
+            ++ret;
+    }
+    fsSaveDataInfoReaderClose(&read);
+    return ret;
+}
+
 void data::loadBlacklist()
 {
     fs::dataFile blk(fs::getWorkDir() + "blacklist.txt");

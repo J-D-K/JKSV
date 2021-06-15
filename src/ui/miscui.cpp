@@ -27,19 +27,11 @@ enum popStates
     popFall
 };
 
-//8
-static const std::string loadGlyphArray[] =
-{
-    "\ue020", "\ue021", "\ue022", "\ue023",
-    "\ue024", "\ue025", "\ue026", "\ue027"
-};
-
-
 void ui::progBar::update(const uint64_t& _prog)
 {
     prog = _prog;
 
-    width = (float)(((float)prog / (float)max) * 576);
+    width = (float)(((float)prog / (float)max) * (float)maxWidth);
 }
 
 void ui::progBar::draw(const std::string& text, const std::string& head)
@@ -57,6 +49,14 @@ void ui::progBar::draw(const std::string& text, const std::string& head)
 
     gfx::drawTextf(20, headX, 160, &ui::txtDiag, head.c_str());
     gfx::drawTextfWrap(16, 352, 230, 576, &ui::txtDiag, text.c_str());
+}
+
+void ui::progBar::drawNoDialog(int x, int y)
+{
+    gfx::drawRect(&fillBack, x, y, maxWidth, 12);
+    gfx::drawRect(ui::thmID == ColorSetId_Light ? &fillLight : &fillDark, x, y, width, 12);
+    gfx::texDraw(ui::progCovLeft, x, y);
+    gfx::texDraw(ui::progCovRight, x + maxWidth - 8, y);
 }
 
 void ui::showMessage(const char *head, const char *fmt, ...)

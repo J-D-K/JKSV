@@ -33,25 +33,25 @@ confirmHead = "再次確認"
 copyHead = "正在複製檔案..."
 
 #Confirm blacklist.
-confirmBlacklist = "是否確定要將#%s#加入黑名單?"
+confirmBlacklist = "是否確定要將 #%s #加入黑名單?"
 
 #Confirm overwriting folder
-confirmOverwrite = "是否確定要覆寫#%s#?"
+confirmOverwrite = "是否確定要覆寫 #%s#?"
 
 #Confirm restoring save
-confirmRestore = "是否確定要還原#%s#?"
+confirmRestore = "是否確定要還原 #%s#?"
 
 #Confirm deleting.
-confirmDelete = "是否確定要刪除#%s#? *此為永久性刪除*!"
+confirmDelete = "是否確定要刪除 #%s#? *此為永久性刪除*!"
 
 #Confirm file copy in file mode
-confirmCopy = "是否確定要將#%s#複製到#%s#?"
+confirmCopy = "是否確定要將 #%s# 複製到 #%s#?"
 
 #Warning for erasing save data from system in title menu
-confirmEraseNand = "*警告*: 此操作將把#%s#檔案從你的主機系統內*徹底抹除*!如同從#檔案管理器#內將進度檔案刪除!是否確定要繼續執行抹除?"
+confirmEraseNand = "*警告*: 此操作將把 #%s# 檔案從你的主機系統內*徹底抹除*! 如同從#檔案管理器#內將進度檔案刪除! 是否確定要繼續執行抹除?"
 
 #Warning for deleting save data in folder menu
-confirmEraseFolder = "*警告*: 此操作*將把*目前的進度#%s#檔案*從主機系統內刪除*!是否確定要繼續執行刪除?"
+confirmEraseFolder = "*警告*: 此操作*將把*目前的進度 #%s# 檔案*從主機系統內刪除*! 是否確定要繼續執行刪除?"
 
 #Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
 noSavesFound = "沒有找到#%s#的進度檔案!"

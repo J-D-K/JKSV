@@ -18,6 +18,8 @@ static bool clrAdd = true;
 //Selected rectangle X and Y.
 static unsigned selRectX = 66, selRectY = 94;
 
+static SDL_Texture *panel;
+
 static inline void reset()
 {
     start = 0;

@@ -277,7 +277,7 @@ void gfx::drawTextf(int fontSize, int x, int y, const SDL_Color *c, const char *
         {
             SDL_Rect src = {0, 0, g->w, g->h};
             SDL_Rect dst = {tmpX + g->left, y + (fontSize - g->top), g->w, g->h};
-            SDL_SetTextureColorMod(g->tex, c->r, c->g, c->b);
+            SDL_SetTextureColorMod(g->tex, textcol->r, textcol->g, textcol->b);
             SDL_RenderCopy(render, g->tex, &src, &dst);
 
             tmpX += g->advX;

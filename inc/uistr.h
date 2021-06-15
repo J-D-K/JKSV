@@ -4,6 +4,8 @@
 //Strings since translation support
 namespace ui
 {
+    extern const std::string loadGlyphArray[8];
+
     extern std::string author, userHelp, titleHelp, folderHelp, optHelp, \
     confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
     confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead, \

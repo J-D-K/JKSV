@@ -77,7 +77,6 @@ namespace ui
     void init();
     void exit();
 
-    //Just draws a screen and flips JIC boot takes long.
     void showLoadScreen();
 
     //Clears and draws general stuff used by multiple screens
