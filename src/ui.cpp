@@ -60,7 +60,7 @@ static std::unordered_map<std::string, unsigned> uistrdef =
 static void loadTrans()
 {
     bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
-    if(!transFile && data::sysLang == SetLanguage_ENUS)
+    if(!transFile && (data::sysLang == SetLanguage_ENUS || data::langOverride))
         return;//Don't bother loading from file. It serves as a translation guide
 
     std::string file;

@@ -140,7 +140,7 @@ namespace data
     void restoreDefaultConfig();
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser, zip;
+    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser, zip, langOverride;
     extern uint8_t sortType;
 }
 

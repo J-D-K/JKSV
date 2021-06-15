@@ -368,7 +368,7 @@ static inline void changeSort()
 void ui::optMenuInit()
 {
     optMenu.setParams(76, 98, 310);
-    for(unsigned i = 0; i < 14; i++)
+    for(unsigned i = 0; i < 15; i++)
         optMenu.addOpt(ui::optMenuStr[i]);
 }
 
@@ -391,6 +391,8 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
     optMenu.editOpt(11, optMenuStr[11] + getBoolText(data::skipUser));
     optMenu.editOpt(12, optMenuStr[12] + getBoolText(data::zip));
     optMenu.editOpt(13, optMenuStr[13] + ui::sortString[data::sortType]);
+    optMenu.editOpt(14, optMenuStr[14] + getBoolText(data::langOverride));
+
 
     if(down & HidNpadButton_A)
     {
@@ -451,6 +453,10 @@ void ui::updateOptMenu(const uint64_t& down, const uint64_t& held)
             case 13:
                 changeSort();
                 data::loadUsersTitles(false);
+                break;
+
+            case 14:
+                switchBool(data::langOverride);
                 break;
         }
     }
