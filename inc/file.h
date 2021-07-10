@@ -1,5 +1,4 @@
-#ifndef FILE_H
-#define FILE_H
+#pragma once
 
 #include <string>
 #include <cstdio>
@@ -11,6 +10,7 @@
 
 #include "fsfile.h"
 #include "data.h"
+#include "miscui.h"
 
 namespace fs
 {
@@ -18,7 +18,7 @@ namespace fs
     void exit();
 
     //Mounts usr's save data for open. Returns false it fails
-    bool mountSave(const data::user& usr, const data::titledata& open);
+    bool mountSave(const FsSaveDataInfo& _m);
     inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
 
     void copyFile(const std::string& from, const std::string& to);
@@ -127,9 +127,19 @@ namespace fs
             bool opened = false;
     };
 
+    typedef struct
+    {
+        ui::menu *m;
+        fs::dirList *d;
+    } backupArgs;
+
+    //Take a pointer to backupArgs^
+    void createNewBackup(void *a);
+    void overwriteBackup(void *a);
+    void restoreBackup(void *a);
+    void deleteBackup(void *a);
+
     void logOpen();
     void logWrite(const char *fmt, ...);
     void logClose();
 }
-
-#endif // FILE_H

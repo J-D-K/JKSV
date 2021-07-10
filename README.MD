@@ -70,40 +70,17 @@ JKSV on Switch started as a small project/port to test some things and get famil
 	* Rescan Titles reloads save data information. This can be used to reload after a process is terminated or when options are changed.
 	* Mount Process RomFS opens the title's romfs that is taken over to launch the homebrew menu. This only works as an NRO. The NSP will only open JKSV's own RomFS.
 	* Backup JKSV folder writes the entire JKSV folder to a ZIP archive and places it in your JKSV folder.
-	
-6. Options
-	* Include Dev Sv will add Device Save games such as Animal Crossing to your user account saves for easier access.
-	* AutoBackup will create a backup of your current save before restoring just in case.
-	* Overclock will clock your Switch's CPU to 1224MHz on boot.
-	* Hold to [X] will disable needing to hold down A to confirm an action
-	* Force Mount will only allow JKSV to list titles it can open. Disabling will give a complete list of all saves on your system
-	* Account Sys. Saves will allow you to see and open system saves associated with user accounts
-	* Write to Sys. Saves will allow you to write data to system save archives. This can be dangerous.
-	* Text UI mode enables a simplified UI that only uses text menus
-	* Direct FS Commands uses a simple wrapper instead of libnx's stdio.
-	* Skip User Select jumps directly to the first user found instead of requiring a user to be selected.
-	* Export to ZIP uses minizip to compress your save data to a ZIP archive instead of a folder full of files. This saves space and makes moving saves more convienient.
-	* Sort changes the way titles are sorted. Alphabetically, Most time played, or by last title played.
-	
-**IMPORTANT**: Press Plus to Exit JKSV. JKSV saves all config, favorites, and the blacklist when exited. Pressing the home button and closing that way will not allow this to take place.
+
+**NOTE**: Press Plus to Exit JKSV. JKSV saves all config, favorites, and the blacklist when exited. Pressing the home button and closing that way will not allow this to take place.
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)
-2. Requires switch-
-	* freetype
-	* libpng
-	* zlib
-	* libjpeg-turbo
-	* curl
-	* libjson-c
-	* sdl2
-	* sdl2_image
-	* libwebp
-	
+2. Requires switch-freetype, libpng, zlib, libjpeg-turbo, lib-curl, and lib-json-c
 
 ## Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8
 * Authors of switch-examples for account and save mounting code.
 * [Iguniisu](https://github.com/igniscitrinus) for the icon.
+	* Uses graphics from [Twemoji](https://github.com/twitter/twemoji) covered by the [Creative Commons License](https://creativecommons.org/licenses/by/4.0/legalcode)
 * [Leo](https://github.com/qazrfv1234) For the Traditional Chinese translation
 * [JamePeng](https://github.com/JamePeng) For the Simplified Chinese translation.

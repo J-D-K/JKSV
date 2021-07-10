@@ -11,14 +11,8 @@
 #include "file.h"
 #include "util.h"
 
-//Color for favorite hearts
-const SDL_Color heartColor = {0xFF, 0x44, 0x44, 0xFF};
-
 //FsSaveDataSpaceId_All doesn't work for SD
-static const unsigned saveOrder [] =
-{
-    0, 1, 2, 3, 4, 100, 101
-};
+static const unsigned saveOrder [] = { 0, 1, 2, 3, 4, 100, 101 };
 
 int data::selUser = 0, data::selData = 0;
 
@@ -30,8 +24,8 @@ SetLanguage data::sysLang;
 
 //Options
 bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
-bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false;
-bool data::langOverride = false;
+bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false, data::langOverride = false;
+
 uint8_t data::sortType = 0;
 
 //For other save types
@@ -40,25 +34,29 @@ static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
-std::unordered_map<uint64_t, SDL_Texture *> data::icons;
+std::unordered_map<uint64_t, data::titleInfo> data::titles;
+
+static SDL_Texture *iconMask;
 
 //Sorts titles by sortType
 static struct
 {
-    bool operator()(const data::titledata& a, const data::titledata& b)
+    bool operator()(const data::userTitleInfo& a, const data::userTitleInfo& b)
     {
         //Favorites override EVERYTHING
-        if(a.getFav() != b.getFav()) return a.getFav();
+        if(data::isFavorite(a.saveID) != data::isFavorite(b.saveID)) return data::isFavorite(a.saveID);
 
         switch(data::sortType)
         {
             case 0://Alpha
                 {
+                    std::string titleA = data::getTitleNameByTID(a.saveID);
+                    std::string titleB = data::getTitleNameByTID(b.saveID);
                     uint32_t tmpA, tmpB;
-                    for(unsigned i = 0; i < a.getTitle().length(); )
+                    for(unsigned i = 0; i < titleA.length(); )
                     {
-                        ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&a.getTitle().data()[i]);
-                        decode_utf8(&tmpB, (const uint8_t *)&b.getTitle().data()[i]);
+                        ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&titleA.data()[i]);
+                        decode_utf8(&tmpB, (const uint8_t *)&titleB.data()[i]);
                         tmpA = tolower(tmpA), tmpB = tolower(tmpB);
                         if(tmpA != tmpB)
                             return tmpA < tmpB;
@@ -69,11 +67,11 @@ static struct
                 break;
 
             case 1://Most played
-                return a.getPlayTime() > b.getPlayTime();
+                return a.playStats.playtimeMinutes > b.playStats.playtimeMinutes;
                 break;
 
             case 2://Last Played
-                return a.getLastTimeStamp() > b.getLastTimeStamp();
+                return a.playStats.last_timestampUser > b.playStats.last_timestampUser;
                 break;
         }
         return false;
@@ -98,7 +96,7 @@ static bool blacklisted(const uint64_t& tid)
     return false;
 }
 
-static bool isFavorite(const uint64_t& tid)
+bool data::isFavorite(const uint64_t& tid)
 {
     for(uint64_t& fid : favorites)
         if(tid == fid) return true;
@@ -114,31 +112,6 @@ static bool isDefined(const uint64_t& id)
     return false;
 }
 
-static SDL_Texture *createDeviceIcon()
-{
-    return util::createIconGeneric("\ue121", 192);
-}
-
-static inline void loadCreateIcon(const uint64_t& _id, size_t _sz, const NsApplicationControlData *_d)
-{
-    data::icons[_id] = gfx::loadJPEGMem(_d->icon, _sz);
-}
-
-static void loadCreateSystemIcon(const uint64_t& _id)
-{
-    char tmp[16];
-    sprintf(tmp, "%08X", (uint32_t)_id);
-
-    data::icons[_id] = util::createIconGeneric(tmp, 32);
-}
-
-static inline std::string getIDStr(const uint64_t& _id)
-{
-    char tmp[18];
-    sprintf(tmp, "%016lX", _id);
-    return std::string(tmp);
-}
-
 static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 {
     if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !data::accSysSave)
@@ -150,28 +123,90 @@ static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 //Minimal init/test to avoid loading and creating things I don't need
 static bool testMount(const FsSaveDataInfo& _inf)
 {
+    bool ret = false;
     if(!data::forceMount)
         return true;
 
-    bool ret = false;
-    uint64_t id;
-    data::user tmpusr;
-    data::titledata tmpdat;
-
-    if(_inf.save_data_type == FsSaveDataType_System || _inf.save_data_type == FsSaveDataType_SystemBcat)
-        id = _inf.system_save_data_id;
-    else
-        id = _inf.application_id;
-
-    tmpusr.setUID(_inf.uid);
-    tmpdat.setID(id);
-    tmpdat.setIndex(_inf.save_data_index);
-    tmpdat.setType((FsSaveDataType)_inf.save_data_type);
-
-    if((ret = fs::mountSave(tmpusr, tmpdat)))
+    if((ret = fs::mountSave(_inf)))
         fs::unmountSave();
 
     return ret;
+}
+
+static inline void addTitleToList(const uint64_t& tid)
+{
+    uint64_t outSize = 0;
+    NsApplicationControlData *ctrlData = new NsApplicationControlData;
+    NacpLanguageEntry *ent;
+    Result ctrlRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, tid, ctrlData, sizeof(NsApplicationControlData), &outSize);
+    Result nacpRes = nacpGetLanguageEntry(&ctrlData->nacp, &ent);
+    size_t iconSize = outSize - sizeof(ctrlData->nacp);
+
+    if(R_SUCCEEDED(ctrlRes) && !(outSize < sizeof(ctrlData->nacp)) && R_SUCCEEDED(nacpRes) && iconSize > 0)
+    {
+        //Copy nacp
+        memcpy(&data::titles[tid].nacp, &ctrlData->nacp, sizeof(NacpStruct));
+
+        //Setup 'shortcuts' to strings
+        NacpLanguageEntry *ent;
+        nacpGetLanguageEntry(&data::titles[tid].nacp, &ent);
+        data::titles[tid].title = ent->name;
+        data::titles[tid].author = ent->author;
+        if(isDefined(tid))
+            data::titles[tid].safeTitle = pathDefs[tid];
+        else if((data::titles[tid].safeTitle = util::safeString(ent->name)) == "")
+            data::titles[tid].safeTitle = util::getIDStr(tid);
+
+        if(data::isFavorite(tid))
+            data::titles[tid].fav = true;
+
+        data::titles[tid].icon = gfx::loadJPEGMem(ctrlData->icon, iconSize);
+    }
+    else
+    {
+        memset(&data::titles[tid].nacp, 0, sizeof(NacpStruct));
+        data::titles[tid].title = util::getIDStr(tid);
+        data::titles[tid].author = "Someone?";
+        if(isDefined(tid))
+            data::titles[tid].safeTitle = pathDefs[tid];
+        else
+            data::titles[tid].safeTitle = util::getIDStr(tid);
+
+        data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32);
+    }
+
+    delete ctrlData;
+}
+
+static inline bool titleIsLoaded(const uint64_t& tid)
+{
+    auto findTid = data::titles.find(tid);
+
+    return findTid == data::titles.end() ? false : true;
+}
+
+static void loadUserAccounts()
+{
+    s32 total = 0;
+    AccountUid *uids = new AccountUid[8];
+    if(R_SUCCEEDED(accountListAllUsers(uids, 8, &total)))
+    {
+        for(int i = 0; i < total; i++)
+            data::users.emplace_back(uids[i], "");
+    }
+    delete[] uids;
+}
+
+//This can load titles installed without having save data
+static void loadTitlesFromRecords()
+{
+    NsApplicationRecord nsRecord;
+    int32_t entryCount = 0, recordOffset = 0;
+    while(R_SUCCEEDED(nsListApplicationRecord(&nsRecord, 1, recordOffset++, &entryCount)) && entryCount > 0)
+    {
+        if(!titleIsLoaded(nsRecord.application_id))
+            addTitleToList(nsRecord.application_id);
+    }
 }
 
 bool data::loadUsersTitles(bool clearUsers)
@@ -181,25 +216,28 @@ bool data::loadUsersTitles(bool clearUsers)
     FsSaveDataInfo info;
     s64 total = 0;
 
+    loadTitlesFromRecords();
+
     //Clear titles
     for(data::user& u : data::users)
-        u.titles.clear();
+        u.titleInfo.clear();
     if(clearUsers)
     {
-        systemUserCount = 3;
+        systemUserCount = 4;
         for(data::user& u : data::users)
             u.delIcon();
-
         data::users.clear();
+
+        loadUserAccounts();
         sysBCATPushed = false;
         cachePushed = false;
         tempPushed = false;
-        users.emplace_back(util::u128ToAccountUID(3), "Device Saves", createDeviceIcon());
+        users.emplace_back(util::u128ToAccountUID(3), "Device");
         users.emplace_back(util::u128ToAccountUID(2), "BCAT");
+        users.emplace_back(util::u128ToAccountUID(5), "Cache");
         users.emplace_back(util::u128ToAccountUID(0), "System");
     }
 
-    NsApplicationControlData *dat = new NsApplicationControlData;
     for(unsigned i = 0; i < 7; i++)
     {
         if(R_FAILED(fsOpenSaveDataInfoReader(&it, (FsSaveDataSpaceId)saveOrder[i])))
@@ -207,8 +245,14 @@ bool data::loadUsersTitles(bool clearUsers)
 
         while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
         {
+            uint64_t saveID = 0;
+            if(info.save_data_type == FsSaveDataType_System || info.save_data_type == FsSaveDataType_SystemBcat)
+                saveID = info.system_save_data_id;
+            else
+                saveID = info.application_id;
+
             //Don't bother with this stuff
-            if(blacklisted(info.application_id) || blacklisted(info.save_data_id) || !accountSystemSaveCheck(info) || !testMount(info))
+            if(blacklisted(saveID) || !accountSystemSaveCheck(info) || !testMount(info))
                 continue;
 
             switch(info.save_data_type)
@@ -252,35 +296,41 @@ bool data::loadUsersTitles(bool clearUsers)
                     break;
             }
 
+            if(!titleIsLoaded(saveID))
+                addTitleToList(saveID);
+
             int u = getUserIndex(info.uid);
             if(u == -1)
             {
                 users.emplace(data::users.end() - systemUserCount, info.uid, "");
                 u = getUserIndex(info.uid);
             }
-            users[u].titles.emplace_back(info, dat);
+
+            PdmPlayStatistics playStats;
+            if(info.save_data_type == FsSaveDataType_Account || info.save_data_type == FsSaveDataType_Device)
+                pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(info.application_id, info.uid, false, &playStats);
+            else
+                memset(&playStats, 0, sizeof(PdmPlayStatistics));
+
+            users[u].addUserTitleInfo(saveID, &info, &playStats);
         }
         fsSaveDataInfoReaderClose(&it);
     }
-    delete dat;
 
-    if(data::incDev)
+    /*if(data::incDev)
     {
         //Get reference to device save user
-        data::user& dev = data::users[data::users.size() - 3];
-        for(unsigned i = 0; i < users.size() - 3; i++)
+        data::user& dev = data::users[data::users.size() - 4];
+        for(unsigned i = 0; i < users.size() - 4; i++)
         {
             //Not needed but makes this easier to read
             data::user& u = data::users[i];
             u.titles.insert(u.titles.end(), dev.titles.begin(), dev.titles.end());
         }
-    }
+    }*/
 
     for(data::user& u : data::users)
-    {
-        u.loadPlayTimes();
-        std::sort(u.titles.begin(), u.titles.end(), sortTitles);
-    }
+        std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
 
     return true;
 }
@@ -305,11 +355,10 @@ void data::init()
 void data::exit()
 {
     for(data::user& u : data::users) u.delIcon();
-    for(auto& icn : icons)
-    {
-        if(icn.second)
-            SDL_DestroyTexture(icn.second);
-    }
+    for(auto& tinfo : titles)
+        SDL_DestroyTexture(tinfo.second.icon);
+
+    SDL_DestroyTexture(iconMask);
 
     saveFav();
     saveCfg();
@@ -317,95 +366,24 @@ void data::exit()
     util::setCPU(1020000000);
 }
 
-data::titledata::titledata(const FsSaveDataInfo& inf, NsApplicationControlData *dat)
+data::titleInfo *data::getTitleInfoByTID(const uint64_t& tid)
 {
-    size_t outSz = 0;
-    NacpLanguageEntry *ent = NULL;
-    memset(dat, 0, sizeof(NsApplicationControlData));
-
-    if(inf.save_data_type == FsSaveDataType_System || inf.save_data_type == FsSaveDataType_SystemBcat)
-        id = inf.system_save_data_id;
-    else
-        id = inf.application_id;
-
-    saveID = inf.save_data_id;
-    saveIndex = inf.save_data_index;
-    saveDataType = inf.save_data_type;
-
-    Result ctrlDataRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, id, dat, sizeof(NsApplicationControlData), &outSz);
-    Result nacpRes = nacpGetLanguageEntry(&dat->nacp, &ent);
-    size_t icnSize = outSz - sizeof(dat->nacp);
-    auto icnInd = icons.find(id);
-    if(R_SUCCEEDED(ctrlDataRes) && !(outSz < sizeof(dat->nacp)) && R_SUCCEEDED(nacpRes) && ent != NULL && icnSize > 0)
-    {
-        title.assign(ent->name);
-        author.assign(ent->author);
-        if(isDefined(id))
-            titleSafe = util::safeString(pathDefs[id]);
-        else if((titleSafe = util::safeString(title)) == "")
-            titleSafe = getIDStr(id);
-
-        if(icnInd == icons.end())
-            loadCreateIcon(id, icnSize, dat);
-
-        assignIcon();
-    }
-    else
-    {
-        if(icnInd == icons.end())
-            loadCreateSystemIcon(id);
-        title = getIDStr(id);
-        titleSafe = getIDStr(id);
-        assignIcon();
-    }
-    favorite = isFavorite(id);
+    return &titles[tid];
 }
 
-void data::titledata::createDir() const
+std::string data::getTitleNameByTID(const uint64_t& tid)
 {
-    mkdir(std::string(fs::getWorkDir() + titleSafe).c_str(), 777);
+    return titles[tid].title;
 }
 
-std::string data::titledata::getPath() const
+std::string data::getTitleSafeNameByTID(const uint64_t& tid)
 {
-    return std::string(fs::getWorkDir() + titleSafe + "/");
+    return titles[tid].safeTitle;
 }
 
-std::string data::titledata::getTIDStr() const
+SDL_Texture *data::getTitleIconByTID(const uint64_t& tid)
 {
-    return getIDStr(id);
-}
-
-std::string data::titledata::getSaveIDStr() const
-{
-    return getIDStr(saveID);
-}
-
-void data::titledata::assignIcon()
-{
-    icon = icons[id];
-}
-
-void data::titledata::drawIcon(bool full, unsigned x, unsigned y)
-{
-    if(full)
-        gfx::texDraw(icon, x, y);
-    else
-        gfx::texDrawStretch(icon, x, y, 128, 128);
-}
-
-void data::titledata::drawIconFav(bool full, unsigned x, unsigned y)
-{
-    if(full)
-    {
-        gfx::texDraw(icon, x, y);
-        gfx::drawTextf(48, x + 16, y + 16, &heartColor, "♥");
-    }
-    else
-    {
-        gfx::texDrawStretch(icon, x, y, 128, 128);
-        gfx::drawTextf(24, x + 8, y + 8, &heartColor, "♥");
-    }
+    return titles[tid].icon;
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName)
@@ -438,17 +416,18 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
     }
     else
     {
-        username = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
-        userSafe = _backupName.empty() ? getIDStr((uint64_t)uID128) : _backupName;
-        userIcon = util::createIconGeneric(_backupName.c_str(), 32);
+        username = _backupName.empty() ? util::getIDStr((uint64_t)uID128) : _backupName;
+        userSafe = _backupName.empty() ? util::getIDStr((uint64_t)uID128) : _backupName;
+        userIcon = util::createIconGeneric(_backupName.c_str(), 40);
     }
-    titles.reserve(32);
+    titles.reserve(64);
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName, SDL_Texture *img) : user(_id, _backupName)
 {
     delIcon();
     userIcon = img;
+    titles.reserve(64);
 }
 
 void data::user::setUID(const AccountUid& _id)
@@ -457,52 +436,13 @@ void data::user::setUID(const AccountUid& _id)
     uID128 = util::accountUIDToU128(_id);
 }
 
-void data::user::loadPlayTimes()
+void data::user::addUserTitleInfo(const uint64_t& tid, const FsSaveDataInfo *_saveInfo, const PdmPlayStatistics *_stats)
 {
-    PdmPlayStatistics stats;
-    for(data::titledata& _d : titles)
-    {
-        switch(_d.getType())
-        {
-            case FsSaveDataType_Account:
-                pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(_d.getID(), userID, false, &stats);
-                _d.setPlayTime(stats.playtimeMinutes);
-                _d.setLastTimeStamp(stats.last_timestampUser);
-                _d.setLaunchCount(stats.totalLaunches);
-                break;
-
-            case FsSaveDataType_Device:
-                pdmqryQueryPlayStatisticsByApplicationId(_d.getID(), false, &stats);
-                _d.setPlayTime(stats.playtimeMinutes);
-                _d.setLastTimeStamp(stats.last_timestampNetwork);
-                _d.setLaunchCount(stats.totalLaunches);
-                break;
-
-            default:
-                _d.setPlayTime(0);
-                _d.setLastTimeStamp(0);
-                _d.setLaunchCount(0);
-                break;
-        }
-    }
-}
-
-unsigned data::getTotalSaves()
-{
-    unsigned ret = 0;
-    FsSaveDataInfoReader read;
-    FsSaveDataInfo tmp;
-    int64_t out = 0;
-    for(unsigned i = 0; i < 7; i++)
-    {
-        if(R_FAILED(fsOpenSaveDataInfoReader(&read, (FsSaveDataSpaceId)saveOrder[i])))
-            continue;
-
-        while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&read, &tmp, 1, &out)) && out != 0)
-            ++ret;
-    }
-    fsSaveDataInfoReaderClose(&read);
-    return ret;
+    data::userTitleInfo newInfo;
+    newInfo.saveID = tid;
+    memcpy(&newInfo.saveInfo, _saveInfo, sizeof(FsSaveDataInfo));
+    memcpy(&newInfo.playStats, _stats, sizeof(PdmPlayStatistics));
+    titleInfo.emplace_back(newInfo);
 }
 
 void data::loadBlacklist()
@@ -519,49 +459,38 @@ void data::saveBlackList()
 {
     std::string blPath = fs::getWorkDir() + "blacklist.txt";
     FILE *bl = fopen(blPath.c_str(), "w");
-    for(uint64_t& id : blacklist)
-        fprintf(bl, "0x%016lX\n", id);
+    for(uint64_t id : blacklist)
+        fprintf(bl, "#%s\n0x%016lX\n", data::getTitleNameByTID(id).c_str(), id);
 
     fclose(bl);
 }
 
-void data::blacklistAdd(titledata& t)
+void data::blacklistAdd(const uint64_t& tid)
 {
-    uint64_t tid = t.getID();
     for(data::user& _u : data::users)
     {
-        for(unsigned i = 0; i < _u.titles.size(); i++)
-            if(_u.titles[i].getID() == tid) _u.titles.erase(_u.titles.begin() + i);
+        for(unsigned i = 0; i < _u.titleInfo.size(); i++)
+            if(_u.titleInfo[i].saveID == tid) _u.titleInfo.erase(_u.titleInfo.begin() + i);
     }
     blacklist.push_back(tid);
 }
 
-void data::favoriteTitle(titledata& t)
+void data::favoriteTitle(const uint64_t& tid)
 {
-    uint64_t tid = t.getID();
-    if(!t.getFav())
+    if(!isFavorite(tid))
     {
-        for(data::user& _u : data::users)
-        {
-            for(unsigned i = 0; i < _u.titles.size(); i++)
-                if(_u.titles[i].getID() == tid) _u.titles[i].setFav(true);
-
-            std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
-        }
+        titles[tid].fav = true;
         favorites.push_back(tid);
     }
     else
     {
+        titles[tid].fav = false;
         auto ind = std::find(favorites.begin(), favorites.end(), tid);
         favorites.erase(ind);
-        for(data::user& _u : data::users)
-        {
-            for(unsigned i = 0; i < _u.titles.size(); i++)
-                if(_u.titles[i].getID() == tid) _u.titles[i].setFav(false);
-
-            std::sort(_u.titles.begin(), _u.titles.end(), sortTitles);
-        }
     }
+
+    for(auto &u : data::users)
+        std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
 }
 
 void data::loadCfg()
@@ -585,7 +514,6 @@ void data::loadCfg()
         data::forceMount = cfgIn >> 57 & 1;
         data::accSysSave = cfgIn >> 56 & 1;
         data::sysSaveWrite = cfgIn >> 55 & 1;
-        ui::textMode = cfgIn >> 54 & 1;
         data::directFsCmd = cfgIn >> 53 & 1;
         data::skipUser = cfgIn >> 52 & 1;
         data::zip = cfgIn >> 51 & 1;
@@ -609,7 +537,6 @@ void data::saveCfg()
     cfgOut |= (uint64_t)data::forceMount << 57;
     cfgOut |= (uint64_t)data::accSysSave << 56;
     cfgOut |= (uint64_t)data::sysSaveWrite << 55;
-    cfgOut |= (uint64_t)ui::textMode << 54;
     cfgOut |= (uint64_t)data::directFsCmd << 53;
     cfgOut |= (uint64_t)data::skipUser << 52;
     cfgOut |= (uint64_t)data::zip << 51;
@@ -636,7 +563,6 @@ void data::restoreDefaultConfig()
     data::skipUser = false;
     data::zip = false;
     data::sortType = 0;
-    data::langOverride = false;
 }
 
 void data::loadFav()
@@ -680,11 +606,10 @@ void data::dispStats()
     //Easiest/laziest way to do this
     std::string stats = "User Count: " + std::to_string(users.size()) + "\n";
     for(data::user& u : data::users)
-        stats += u.getUsername() + ": " + std::to_string(u.titles.size()) + "\n";
+        stats += u.getUsername() + ": " + std::to_string(u.titleInfo.size()) + "\n";
     stats += "Current User: " + data::curUser.getUsername() + "\n";
-    stats += "Current Title: " + data::curData.getTitle() + "\n";
-    stats += "Safe Title: " + data::curData.getTitleSafe() + "\n";
-    stats += "Icon count: " + std::to_string(icons.size()) + "\n";
+    stats += "Current Title: " + data::getTitleNameByTID(data::curData.saveID) + "\n";
+    stats += "Safe Title: " + data::getTitleSafeNameByTID(data::curData.saveID) + "\n";
     stats += "Sort Type: " + std::to_string(data::sortType) + "\n";
-    gfx::drawTextf(16, 8, 8, &green, stats.c_str());
+    gfx::drawTextf(NULL, 16, 2, 2, &green, stats.c_str());
 }

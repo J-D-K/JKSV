@@ -131,25 +131,25 @@ void fs::exit()
     fs::logClose();
 }
 
-bool fs::mountSave(const data::user& usr, const data::titledata& open)
+bool fs::mountSave(const FsSaveDataInfo& _m)
 {
     Result svOpen;
-    switch(open.getType())
+    switch(_m.save_data_type)
     {
         case FsSaveDataType_System:
-            svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID());
+            svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, _m.save_data_id, _m.uid);
             break;
 
         case FsSaveDataType_Account:
-            svOpen = fsOpen_SaveData(&sv, open.getID(), usr.getUID());
+            svOpen = fsOpen_SaveData(&sv, _m.application_id, _m.uid);
             break;
 
         case FsSaveDataType_Bcat:
-            svOpen = fsOpen_BcatSaveData(&sv, open.getID());
+            svOpen = fsOpen_BcatSaveData(&sv, _m.application_id);
             break;
 
         case FsSaveDataType_Device:
-            svOpen = fsOpen_DeviceSaveData(&sv, open.getID());
+            svOpen = fsOpen_DeviceSaveData(&sv, _m.application_id);
             break;
 
         case FsSaveDataType_Temporary:
@@ -157,11 +157,11 @@ bool fs::mountSave(const data::user& usr, const data::titledata& open)
             break;
 
         case FsSaveDataType_Cache:
-            svOpen = fsOpen_CacheStorage(&sv, open.getID(), open.getSaveIndex());
+            svOpen = fsOpen_CacheStorage(&sv, _m.application_id, _m.save_data_rank);
             break;
 
         case FsSaveDataType_SystemBcat:
-            svOpen = fsOpen_SystemBcatSaveData(&sv, open.getID());
+            svOpen = fsOpen_SystemBcatSaveData(&sv, _m.application_id);
             break;
 
         default:
@@ -371,7 +371,7 @@ void fs::copyFile(const std::string& from, const std::string& to)
     copyArgs *send = copyArgsCreate(from, to, "", NULL, &progress);
 
     //Setup progress bar. This thread updates screen, other handles copying
-    ui::progBar prog(fsize(from), PROG_MAX_WIDTH_DEFAULT);
+    ui::progBar prog(fsize(from));
 
     Thread cpyThread;
     threadCreate(&cpyThread, copyfile_t, send, NULL, 0x4000, 0x2B, 1);
@@ -448,7 +448,7 @@ void copyFileCommit_t(void *a)
 void fs::copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
     uint64_t offset = 0;
-    ui::progBar prog(fsize(from), PROG_MAX_WIDTH_DEFAULT);
+    ui::progBar prog(fsize(from));
     copyArgs *send = copyArgsCreate(from, to, dev, NULL, &offset);
 
     Thread cpyThread;
@@ -501,7 +501,7 @@ void copyFileToZip_t(void *a)
     {
         if(zipWriteInFileInZip(*args->z, inBuff, readIn) != 0)
         {
-            fs::logWrite("zipWriteInFileInZip failed -> \"%s\"\n", args->from.c_str());
+            fs::logWrite("Failed", "zipWriteInFileInZip -> \"%s\"\n", args->from.c_str());
             break;
         }
 
@@ -515,7 +515,7 @@ void copyFileToZip_t(void *a)
 
 void copyFileToZip(const std::string& from, zipFile *z)
 {
-    ui::progBar prog(fs::fsize(from), PROG_MAX_WIDTH_DEFAULT);
+    ui::progBar prog(fs::fsize(from));
     uint64_t progress = 0;
     copyArgs *send = copyArgsCreate(from, "", "", z, &progress);
 
@@ -571,7 +571,7 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
         {
             std::string path = to + filename;
             mkdirRec(path.substr(0, path.find_last_of('/') + 1));
-            ui::progBar prog(info.uncompressed_size, PROG_MAX_WIDTH_DEFAULT);
+            ui::progBar prog(info.uncompressed_size);
             size_t done = 0;
 
             //Create new empty file using FS
@@ -584,6 +584,7 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
                     done += readIn;
                     fwriteCommit(path, buff, readIn, dev);
                     prog.update(done);
+
                     prog.draw(filename, ui::copyHead);
                     gfx::present();
                 }
@@ -595,6 +596,7 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
                     done += readIn;
                     fwriteCommit(path, buff, readIn, dev);
                     prog.update(done);
+
                     prog.draw(filename, ui::copyHead);
                     gfx::present();
                 }
@@ -697,23 +699,22 @@ void fs::freePathFilters()
 
 bool fs::dumpAllUserSaves(const data::user& u)
 {
-    for(unsigned i = 0; i < u.titles.size(); i++)
+    for(unsigned i = 0; i < u.titleInfo.size(); i++)
     {
-        ui::updatePad();
+        ui::updateInput();
 
         if(ui::padKeysDown() & HidNpadButton_B)
             return false;
 
-        if(fs::mountSave(u, u.titles[i]))
+        if(fs::mountSave(u.titleInfo[i].saveInfo))
         {
-            u.titles[i].createDir();
-            std::string filtersPath = u.titles[i].getPath() + "pathFilters.txt";
-            fs::loadPathFilters(filtersPath);
+            util::createTitleDirectoryByTID(u.titleInfo[i].saveID);
+            std::string basePath = util::generatePathByTID(u.titleInfo[i].saveID);
             switch(data::zip)
             {
                 case true:
                     {
-                        std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+                        std::string outPath = basePath + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
                         zipFile zip = zipOpen(outPath.c_str(), 0);
                         fs::copyDirToZip("sv:/", &zip);
                         zipClose(zip, NULL);
@@ -722,16 +723,18 @@ bool fs::dumpAllUserSaves(const data::user& u)
 
                 case false:
                     {
-                        std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+                        std::string outPath = basePath + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
                         mkdir(outPath.substr(0, outPath.length() - 1).c_str(), 777);
                         fs::copyDirToDir("sv:/", outPath);
                     }
                     break;
             }
             fsdevUnmountDevice("sv");
-            fs::freePathFilters();
         }
     }
+
+    ui::updateInput();
+
     return true;//?
 }
 
@@ -823,6 +826,176 @@ bool fs::isDir(const std::string& _path)
 {
     struct stat s;
     return stat(_path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
+}
+
+void fs::createNewBackup(void *a)
+{
+    uint64_t held = ui::padKeysHeld();
+
+    std::string out;
+
+    if(held & HidNpadButton_R)
+        out = data::users[data::selUser].getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+    else if(held & HidNpadButton_L)
+        out = data::users[data::selUser].getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
+    else if(held & HidNpadButton_ZL)
+        out = data::users[data::selUser].getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
+    else
+    {
+        const std::string dict[] =
+        {
+            util::getDateTime(util::DATE_FMT_YMD),
+            util::getDateTime(util::DATE_FMT_YDM),
+            util::getDateTime(util::DATE_FMT_HOYSTE),
+            util::getDateTime(util::DATE_FMT_JHK),
+            util::getDateTime(util::DATE_FMT_ASC),
+            data::users[data::selUser].getUsernameSafe(),
+            data::getTitleInfoByTID(data::curData.saveID)->safeTitle,
+            util::generateAbbrev(data::curData.saveID)
+        };
+        out = util::getStringInput("", "Enter a name", 64, 8, dict);
+    }
+
+    if(!out.empty())
+    {
+        std::string path = util::generatePathByTID(data::curData.saveID) + out;
+        switch(data::zip)
+        {
+            case true:
+                {
+                    path += ".zip";
+                    zipFile zip = zipOpen(path.c_str(), 0);
+                    fs::copyDirToZip("sv:/", &zip);
+                    zipClose(zip, NULL);
+                }
+                break;
+
+            case false:
+                {
+                    mkdir(path.c_str(), 777);
+                    path += "/";
+                    fs::copyDirToDir("sv:/", path);
+                }
+                break;
+        }
+        ui::fldInit();
+    }
+}
+
+void fs::overwriteBackup(void *a)
+{
+    fs::backupArgs *in = (fs::backupArgs *)a;
+    ui::menu *m = in->m;
+    fs::dirList *d = in->d;
+
+    unsigned ind = m->getSelected() - 1;;//Skip new
+
+    std::string itemName = d->getItem(ind);
+    if(ui::confirm(data::holdOver, ui::confOverwrite.c_str(), itemName.c_str()))
+    {
+        if(d->isDir(ind))
+        {
+            std::string toPath = util::generatePathByTID(data::curData.saveID) + itemName + "/";
+            //Delete and recreate
+            fs::delDir(toPath);
+            mkdir(toPath.c_str(), 777);
+            fs::copyDirToDir("sv:/", toPath);
+        }
+        else if(!d->isDir(ind) && d->getItemExt(ind) == "zip")
+        {
+            std::string toPath = util::generatePathByTID(data::curData.saveID) + itemName;
+            fs::delfile(toPath);
+            zipFile zip = zipOpen(toPath.c_str(), 0);
+            fs::copyDirToZip("sv:/", &zip);
+            zipClose(zip, NULL);
+        }
+    }
+}
+
+void fs::restoreBackup(void *a)
+{
+    fs::backupArgs *in = (fs::backupArgs *)a;
+    ui::menu *m = in->m;
+    fs::dirList *d = in->d;
+
+    unsigned ind = m->getSelected() - 1;
+
+    std::string itemName = d->getItem(ind);
+    if((data::curData.saveInfo.save_data_type != FsSaveDataType_System || data::sysSaveWrite) && m->getSelected() > 0 && ui::confirm(data::holdRest, ui::confRestore.c_str(), itemName.c_str()))
+    {
+        if(data::autoBack)
+        {
+            switch(data::zip)
+            {
+                case true:
+                    {
+                        std::string autoZip = util::generatePathByTID(data::curData.saveID) + "/AUTO " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+                        zipFile zip = zipOpen(autoZip.c_str(), 0);
+                        fs::copyDirToZip("sv:/", &zip);
+                        zipClose(zip, NULL);
+                    }
+                    break;
+
+                case false:
+                    {
+                        std::string autoFolder = util::generatePathByTID(data::curData.saveID) + "/AUTO - " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+                        mkdir(autoFolder.substr(0, autoFolder.length() - 1).c_str(), 777);
+                        fs::copyDirToDir("sv:/", autoFolder);
+                    }
+                    break;
+            }
+        }
+
+        if(d->isDir(ind))
+        {
+            fs::wipeSave();
+            std::string fromPath = util::generatePathByTID(data::curData.saveID) + itemName + "/";
+            fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
+        }
+        else if(!d->isDir(ind) && d->getItemExt(ind) == "zip")
+        {
+            fs::wipeSave();
+            std::string path = util::generatePathByTID(data::curData.saveID) + itemName;
+            unzFile unz = unzOpen(path.c_str());
+            fs::copyZipToDir(&unz, "sv:/", "sv");
+            unzClose(unz);
+        }
+        else
+        {
+            //Just copy file over
+            std::string fromPath = util::generatePathByTID(data::curData.saveID) + itemName;
+            std::string toPath = "sv:/" + itemName;
+            fs::copyFileCommit(fromPath, toPath, "sv");
+        }
+    }
+
+    if(data::autoBack)
+        ui::fldInit();
+}
+
+void fs::deleteBackup(void *a)
+{
+    fs::backupArgs *in = (fs::backupArgs *)a;
+    ui::menu *m = in->m;
+    fs::dirList *d = in->d;
+
+    unsigned ind = m->getSelected() - 1;
+
+    std::string itemName = d->getItem(ind);
+    if(ui::confirmDelete(itemName))
+    {
+        if(d->isDir(ind))
+        {
+            std::string delPath = util::generatePathByTID(data::curData.saveID) + itemName + "/";
+            fs::delDir(delPath);
+        }
+        else
+        {
+            std::string delPath = util::generatePathByTID(data::curData.saveID) + itemName;
+            fs::delfile(delPath);
+        }
+        ui::fldInit();
+    }
 }
 
 void fs::logOpen()

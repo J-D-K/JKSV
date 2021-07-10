@@ -4,10 +4,10 @@
 #include <sys/stat.h>
 #include <json-c/json.h>
 
+#include "file.h"
 #include "data.h"
 #include "gfx.h"
 #include "util.h"
-#include "file.h"
 #include "ui.h"
 #include "curlfuncs.h"
 
@@ -133,17 +133,15 @@ std::string util::getDateTime(int fmt)
 void util::copyDirListToMenu(const fs::dirList& d, ui::menu& m)
 {
     m.reset();
-    m.addOpt(".");
-    m.addOpt("..");
+    m.addOpt(NULL, ".");
+    m.addOpt(NULL, "..");
     for(unsigned i = 0; i < d.getCount(); i++)
     {
         if(d.isDir(i))
-            m.addOpt("D " + d.getItem(i));
+            m.addOpt(NULL, "D " + d.getItem(i));
         else
-            m.addOpt("F " + d.getItem(i));
+            m.addOpt(NULL, "F " + d.getItem(i));
     }
-
-    m.adjust();
 }
 
 void util::removeLastFolderFromString(std::string& _path)
@@ -173,7 +171,7 @@ std::string util::safeString(const std::string& s)
     }
 
     //Check for spaces at end
-    while(ret[ret.length() - 1] == ' ' || ret[ret.length() - 1] == '.')
+    while(ret[ret.length() - 1] == ' ')
         ret.erase(ret.length() - 1, 1);
 
     return ret;
@@ -186,21 +184,25 @@ static inline std::string getTimeString(const uint32_t& _h, const uint32_t& _m)
     return std::string(tmp);
 }
 
-std::string util::getInfoString(const data::user& u, const data::titledata& d)
+std::string util::getInfoString(data::user& u, const uint64_t& tid)
 {
-    std::string ret = d.getTitle() + "\n";
+    data::titleInfo *tinfo = data::getTitleInfoByTID(tid);
+    data::userTitleInfo *userTinfo = &u.titleInfo[data::selData];
 
-    ret += "TID: " + d.getTIDStr() + "\n";
-    ret += "SID: " + d.getSaveIDStr() + "\n";
+    std::string ret = tinfo->title + "\n";
+
+    ret += "TID: " + util::getIDStr(tid) + "\n";
+    ret += "SID: " + util::getIDStr(userTinfo->saveInfo.save_data_id) + "\n";
 
     uint32_t hours, mins;
-    hours = d.getPlayTime() / 60;
-    mins = d.getPlayTime() - (hours * 60);
+    hours = userTinfo->playStats.playtimeMinutes / 60;
+    mins = userTinfo->playStats.playtimeMinutes - (hours * 60);
 
     ret += "Play Time: " + getTimeString(hours, mins) + "\n";
-    ret += "Total Launches: " + std::to_string(d.getLaunchCount()) + "\n";
+    ret += "Total Launches: " + std::to_string(userTinfo->playStats.totalLaunches) + "\n";
 
-    switch(d.getType())
+
+    switch(userTinfo->saveInfo.save_data_type)
     {
         case FsSaveDataType_System:
             ret += "System Save\n";
@@ -267,13 +269,14 @@ std::string util::getStringInput(const std::string& def, const std::string& head
     return std::string(out);
 }
 
-std::string util::generateAbbrev(const data::titledata& dat)
+std::string util::generateAbbrev(const uint64_t& tid)
 {
-    size_t titleLength = dat.getTitle().length();
+    data::titleInfo *tmp = data::getTitleInfoByTID(tid);
+    size_t titleLength = tmp->safeTitle.length();
 
     char temp[titleLength + 1];
     memset(temp, 0, titleLength + 1);
-    memcpy(temp, dat.getTitle().c_str(), titleLength);
+    memcpy(temp, tmp->safeTitle.c_str(), titleLength);
 
     std::string ret;
     char *tok = strtok(temp, " ");
@@ -322,7 +325,7 @@ SDL_Texture *util::createIconGeneric(const char *txt, int fontSize)
     SDL_RenderClear(gfx::render);
     unsigned int x = 128 - (gfx::getTextWidth(txt, fontSize) / 2);
     unsigned int y = 128 - (fontSize / 2);
-    gfx::drawTextf(fontSize, x, y, &ui::txtCont, txt);
+    gfx::drawTextf(ret, fontSize, x, y, &ui::txtCont, txt);
     SDL_SetRenderTarget(gfx::render, NULL);
     return ret;
 }
@@ -374,4 +377,15 @@ void util::checkForUpdate()
         ui::showPopup(POP_FRAME_DEFAULT, ui::noUpdate.c_str());
 
     json_object_put(jobj);
+}
+
+Result util::accountDeleteUser(AccountUid *uid)
+{
+    Service *account = accountGetServiceSession();
+    struct
+    {
+        AccountUid uid;
+    } in = {*uid};
+
+    return serviceDispatchIn(account, 203, in);
 }

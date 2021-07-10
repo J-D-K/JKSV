@@ -1,6 +1,4 @@
-#ifndef DATA_H
-#define DATA_H
-
+#pragma once
 #include <switch.h>
 
 #include <vector>
@@ -10,14 +8,16 @@
 #include "gfx.h"
 
 #define curUser users[data::selUser]
-#define curData users[data::selUser].titles[data::selData]
+#define curData users[data::selUser].titleInfo[data::selData]
 
-#define BLD_MON 06
-#define BLD_DAY 14
+#define BLD_MON 7
+#define BLD_DAY 9
 #define BLD_YEAR 2021
 
 namespace data
 {
+    extern bool forceMount;
+
     //Loads user + title info
     void init();
     void exit();
@@ -29,61 +29,27 @@ namespace data
     void loadFav();
     void saveFav();
     void loadDefs();
-    void exportIcons();
 
     //Draws some stats to the upper left corner
     void dispStats();
 
-    //Class to store title info
-    class titledata
+    //Global stuff for all titles/saves
+    typedef struct
     {
-        public:
-            titledata() = default;
-            //Attempts to read title's info
-            titledata(const FsSaveDataInfo& inf, NsApplicationControlData *dat);
+        NacpStruct nacp;
+        std::string title, safeTitle, author;//Shortcuts sorta.
+        SDL_Texture *icon;
+        bool fav;
+    } titleInfo;
 
-            //Returns title + title without forbidden chars
-            std::string getTitle() const { return title;}
-            std::string getTitleSafe() const { return titleSafe; }
-            std::string getAuthor() const { return author; }
-
-            //Creates title folder
-            void createDir() const;
-            //Returns folder path
-            std::string getPath() const;
-
-            //returns save_data_id string. only used for helping identify nand files
-            std::string getTIDStr() const;
-            std::string getSaveIDStr() const;
-
-            uint64_t getID() const { return id; }
-            uint64_t getSaveID() const { return saveID; }
-            uint16_t getSaveIndex() const { return saveIndex; }
-            FsSaveDataType getType() const { return (FsSaveDataType)saveDataType; }
-            void setID(const uint64_t& _id){ id = _id; }
-            void setIndex(const uint16_t& _ind){ saveIndex = _ind; }
-            void setType(FsSaveDataType type) { saveDataType = type; }
-            void setFav(bool setFav) { favorite = setFav; }
-            bool getFav() const { return favorite; }
-            void assignIcon();
-            void drawIcon(bool full, unsigned x, unsigned y);
-            void drawIconFav(bool full, unsigned x, unsigned y);
-            void setPlayTime(const uint32_t& _p){ playMins = _p; }
-            uint32_t getPlayTime() const { return playMins; }
-            void setLastTimeStamp(const uint32_t& _ts){ lastTimeStamp = _ts; }
-            uint32_t getLastTimeStamp() const { return lastTimeStamp; }
-            void setLaunchCount(const uint32_t& _lc) { launchCount = _lc; }
-            uint32_t getLaunchCount() const { return launchCount; }
-
-        private:
-            SDL_Texture *icon;
-            uint8_t saveDataType;
-            std::string title, titleSafe, author;
-            uint64_t id, saveID;
-            uint16_t saveIndex;
-            uint32_t playMins, lastTimeStamp, launchCount;
-            bool favorite = false;
-    };
+    //Holds stuff specific to user's titles/saves
+    typedef struct
+    {
+        //Makes it easier to grab id
+        uint64_t saveID;
+        FsSaveDataInfo saveInfo;
+        PdmPlayStatistics playStats;
+    } userTitleInfo;
 
     //Class to store user info + titles
     class user
@@ -107,13 +73,11 @@ namespace data
             std::string getUsername() const { return username; }
             std::string getUsernameSafe() const { return userSafe; }
 
-            //Vector for storing save data info for user
-            std::vector<titledata> titles;
-            void loadPlayTimes();
+            SDL_Texture *getUserIcon(){ return userIcon; }
+            void delIcon(){ SDL_DestroyTexture(userIcon); }
 
-            void drawIcon(int x, int y) { gfx::texDraw(userIcon, x, y); }
-            void drawIconHalf(int x, int y) { gfx::texDrawStretch(userIcon, x, y, 128, 128); }
-            void delIcon() { SDL_DestroyTexture(userIcon); }
+            std::vector<data::userTitleInfo> titleInfo;
+            void addUserTitleInfo(const uint64_t& _tid, const FsSaveDataInfo *_saveInfo, const PdmPlayStatistics *_stats);
 
         private:
             AccountUid userID;
@@ -123,17 +87,34 @@ namespace data
             SDL_Texture *userIcon;
     };
 
-    //Gets total count of save containers
-    unsigned getTotalSaves();
-
     //Adds title to blacklist
-    void blacklistAdd(data::titledata& t);
+    void blacklistAdd(const uint64_t& tid);
     //Adds title to favorite list
-    void favoriteTitle(data::titledata& t);
+    void favoriteTitle(const uint64_t& tid);
+
+    bool isFavorite(const uint64_t& tid);
 
     //User vector
     extern std::vector<user> users;
-    extern std::unordered_map<uint64_t, SDL_Texture *> icons;
+    //Title data/info map
+    extern std::unordered_map<uint64_t, data::titleInfo> titles;
+
+    //Gets pointer to info
+    data::titleInfo *getTitleInfoByTID(const uint64_t& tid);
+
+    //More shortcut functions
+    std::string getTitleNameByTID(const uint64_t& tid);
+    std::string getTitleSafeNameByTID(const uint64_t& tid);
+    SDL_Texture *getTitleIconByTID(const uint64_t& tid);
+    inline int getTitleIndexInUser(const data::user& u, const uint64_t& sid)
+    {
+        for(unsigned i = 0; i < u.titleInfo.size(); i++)
+        {
+            if(u.titleInfo[i].saveID == sid)
+                return i;
+        }
+        return -1;
+    }
 
     //Options and info
     //Restores config to default
@@ -143,5 +124,3 @@ namespace data
     extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser, zip, langOverride;
     extern uint8_t sortType;
 }
-
-#endif // DATA_H

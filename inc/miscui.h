@@ -1,39 +1,139 @@
-#ifndef MISCUI_H
-#define MISCUI_H
+#pragma once
 
+#include <SDL.h>
+
+#include "type.h"
 #include "gfx.h"
 
-#define PROG_MAX_WIDTH_DEFAULT 576
 #define POP_FRAME_DEFAULT 130
+
+#define MENU_FONT_SIZE_DEFAULT 18
+#define MENU_MAX_SCROLL_DEFAULT 15
+
+typedef enum
+{
+    FUNC_A,
+    FUNC_B,
+    FUNC_X,
+    FUNC_Y,
+} funcBtn;
+
+typedef enum
+{
+    MENU_X,
+    MENU_Y,
+    MENU_RECT_WIDTH,
+    MENU_FONT_SIZE,
+    MENU_MAX_SCROLL
+} menuParams;
 
 //For smaller classes that aren't easy to get lost in and general functions
 namespace ui
 {
+    typedef struct
+    {
+        SDL_Texture *icn = NULL;
+        std::string txt;
+        funcPtr func[4] = {NULL};
+        void *argPtr[4] = {NULL};
+    } menuOpt;
+
+    class menu
+    {
+        public:
+            menu() = default;
+
+            //X, Y, Rect width/Max length, Font size, max to show
+            void setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW, const unsigned& _fS, const unsigned& _mL);
+            void editParam(int _param, unsigned newVal);
+
+            //Gets executed when menu changes at all
+            void setOnChangeFunc(funcPtr func){ onChange = func; }
+
+            //executed when .update() is called.
+            void setCallback(funcPtr _callback, void *args) { callback = _callback; callbackArgs = args; }
+
+            //Adds option.
+            void addOpt(SDL_Texture *_icn, const std::string& add);
+            //Changes opt text
+            void editOpt(int ind, SDL_Texture *_icn, const std::string& ch);
+
+            void setOptFunc(unsigned _ind, unsigned _funcbtn, funcPtr _func, void *args);
+            void updateOptArgs(unsigned _ind, unsigned _funcbtn, void *args){ opt[_ind].argPtr[_funcbtn] = args; }
+
+            int getOptPos(const std::string& txt);
+
+            //Clears menu stuff
+            ~menu();
+
+            //Handles controller input and executes functions for buttons if they're set
+            void update();
+
+            //Returns selected option
+            int getSelected() { return selected; }
+
+            //Draws the menu at x and y. rectWidth is the width of the rectangle drawn under the selected
+            void draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText);
+
+            //Clears and resets menu
+            void reset();
+
+            //Resets selected + start
+            void resetSel() { selected = 0; start = 0; }
+
+            //Enables control/disables drawing select box
+            void setActive(bool _set);
+            bool getActive() { return isActive; }
+
+        private:
+            //drawing x and y + rectangle width/height. Height is calc'd with font size
+            int x = 0, y = 0, rW = 0, rY = 0, fSize = 0, rH = 0, mL = 0;
+            //Options vector
+            std::vector<ui::menuOpt> opt;
+            //Selected + frame counting for auto-scroll
+            int selected = 0, fc = 0, start = 0;
+            //How much we shift the color of the rectangle
+            uint8_t clrSh = 0;
+            bool clrAdd = true, isActive = true;
+            funcPtr onChange = NULL, callback = NULL;
+            void *callbackArgs, *funcArgs;
+    };
+
     //Progress bar for showing loading. Mostly so people know it didn't freeze
     class progBar
     {
         public:
-            progBar() = default;
-
             //Constructor. _max is the maximum value
-            progBar(const uint64_t& _max, const uint64_t& _maxWidth) { max = _max; maxWidth = _maxWidth; }
-
-            void setMax(const uint64_t& _max, const uint64_t& _maxWidth){ max = _max; maxWidth = _maxWidth; }
+            progBar(const uint64_t& _max) { max = _max; }
 
             //Updates progress
             void update(const uint64_t& _prog);
 
-            void incProgress(unsigned inc){ prog += inc; }
-
             //Draws with text at top
             void draw(const std::string& text, const std::string& head);
 
-            //Draws without dialog box
-            void drawNoDialog(int x, int y);
+        private:
+            uint64_t max, prog;
+            float width;
+    };
+
+    //_draw is called and passed the panel texture/target when this.draw() is called.
+    class slideOutPanel
+    {
+        public:
+            slideOutPanel(int _w, int _h, int _y, funcPtr _draw);
+            ~slideOutPanel();
+
+            void openPanel() { open = true; }
+            void closePanel() { open = false; }
+            bool isOpen() { return open; }
+            void draw(const SDL_Color *backCol);
 
         private:
-            uint64_t max, prog, maxWidth;
-            float width;
+            int w, h, x = 1280, y, slideSpd = 0;
+            bool open = false;
+            SDL_Texture *panel;
+            funcPtr drawFunc;
     };
 
     //General use
@@ -41,11 +141,10 @@ namespace ui
     bool confirm(bool hold, const char *fmt, ...);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
-    void drawTextbox(int x, int y, int w, int h);
+    void drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t clrSh);
+    void drawTextbox(SDL_Texture *target, int x, int y, int w, int h);
 
     //Popup from freebird
     void showPopup(unsigned frames, const char *fmt, ...);
     void drawPopup(const uint64_t& down);
 }
-
-#endif // MISCUI_H

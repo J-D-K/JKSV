@@ -28,11 +28,11 @@ namespace util
 
     std::string safeString(const std::string& s);
 
-    std::string getInfoString(const data::user& u, const data::titledata& d);
+    std::string getInfoString(data::user& u, const uint64_t& tid);
 
     std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 
-    std::string generateAbbrev(const data::titledata& dat);
+    std::string generateAbbrev(const uint64_t& tid);
 
     //removes char from C++ string
     void stripChar(char _c, std::string& _s);
@@ -55,6 +55,33 @@ namespace util
         ret.uid[1] = id;
         return ret;
     }
+
+    inline std::string getIDStr(const uint64_t& _id)
+    {
+        char tmp[18];
+        sprintf(tmp, "%016lX", _id);
+        return std::string(tmp);
+    }
+
+    inline std::string getIDStrLower(const uint64_t& _id)
+    {
+        char tmp[18];
+        sprintf(tmp, "%08X", (uint32_t)_id);
+        return std::string(tmp);
+    }
+
+    inline std::string generatePathByTID(const uint64_t& tid)
+    {
+        return fs::getWorkDir() + data::getTitleSafeNameByTID(tid) + "/";
+    }
+
+    inline void createTitleDirectoryByTID(const uint64_t& tid)
+    {
+        std::string makePath = fs::getWorkDir() + data::getTitleSafeNameByTID(tid);
+        mkdir(makePath.c_str(), 777);
+    }
+
+    Result accountDeleteUser(AccountUid *uid);
 
     void setCPU(uint32_t hz);
     void checkForUpdate();

@@ -2,11 +2,10 @@
 #include <vector>
 #include <sys/stat.h>
 
+#include "file.h"
 #include "ui.h"
 #include "miscui.h"
-#include "uiupdate.h"
 #include "util.h"
-#include "file.h"
 
 //Text menus
 static ui::menu saveMenu, sdMenu, copyMenu;
@@ -342,20 +341,20 @@ void performCopyMenuOps()
 }
 
 
-void ui::advCopyMenuPrep()
+void advCopyMenuPrep()
 {
     for(unsigned i = 0; i < 6; i++)
-        copyMenu.addOpt(ui::advMenuStr[i]);
+        copyMenu.addOpt(NULL, ui::advMenuStr[i]);
 }
 
-void ui::advModePrep(const std::string& svDev, const FsSaveDataType& _type, bool commitOnWrite)
+void advModePrep(const std::string& svDev, const FsSaveDataType& _type, bool commitOnWrite)
 {
     commit = commitOnWrite;
     type = _type;
 
-    saveMenu.setParams(30, 98, 602);
-    sdMenu.setParams(648, 98, 602);
-    copyMenu.setParams(472, 278, 304);
+    saveMenu.setParams(30, 98, 602, MENU_FONT_SIZE_DEFAULT, MENU_MAX_SCROLL_DEFAULT);
+    sdMenu.setParams(648, 98, 602, MENU_FONT_SIZE_DEFAULT, MENU_MAX_SCROLL_DEFAULT);
+    copyMenu.setParams(472, 278, 304, MENU_FONT_SIZE_DEFAULT, MENU_MAX_SCROLL_DEFAULT);
 
     savePath = svDev, dev = svDev;
     sdPath   = "sdmc:/";
@@ -369,13 +368,13 @@ void ui::advModePrep(const std::string& svDev, const FsSaveDataType& _type, bool
     advMenuCtrl = 0;
 }
 
-void ui::drawAdvMode()
+void drawAdvMode()
 {
-    saveMenu.draw(&ui::txtCont);
-    sdMenu.draw(&ui::txtCont);
+    saveMenu.draw(NULL, &ui::txtCont, true);
+    sdMenu.draw(NULL, &ui::txtCont, true);
 
-    gfx::drawTextfWrap(14, 30, 654, 600, &ui::txtCont, savePath.c_str());
-    gfx::drawTextfWrap(14, 640, 654, 600, &ui::txtCont, sdPath.c_str());
+    gfx::drawTextfWrap(NULL, 14, 30, 654, 600, &ui::txtCont, savePath.c_str());
+    gfx::drawTextfWrap(NULL, 14, 640, 654, 600, &ui::txtCont, sdPath.c_str());
 
     //draw copy menu if it's supposed to be up
     if(advMenuCtrl == 2)
@@ -383,38 +382,38 @@ void ui::drawAdvMode()
         switch(advPrev)
         {
             case 0:
-                copyMenu.setParams(176, 278, 304);
-                copyMenu.editOpt(0, advMenuStr[0] + "sdmc");
-                ui::drawTextbox(168, 236, 320, 268);
-                gfx::drawTextf(18, 176, 250, &ui::txtDiag, dev.c_str());
+                copyMenu.setParams(176, 278, 304, MENU_FONT_SIZE_DEFAULT, MENU_MAX_SCROLL_DEFAULT);
+                copyMenu.editOpt(0, NULL, ui::advMenuStr[0] + "sdmc");
+                ui::drawTextbox(NULL, 168, 236, 320, 268);
+                gfx::drawTextf(NULL, 18, 176, 250, &ui::txtDiag, dev.c_str());
                 break;
 
             case 1:
-                copyMenu.setParams(816, 278, 304);
-                copyMenu.editOpt(0, advMenuStr[0] + dev);
-                ui::drawTextbox(808, 236, 320, 268);
-                gfx::drawTextf(18, 816, 250, &ui::txtDiag, "SDMC");
+                copyMenu.setParams(816, 278, 304, MENU_FONT_SIZE_DEFAULT, MENU_MAX_SCROLL_DEFAULT);
+                copyMenu.editOpt(0, NULL, ui::advMenuStr[0] + dev);
+                ui::drawTextbox(NULL, 808, 236, 320, 268);
+                gfx::drawTextf(NULL, 18, 816, 250, &ui::txtDiag, "SDMC");
                 break;
         }
-        copyMenu.draw(&ui::txtDiag);
+        copyMenu.draw(NULL, &ui::txtDiag, true);
     }
 }
 
-void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
+void updateAdvMode(const uint64_t& down, const uint64_t& held)
 {
     //0 = save; 1 = sd; 2 = cpy
     switch(advMenuCtrl)
     {
         case 0:
-            saveMenu.handleInput(down, held);
+            saveMenu.update();
             break;
 
         case 1:
-            sdMenu.handleInput(down, held);
+            sdMenu.update();
             break;
 
         case 2:
-            copyMenu.handleInput(down, held);
+            copyMenu.update();
             break;
     }
 
@@ -511,18 +510,18 @@ void ui::updateAdvMode(const uint64_t& down, const uint64_t& held)
     }
     else if(down & HidNpadButton_Minus)
     {
-        switch(prevState)
+        switch(ui::prevState)
         {
             case EX_MNU:
-                mstate = EX_MNU;
+                ui::mstate = EX_MNU;
                 break;
 
             case TTL_SEL:
-                mstate = TTL_SEL;
+                ui::mstate = TTL_SEL;
                 break;
 
             default:
-                mstate = ui::textMode ? TXT_FLD : FLD_SEL;
+                ui::mstate = ui::textMode ? TXT_FLD : FLD_SEL;
                 break;
         }
     }

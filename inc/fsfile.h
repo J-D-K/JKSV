@@ -1,5 +1,4 @@
-#ifndef FSFILE_H
-#define FSFILE_H
+#pragma once
 
 #include <switch.h>
 #include <stdint.h>
@@ -96,6 +95,4 @@ inline char fsfgetc(FSFILE *_f)
 inline void fsfputc(int ch, FSFILE *_f) { fsfwrite(&ch, 1, 1, _f); }
 #ifdef __cplusplus
 }
-#endif
-
 #endif

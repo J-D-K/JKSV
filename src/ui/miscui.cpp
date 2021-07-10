@@ -20,6 +20,9 @@ static const SDL_Color fillBack  = {0x66, 0x66, 0x66, 0xFF};
 static const SDL_Color fillLight = {0x00, 0xFF, 0xC5, 0xFF};
 static const SDL_Color fillDark  = {0x32, 0x50, 0xF0, 0xFF};
 
+static const SDL_Color menuColorLight = {0x32, 0x50, 0xF0, 0xFF};
+static const SDL_Color menuColorDark  = {0x00, 0xFF, 0xC5, 0xFF};
+
 enum popStates
 {
     popRise,
@@ -27,11 +30,264 @@ enum popStates
     popFall
 };
 
+//8
+static const std::string loadGlyphArray[] =
+{
+    "\ue020", "\ue021", "\ue022", "\ue023",
+    "\ue024", "\ue025", "\ue026", "\ue027"
+};
+
+void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW, const unsigned& _fS, const unsigned& _mL)
+{
+    x = _x;
+    y = _y;
+    rW = _rW;
+    rY = _y;
+    fSize = _fS;
+    mL = _mL;
+    rH = _fS + 24;
+}
+
+void ui::menu::editParam(int _param, unsigned newVal)
+{
+    switch(_param)
+    {
+        case MENU_X:
+            x = newVal;
+            break;
+
+        case MENU_Y:
+            y = newVal;
+            break;
+
+        case MENU_RECT_WIDTH:
+            rW = newVal;
+            break;
+
+        case MENU_FONT_SIZE:
+            fSize = newVal;
+            break;
+
+        case MENU_MAX_SCROLL:
+            mL = newVal;
+            break;
+    }
+}
+
+void ui::menu::addOpt(SDL_Texture *_icn, const std::string& add)
+{
+    ui::menuOpt newOpt;
+    if((int)gfx::getTextWidth(add.c_str(), fSize) < rW - 56 || rW == 0)
+        newOpt.txt = add;
+    else
+    {
+        std::string tmp;
+        for(unsigned i = 0; i < add.length(); )
+        {
+            uint32_t tmpChr = 0;
+            ssize_t untCnt = decode_utf8(&tmpChr, (uint8_t *)&add.c_str()[i]);
+
+            tmp += add.substr(i, untCnt);
+            i += untCnt;
+            if((int)gfx::getTextWidth(tmp.c_str(), fSize) >= rW - 48)
+            {
+                newOpt.txt = tmp;
+                break;
+            }
+        }
+    }
+    newOpt.icn = _icn;
+    opt.push_back(newOpt);
+}
+
+void ui::menu::editOpt(int ind, SDL_Texture *_icn, const std::string& ch)
+{
+    if(!opt[ind].icn && _icn)
+        opt[ind].icn = _icn;
+
+    opt[ind].txt = ch;
+}
+
+void ui::menu::setOptFunc(unsigned _ind, unsigned _funcbtn, funcPtr _func, void *args)
+{
+    opt[_ind].func[_funcbtn] = _func;
+    opt[_ind].argPtr[_funcbtn] = args;
+}
+
+int ui::menu::getOptPos(const std::string& txt)
+{
+    for(unsigned i = 0; i < opt.size(); i++)
+    {
+        if(opt[i].txt == txt)
+            return i;
+    }
+    return -1;
+}
+
+
+ui::menu::~menu()
+{
+    opt.clear();
+}
+
+void ui::menu::update()
+{
+    if(!isActive)
+        return;
+
+    uint64_t down = ui::padKeysDown();
+    uint64_t held = ui::padKeysHeld();
+
+    if(held & HidNpadButton_AnyUp || held & HidNpadButton_AnyDown)
+        ++fc;
+    else
+        fc = 0;
+
+    if(fc > 10)
+        fc = 0;
+
+    int oldSel = selected;
+    int mSize = opt.size() - 1, scrL = mL - 1;
+    if( (down & HidNpadButton_AnyUp) || ((held & HidNpadButton_AnyUp) && fc == 10) )
+    {
+        --selected;
+        if(selected < 0)
+            selected = mSize;
+
+        if(mSize > (int)mL)
+        {
+            if(start > selected)
+                --start;
+            else if(selected - scrL > start)
+                start = selected - scrL;
+        }
+    }
+    else if( (down & HidNpadButton_AnyDown) || ((held & HidNpadButton_AnyDown) && fc == 10))
+    {
+        ++selected;
+        if(selected > mSize)
+            selected = 0;
+
+        if(selected > (start + scrL) && (start + scrL) < mSize)
+            ++start;
+        if(selected == 0)
+            start = 0;
+    }
+    else if(down & HidNpadButton_AnyLeft)
+    {
+        selected -= scrL / 2;
+        if(selected < 0)
+            selected = 0;
+        if(selected < start)
+            start = selected;
+    }
+    else if(down & HidNpadButton_AnyRight)
+    {
+        selected += scrL / 2;
+        if(selected > mSize)
+            selected = mSize;
+        if(selected - scrL > start)
+            start = selected - scrL;
+    }
+
+    //func exec
+    switch(down)
+    {
+        case HidNpadButton_A:
+            if(opt[selected].func[FUNC_A])
+                (*opt[selected].func[FUNC_A])(opt[selected].argPtr[FUNC_A]);
+            break;
+
+        case HidNpadButton_B:
+            if(opt[selected].func[FUNC_B])
+                (*opt[selected].func[FUNC_B])(opt[selected].argPtr[FUNC_B]);
+            break;
+
+        case HidNpadButton_X:
+            if(opt[selected].func[FUNC_X])
+                (*opt[selected].func[FUNC_X])(opt[selected].argPtr[FUNC_X]);
+            break;
+
+        case HidNpadButton_Y:
+            if(opt[selected].func[FUNC_Y])
+                (*opt[selected].func[FUNC_Y])(opt[selected].argPtr[FUNC_Y]);
+            break;
+    }
+
+    if(selected != oldSel && onChange)
+        (*onChange)(NULL);
+
+    if(callback)
+        (*callback)(callbackArgs);
+}
+
+void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText)
+{
+    if(opt.size() < 1)
+        return;
+
+    if(clrAdd)
+    {
+        clrSh += 6;
+        if(clrSh >= 0x72)
+            clrAdd = false;
+    }
+    else
+    {
+        clrSh -= 3;
+        if(clrSh <= 0x00)
+            clrAdd = true;
+    }
+
+    for(int i = start; i < (int)opt.size(); i++)
+    {
+        if(i == selected)
+        {
+            if(isActive)
+                ui::drawBoundBox(target, x, y + ((i - start) * rH), rW, rH, clrSh);
+
+            gfx::drawRect(target, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, x + 10, ((y + (rH / 2 - fSize / 2)) + ((i - start) * rH)) - 2, 4, fSize + 4);
+            if(drawText)
+                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + ((i - start) * rH), ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
+        }
+        else
+        {
+            if(drawText)
+                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + ((i - start) * rH), textClr, opt[i].txt.c_str());
+        }
+
+        int w, h;
+        if(opt[i].icn && SDL_QueryTexture(opt[i].icn, NULL, NULL, &w, &h) == 0)
+        {
+            float scale = (float)fSize / (float)h;
+            int dW = scale * w;
+            int dH = scale * h;
+
+            gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + ((i - start) * rH), dW, dH);
+        }
+
+    }
+}
+
+void ui::menu::reset()
+{
+    opt.clear();
+    start = 0;
+    selected = 0;
+
+    fc = 0;
+}
+
+void ui::menu::setActive(bool _set)
+{
+    isActive = _set;
+}
+
 void ui::progBar::update(const uint64_t& _prog)
 {
     prog = _prog;
 
-    width = (float)(((float)prog / (float)max) * (float)maxWidth);
+    width = (float)(((float)prog / (float)max) * 576);
 }
 
 void ui::progBar::draw(const std::string& text, const std::string& head)
@@ -39,24 +295,55 @@ void ui::progBar::draw(const std::string& text, const std::string& head)
     size_t headWidth = gfx::getTextWidth(head.c_str(), 20);
     unsigned headX = (1280 / 2) - (headWidth / 2);
 
-    ui::drawTextbox(320, 150, 640, 420);
-    gfx::drawLine(ui::thmID == ColorSetId_Light ? &divLight : &divDark, 320, 206, 959, 206);
-    gfx::drawRect(&fillBack, 352, 530, 576, 12);
-    gfx::drawRect(ui::thmID == ColorSetId_Light ? &fillLight : &fillDark, 352, 530, (int)width, 12);
-    gfx::texDraw(ui::progCovLeft, 352, 530);
-    gfx::texDraw(ui::progCovRight, 920, 530);
+    ui::drawTextbox(NULL, 320, 150, 640, 420);
+    gfx::drawLine(NULL, ui::thmID == ColorSetId_Light ? &divLight : &divDark, 320, 206, 959, 206);
+    gfx::drawRect(NULL, &fillBack, 352, 530, 576, 12);
+    gfx::drawRect(NULL, ui::thmID == ColorSetId_Light ? &fillLight : &fillDark, 352, 530, (int)width, 12);
+    gfx::texDraw(NULL, ui::progCovLeft, 352, 530);
+    gfx::texDraw(NULL, ui::progCovRight, 920, 530);
 
-
-    gfx::drawTextf(20, headX, 160, &ui::txtDiag, head.c_str());
-    gfx::drawTextfWrap(16, 352, 230, 576, &ui::txtDiag, text.c_str());
+    gfx::drawTextf(NULL, 20, headX, 168, &ui::txtDiag, head.c_str());
+    gfx::drawTextfWrap(NULL, 16, 352, 230, 576, &ui::txtDiag, text.c_str());
 }
 
-void ui::progBar::drawNoDialog(int x, int y)
+ui::slideOutPanel::slideOutPanel(int _w, int _h, int _y, funcPtr _draw)
 {
-    gfx::drawRect(&fillBack, x, y, maxWidth, 12);
-    gfx::drawRect(ui::thmID == ColorSetId_Light ? &fillLight : &fillDark, x, y, width, 12);
-    gfx::texDraw(ui::progCovLeft, x, y);
-    gfx::texDraw(ui::progCovRight, x + maxWidth - 8, y);
+    w = _w;
+    h = _h;
+    y = _y;
+    drawFunc = _draw;
+    panel = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, w, h);
+    SDL_SetTextureBlendMode(panel, SDL_BLENDMODE_BLEND);
+
+    int getDiv = 99;
+    while(w % getDiv != 0){ getDiv--; }
+    slideSpd = getDiv;
+}
+
+ui::slideOutPanel::~slideOutPanel()
+{
+    SDL_DestroyTexture(panel);
+}
+
+void ui::slideOutPanel::draw(const SDL_Color *backCol)
+{
+    gfx::clearTarget(panel, backCol);
+
+    if(open && x > 1280 - w)
+    {
+        x -= slideSpd;
+    }
+    else if(!open && x < 1280)
+    {
+        x += slideSpd;
+    }
+
+    //don't waste time drawing if you can't even see it.
+    if(x < 1280)
+    {
+        (*drawFunc)(panel);
+        gfx::texDraw(NULL, panel, x, y);
+    }
 }
 
 void ui::showMessage(const char *head, const char *fmt, ...)
@@ -72,17 +359,18 @@ void ui::showMessage(const char *head, const char *fmt, ...)
 
     while(true)
     {
-        ui::updatePad();
+        ui::updateInput();
 
         if(ui::padKeysDown())
             break;
 
-        ui::drawTextbox(320, 150, 640, 420);
-        gfx::drawTextf(20, 320 + headX, 168, &ui::txtDiag, head);
-        gfx::drawTextfWrap(16, 352, 230, 576, &ui::txtDiag, tmp);
-        gfx::drawTextf(20, 320 + okX, 522, &ui::txtDiag, okt);
+        ui::drawTextbox(NULL, 320, 150, 640, 420);
+        gfx::drawTextf(NULL, 20, 320 + headX, 168, &ui::txtDiag, head);
+        gfx::drawTextfWrap(NULL, 16, 352, 230, 576, &ui::txtDiag, tmp);
+        gfx::drawTextf(NULL, 20, 320 + okX, 522, &ui::txtDiag, okt);
         gfx::present();
     }
+    ui::updateInput();
 }
 
 bool ui::confirm(bool hold, const char *fmt, ...)
@@ -106,7 +394,7 @@ bool ui::confirm(bool hold, const char *fmt, ...)
 
     while(true)
     {
-        ui::updatePad();
+        ui::updateInput();
 
         uint64_t down = ui::padKeysDown();
         uint64_t held = ui::padKeysHeld();
@@ -161,18 +449,21 @@ bool ui::confirm(bool hold, const char *fmt, ...)
         if(hold && heldDown)
         {
             if(ui::thmID == ColorSetId_Light)
-                holdClr = {0xFF, 0xFF - holdClrDiff, 0xFF - holdClrDiff, 0xFF};
+                holdClr = {0xFF, (uint8_t)(0xFF - holdClrDiff), (uint8_t)(0xFF - holdClrDiff), 0xFF};
             else
-                holdClr = {0x25 + holdClrDiff, 0x00, 0x00, 0xFF};
+                holdClr = {(uint8_t)(0x25 + holdClrDiff), 0x00, 0x00, 0xFF};
         }
 
-        ui::drawTextbox(320, 150, 640, 420);
-        gfx::drawTextf(20, 320 + headX, 168, &ui::txtDiag, ui::confirmHead.c_str());
-        gfx::drawTextf(20, 320 + yesX, 522, &holdClr, yesText.c_str());
-        gfx::drawTextf(20, 640 + noX, 522, &ui::txtDiag, ui::nt.c_str());
-        gfx::drawTextfWrap(16, 352, 230, 576, &ui::txtDiag, tmp);
+        ui::drawTextbox(NULL, 320, 150, 640, 420);
+        gfx::drawTextf(NULL, 20, 320 + headX, 168, &ui::txtDiag, ui::confirmHead.c_str());
+        gfx::drawTextf(NULL, 20, 320 + yesX, 522, &holdClr, yesText.c_str());
+        gfx::drawTextf(NULL, 20, 640 + noX, 522, &ui::txtDiag, ui::nt.c_str());
+        gfx::drawTextfWrap(NULL, 16, 352, 230, 576, &ui::txtDiag, tmp);
         gfx::present();
     }
+
+    ui::updateInput();
+
     return ret;
 }
 
@@ -186,40 +477,55 @@ bool ui::confirmDelete(const std::string& p)
     return confirm(data::holdDel, ui::confDel.c_str(), p.c_str());
 }
 
-void ui::drawTextbox(int x, int y, int w, int h)
+void ui::drawTextbox(SDL_Texture *target, int x, int y, int w, int h)
 {
     //Top
-    gfx::texDraw(ui::cornerTopLeft, x, y);
-    gfx::drawRect(&ui::tboxClr, x + 32, y, w - 64, 32);
-    gfx::texDraw(ui::cornerTopRight, (x + w) - 32, y);
+    gfx::texDraw(target, ui::cornerTopLeft, x, y);
+    gfx::drawRect(target, &ui::tboxClr, x + 32, y, w - 64, 32);
+    gfx::texDraw(target, ui::cornerTopRight, (x + w) - 32, y);
 
     //middle
-    gfx::drawRect(&ui::tboxClr, x, y + 32,  w, h - 64);
+    gfx::drawRect(target, &ui::tboxClr, x, y + 32,  w, h - 64);
 
     //bottom
-    gfx::texDraw(ui::cornerBottomLeft, x, (y + h) - 32);
-    gfx::drawRect(&ui::tboxClr, x + 32, (y + h) - 32, w - 64, 32);
-    gfx::texDraw(ui::cornerBottomRight, (x + w) - 32, (y + h) - 32);
+    gfx::texDraw(target, ui::cornerBottomLeft, x, (y + h) - 32);
+    gfx::drawRect(target, &ui::tboxClr, x + 32, (y + h) - 32, w - 64, 32);
+    gfx::texDraw(target, ui::cornerBottomRight, (x + w) - 32, (y + h) - 32);
 }
 
-/*void ui::drawTextboxInvert(tex *target, int x, int y, int w, int h)
+void ui::drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t clrSh)
 {
-    clr temp = ui::tboxClr;
-    clrInvert(&temp);
+    SDL_SetRenderTarget(gfx::render, target);
+    SDL_Color rectClr;
 
-    //Top
-    texDrawInvert(ui::cornerTopLeft, target, x, y);
-    drawRect(target, x + 32, y, w - 64, 32, temp);
-    texDrawInvert(ui::cornerTopRight, target, (x + w) - 32, y);
+    if(ui::thmID == ColorSetId_Light)
+        rectClr = {0xFD, 0xFD, 0xFD, 0xFF};
+    else
+        rectClr = {0x21, 0x22, 0x21, 0xFF};
 
-    //middle
-    drawRect(target, x, y + 32,  w, h - 64, temp);
+    gfx::drawRect(target, &rectClr, x + 4, y + 4, w - 8, h - 8);
+
+    rectClr = {0x00,(uint8_t)(0x88 + clrSh), (uint8_t)(0xC5 + (clrSh / 2)), 0xFF};
+
+    SDL_SetTextureColorMod(mnuTopLeft, rectClr.r, rectClr.g, rectClr.b);
+    SDL_SetTextureColorMod(mnuTopRight, rectClr.r, rectClr.g, rectClr.b);
+    SDL_SetTextureColorMod(mnuBotLeft, rectClr.r, rectClr.g, rectClr.b);
+    SDL_SetTextureColorMod(mnuBotRight, rectClr.r, rectClr.g, rectClr.b);
+
+    //top
+    gfx::texDraw(target, mnuTopLeft, x, y);
+    gfx::drawRect(target, &rectClr, x + 4, y, w - 8, 4);
+    gfx::texDraw(target, mnuTopRight, (x + w) - 4, y);
+
+    //mid
+    gfx::drawRect(target, &rectClr, x, y + 4, 4, h - 8);
+    gfx::drawRect(target, &rectClr, (x + w) - 4, y + 4, 4, h - 8);
 
     //bottom
-    texDrawInvert(ui::cornerBottomLeft, target, x, (y + h) - 32);
-    drawRect(target, x + 32, (y + h) - 32, w - 64, 32, temp);
-    texDrawInvert(ui::cornerBottomRight, target, (x + w) - 32, (y + h) - 32);
-}*/
+    gfx::texDraw(target, mnuBotLeft, x, (y + h) - 4);
+    gfx::drawRect(target, &rectClr, x + 4, (y + h) - 4, w - 8, 4);
+    gfx::texDraw(target, mnuBotRight, (x + w) - 4, (y + h) - 4);
+}
 
 void ui::showPopup(unsigned frames, const char *fmt, ...)
 {
@@ -267,7 +573,7 @@ void ui::drawPopup(const uint64_t& down)
             break;
     }
 
-    drawTextbox(popX, popY, popWidth, 64);
-    gfx::drawTextf(24, popX + 16, popY + 20, &ui::txtDiag, popText.c_str());
+    drawTextbox(NULL, popX, popY, popWidth, 64);
+    gfx::drawTextf(NULL, 24, popX + 16, popY + 20, &ui::txtDiag, popText.c_str());
 }
 

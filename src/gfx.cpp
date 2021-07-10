@@ -9,6 +9,7 @@
 #define VA_SIZE 1024
 
 #include "gfx.h"
+#include "file.h"
 
 static SDL_Window *wind;
 SDL_Renderer *gfx::render;
@@ -28,6 +29,8 @@ static const uint32_t redMask   = 0xFF000000;
 static const uint32_t greenMask = 0x00FF0000;
 static const uint32_t blueMask  = 0x0000FF00;
 static const uint32_t alphaMask = 0x000000FF;
+
+static uint8_t *alphaMod;
 
 static inline bool compClr(const SDL_Color *c1, const SDL_Color *c2)
 {
@@ -97,6 +100,15 @@ void gfx::init()
 
     wind = SDL_CreateWindow("JKSV", 0, 0, 1280, 720, SDL_WINDOW_SHOWN);
     render = SDL_CreateRenderer(wind, -1, SDL_RENDERER_ACCELERATED);
+
+    SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
+
+    //Load the alpha mod to round icon corners
+    alphaMod = (uint8_t *)malloc(256 * 256);
+    FILE *modLoad = fopen("romfs:/img/icn/icon.msk", "rb");
+    fread(alphaMod, 1, 256 * 256, modLoad);
+    fclose(modLoad);
+
     loadSystemFont();
 }
 
@@ -106,14 +118,10 @@ void gfx::exit()
     SDL_Quit();
     freeSystemFont();
 
+    free(alphaMod);
+
     for(auto c : glyphCache)
         SDL_DestroyTexture(c.second.tex);
-}
-
-void gfx::clear(const SDL_Color *c)
-{
-    SDL_SetRenderDrawColor(render, c->r, c->g, c->b, c->a);
-    SDL_RenderClear(render);
 }
 
 void gfx::present()
@@ -131,6 +139,9 @@ SDL_Texture *gfx::loadJPEGMem(const void *jpegData, size_t jpegsize)
 
     SDL_FreeSurface(tmpSurf);
     SDL_RWclose(jpeg);
+
+    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
+
     return ret;
 }
 
@@ -142,6 +153,9 @@ SDL_Texture *gfx::loadImageFile(const char *file)
         ret = SDL_CreateTextureFromSurface(render, tmpSurf);
 
     SDL_FreeSurface(tmpSurf);
+
+    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
+
     return ret;
 }
 
@@ -245,8 +259,9 @@ static inline bool specialChar(const uint32_t *p, const int *fontSize, const SDL
     return ret;
 }
 
-void gfx::drawTextf(int fontSize, int x, int y, const SDL_Color *c, const char *fmt, ...)
+void gfx::drawTextf(SDL_Texture *target, int fontSize, int x, int y, const SDL_Color *c, const char *fmt, ...)
 {
+    SDL_SetRenderTarget(gfx::render, target);
     char tmp[VA_SIZE];
     va_list args;
     va_start(args, fmt);
@@ -283,10 +298,12 @@ void gfx::drawTextf(int fontSize, int x, int y, const SDL_Color *c, const char *
             tmpX += g->advX;
         }
     }
+    SDL_SetRenderTarget(gfx::render, NULL);
 }
 
-void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Color *c, const char *fmt, ...)
+void gfx::drawTextfWrap(SDL_Texture *target, int fontSize, int x, int y, int maxWidth, const SDL_Color *c, const char *fmt, ...)
 {
+    SDL_SetRenderTarget(gfx::render, target);
     char tmp[VA_SIZE], wordBuff[128];
     va_list args;
     va_start(args, fmt);
@@ -307,7 +324,7 @@ void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Colo
 
         size_t width = gfx::getTextWidth(wordBuff, fontSize);
 
-        if(tmpX + width >= x + maxWidth)
+        if((int)(tmpX + width) >= (int)(x + maxWidth))
         {
             tmpX = x;
             y += fontSize + 8;
@@ -339,6 +356,7 @@ void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Colo
         }
         i += wordLength;
     }
+    SDL_SetRenderTarget(gfx::render, NULL);
 }
 
 size_t gfx::getTextWidth(const char *str, int fontSize)
