@@ -1,37 +1,88 @@
+#include <vector>
+
 #include "ui.h"
 #include "ttl.h"
 #include "file.h"
 #include "util.h"
 
-class titleTile
-{
-    public:
-        titleTile(unsigned _w, unsigned _h, bool _fav, SDL_Texture *_icon)
-        {
-            w = _w;
-            h = _h;
-            wS = _w;
-            hS = _h;
-            fav = _fav;
-            icon = _icon;
-        }
-
-        void draw(SDL_Texture *target, int x, int y, bool sel);
-
-    private:
-        unsigned w, h, wS, hS;
-        bool fav = false;
-        SDL_Texture *icon;
-};
-
-static uint8_t clrShft = 0;
-static bool clrAdd = true;
-static int selRectX = 38, selRectY = 38;
-static int x = 34, y = 69, ttlHelpX = 0;
-static std::vector<titleTile> titleList;
-static ui::menu *ttlOpts;
-static ui::slideOutPanel *ttlOptsPanel, *infoPanel;
+int ttlHelpX = 0;
+static std::vector<ui::titleview *> ttlViews;
+static ui::menu *ttlOpts, *fldMenu;
+static ui::slideOutPanel *ttlOptsPanel, *infoPanel, *fldPanel;//There's no reason to have a separate folder section
+static fs::dirList *fldList;
+static fs::backupArgs *backargs;
 static std::string infoPanelString;
+
+void ui::refreshAllViews()
+{
+    for(int i = 0; i < data::users.size(); i++)
+        ttlViews[i]->refresh();
+}
+
+void ui::populateFldMenu()
+{
+    fldMenu->reset();
+
+    util::createTitleDirectoryByTID(data::curData.saveID);
+    std::string targetDir = util::generatePathByTID(data::curData.saveID);
+
+    fldList->reassign(targetDir);
+    fs::loadPathFilters(targetDir + "pathFilters.txt");
+
+    *backargs = {fldMenu, fldList};
+
+    fldMenu->addOpt(NULL, "New");
+    fldMenu->setOptFunc(0, FUNC_A, fs::createNewBackup, backargs);
+
+    for(unsigned i = 0; i < fldList->getCount(); i++)
+    {
+        fldMenu->addOpt(NULL, fldList->getItem(i));
+
+        fldMenu->setOptFunc(i + 1, FUNC_A, fs::overwriteBackup, backargs);
+        fldMenu->setOptFunc(i + 1, FUNC_X, fs::deleteBackup, backargs);
+        fldMenu->setOptFunc(i + 1, FUNC_Y, fs::restoreBackup, backargs);
+    }
+
+    fldMenu->setActive(true);
+    fldPanel->openPanel();
+}
+
+static void ttlViewCallback(void *a)
+{
+    data::selData = ttlViews[data::selUser]->getSelected();
+    switch(ui::padKeysDown())
+    {
+        case HidNpadButton_A:
+            if(fs::mountSave(data::curData.saveInfo))
+                ui::populateFldMenu();
+            break;
+
+        case HidNpadButton_B:
+            ttlViews[data::selUser]->setActive(false);
+            ui::usrMenuSetActive(true);
+            ui::changeState(USR_SEL);
+            break;
+
+        case HidNpadButton_X:
+            if(data::curUser.getUID128() != 0)//system
+            {
+                data::selData = ttlViews[data::selUser]->getSelected();
+                ttlOpts->setActive(true);
+                ttlOptsPanel->openPanel();
+            }
+            break;
+
+        case HidNpadButton_Y:
+            {
+                uint64_t sid = data::curData.saveID;
+                data::favoriteTitle(sid);
+                int newSel = data::getTitleIndexInUser(data::curUser, sid);
+                ttlViews[data::selUser]->refresh();
+                ttlViews[data::selUser]->setSelected(newSel);
+            }
+            break;
+    }
+}
 
 static void ttlOptsCallback(void *a)
 {
@@ -41,6 +92,18 @@ static void ttlOptsCallback(void *a)
             ttlOpts->setActive(false);
             ttlOptsPanel->closePanel();
             ui::updateInput();
+            break;
+    }
+}
+
+static void infoPanelCallback(void *a)
+{
+    switch(ui::padKeysDown())
+    {
+        case HidNpadButton_B:
+            infoPanel->closePanel();
+            ttlOptsPanel->openPanel();
+            ttlOpts->setActive(true);
             break;
     }
 }
@@ -65,7 +128,7 @@ static void ttlOptsBlacklistTitle(void *a)
     if(ui::confirm(false, ui::confBlacklist.c_str(), title.c_str()))
     {
         data::blacklistAdd(data::curData.saveID);
-        ui::setupTiles(NULL);
+        ui::refreshAllViews();
     }
 }
 
@@ -79,6 +142,25 @@ static void ttlOptsResetSaveData(void *a)
         fs::unmountSave();
         ui::showPopup(POP_FRAME_DEFAULT, ui::saveDataResetSuccess.c_str(), title.c_str());
     }
+}
+
+static void fldMenuCallback(void *a)
+{
+    switch(ui::padKeysDown())
+    {
+        case HidNpadButton_B:
+            fs::unmountSave();
+            fldMenu->setActive(false);
+            fldPanel->closePanel();
+            break;
+    }
+    ui::updateInput();
+}
+
+static void fldPanelDraw(void *a)
+{
+    SDL_Texture *target = (SDL_Texture *)a;
+    fldMenu->draw(target, &ui::txtCont, true);
 }
 
 static void ttlOptsDeleteSaveData(void *a)
@@ -99,14 +181,12 @@ static void ttlOptsDeleteSaveData(void *a)
         {
             //Kick back to user
             ttlOptsPanel->closePanel();//JIC
+            ttlViews[data::selUser]->setActive(false);
             ui::usrMenuSetActive(true);
             ui::changeState(USR_SEL);
         }
-        else if(data::selData > (int)data::curUser.titleInfo.size() - 1)
-            data::selData = data::curUser.titleInfo.size() - 1;
-
-        ui::setupTiles(NULL);
         ui::showPopup(POP_FRAME_DEFAULT, ui::saveDataDeleteSuccess.c_str(), title.c_str());
+        ttlViews[data::selUser]->refresh();
     }
 }
 
@@ -121,15 +201,31 @@ void ui::ttlInit()
 {
     ttlHelpX = 1220 - gfx::getTextWidth(ui::titleHelp.c_str(), 18);
 
+    for(data::user& u : data::users)
+        ttlViews.emplace_back(new ui::titleview(u, 128, 128, 16, 16, 7, ttlViewCallback));
+
     ttlOpts = new ui::menu;
     ttlOpts->setParams(10, 32, 390, 18, 8);
+    ttlOpts->setCallback(ttlOptsCallback, NULL);
+    ttlOpts->setActive(false);
+
+    fldMenu = new ui::menu;
+    fldMenu->setParams(10, 32, 390, 18, 8);
+    fldMenu->setCallback(fldMenuCallback, NULL);
+    fldMenu->setActive(false);
 
     ttlOptsPanel = new ui::slideOutPanel(410, 720, 0, ttlOptsPanelDraw);
-    ttlOpts->setCallback(ttlOptsCallback, NULL);
-    ui::addPanel(ttlOptsPanel);
+    ui::registerPanel(ttlOptsPanel);
 
     infoPanel = new ui::slideOutPanel(410, 720, 0, infoPanelDraw);
-    ui::addPanel(infoPanel);
+    ui::registerPanel(infoPanel);
+    infoPanel->setCallback(infoPanelCallback, NULL);
+
+    fldPanel = new ui::slideOutPanel(410, 720, 0, fldPanelDraw);
+    ui::registerPanel(fldPanel);
+
+    fldList = new fs::dirList;
+    backargs = new fs::backupArgs;
 
     ttlOpts->setActive(false);
     ttlOpts->addOpt(NULL, ui::titleOptString[0]);
@@ -144,204 +240,40 @@ void ui::ttlInit()
 
 void ui::ttlExit()
 {
+    for(ui::titleview *t : ttlViews)
+        delete t;
+
     delete ttlOptsPanel;
     delete ttlOpts;
     delete infoPanel;
+    delete fldPanel;
+    delete ttlOpts;
+    delete fldMenu;
+    delete fldList;
+    delete backargs;
 }
 
-void ui::setupTiles(void *)
+void ui::ttlSetActive(int usr)
 {
-    titleList.clear();
-    int infoSize = data::curUser.titleInfo.size();
-    for(int i = 0; i < infoSize; i++)
-    {
-        uint64_t sid = data::curUser.titleInfo[i].saveID;
-        SDL_Texture *iconPtr = data::getTitleIconByTID(sid);
-        bool fav = data::isFavorite(sid);
-        titleList.emplace_back(128, 128, fav, iconPtr);
-    }
-}
-
-void ui::ttlReset()
-{
-    clrShft = 0;
-    clrAdd = true;
-    selRectX = 38;
-    selRectY = 38;
-    x = 34;
-    y = 69;
-    //Reset data
-    data::selData = 0;
-}
-
-static inline void updateTitleScroll()
-{
-    if(selRectY > 264)
-        y -= 48;
-    else if(selRectY > 144)
-        y -= 24;
-    else if(selRectY < -82)
-        y += 48;
-    else if(selRectY < 38)
-        y += 24;
+    ttlViews[usr]->setActive(true);
 }
 
 void ui::ttlUpdate()
 {
     ttlOpts->update();
+    infoPanel->update();
+    fldMenu->update();
 
-    if(ttlOptsPanel->isOpen() || infoPanel->isOpen())
+    //todo: this better
+    if(ttlOptsPanel->isOpen() || infoPanel->isOpen() || fldPanel->isOpen())
         return;
 
-    uint64_t down = ui::padKeysDown();
-
-    switch(down)
-    {
-        case HidNpadButton_A:
-            if(fs::mountSave(data::curData.saveInfo))
-            {
-                fldInit();
-                ui::changeState(FLD_SEL);
-            }
-            else
-                ui::showPopup(POP_FRAME_DEFAULT, "Failed to Mount save!");
-            break;
-
-        case HidNpadButton_B:
-            ui::usrMenuSetActive(true);
-            ui::changeState(USR_SEL);
-            break;
-
-        case HidNpadButton_X:
-            ttlOpts->setActive(true);
-            ttlOptsPanel->openPanel();
-            break;
-
-        case HidNpadButton_Y:
-            {
-                uint64_t sid = data::curData.saveID;
-                data::favoriteTitle(sid);
-                setupTiles(NULL);
-                if(data::isFavorite(sid))
-                    data::selData = data::getTitleIndexInUser(data::curUser, sid);
-            }
-            break;
-
-        case HidNpadButton_StickLUp:
-        case HidNpadButton_Up:
-            data::selData -= 7;
-            if(data::selData < 0)
-                data::selData = 0;
-            break;
-
-        case HidNpadButton_StickLDown:
-        case HidNpadButton_Down:
-            data::selData += 7;
-            if(data::selData > (int)data::curUser.titleInfo.size() - 1)
-                data::selData = data::curUser.titleInfo.size() - 1;
-            break;
-
-        case HidNpadButton_StickLLeft:
-        case HidNpadButton_Left:
-            if(data::selData > 0)
-                --data::selData;
-            break;
-
-        case HidNpadButton_StickLRight:
-        case HidNpadButton_Right:
-            if(data::selData < (int)data::curUser.titleInfo.size() - 1)
-                ++data::selData;
-            break;
-
-        case HidNpadButton_L:
-            if(data::selData - 21 > 0)
-                data::selData -= 21;
-            else
-                data::selData = 0;
-            break;
-
-        case HidNpadButton_R:
-            if(data::selData + 21 < (int)data::curUser.titleInfo.size())
-                data::selData += 21;
-            else
-                data::selData = data::curUser.titleInfo.size() - 1;
-            break;
-    }
+    ttlViews[data::selUser]->update();
 }
 
 void ui::ttlDraw(SDL_Texture *target)
 {
-    updateTitleScroll();
-
-    if(clrAdd)
-    {
-        clrShft += 6;
-        if(clrShft >= 0x72)
-            clrAdd = false;
-    }
-    else
-    {
-        clrShft -= 3;
-        if(clrShft <= 0)
-            clrAdd = true;
-    }
-
-    int totalTiles = titleList.size();
-    int selX = 0, selY = 0;
-    for(int tY = y, i = 0; i < totalTiles; tY += 144)
-    {
-        int endRow = i + 7;
-        for(int tX = x; i < endRow; tX += 144, i++)
-        {
-            if(i >= totalTiles)
-                break;
-
-            if(i == data::selData && (ui::mstate == TTL_SEL|| ui::mstate == FLD_SEL))
-            {
-                //save x and y for selected for later so it's drawn on top.
-                //I can't find anyway to change the Z for SDL.
-                selX = tX;
-                selY = tY;
-                selRectX = tX - 24;
-                selRectY = tY - 24;
-            }
-            else
-                titleList[i].draw(target, tX, tY, false);
-        }
-    }
-
-    if(ui::mstate == TTL_SEL || ui::mstate == FLD_SEL)
-    {
-        //Draw selected after so it's on top
-        ui::drawBoundBox(target, selRectX, selRectY, 176, 176, clrShft);
-        titleList[data::selData].draw(target, selX, selY, true);
-        if(ui::mstate == TTL_SEL)
-            gfx::drawTextf(NULL, 18, ttlHelpX, 673, &ui::txtCont, ui::titleHelp.c_str());
-    }
-}
-
-//Todo make less hardcoded
-void titleTile::draw(SDL_Texture *target, int x, int y, bool sel)
-{
-    if(sel)
-    {
-        unsigned xScale = w * 1.28, yScale = w * 1.28;
-        if(wS < xScale)
-            wS += 18;
-        if(hS < yScale)
-            hS += 18;
-    }
-    else
-    {
-        if(wS > w)
-            wS -= 18;
-        if(hS > h)
-            hS -= 18;
-    }
-
-    int dX = x - ((wS - w) / 2);
-    int dY = y - ((hS - h) / 2);
-    gfx::texDrawStretch(target, icon, dX, dY, wS, hS);
-    if(fav)
-        gfx::drawTextf(target, 20, dX + 8, dY + 8, &ui::heartColor, "♥");
+    ttlViews[data::selUser]->draw(target);
+    if(ui::mstate == TTL_SEL)
+        gfx::drawTextf(NULL, 18, ttlHelpX, 673, &ui::txtCont, ui::titleHelp.c_str());
 }

@@ -53,6 +53,7 @@ unsigned leftWidth = 410;
 
 //Vector of pointers to slideOutPanels. Is looped and drawn last so they are always on top
 std::vector<ui::slideOutPanel *> panels;
+static unsigned int panelCount = 0;
 
 void ui::initTheme()
 {
@@ -83,7 +84,7 @@ void ui::initTheme()
             rectSh   = {0x20, 0x20, 0x20, 0xFF};
             tboxClr  = {0xEB, 0xEB, 0xEB, 0xFF};
             divClr   = {0xFF, 0xFF, 0xFF, 0xFF};
-            slidePanelColor  = {0x2F, 0x2F, 0x2F, 0xDD};
+            slidePanelColor  = {0x00, 0x00, 0x00, 0xDD};
             break;
     }
 }
@@ -159,7 +160,6 @@ void ui::exit()
 {
     ui::usrExit();
     ui::ttlExit();
-    ui::fldExit();
 
     SDL_DestroyTexture(cornerTopLeft);
     SDL_DestroyTexture(cornerTopRight);
@@ -179,9 +179,10 @@ void ui::exit()
     SDL_DestroyTexture(icn);
 }
 
-void ui::addPanel(slideOutPanel *sop)
+int ui::registerPanel(slideOutPanel *sop)
 {
     panels.push_back(sop);
+    return panelCount++;
 }
 
 void ui::showLoadScreen()
@@ -215,7 +216,6 @@ void ui::drawUI()
     ui::ttlDraw(rightPanel);
     gfx::texDraw(NULL, rightPanel, 200, 89);
     gfx::texDraw(NULL, leftPanel, 0, 89);
-    ui::fldDraw();
     for(slideOutPanel *s : panels)
         s->draw(&ui::slidePanelColor);
 }
@@ -240,10 +240,6 @@ bool ui::runApp()
 
         case TTL_SEL:
             ttlUpdate();
-            break;
-
-        case FLD_SEL:
-            fldUpdate();
             break;
 
         case OPT_MNU:
@@ -282,6 +278,7 @@ void ui::toTTL(void *a)
     if(data::curUser.titleInfo.size() > 0)
     {
         ui::changeState(TTL_SEL);
+        ui::ttlSetActive(data::selUser);
         ui::usrMenuSetActive(false);
     }
     else

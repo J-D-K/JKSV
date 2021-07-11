@@ -12,17 +12,12 @@
 #include "uistr.h"
 #include "usr.h"
 #include "ttl.h"
-#include "fld.h"
 
 enum menuState
 {
     USR_SEL,
     TTL_SEL,
-    FLD_SEL,
     ADV_MDE,
-    TXT_USR,
-    TXT_TTL,
-    TXT_FLD,
     EX_MNU,
     OPT_MNU
 };
@@ -82,7 +77,8 @@ namespace ui
     void exit();
 
     //Adds a panel pointer to a vector since they need to be drawn over everything else
-    void addPanel(slideOutPanel *sop);
+    int registerMenu(ui::menu *m);
+    int registerPanel(ui::slideOutPanel *sop);
 
     //Just draws a screen and flips JIC boot takes long.
     void showLoadScreen();

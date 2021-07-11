@@ -519,10 +519,6 @@ void updateAdvMode(const uint64_t& down, const uint64_t& held)
             case TTL_SEL:
                 ui::mstate = TTL_SEL;
                 break;
-
-            default:
-                ui::mstate = ui::textMode ? TXT_FLD : FLD_SEL;
-                break;
         }
     }
 }

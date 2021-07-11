@@ -15,22 +15,19 @@
 static ui::menu *usrMenu, *usrOptMenu, *saveCreateMenu;
 static ui::slideOutPanel *usrOptPanel, *saveCreatePanel;
 
+//Icons for settings + extras
+static SDL_Texture *sett, *ext;
+
 //This stores save ids to match with saveCreateMenu
 //Probably needs/should be changed
 static std::vector<uint64_t> sids;
 
 static unsigned optsPos = 0, extPos = 0, usrHelpX = 0;
 
-fs::backupArgs backargs;
-
 static void onMainChange(void *a)
 {
     if(usrMenu->getSelected() < (int)data::users.size())
-    {
         data::selUser = usrMenu->getSelected();
-        ui::ttlReset();
-        ui::setupTiles(NULL);
-    }
 }
 
 static void toOPT(void *a)
@@ -134,7 +131,7 @@ static void createSaveData(void *a)
     {
         ui::showPopup(POP_FRAME_DEFAULT, ui::saveCreated.c_str(), create->title.c_str());
         data::loadUsersTitles(false);
-        ui::setupTiles(NULL);
+        ui::refreshAllViews();
     }
     else
     {
@@ -162,11 +159,13 @@ void ui::usrInit()
         usrMenu->setOptFunc(ind, FUNC_A, toTTL, NULL);
     }
 
-    usrMenu->addOpt(NULL, "Settings");
+    sett = util::createIconGeneric("Settings", 40);
+    usrMenu->addOpt(sett, "Settings");
     optsPos = usrMenu->getOptPos("Settings");
     usrMenu->setOptFunc(optsPos, FUNC_A, toOPT, NULL);
 
-    usrMenu->addOpt(NULL, "Extras");
+    ext = util::createIconGeneric("Extras", 40);
+    usrMenu->addOpt(ext, "Extras");
     extPos = usrMenu->getOptPos("Extras");
     usrMenu->setOptFunc(extPos, FUNC_A, toEXT, NULL);
 
@@ -175,24 +174,24 @@ void ui::usrInit()
     usrMenu->editParam(MENU_RECT_WIDTH, 126);
 
     usrOptPanel = new ui::slideOutPanel(410, 720, 0, usrOptPanelDraw);
-    ui::addPanel(usrOptPanel);
+    ui::registerPanel(usrOptPanel);
     usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
     usrOptMenu->setOptFunc(0, FUNC_A, usrOptSaveCreate, NULL);
     usrOptMenu->setActive(false);
 
     saveCreatePanel = new ui::slideOutPanel(410, 720, 0, saveCreatePanelDraw);
     saveCreateMenu->setActive(false);
-    ui::addPanel(saveCreatePanel);
+    ui::registerPanel(saveCreatePanel);
     unsigned i = 0;
     for(auto& t : data::titles)
     {
-        saveCreateMenu->addOpt(NULL, t.second.title);
-        saveCreateMenu->setOptFunc(i++, FUNC_A, createSaveData, saveCreateMenu);
-        sids.push_back(t.first);
+        if(t.second.nacp.user_account_save_data_size > 0)
+        {
+            saveCreateMenu->addOpt(NULL, t.second.title);
+            saveCreateMenu->setOptFunc(i++, FUNC_A, createSaveData, saveCreateMenu);
+            sids.push_back(t.first);
+        }
     }
-
-    setupTiles(NULL);
-
     usrHelpX = 1220 - gfx::getTextWidth(ui::userHelp.c_str(), 18);
 }
 
@@ -203,6 +202,8 @@ void ui::usrExit()
     delete usrMenu;
     delete usrOptMenu;
     delete saveCreateMenu;
+    SDL_DestroyTexture(sett);
+    SDL_DestroyTexture(ext);
 }
 
 void ui::usrMenuSetActive(bool _set)

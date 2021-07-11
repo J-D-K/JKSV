@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <SDL.h>
 
 #include "type.h"
@@ -16,7 +17,7 @@ typedef enum
     FUNC_B,
     FUNC_X,
     FUNC_Y,
-} funcBtn;
+} menuFuncTypes;
 
 typedef enum
 {
@@ -48,7 +49,7 @@ namespace ui
             void editParam(int _param, unsigned newVal);
 
             //Gets executed when menu changes at all
-            void setOnChangeFunc(funcPtr func){ onChange = func; }
+            void setOnChangeFunc(funcPtr func) { onChange = func; }
 
             //executed when .update() is called.
             void setCallback(funcPtr _callback, void *args) { callback = _callback; callbackArgs = args; }
@@ -59,7 +60,7 @@ namespace ui
             void editOpt(int ind, SDL_Texture *_icn, const std::string& ch);
 
             void setOptFunc(unsigned _ind, unsigned _funcbtn, funcPtr _func, void *args);
-            void updateOptArgs(unsigned _ind, unsigned _funcbtn, void *args){ opt[_ind].argPtr[_funcbtn] = args; }
+            void updateOptArgs(unsigned _ind, unsigned _funcbtn, void *args) { opt[_ind].argPtr[_funcbtn] = args; }
 
             int getOptPos(const std::string& txt);
 
@@ -124,6 +125,8 @@ namespace ui
             slideOutPanel(int _w, int _h, int _y, funcPtr _draw);
             ~slideOutPanel();
 
+            void update();
+            void setCallback(funcPtr _cb, void *_args) { callback = _cb; cbArgs = _args; }
             void openPanel() { open = true; }
             void closePanel() { open = false; }
             bool isOpen() { return open; }
@@ -133,7 +136,55 @@ namespace ui
             int w, h, x = 1280, y, slideSpd = 0;
             bool open = false;
             SDL_Texture *panel;
-            funcPtr drawFunc;
+            funcPtr drawFunc, callback = NULL;
+            void *cbArgs = NULL;
+    };
+
+    class titleTile
+    {
+        public:
+            titleTile(unsigned _w, unsigned _h, bool _fav, SDL_Texture *_icon)
+            {
+                w = _w;
+                h = _h;
+                wS = _w;
+                hS = _h;
+                fav = _fav;
+                icon = _icon;
+            }
+
+            void draw(SDL_Texture *target, int x, int y, bool sel);
+
+        private:
+            unsigned w, h, wS, hS;
+            bool fav = false;
+            SDL_Texture *icon;
+    };
+
+    //Todo less hardcode etc
+    class titleview
+    {
+        public:
+            titleview(const data::user& _u, int _iconW, int _iconH, int _horGap, int _vertGap, int _rowCount, funcPtr _callback);
+            ~titleview();
+
+            void update();
+            void refresh();
+
+            void setActive(bool _set) { active = _set; }
+            bool getActive(){ return active; }
+            void setSelected(int _set){ selected = _set; }
+            int getSelected(){ return selected; }
+            void draw(SDL_Texture *target);
+
+        private:
+            const data::user *u;//Might not be safe. Users *shouldn't* be touched after initial load
+            bool active = false, clrAdd = true;
+            uint8_t clrShft = 0;
+            funcPtr callback = NULL;
+            int x = 34, y = 69, selected = 0, selRectX = 10, selRectY = 45;
+            int iconW, iconH, horGap, vertGap, rowCount;
+            std::vector<ui::titleTile *> tiles;
     };
 
     //General use

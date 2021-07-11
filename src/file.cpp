@@ -878,7 +878,7 @@ void fs::createNewBackup(void *a)
                 }
                 break;
         }
-        ui::fldInit();
+        ui::populateFldMenu();
     }
 }
 
@@ -910,6 +910,7 @@ void fs::overwriteBackup(void *a)
             zipClose(zip, NULL);
         }
     }
+    ui::populateFldMenu();
 }
 
 void fs::restoreBackup(void *a)
@@ -970,7 +971,7 @@ void fs::restoreBackup(void *a)
     }
 
     if(data::autoBack)
-        ui::fldInit();
+        ui::populateFldMenu();
 }
 
 void fs::deleteBackup(void *a)
@@ -994,7 +995,7 @@ void fs::deleteBackup(void *a)
             std::string delPath = util::generatePathByTID(data::curData.saveID) + itemName;
             fs::delfile(delPath);
         }
-        ui::fldInit();
+        ui::populateFldMenu();
     }
 }
 
