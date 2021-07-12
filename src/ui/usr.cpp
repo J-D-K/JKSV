@@ -12,17 +12,27 @@
 #include "ttl.h"
 
 //Main menu/Users + options, folder
-static ui::menu *usrMenu, *usrOptMenu, *saveCreateMenu;
-static ui::slideOutPanel *usrOptPanel, *saveCreatePanel;
+static ui::menu *usrMenu, *usrOptMenu, *saveCreateMenu, *deviceSaveMenu, *bcatSaveMenu, *cacheSaveMenu;
+//All save types have different entries.
+static ui::slideOutPanel *usrOptPanel, *saveCreatePanel, *deviceSavePanel, *bcatSavePanel, *cacheSavePanel;
 
 //Icons for settings + extras
 static SDL_Texture *sett, *ext;
 
+//Struct to send args to createFunc
+typedef struct
+{
+    FsSaveDataType type;
+    ui::menu *m;
+} svCreateArgs;
+
+static svCreateArgs accCreate, devCreate, bcatCreate, cacheCreate;
+
 //This stores save ids to match with saveCreateMenu
 //Probably needs/should be changed
-static std::vector<uint64_t> sids;
+static std::vector<uint64_t> accSids, devSids, bcatSids, cacheSids;
 
-static unsigned optsPos = 0, extPos = 0, usrHelpX = 0;
+static unsigned usrHelpX = 0;
 
 static void onMainChange(void *a)
 {
@@ -40,15 +50,6 @@ static void toEXT(void *a)
 {
     ui::changeState(EX_MNU);
     ui::usrMenuSetActive(false);
-}
-
-static void toMAIN(void *a)
-{
-    if(ui::padKeysDown() & HidNpadButton_B)
-    {
-        ui::changeState(USR_SEL);
-        ui::usrMenuSetActive(true);
-    }
 }
 
 static void usrOptCallback(void *a)
@@ -69,20 +70,59 @@ static void saveCreateCallback(void *a)
     {
         case HidNpadButton_B:
             usrOptMenu->setActive(true);
+            usrOptPanel->openPanel();
             saveCreateMenu->setActive(false);
             saveCreatePanel->closePanel();
-            usrOptPanel->openPanel();
+            deviceSaveMenu->setActive(false);
+            deviceSavePanel->closePanel();
+            bcatSaveMenu->setActive(false);
+            bcatSavePanel->closePanel();
+            cacheSaveMenu->setActive(false);
+            cacheSavePanel->closePanel();
             break;
     }
 }
 
 static void usrOptSaveCreate(void *a)
 {
-    ui::updateInput();
-    usrOptMenu->setActive(false);
-    saveCreateMenu->setActive(true);
-    usrOptPanel->closePanel();
-    saveCreatePanel->openPanel();
+    ui::menu *m = (ui::menu *)a;
+    int devPos = m->getOptPos("Device");
+    int bcatPos = m->getOptPos("BCAT");
+    int cachePos = m->getOptPos("Cache");
+
+    ui::updateInput();//Todo: Need to go through with fine tooth comb so this isn't needed
+    int sel = m->getSelected();
+    bool closeUsrOpt = false;
+    if(sel == devPos && deviceSaveMenu->getOptCount() > 0)
+    {
+        deviceSaveMenu->setActive(true);
+        deviceSavePanel->openPanel();
+        closeUsrOpt = true;
+    }
+    else if(sel == bcatPos && bcatSaveMenu->getOptCount() > 0)
+    {
+        bcatSaveMenu->setActive(true);
+        bcatSavePanel->openPanel();
+        closeUsrOpt = true;
+    }
+    else if(sel == cachePos && cacheSaveMenu->getOptCount() > 0)
+    {
+        cacheSaveMenu->setActive(true);
+        cacheSavePanel->openPanel();
+        closeUsrOpt = true;
+    }
+    else if(sel < devPos)
+    {
+        saveCreateMenu->setActive(true);
+        saveCreatePanel->openPanel();
+        closeUsrOpt = true;
+    }
+
+    if(closeUsrOpt)
+    {
+        usrOptMenu->setActive(false);
+        usrOptPanel->closePanel();
+    }
 }
 
 static void usrOptPanelDraw(void *a)
@@ -97,26 +137,96 @@ static void saveCreatePanelDraw(void *a)
     saveCreateMenu->draw(panel, &ui::txtCont, true);
 }
 
+static void deviceSavePanelDraw(void *a)
+{
+    SDL_Texture *panel = (SDL_Texture *)a;
+    deviceSaveMenu->draw(panel, &ui::txtCont, true);
+}
+
+static void bcatSavePanelDraw(void *a)
+{
+    SDL_Texture *panel = (SDL_Texture *)a;
+    bcatSaveMenu->draw(panel, &ui::txtCont, true);
+}
+
+static void cacheSavePanelDraw(void *a)
+{
+    SDL_Texture *panel = (SDL_Texture *)a;
+    cacheSaveMenu->draw(panel, &ui::txtCont, true);
+}
+
 static void createSaveData(void *a)
 {
-    ui::menu *in = (ui::menu *)a;
-    uint64_t sid = sids[in->getSelected()];
+    svCreateArgs *in = (svCreateArgs *)a;
+
+    FsSaveDataType type = in->type;
+    ui::menu *m = in->m;
+    uint64_t sid;
+    switch(type)
+    {
+        case FsSaveDataType_Account:
+            sid = accSids[m->getSelected()];
+            break;
+
+        case FsSaveDataType_Device:
+            sid = devSids[m->getSelected()];
+            break;
+
+        case FsSaveDataType_Bcat:
+            sid = bcatSids[m->getSelected()];
+            break;
+
+        case FsSaveDataType_Cache:
+            sid = cacheSids[m->getSelected()];
+            break;
+
+        default:
+            return;
+            break;
+    }
     data::titleInfo *create = data::getTitleInfoByTID(sid);
 
     FsSaveDataAttribute attr;
     memset(&attr, 0, sizeof(FsSaveDataAttribute));
     attr.application_id = sid;
-    attr.uid = data::curUser.getUID();
+    attr.uid = type == FsSaveDataType_Account ? data::curUser.getUID() : util::u128ToAccountUID(0);
     attr.system_save_data_id = 0;
-    attr.save_data_type = FsSaveDataType_Account;
+    attr.save_data_type = type;
     attr.save_data_rank = 0;
-    attr.save_data_index = 0;
+    attr.save_data_index = 0;//Todo: Let user input this
 
     FsSaveDataCreationInfo svCreate;
     memset(&svCreate, 0, sizeof(FsSaveDataCreationInfo));
-    svCreate.save_data_size = create->nacp.user_account_save_data_size;
-    svCreate.journal_size = create->nacp.user_account_save_data_journal_size;
-    svCreate.available_size = create->nacp.user_account_save_data_size;
+    int64_t saveSize = 0, journalSize = 0;
+    switch(type)
+    {
+        case FsSaveDataType_Account:
+            saveSize = create->nacp.user_account_save_data_size;
+            journalSize = create->nacp.user_account_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Device:
+            saveSize = create->nacp.device_save_data_size;
+            journalSize = create->nacp.device_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Bcat:
+            saveSize = create->nacp.bcat_delivery_cache_storage_size;
+            journalSize = create->nacp.user_account_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Cache:
+            saveSize = 32 * 1024 * 1024;//Todo: Add target folder/zip selection for size
+            journalSize = create->nacp.user_account_save_data_journal_size;
+            break;
+
+        default:
+            return;
+            break;
+    }
+    svCreate.save_data_size = saveSize;
+    svCreate.journal_size = journalSize;
+    svCreate.available_size = 0x4000;
     svCreate.owner_id = create->nacp.save_data_owner_id;
     svCreate.flags = 0;
     svCreate.save_data_space_id = FsSaveDataSpaceId_User;
@@ -136,6 +246,7 @@ static void createSaveData(void *a)
     else
     {
         ui::showPopup(POP_FRAME_DEFAULT, ui::saveCreateFailed.c_str());
+        fs::logWrite("SaveCreate Failed -> %X\n", res);
     }
 }
 
@@ -144,52 +255,99 @@ void ui::usrInit()
     usrMenu = new ui::menu;
     usrOptMenu = new ui::menu;
     saveCreateMenu = new ui::menu;
+    deviceSaveMenu = new ui::menu;
+    bcatSaveMenu = new ui::menu;
+    cacheSaveMenu = new ui::menu;
 
     usrMenu->setParams(64, 16, 0, 96, 4);
     usrOptMenu->setParams(8, 32, 390, 18, 8);
     usrOptMenu->setCallback(usrOptCallback, NULL);
 
     saveCreateMenu->setParams(8, 32, 390, 18, 8);
+    saveCreateMenu->setActive(false);
     saveCreateMenu->setCallback(saveCreateCallback, NULL);
+
+    deviceSaveMenu->setParams(8, 32, 390, 18, 8);
+    deviceSaveMenu->setActive(false);
+    deviceSaveMenu->setCallback(saveCreateCallback, NULL);
+
+    bcatSaveMenu->setParams(8, 32, 390, 18, 8);
+    bcatSaveMenu->setActive(false);
+    bcatSaveMenu->setCallback(saveCreateCallback, NULL);
+
+    cacheSaveMenu->setParams(8, 32, 390, 18, 8);
+    cacheSaveMenu->setActive(false);
+    cacheSaveMenu->setCallback(saveCreateCallback, NULL);
 
     for(data::user u : data::users)
     {
-        usrMenu->addOpt(u.getUserIcon(), u.getUsername());
-        unsigned ind = usrMenu->getOptPos(u.getUsername());
-        usrMenu->setOptFunc(ind, FUNC_A, toTTL, NULL);
+        int usrPos = usrMenu->addOpt(u.getUserIcon(), u.getUsername());
+        usrMenu->setOptFunc(usrPos, FUNC_A, toTTL, NULL);
     }
 
     sett = util::createIconGeneric("Settings", 40);
-    usrMenu->addOpt(sett, "Settings");
-    optsPos = usrMenu->getOptPos("Settings");
-    usrMenu->setOptFunc(optsPos, FUNC_A, toOPT, NULL);
+    int pos = usrMenu->addOpt(sett, "Settings");
+    usrMenu->setOptFunc(pos, FUNC_A, toOPT, NULL);
 
     ext = util::createIconGeneric("Extras", 40);
-    usrMenu->addOpt(ext, "Extras");
-    extPos = usrMenu->getOptPos("Extras");
-    usrMenu->setOptFunc(extPos, FUNC_A, toEXT, NULL);
+    pos = usrMenu->addOpt(ext, "Extras");
+    usrMenu->setOptFunc(pos, FUNC_A, toEXT, NULL);
 
     usrMenu->setOnChangeFunc(onMainChange);
-
     usrMenu->editParam(MENU_RECT_WIDTH, 126);
 
     usrOptPanel = new ui::slideOutPanel(410, 720, 0, usrOptPanelDraw);
     ui::registerPanel(usrOptPanel);
     usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
-    usrOptMenu->setOptFunc(0, FUNC_A, usrOptSaveCreate, NULL);
+    usrOptMenu->setOptFunc(0, FUNC_A, usrOptSaveCreate, usrMenu);
     usrOptMenu->setActive(false);
 
     saveCreatePanel = new ui::slideOutPanel(410, 720, 0, saveCreatePanelDraw);
-    saveCreateMenu->setActive(false);
     ui::registerPanel(saveCreatePanel);
-    unsigned i = 0;
+
+    deviceSavePanel = new ui::slideOutPanel(410, 720, 0, deviceSavePanelDraw);
+    ui::registerPanel(deviceSavePanel);
+
+    bcatSavePanel = new ui::slideOutPanel(410, 720, 0, bcatSavePanelDraw);
+    ui::registerPanel(bcatSavePanel);
+
+    cacheSavePanel = new ui::slideOutPanel(410, 720, 0, cacheSavePanelDraw);
+    ui::registerPanel(cacheSavePanel);
+
+    accCreate = {FsSaveDataType_Account, saveCreateMenu};
+    devCreate = {FsSaveDataType_Device, deviceSaveMenu};
+    bcatCreate = {FsSaveDataType_Bcat, bcatSaveMenu};
+    cacheCreate = {FsSaveDataType_Cache, cacheSaveMenu};
     for(auto& t : data::titles)
     {
-        if(t.second.nacp.user_account_save_data_size > 0)
+        NacpStruct *nacp = &t.second.nacp;
+
+        if(nacp->user_account_save_data_size > 0)
         {
-            saveCreateMenu->addOpt(NULL, t.second.title);
-            saveCreateMenu->setOptFunc(i++, FUNC_A, createSaveData, saveCreateMenu);
-            sids.push_back(t.first);
+            int optPos = saveCreateMenu->addOpt(NULL, t.second.title);
+            saveCreateMenu->setOptFunc(optPos, FUNC_A, createSaveData, &accCreate);
+            accSids.push_back(t.first);
+        }
+
+        if(nacp->device_save_data_size > 0)
+        {
+            int optPos = deviceSaveMenu->addOpt(NULL,  t.second.title);
+            deviceSaveMenu->setOptFunc(optPos, FUNC_A, createSaveData, &devCreate);
+            devSids.push_back(t.first);
+        }
+
+        if(nacp->bcat_delivery_cache_storage_size > 0)
+        {
+            int optPos = bcatSaveMenu->addOpt(NULL, t.second.title);
+            bcatSaveMenu->setOptFunc(optPos, FUNC_A, createSaveData, &bcatCreate);
+            bcatSids.push_back(t.first);
+        }
+
+        if(nacp->cache_storage_size > 0)
+        {
+            int optPos = cacheSaveMenu->addOpt(NULL, t.second.title);
+            cacheSaveMenu->setOptFunc(optPos, FUNC_A, createSaveData, &cacheCreate);
+            cacheSids.push_back(t.first);
         }
     }
     usrHelpX = 1220 - gfx::getTextWidth(ui::userHelp.c_str(), 18);
@@ -199,9 +357,17 @@ void ui::usrExit()
 {
     delete usrOptPanel;
     delete saveCreatePanel;
+    delete deviceSavePanel;
+    delete bcatSavePanel;
+    delete cacheSavePanel;
+
     delete usrMenu;
     delete usrOptMenu;
     delete saveCreateMenu;
+    delete deviceSaveMenu;
+    delete bcatSaveMenu;
+    delete cacheSaveMenu;
+
     SDL_DestroyTexture(sett);
     SDL_DestroyTexture(ext);
 }
@@ -216,8 +382,11 @@ void ui::usrUpdate()
     usrMenu->update();
     usrOptMenu->update();
     saveCreateMenu->update();
+    deviceSaveMenu->update();
+    bcatSaveMenu->update();
+    cacheSaveMenu->update();
 
-    if(!usrOptMenu->getActive() && !saveCreateMenu->getActive())
+    if(!usrOptMenu->getActive() && !saveCreateMenu->getActive() && !deviceSaveMenu->getActive() && !bcatSaveMenu->getActive() && !cacheSaveMenu->getActive())
     {
         switch(ui::padKeysDown())
         {

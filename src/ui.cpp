@@ -42,7 +42,6 @@ SDL_Texture *ui::mnuTopLeft, *ui::mnuTopRight, *ui::mnuBotLeft, *ui::mnuBotRight
 SDL_Texture *ui::sideBar;
 
 static SDL_Texture *icn, *leftPanel, *rightPanel;
-static SDL_Color rectTop = {0x36, 0x36, 0x36, 0xFF};
 SDL_Color ui::heartColor = {0xFF, 0x44, 0x44, 0xFF};
 
 //X position of help texts. Calculated to make editing quicker/easier

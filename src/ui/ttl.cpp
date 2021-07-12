@@ -15,7 +15,7 @@ static std::string infoPanelString;
 
 void ui::refreshAllViews()
 {
-    for(int i = 0; i < data::users.size(); i++)
+    for(int i = 0; i < (int)data::users.size(); i++)
         ttlViews[i]->refresh();
 }
 
@@ -167,7 +167,7 @@ static void ttlOptsDeleteSaveData(void *a)
 {
     FsSaveDataAttribute attr;
     attr.application_id = data::curData.saveID;
-    attr.uid = data::curUser.getUID();
+    attr.uid = data::curData.saveInfo.save_data_type == FsSaveDataType_Account ? data::curUser.getUID() : util::u128ToAccountUID(0);
     attr.system_save_data_id = 0;
     attr.save_data_type = data::curData.saveInfo.save_data_type;
     attr.save_data_rank = data::curData.saveInfo.save_data_rank;
@@ -247,7 +247,6 @@ void ui::ttlExit()
     delete ttlOpts;
     delete infoPanel;
     delete fldPanel;
-    delete ttlOpts;
     delete fldMenu;
     delete fldList;
     delete backargs;

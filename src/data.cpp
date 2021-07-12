@@ -29,7 +29,7 @@ bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = fal
 uint8_t data::sortType = 0;
 
 //For other save types
-static bool sysBCATPushed = false, cachePushed = false, tempPushed = false;
+static bool sysBCATPushed = false, tempPushed = false;
 
 static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
@@ -230,7 +230,6 @@ bool data::loadUsersTitles(bool clearUsers)
 
         loadUserAccounts();
         sysBCATPushed = false;
-        cachePushed = false;
         tempPushed = false;
         users.emplace_back(util::u128ToAccountUID(3), "Device");
         users.emplace_back(util::u128ToAccountUID(2), "BCAT");
@@ -277,12 +276,6 @@ bool data::loadUsersTitles(bool clearUsers)
 
                 case FsSaveDataType_Cache:
                     info.uid = util::u128ToAccountUID(5);
-                    if(!cachePushed)
-                    {
-                        ++systemUserCount;
-                        cachePushed = true;
-                        users.emplace_back(util::u128ToAccountUID(5), "Cache");
-                    }
                     break;
 
                 case FsSaveDataType_Temporary:

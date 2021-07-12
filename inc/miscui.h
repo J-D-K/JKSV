@@ -55,13 +55,12 @@ namespace ui
             void setCallback(funcPtr _callback, void *args) { callback = _callback; callbackArgs = args; }
 
             //Adds option.
-            void addOpt(SDL_Texture *_icn, const std::string& add);
+            int addOpt(SDL_Texture *_icn, const std::string& add);
             //Changes opt text
             void editOpt(int ind, SDL_Texture *_icn, const std::string& ch);
-
             void setOptFunc(unsigned _ind, unsigned _funcbtn, funcPtr _func, void *args);
             void updateOptArgs(unsigned _ind, unsigned _funcbtn, void *args) { opt[_ind].argPtr[_funcbtn] = args; }
-
+            size_t getOptCount() { return opt.size(); }
             int getOptPos(const std::string& txt);
 
             //Clears menu stuff

@@ -74,7 +74,7 @@ void ui::menu::editParam(int _param, unsigned newVal)
     }
 }
 
-void ui::menu::addOpt(SDL_Texture *_icn, const std::string& add)
+int ui::menu::addOpt(SDL_Texture *_icn, const std::string& add)
 {
     ui::menuOpt newOpt;
     if((int)gfx::getTextWidth(add.c_str(), fSize) < rW - 56 || rW == 0)
@@ -98,6 +98,7 @@ void ui::menu::addOpt(SDL_Texture *_icn, const std::string& add)
     }
     newOpt.icn = _icn;
     opt.push_back(newOpt);
+    return opt.size() - 1;
 }
 
 void ui::menu::editOpt(int ind, SDL_Texture *_icn, const std::string& ch)
@@ -410,7 +411,7 @@ void ui::titleview::refresh()
 
 void ui::titleview::update()
 {
-    if(selected > tiles.size() - 1)
+    if(selected > (int)tiles.size() - 1)
         selected = tiles.size() - 1;
 
     if(!active)
@@ -428,7 +429,7 @@ void ui::titleview::update()
         case HidNpadButton_StickLDown:
         case HidNpadButton_StickRDown:
         case HidNpadButton_Down:
-            if((selected += rowCount) > tiles.size() - 1)
+            if((selected += rowCount) > (int)(tiles.size() - 1))
                 selected = tiles.size() - 1;
             break;
 
@@ -442,7 +443,7 @@ void ui::titleview::update()
         case HidNpadButton_StickLRight:
         case HidNpadButton_StickRRight:
         case HidNpadButton_Right:
-            if(selected < tiles.size() - 1)
+            if(selected < (int)(tiles.size() - 1))
                 ++selected;
             break;
 
@@ -452,7 +453,7 @@ void ui::titleview::update()
             break;
 
         case HidNpadButton_R:
-            if((selected += rowCount * 3) > tiles.size() - 1)
+            if((selected += rowCount * 3) > (int)(tiles.size() - 1))
                 selected = tiles.size() - 1;
             break;
     }
