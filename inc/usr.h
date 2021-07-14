@@ -4,7 +4,9 @@ namespace ui
 {
     void usrInit();
     void usrExit();
-    void usrMenuSetActive(bool _set);
     void usrUpdate();
     void usrDraw(SDL_Texture *target);
+
+    //A lot of stuff needs access to this
+    extern ui::menu *usrMenu;
 }

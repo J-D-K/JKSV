@@ -12,6 +12,7 @@
 #include "uistr.h"
 #include "usr.h"
 #include "ttl.h"
+#include "sett.h"
 
 enum menuState
 {

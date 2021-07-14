@@ -59,7 +59,7 @@ static void ttlViewCallback(void *a)
 
         case HidNpadButton_B:
             ttlViews[data::selUser]->setActive(false);
-            ui::usrMenuSetActive(true);
+            ui::usrMenu->setActive(true);
             ui::changeState(USR_SEL);
             break;
 
@@ -77,7 +77,7 @@ static void ttlViewCallback(void *a)
                 uint64_t sid = data::curData.saveID;
                 data::favoriteTitle(sid);
                 int newSel = data::getTitleIndexInUser(data::curUser, sid);
-                ttlViews[data::selUser]->refresh();
+                ui::refreshAllViews();
                 ttlViews[data::selUser]->setSelected(newSel);
             }
             break;
@@ -182,11 +182,35 @@ static void ttlOptsDeleteSaveData(void *a)
             //Kick back to user
             ttlOptsPanel->closePanel();//JIC
             ttlViews[data::selUser]->setActive(false);
-            ui::usrMenuSetActive(true);
+            ui::usrMenu->setActive(true);
             ui::changeState(USR_SEL);
         }
         ui::showPopup(POP_FRAME_DEFAULT, ui::saveDataDeleteSuccess.c_str(), title.c_str());
         ttlViews[data::selUser]->refresh();
+    }
+}
+
+static void ttlOptsExtendSaveData(void *a)
+{
+    std::string expSizeStr = util::getStringInput("", "Enter Expansion size in MB", 8, 0, NULL);
+    if(!expSizeStr.empty())
+    {
+        uint64_t expMB = strtoul(expSizeStr.c_str(), NULL, 10);
+
+        data::titleInfo *extend = data::getTitleInfoByTID(data::curData.saveID);
+        FsSaveDataSpaceId space = (FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id;
+        uint64_t sid = data::curData.saveInfo.save_data_id;
+        uint64_t expSize = expMB * 1024 * 1024;
+        uint64_t journ = extend->nacp.user_account_save_data_journal_size;
+
+        Result res = 0;
+        if(R_SUCCEEDED(res = fs::extendSaveDataFileSystem(space, sid, expSize, journ)))
+            ui::showPopup(POP_FRAME_DEFAULT, "Save data expanded for %s!", extend->title.c_str());
+        else
+        {
+            ui::showPopup(POP_FRAME_DEFAULT, "Failed to expand save data.");
+            fs::logWrite("Extend Failed: %u -> %X\n", expSize, res);
+        }
     }
 }
 
@@ -236,6 +260,9 @@ void ui::ttlInit()
     ttlOpts->setOptFunc(2, FUNC_A, ttlOptsResetSaveData, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[3]);
     ttlOpts->setOptFunc(3, FUNC_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->addOpt(NULL, ui::titleOptString[4]);
+    ttlOpts->setOptFunc(4, FUNC_A, ttlOptsExtendSaveData, NULL);
+
 }
 
 void ui::ttlExit()

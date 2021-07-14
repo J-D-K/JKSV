@@ -460,12 +460,12 @@ void data::saveBlackList()
 
 void data::blacklistAdd(const uint64_t& tid)
 {
+    blacklist.push_back(tid);
     for(data::user& _u : data::users)
     {
         for(unsigned i = 0; i < _u.titleInfo.size(); i++)
             if(_u.titleInfo[i].saveID == tid) _u.titleInfo.erase(_u.titleInfo.begin() + i);
     }
-    blacklist.push_back(tid);
 }
 
 void data::favoriteTitle(const uint64_t& tid)

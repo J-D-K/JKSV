@@ -12,7 +12,9 @@
 #include "ttl.h"
 
 //Main menu/Users + options, folder
-static ui::menu *usrMenu, *usrOptMenu, *saveCreateMenu, *deviceSaveMenu, *bcatSaveMenu, *cacheSaveMenu;
+ui::menu *ui::usrMenu;
+
+static ui::menu *usrOptMenu, *saveCreateMenu, *deviceSaveMenu, *bcatSaveMenu, *cacheSaveMenu;
 //All save types have different entries.
 static ui::slideOutPanel *usrOptPanel, *saveCreatePanel, *deviceSavePanel, *bcatSavePanel, *cacheSavePanel;
 
@@ -36,20 +38,20 @@ static unsigned usrHelpX = 0;
 
 static void onMainChange(void *a)
 {
-    if(usrMenu->getSelected() < (int)data::users.size())
-        data::selUser = usrMenu->getSelected();
+    if(ui::usrMenu->getSelected() < (int)data::users.size())
+        data::selUser = ui::usrMenu->getSelected();
 }
 
 static void toOPT(void *a)
 {
     ui::changeState(OPT_MNU);
-    ui::usrMenuSetActive(false);
+    ui::usrMenu->setActive(false);
 }
 
 static void toEXT(void *a)
 {
     ui::changeState(EX_MNU);
-    ui::usrMenuSetActive(false);
+    ui::usrMenu->setActive(false);
 }
 
 static void usrOptCallback(void *a)
@@ -58,7 +60,7 @@ static void usrOptCallback(void *a)
     {
         case HidNpadButton_B:
             usrOptPanel->closePanel();
-            usrMenu->setActive(true);
+            ui::usrMenu->setActive(true);
             usrOptMenu->setActive(false);
             break;
     }
@@ -122,6 +124,29 @@ static void usrOptSaveCreate(void *a)
     {
         usrOptMenu->setActive(false);
         usrOptPanel->closePanel();
+    }
+}
+
+//nsDeleteUserSaveDataAll only works if the user is selected at system level
+static void usrOptDeleteAllUserSaves(void *a)
+{
+    data::user *u = &data::users[data::selUser];
+    if(ui::confirm(true, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*", u->getUsername().c_str()))
+    {
+        for(data::userTitleInfo& tinf : u->titleInfo)
+        {
+            FsSaveDataAttribute attr;
+            attr.application_id = tinf.saveID;
+            attr.uid = u->getUID();
+            attr.system_save_data_id = 0;
+            attr.save_data_type = tinf.saveInfo.save_data_type;
+            attr.save_data_rank = tinf.saveInfo.save_data_rank;
+            attr.save_data_index = tinf.saveInfo.save_data_index;
+
+            fsDeleteSaveDataFileSystemBySaveDataAttribute(FsSaveDataSpaceId_User, &attr);
+        }
+        data::loadUsersTitles(false);
+        ui::refreshAllViews();
     }
 }
 
@@ -212,7 +237,7 @@ static void createSaveData(void *a)
 
         case FsSaveDataType_Bcat:
             saveSize = create->nacp.bcat_delivery_cache_storage_size;
-            journalSize = create->nacp.user_account_save_data_journal_size;
+            journalSize = create->nacp.bcat_delivery_cache_storage_size;//This needs to be fixed
             break;
 
         case FsSaveDataType_Cache:
@@ -300,6 +325,8 @@ void ui::usrInit()
     ui::registerPanel(usrOptPanel);
     usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
     usrOptMenu->setOptFunc(0, FUNC_A, usrOptSaveCreate, usrMenu);
+    usrOptMenu->addOpt(NULL, ui::usrOptString[1]);
+    usrOptMenu->setOptFunc(1, FUNC_A, usrOptDeleteAllUserSaves, NULL);
     usrOptMenu->setActive(false);
 
     saveCreatePanel = new ui::slideOutPanel(410, 720, 0, saveCreatePanelDraw);
@@ -372,11 +399,6 @@ void ui::usrExit()
     SDL_DestroyTexture(ext);
 }
 
-void ui::usrMenuSetActive(bool _set)
-{
-    usrMenu->setActive(_set);
-}
-
 void ui::usrUpdate()
 {
     usrMenu->update();
@@ -386,14 +408,21 @@ void ui::usrUpdate()
     bcatSaveMenu->update();
     cacheSaveMenu->update();
 
+    //Todo: Not this
     if(!usrOptMenu->getActive() && !saveCreateMenu->getActive() && !deviceSaveMenu->getActive() && !bcatSaveMenu->getActive() && !cacheSaveMenu->getActive())
     {
         switch(ui::padKeysDown())
         {
             case HidNpadButton_X:
-                usrOptMenu->setActive(true);
-                usrMenu->setActive(false);
-                usrOptPanel->openPanel();
+                {
+                    int cachePos = usrMenu->getOptPos("Cache");
+                    if(usrMenu->getSelected() <= cachePos)
+                    {
+                        usrOptMenu->setActive(true);
+                        usrMenu->setActive(false);
+                        usrOptPanel->openPanel();
+                    }
+                }
                 break;
         }
     }

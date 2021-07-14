@@ -44,8 +44,8 @@ std::string ui::exMenuStr[11] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SA
 std::string ui::optMenuStr[15] = { "Include Device Saves: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Text UI Mode: ", "Direct FS Cmd: ", "Skip User Select: ", "Export to ZIP: ", "Language Override: ", "Sort: "};
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };
-std::string ui::usrOptString[1] = { "Create Save Data" };
-std::string ui::titleOptString[4] = {"Information", "Blacklist", "Reset Save Data", "Delete Save Filesystem"};
+std::string ui::usrOptString[2] = { "Create Save Data", "Delete All User Saves" };
+std::string ui::titleOptString[5] = {"Information", "Blacklist", "Reset Save Data", "Delete Save Filesystem", "Extend Save Filesystem"};
 
 void ui::loadTrans()
 {

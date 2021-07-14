@@ -374,7 +374,7 @@ size_t gfx::getTextWidth(const char *str, int fontSize)
         i += unitCnt;
 
         //Ignore these
-        if(point == '\n')
+        if(point == '\n' || point == '#' || point == '*' || point == '<' || point == '>')
             continue;
 
         glyphData *g = getGlyph(point, fontSize);

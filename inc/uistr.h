@@ -22,7 +22,7 @@ namespace ui
     //Strings for sort type
     extern std::string sortString[3];
     //Strings for user options
-    extern std::string usrOptString[1];
+    extern std::string usrOptString[2];
     //Strings for title options
-    extern std::string titleOptString[4];
+    extern std::string titleOptString[5];
 }

@@ -171,6 +171,20 @@ bool fs::mountSave(const FsSaveDataInfo& _m)
     return R_SUCCEEDED(svOpen) && fsdevMountDevice("sv", sv) != -1;
 }
 
+Result fs::extendSaveDataFileSystem(FsSaveDataSpaceId _id, uint64_t _saveID, uint64_t _expSize, uint64_t _journal)
+{
+    Service *fs = fsGetServiceSession();
+    struct
+    {
+        uint8_t id;
+        uint64_t saveID;
+        uint64_t expSize;
+        uint64_t journal;
+    } in = {(uint8_t)_id, _saveID, _expSize, _journal};
+
+    return serviceDispatchIn(fs, 32, in);
+}
+
 fs::dirItem::dirItem(const std::string& pathTo, const std::string& sItem)
 {
     itm = sItem;

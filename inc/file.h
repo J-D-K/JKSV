@@ -20,6 +20,7 @@ namespace fs
     //Mounts usr's save data for open. Returns false it fails
     bool mountSave(const FsSaveDataInfo& _m);
     inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
+    Result extendSaveDataFileSystem(FsSaveDataSpaceId _id, uint64_t _saveID, uint64_t _expSize, uint64_t _journal);
 
     void copyFile(const std::string& from, const std::string& to);
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);

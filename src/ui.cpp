@@ -46,6 +46,7 @@ SDL_Color ui::heartColor = {0xFF, 0x44, 0x44, 0xFF};
 
 //X position of help texts. Calculated to make editing quicker/easier
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
+static int settPos, extPos;
 
 //For shrinking left panel
 unsigned leftWidth = 410;
@@ -153,12 +154,18 @@ void ui::init()
     //advCopyMenuPrep();
     ui::usrInit();
     ui::ttlInit();
+    ui::settInit();
+
+    //Need these from user/main menu
+    settPos = ui::usrMenu->getOptPos("Settings");
+    extPos  = ui::usrMenu->getOptPos("Extras");
 }
 
 void ui::exit()
 {
     ui::usrExit();
     ui::ttlExit();
+    ui::settExit();
 
     SDL_DestroyTexture(cornerTopLeft);
     SDL_DestroyTexture(cornerTopRight);
@@ -212,7 +219,14 @@ void ui::drawUI()
 
     gfx::texDraw(leftPanel, sideBar, 0, 89);
     ui::usrDraw(leftPanel);
-    ui::ttlDraw(rightPanel);
+
+    if(ui::usrMenu->getSelected() == settPos || ui::mstate == OPT_MNU)
+        ui::settDraw(rightPanel);
+    else if(usrMenu->getSelected() == extPos || ui::mstate == EX_MNU)
+        gfx::drawTextf(rightPanel, 24, 32, 32, &ui::txtCont, "PLACE HOLDER SO COMPILER DOESN'T COMPLAIN");
+    else
+        ui::ttlDraw(rightPanel);
+
     gfx::texDraw(NULL, rightPanel, 200, 89);
     gfx::texDraw(NULL, leftPanel, 0, 89);
     for(slideOutPanel *s : panels)
@@ -242,13 +256,7 @@ bool ui::runApp()
             break;
 
         case OPT_MNU:
-            /*optMenu.update();
-            if(down & HidNpadButton_B)
-            {
-                ui::changeState(USR_SEL);
-                mainMenu.setActive(true);
-                optMenu.setActive(false);
-            }*/
+            settUpdate();
             break;
 
         case EX_MNU:
@@ -278,7 +286,7 @@ void ui::toTTL(void *a)
     {
         ui::changeState(TTL_SEL);
         ui::ttlSetActive(data::selUser);
-        ui::usrMenuSetActive(false);
+        ui::usrMenu->setActive(false);
     }
     else
         ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());

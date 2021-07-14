@@ -11,7 +11,7 @@
 #define curData users[data::selUser].titleInfo[data::selData]
 
 #define BLD_MON 7
-#define BLD_DAY 12
+#define BLD_DAY 13
 #define BLD_YEAR 2021
 
 namespace data
