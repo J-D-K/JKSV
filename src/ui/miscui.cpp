@@ -411,7 +411,7 @@ void ui::titleview::refresh()
 
 void ui::titleview::update()
 {
-    if(selected > (int)tiles.size() - 1)
+    if(selected > (int)tiles.size() - 1 && selected > 0)
         selected = tiles.size() - 1;
 
     if(!active)
@@ -495,7 +495,7 @@ void ui::titleview::draw(SDL_Texture *target)
             if(i >= totalTitles)
                 break;
 
-            if(i == selected && active)
+            if(i == selected && showSel)
             {
                 //save x and y for later so it's draw over top
                 selX = tX;
@@ -508,10 +508,46 @@ void ui::titleview::draw(SDL_Texture *target)
         }
     }
 
-    if(active)
+    if(showSel)
     {
         ui::drawBoundBox(target, selRectX, selRectY, 176, 176, clrShft);
         tiles[selected]->draw(target, selX, selY, true);
+    }
+}
+
+ui::popMessageMngr::~popMessageMngr()
+{
+    message.clear();
+}
+
+void ui::popMessageMngr::update()
+{
+    for(unsigned i = 0; i < message.size(); i++)
+    {
+        message[i].frames--;
+        if(message[i].frames <= 0)
+            message.erase(message.begin() + i);
+    }
+}
+
+void ui::popMessageMngr::popMessageAdd(const std::string& mess, int frameTime)
+{
+    int rectWidth = gfx::getTextWidth(mess.c_str(), 24);
+    ui::popMessage newPop = {mess, rectWidth + 32, frameTime};
+    message.push_back(newPop);
+}
+
+void ui::popMessageMngr::draw()
+{
+    int y = 640;
+    for(auto& p : message)
+    {
+        y -= 48;
+        if(p.y != y)
+            p.y += (y - p.y) / 2;
+
+        gfx::drawRect(NULL, &ui::tboxClr, 64, p.y, p.rectWidth, 40);
+        gfx::drawTextf(NULL, 24, 80, p.y + 8, &ui::txtDiag, p.message.c_str());
     }
 }
 
@@ -643,7 +679,7 @@ bool ui::confirmTransfer(const std::string& f, const std::string& t)
 
 bool ui::confirmDelete(const std::string& p)
 {
-    return confirm(data::holdDel, ui::confDel.c_str(), p.c_str());
+    return confirm(data::config["holdDel"], ui::confDel.c_str(), p.c_str());
 }
 
 void ui::drawTextbox(SDL_Texture *target, int x, int y, int w, int h)
@@ -694,54 +730,4 @@ void ui::drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t c
     gfx::texDraw(target, mnuBotLeft, x, (y + h) - 4);
     gfx::drawRect(target, &rectClr, x + 4, (y + h) - 4, w - 8, 4);
     gfx::texDraw(target, mnuBotRight, (x + w) - 4, (y + h) - 4);
-}
-
-void ui::showPopup(unsigned frames, const char *fmt, ...)
-{
-    char tmp[256];
-    va_list args;
-    va_start(args, fmt);
-    vsprintf(tmp, fmt, args);
-    va_end(args);
-
-    frameCount = 0;
-    frameHold = frames;
-    popWidth = gfx::getTextWidth(tmp, 24) + 32;
-    popX = 640 - (popWidth / 2);
-
-    popText = tmp;
-    popY = 721;
-    popState = popRise;
-    popDraw = true;
-}
-
-void ui::drawPopup(const uint64_t& down)
-{
-    if(!popDraw)
-        return;
-
-    switch(popState)
-    {
-        case popRise:
-            if(popY > 560)
-                popY -= 24;
-            else
-                popState = popShow;
-            break;
-
-        case popShow:
-            if(frameCount++ >= frameHold || down)
-                popState = popFall;
-            break;
-
-        case popFall:
-            if(popY < 721)
-                popY += 24;
-            else
-                popDraw = false;
-            break;
-    }
-
-    drawTextbox(NULL, popX, popY, popWidth, 64);
-    gfx::drawTextf(NULL, 24, popX + 16, popY + 20, &ui::txtDiag, popText.c_str());
 }

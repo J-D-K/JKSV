@@ -22,10 +22,6 @@ std::vector<data::user> data::users;
 //System language
 SetLanguage data::sysLang;
 
-//Options
-bool data::incDev = false, data::autoBack = true, data::ovrClk = false, data::holdDel = true, data::holdRest = true, data::holdOver = true;
-bool data::forceMount = true, data::accSysSave = false, data::sysSaveWrite = false, data::directFsCmd = false, data::skipUser = false, data::zip = false, data::langOverride = false;
-
 uint8_t data::sortType = 0;
 
 //For other save types
@@ -35,6 +31,7 @@ static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 std::unordered_map<uint64_t, data::titleInfo> data::titles;
+std::unordered_map<std::string, bool> data::config;
 
 static SDL_Texture *iconMask;
 
@@ -114,7 +111,7 @@ static bool isDefined(const uint64_t& id)
 
 static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 {
-    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !data::accSysSave)
+    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !data::config["accSysSave"])
         return false;
 
     return true;
@@ -124,7 +121,7 @@ static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 static bool testMount(const FsSaveDataInfo& _inf)
 {
     bool ret = false;
-    if(!data::forceMount)
+    if(!data::config["forceMount"])
         return true;
 
     if((ret = fs::mountSave(_inf)))
@@ -332,10 +329,11 @@ void data::init()
 {
     loadBlacklist();
     loadFav();
+    data::restoreDefaultConfig();
     loadCfg();
     loadDefs();
 
-    if(data::ovrClk)
+    if(data::config["ovrClk"])
         util::setCPU(1224000000);
 
     uint64_t lang;
@@ -498,19 +496,18 @@ void data::loadCfg()
         fread(&data::sortType, 1, 1, cfg);
         fclose(cfg);
 
-        data::incDev = cfgIn >> 63 & 1;
-        data::autoBack = cfgIn >> 62 & 1;
-        data::ovrClk = cfgIn >> 61 & 1;
-        data::holdDel = cfgIn >> 60 & 1;
-        data::holdRest = cfgIn >> 59 & 1;
-        data::holdOver = cfgIn >> 58 & 1;
-        data::forceMount = cfgIn >> 57 & 1;
-        data::accSysSave = cfgIn >> 56 & 1;
-        data::sysSaveWrite = cfgIn >> 55 & 1;
-        data::directFsCmd = cfgIn >> 53 & 1;
-        data::skipUser = cfgIn >> 52 & 1;
-        data::zip = cfgIn >> 51 & 1;
-        data::langOverride = cfgIn >> 50 & 1;
+        data::config["incDev"] = cfgIn >> 63 & 1;
+        data::config["autoBack"] = cfgIn >> 63 & 1;
+        data::config["ovrClk"] = cfgIn >> 61 & 1;
+        data::config["holdDel"] = cfgIn >> 60 & 1;
+        data::config["holdRest"] = cfgIn >> 59 & 1;
+        data::config["holdOver"] = cfgIn >> 58 & 1;
+        data::config["forceMount"] = cfgIn >> 57 & 1;
+        data::config["accSysSave"] = cfgIn >> 56 & 1;
+        data::config["sysSaveWrite"] = cfgIn >> 55 & 1;
+        data::config["directFsCmd"] = cfgIn >> 53 & 1;
+        data::config["zip"] = cfgIn >> 51 & 1;
+        data::config["langOverride"] = cfgIn >> 50 & 1;
     }
 }
 
@@ -521,19 +518,18 @@ void data::saveCfg()
 
     //Use 64bit int for space future stuff. Like this for readability.
     uint64_t cfgOut = 0;
-    cfgOut |= (uint64_t)data::incDev << 63;
-    cfgOut |= (uint64_t)data::autoBack << 62;
-    cfgOut |= (uint64_t)data::ovrClk << 61;
-    cfgOut |= (uint64_t)data::holdDel << 60;
-    cfgOut |= (uint64_t)data::holdRest << 59;
-    cfgOut |= (uint64_t)data::holdOver << 58;
-    cfgOut |= (uint64_t)data::forceMount << 57;
-    cfgOut |= (uint64_t)data::accSysSave << 56;
-    cfgOut |= (uint64_t)data::sysSaveWrite << 55;
-    cfgOut |= (uint64_t)data::directFsCmd << 53;
-    cfgOut |= (uint64_t)data::skipUser << 52;
-    cfgOut |= (uint64_t)data::zip << 51;
-    cfgOut |= (uint64_t)data::langOverride << 50;
+    cfgOut |= (uint64_t)data::config["incDev"] << 63;
+    cfgOut |= (uint64_t)data::config["autoBack"] << 62;
+    cfgOut |= (uint64_t)data::config["ovrClk"] << 61;
+    cfgOut |= (uint64_t)data::config["holdDel"] << 60;
+    cfgOut |= (uint64_t)data::config["holdRest"] << 59;
+    cfgOut |= (uint64_t)data::config["holdOver"] << 58;
+    cfgOut |= (uint64_t)data::config["forceMount"] << 57;
+    cfgOut |= (uint64_t)data::config["accSysSave"] << 56;
+    cfgOut |= (uint64_t)data::config["sysSaveWrite"] << 55;
+    cfgOut |= (uint64_t)data::config["directFsCmd"] << 53;
+    cfgOut |= (uint64_t)data::config["zip"] << 51;
+    cfgOut |= (uint64_t)data::config["langOverride"] << 50;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
     fwrite(&data::sortType, 1, 1, cfg);
 
@@ -542,19 +538,17 @@ void data::saveCfg()
 
 void data::restoreDefaultConfig()
 {
-    data::incDev = false;
-    data::autoBack = true;
-    data::ovrClk = false;
-    data::holdDel = true;
-    data::holdRest = true;
-    data::holdOver = true;
-    data::forceMount = true;
-    data::accSysSave = false;
-    data::sysSaveWrite = false;
-    ui::textMode = false;
-    data::directFsCmd = false;
-    data::skipUser = false;
-    data::zip = false;
+    data::config["incDev"] = false;
+    data::config["autoBack"] = true;
+    data::config["ovrClk"] = false;
+    data::config["holdDel"] = true;
+    data::config["holdRest"] = true;
+    data::config["holdOver"] = true;
+    data::config["forceMount"] = true;
+    data::config["accSysSave"] = false;
+    data::config["sysSaveWrite"] = false;
+    data::config["directFsCmd"] = false;
+    data::config["zip"] = false;
     data::sortType = 0;
 }
 

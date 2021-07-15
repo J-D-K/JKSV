@@ -25,7 +25,7 @@ static FsSaveDataType type = FsSaveDataType_System;
 
 static inline bool sysSaveCheck()
 {
-    return data::sysSaveWrite || type != FsSaveDataType_System;
+    return data::config["sysSaveWrite"] || type != FsSaveDataType_System;
 }
 
 //Performs copy menu operations. To big to stuff into case IMO.

@@ -170,7 +170,7 @@ namespace ui
             void update();
             void refresh();
 
-            void setActive(bool _set) { active = _set; }
+            void setActive(bool _set, bool _showSel) { active = _set; showSel = _showSel; }
             bool getActive(){ return active; }
             void setSelected(int _set){ selected = _set; }
             int getSelected(){ return selected; }
@@ -178,12 +178,32 @@ namespace ui
 
         private:
             const data::user *u;//Might not be safe. Users *shouldn't* be touched after initial load
-            bool active = false, clrAdd = true;
+            bool active = false, showSel = false, clrAdd = true;
             uint8_t clrShft = 0;
             funcPtr callback = NULL;
             int x = 34, y = 69, selected = 0, selRectX = 10, selRectY = 45;
             int iconW, iconH, horGap, vertGap, rowCount;
             std::vector<ui::titleTile *> tiles;
+    };
+
+    typedef struct
+    {
+        std::string message;
+        int rectWidth = 0, frames = 0, y = 720;
+    } popMessage;
+
+    class popMessageMngr
+    {
+        public:
+            ~popMessageMngr();
+
+            void update();
+
+            void popMessageAdd(const std::string& mess, int frameTime);
+            void draw();
+
+        private:
+            std::vector<popMessage> message;
     };
 
     //General use
@@ -193,8 +213,4 @@ namespace ui
     bool confirmDelete(const std::string& p);
     void drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t clrSh);
     void drawTextbox(SDL_Texture *target, int x, int y, int w, int h);
-
-    //Popup from freebird
-    void showPopup(unsigned frames, const char *fmt, ...);
-    void drawPopup(const uint64_t& down);
 }

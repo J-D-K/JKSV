@@ -84,7 +84,7 @@ static void mkdirRec(const std::string& _p)
 static bool fwriteCommit(const std::string& _path, const void *buf, size_t _size, const std::string& _dev)
 {
     size_t written = 0;
-    if(data::directFsCmd)
+    if(data::config["directFsCmd"])
     {
         FSFILE *out = fsfopen(_path.c_str(), FsOpenMode_Write | FsOpenMode_Append);
         written = fsfwrite(buf, 1, _size, out);
@@ -332,7 +332,7 @@ static void copyfile_t(void *a)
     copyArgs *args = (copyArgs *)a;
 
     uint8_t *buff = new uint8_t[BUFF_SIZE];
-    if(data::directFsCmd)
+    if(data::config["directFsCmd"])
     {
         FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
         FSFILE *out = fsfopen(args->to.c_str(), FsOpenMode_Write);
@@ -409,7 +409,7 @@ void copyFileCommit_t(void *a)
     //Create empty destination file using fs
     fsfcreate(args->to.c_str(), 0);
 
-    if(data::directFsCmd)
+    if(data::config["directFsCmd"])
     {
         FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
 
@@ -591,7 +591,7 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
             //Create new empty file using FS
             fsfcreate(path.c_str(), 0);
 
-            if(data::directFsCmd)
+            if(data::config["directFsCmd"])
             {
                 while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
                 {
@@ -651,7 +651,7 @@ void fs::copyDirToDirCommit(const std::string& from, const std::string& to, cons
 
 void fs::delfile(const std::string& path)
 {
-    if(data::directFsCmd)
+    if(data::config["directFsCmd"])
         fsremove(path.c_str());
     else
         remove(path.c_str());
@@ -724,7 +724,7 @@ bool fs::dumpAllUserSaves(const data::user& u)
         {
             util::createTitleDirectoryByTID(u.titleInfo[i].saveID);
             std::string basePath = util::generatePathByTID(u.titleInfo[i].saveID);
-            switch(data::zip)
+            switch(data::config["zip"])
             {
                 case true:
                     {
@@ -873,7 +873,7 @@ void fs::createNewBackup(void *a)
     if(!out.empty())
     {
         std::string path = util::generatePathByTID(data::curData.saveID) + out;
-        switch(data::zip)
+        switch(data::config["zip"])
         {
             case true:
                 {
@@ -905,7 +905,7 @@ void fs::overwriteBackup(void *a)
     unsigned ind = m->getSelected() - 1;;//Skip new
 
     std::string itemName = d->getItem(ind);
-    if(ui::confirm(data::holdOver, ui::confOverwrite.c_str(), itemName.c_str()))
+    if(ui::confirm(data::config["holdOver"], ui::confOverwrite.c_str(), itemName.c_str()))
     {
         if(d->isDir(ind))
         {
@@ -936,11 +936,11 @@ void fs::restoreBackup(void *a)
     unsigned ind = m->getSelected() - 1;
 
     std::string itemName = d->getItem(ind);
-    if((data::curData.saveInfo.save_data_type != FsSaveDataType_System || data::sysSaveWrite) && m->getSelected() > 0 && ui::confirm(data::holdRest, ui::confRestore.c_str(), itemName.c_str()))
+    if((data::curData.saveInfo.save_data_type != FsSaveDataType_System || data::config["sysSaveWrite"]) && m->getSelected() > 0 && ui::confirm(data::config["holdRest"], ui::confRestore.c_str(), itemName.c_str()))
     {
-        if(data::autoBack)
+        if(data::config["autoBack"])
         {
-            switch(data::zip)
+            switch(data::config["zip"])
             {
                 case true:
                     {
@@ -984,7 +984,7 @@ void fs::restoreBackup(void *a)
         }
     }
 
-    if(data::autoBack)
+    if(data::config["autoBack"])
         ui::populateFldMenu();
 }
 

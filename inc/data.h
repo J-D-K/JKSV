@@ -121,6 +121,6 @@ namespace data
     void restoreDefaultConfig();
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern bool incDev, autoBack, ovrClk, holdDel, holdRest, holdOver, forceMount, accSysSave, sysSaveWrite, directFsCmd, skipUser, zip, langOverride;
+    extern std::unordered_map<std::string, bool> config;
     extern uint8_t sortType;
 }

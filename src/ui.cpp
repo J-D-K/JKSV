@@ -48,12 +48,11 @@ SDL_Color ui::heartColor = {0xFF, 0x44, 0x44, 0xFF};
 static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
 static int settPos, extPos;
 
-//For shrinking left panel
-unsigned leftWidth = 410;
-
 //Vector of pointers to slideOutPanels. Is looped and drawn last so they are always on top
 std::vector<ui::slideOutPanel *> panels;
 static unsigned int panelCount = 0;
+
+static ui::popMessageMngr *popMessages;
 
 void ui::initTheme()
 {
@@ -156,6 +155,8 @@ void ui::init()
     ui::ttlInit();
     ui::settInit();
 
+    popMessages = new ui::popMessageMngr;
+
     //Need these from user/main menu
     settPos = ui::usrMenu->getOptPos("Settings");
     extPos  = ui::usrMenu->getOptPos("Extras");
@@ -166,6 +167,8 @@ void ui::exit()
     ui::usrExit();
     ui::ttlExit();
     ui::settExit();
+
+    delete popMessages;
 
     SDL_DestroyTexture(cornerTopLeft);
     SDL_DestroyTexture(cornerTopRight);
@@ -231,6 +234,8 @@ void ui::drawUI()
     gfx::texDraw(NULL, leftPanel, 0, 89);
     for(slideOutPanel *s : panels)
         s->draw(&ui::slidePanelColor);
+
+    popMessages->draw();
 }
 
 static bool debugDisp = false;
@@ -269,15 +274,26 @@ bool ui::runApp()
             }*/
             break;
     }
+    popMessages->update();
 
     drawUI();
-    drawPopup(ui::padKeysDown());
     if(debugDisp)
         data::dispStats();
 
     gfx::present();
 
     return true;
+}
+
+void ui::showPopMessage(int frameCount, const char *fmt, ...)
+{
+    char tmp[256];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(tmp, fmt, args);
+    va_end(args);
+
+    popMessages->popMessageAdd(tmp, frameCount);
 }
 
 void ui::toTTL(void *a)
@@ -289,5 +305,5 @@ void ui::toTTL(void *a)
         ui::usrMenu->setActive(false);
     }
     else
-        ui::showPopup(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
 }

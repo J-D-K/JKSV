@@ -90,13 +90,7 @@ namespace ui
     //switch case so we don't have problems with multiple main loops like 3DS
     bool runApp();
 
-    //These are shared by both folder menus
-    //Expects a uint64_t passed for held buttons
-    void createNewBackup(void *a);
-    //all exepect an unsigned int containing menu's selected
-    void overwriteBackup(void *a);
-    void restoreBackup(void *a);
-    void deleteBackup(void *a);
+    void showPopMessage(int frameCount, const char *fmt, ...);
 
     //Used for multiple menu functions/callback
     void toTTL(void *);

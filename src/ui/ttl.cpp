@@ -58,7 +58,7 @@ static void ttlViewCallback(void *a)
             break;
 
         case HidNpadButton_B:
-            ttlViews[data::selUser]->setActive(false);
+            ttlViews[data::selUser]->setActive(false, false);
             ui::usrMenu->setActive(true);
             ui::changeState(USR_SEL);
             break;
@@ -67,6 +67,7 @@ static void ttlViewCallback(void *a)
             if(data::curUser.getUID128() != 0)//system
             {
                 data::selData = ttlViews[data::selUser]->getSelected();
+                ttlViews[data::selUser]->setActive(false, true);
                 ttlOpts->setActive(true);
                 ttlOptsPanel->openPanel();
             }
@@ -91,6 +92,7 @@ static void ttlOptsCallback(void *a)
         case HidNpadButton_B:
             ttlOpts->setActive(false);
             ttlOptsPanel->closePanel();
+            ttlViews[data::selUser]->setActive(true, true);
             ui::updateInput();
             break;
     }
@@ -104,6 +106,7 @@ static void infoPanelCallback(void *a)
             infoPanel->closePanel();
             ttlOptsPanel->openPanel();
             ttlOpts->setActive(true);
+            ttlViews[data::selUser]->setActive(true, true);
             break;
     }
 }
@@ -135,12 +138,12 @@ static void ttlOptsBlacklistTitle(void *a)
 static void ttlOptsResetSaveData(void *a)
 {
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    if(ui::confirm(data::holdDel, ui::saveDataReset.c_str(), title.c_str()) && fs::mountSave(data::curData.saveInfo))
+    if(ui::confirm(data::config["holdDel"], ui::saveDataReset.c_str(), title.c_str()) && fs::mountSave(data::curData.saveInfo))
     {
         fs::delDir("sv:/");
         fsdevCommitDevice("sv:/");
         fs::unmountSave();
-        ui::showPopup(POP_FRAME_DEFAULT, ui::saveDataResetSuccess.c_str(), title.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveDataResetSuccess.c_str(), title.c_str());
     }
 }
 
@@ -174,25 +177,26 @@ static void ttlOptsDeleteSaveData(void *a)
     attr.save_data_index = data::curData.saveInfo.save_data_index;
 
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    if(ui::confirm(data::holdDel, ui::confEraseNand.c_str(), title.c_str()) && R_SUCCEEDED(fsDeleteSaveDataFileSystemBySaveDataAttribute(FsSaveDataSpaceId_User, &attr)))
+    if(ui::confirm(data::config["holdDel"], ui::confEraseNand.c_str(), title.c_str()) && R_SUCCEEDED(fsDeleteSaveDataFileSystemBySaveDataAttribute(FsSaveDataSpaceId_User, &attr)))
     {
         data::loadUsersTitles(false);
         if(data::curUser.titleInfo.size() == 0)
         {
             //Kick back to user
             ttlOptsPanel->closePanel();//JIC
-            ttlViews[data::selUser]->setActive(false);
+            ttlOpts->setActive(false);
+            ttlViews[data::selUser]->setActive(false, false);
             ui::usrMenu->setActive(true);
             ui::changeState(USR_SEL);
         }
-        ui::showPopup(POP_FRAME_DEFAULT, ui::saveDataDeleteSuccess.c_str(), title.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveDataDeleteSuccess.c_str(), title.c_str());
         ttlViews[data::selUser]->refresh();
     }
 }
 
 static void ttlOptsExtendSaveData(void *a)
 {
-    std::string expSizeStr = util::getStringInput("", "Enter Expansion size in MB", 8, 0, NULL);
+    std::string expSizeStr = util::getStringInput("", "Enter New Size in MB", 4, 0, NULL);
     if(!expSizeStr.empty())
     {
         uint64_t expMB = strtoul(expSizeStr.c_str(), NULL, 10);
@@ -205,10 +209,10 @@ static void ttlOptsExtendSaveData(void *a)
 
         Result res = 0;
         if(R_SUCCEEDED(res = fs::extendSaveDataFileSystem(space, sid, expSize, journ)))
-            ui::showPopup(POP_FRAME_DEFAULT, "Save data expanded for %s!", extend->title.c_str());
+            ui::showPopMessage(POP_FRAME_DEFAULT, "Save data expanded for %s!", extend->title.c_str());
         else
         {
-            ui::showPopup(POP_FRAME_DEFAULT, "Failed to expand save data.");
+            ui::showPopMessage(POP_FRAME_DEFAULT, "Failed to expand save data.");
             fs::logWrite("Extend Failed: %u -> %X\n", expSize, res);
         }
     }
@@ -281,7 +285,7 @@ void ui::ttlExit()
 
 void ui::ttlSetActive(int usr)
 {
-    ttlViews[usr]->setActive(true);
+    ttlViews[usr]->setActive(true, true);
 }
 
 void ui::ttlUpdate()
@@ -289,11 +293,6 @@ void ui::ttlUpdate()
     ttlOpts->update();
     infoPanel->update();
     fldMenu->update();
-
-    //todo: this better
-    if(ttlOptsPanel->isOpen() || infoPanel->isOpen() || fldPanel->isOpen())
-        return;
-
     ttlViews[data::selUser]->update();
 }
 

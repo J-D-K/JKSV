@@ -8,4 +8,6 @@ namespace ui
     void settExit();
     void settUpdate();
     void settDraw(SDL_Texture *target);
+
+    extern ui::menu *settMenu;
 }

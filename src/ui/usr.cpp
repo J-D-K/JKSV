@@ -46,6 +46,7 @@ static void toOPT(void *a)
 {
     ui::changeState(OPT_MNU);
     ui::usrMenu->setActive(false);
+    ui::settMenu->setActive(true);
 }
 
 static void toEXT(void *a)
@@ -264,13 +265,13 @@ static void createSaveData(void *a)
     Result res = 0;
     if(R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &svCreate, &meta)))
     {
-        ui::showPopup(POP_FRAME_DEFAULT, ui::saveCreated.c_str(), create->title.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveCreated.c_str(), create->title.c_str());
         data::loadUsersTitles(false);
         ui::refreshAllViews();
     }
     else
     {
-        ui::showPopup(POP_FRAME_DEFAULT, ui::saveCreateFailed.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveCreateFailed.c_str());
         fs::logWrite("SaveCreate Failed -> %X\n", res);
     }
 }

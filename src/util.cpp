@@ -347,7 +347,7 @@ void util::checkForUpdate()
     std::string gitJson = getJSONURL(NULL, "https://api.github.com/repos/J-D-K/JKSV/releases/latest");
     if(gitJson.empty())
     {
-        ui::showPopup(POP_FRAME_DEFAULT, ui::errorConnecting.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::errorConnecting.c_str());
         return;
     }
 
@@ -374,7 +374,7 @@ void util::checkForUpdate()
         fclose(jksvOut);
     }
     else
-        ui::showPopup(POP_FRAME_DEFAULT, ui::noUpdate.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::noUpdate.c_str());
 
     json_object_put(jobj);
 }
