@@ -307,17 +307,18 @@ bool data::loadUsersTitles(bool clearUsers)
         fsSaveDataInfoReaderClose(&it);
     }
 
-    /*if(data::incDev)
+    if(data::config["incDev"])
     {
         //Get reference to device save user
-        data::user& dev = data::users[data::users.size() - 4];
-        for(unsigned i = 0; i < users.size() - 4; i++)
+        unsigned devPos = getUserIndex(util::u128ToAccountUID(3));
+        data::user& dev = data::users[devPos];
+        for(unsigned i = 0; i < devPos; i++)
         {
             //Not needed but makes this easier to read
             data::user& u = data::users[i];
-            u.titles.insert(u.titles.end(), dev.titles.begin(), dev.titles.end());
+            u.titleInfo.insert(u.titleInfo.end(), dev.titleInfo.begin(), dev.titleInfo.end());
         }
-    }*/
+    }
 
     for(data::user& u : data::users)
         std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
@@ -359,7 +360,9 @@ void data::exit()
 
 data::titleInfo *data::getTitleInfoByTID(const uint64_t& tid)
 {
-    return &titles[tid];
+    if(titles.find(tid) != titles.end())
+        return &titles[tid];
+    return NULL;
 }
 
 std::string data::getTitleNameByTID(const uint64_t& tid)
@@ -497,7 +500,7 @@ void data::loadCfg()
         fclose(cfg);
 
         data::config["incDev"] = cfgIn >> 63 & 1;
-        data::config["autoBack"] = cfgIn >> 63 & 1;
+        data::config["autoBack"] = cfgIn >> 62 & 1;
         data::config["ovrClk"] = cfgIn >> 61 & 1;
         data::config["holdDel"] = cfgIn >> 60 & 1;
         data::config["holdRest"] = cfgIn >> 59 & 1;

@@ -132,7 +132,7 @@ namespace ui
             void draw(const SDL_Color *backCol);
 
         private:
-            int w, h, x = 1280, y, slideSpd = 0;
+            int w, h, x = 1280, y;
             bool open = false;
             SDL_Texture *panel;
             funcPtr drawFunc, callback = NULL;

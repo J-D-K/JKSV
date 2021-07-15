@@ -106,7 +106,7 @@ static void infoPanelCallback(void *a)
             infoPanel->closePanel();
             ttlOptsPanel->openPanel();
             ttlOpts->setActive(true);
-            ttlViews[data::selUser]->setActive(true, true);
+            ui::updateInput();
             break;
     }
 }
@@ -212,8 +212,12 @@ static void ttlOptsExtendSaveData(void *a)
             ui::showPopMessage(POP_FRAME_DEFAULT, "Save data expanded for %s!", extend->title.c_str());
         else
         {
+            int64_t totalSize = 0;
+            fs::mountSave(data::curData.saveInfo);
+            fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sv"), "/", &totalSize);
+            fs::logWrite("Extend Failed: %uMB to %uMB  -> %X\n", totalSize / 1024 / 1024, expSize / 1024 / 1024, res);
             ui::showPopMessage(POP_FRAME_DEFAULT, "Failed to expand save data.");
-            fs::logWrite("Extend Failed: %u -> %X\n", expSize, res);
+            fs::unmountSave();
         }
     }
 }

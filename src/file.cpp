@@ -16,7 +16,7 @@
 #include "gfx.h"
 #include "data.h"
 
-#define BUFF_SIZE 0x80000
+#define BUFF_SIZE 0xC0000
 
 static std::string wd;
 
@@ -80,29 +80,17 @@ static void mkdirRec(const std::string& _p)
     }
 }
 
-//This is mostly for Pokemon snap, but it also seems to work better? Stops commit errors from journal space
-static bool fwriteCommit(const std::string& _path, const void *buf, size_t _size, const std::string& _dev)
+static inline bool commitToDevice(const std::string& dev)
 {
-    size_t written = 0;
-    if(data::config["directFsCmd"])
+    bool ret = true;
+    Result res = fsdevCommitDevice(dev.c_str());
+    if(R_FAILED(res))
     {
-        FSFILE *out = fsfopen(_path.c_str(), FsOpenMode_Write | FsOpenMode_Append);
-        written = fsfwrite(buf, 1, _size, out);
-        fsfclose(out);
+        fs::logWrite("Error committing to device -> 0x%X", res);
+        ui::showPopMessage(POP_FRAME_DEFAULT, "Error commmitting file to device!");
+        ret = false;
     }
-    else
-    {
-        FILE *out = fopen(_path.c_str(), "ab");
-        written = fwrite(buf, 1, _size, out);
-        fclose(out);
-    }
-
-    Result commit = fsdevCommitDevice(_dev.c_str());
-
-    if(R_FAILED(commit) || written == 0)
-        fs::logWrite("Error writing/committing to file \"%s\"\n", _path.c_str());
-
-    return written > 0 && R_SUCCEEDED(commit);
+    return ret;
 }
 
 void fs::init()
@@ -181,7 +169,6 @@ Result fs::extendSaveDataFileSystem(FsSaveDataSpaceId _id, uint64_t _saveID, uin
         uint64_t expSize;
         uint64_t journal;
     } in = {(uint8_t)_id, _saveID, _expSize, _journal};
-
     return serviceDispatchIn(fs, 32, in);
 }
 
@@ -403,19 +390,20 @@ void fs::copyFile(const std::string& from, const std::string& to)
 void copyFileCommit_t(void *a)
 {
     copyArgs *args = (copyArgs *)a;
+    data::titleInfo *info = data::getTitleInfoByTID(data::curData.saveID);
 
+    uint64_t journalSize = info->nacp.user_account_save_data_journal_size, writeCount = 0;
     uint8_t *buff = new uint8_t[BUFF_SIZE];
-
-    //Create empty destination file using fs
-    fsfcreate(args->to.c_str(), 0);
 
     if(data::config["directFsCmd"])
     {
-        FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
+        FSFILE *in  = fsfopen(args->from.c_str(), FsOpenMode_Read);
+        FSFILE *out = fsfopen(args->to.c_str(), FsOpenMode_Write);
 
-        if(!in)
+        if(!in || !out)
         {
             fsfclose(in);
+            fsfclose(out);
             args->fin = true;
             return;
         }
@@ -423,19 +411,32 @@ void copyFileCommit_t(void *a)
         size_t readIn = 0;
         while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
         {
-            if(!fwriteCommit(args->to, buff, readIn, args->dev))
-                break;
+            fsfwrite(buff, 1, readIn, out);
+            writeCount += readIn;
+            if(writeCount >= (journalSize - 0x100000))
+            {
+                writeCount = 0;
+                fsfclose(out);
+                if(!commitToDevice(args->dev))
+                    break;
+
+                out = fsfopen(args->to.c_str(), FsOpenMode_Write | FsOpenMode_Append);
+            }
+
             *args->offset = in->offset;
         }
         fsfclose(in);
+        fsfclose(out);
     }
     else
     {
         FILE *in = fopen(args->from.c_str(), "rb");
+        FILE *out = fopen(args->to.c_str(), "wb");
 
-        if(!in)
+        if(!in || !out)
         {
             fclose(in);
+            fclose(out);
             args->fin = true;
             return;
         }
@@ -443,18 +444,26 @@ void copyFileCommit_t(void *a)
         size_t readIn = 0;
         while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
         {
-            if(!fwriteCommit(args->to, buff, readIn, args->dev))
-                break;
+            fwrite(buff, 1, readIn, out);
+            writeCount += readIn;
+            if(writeCount >= (journalSize - 0x100000))
+            {
+                writeCount = 0;
+                fclose(out);
+                if(!commitToDevice(args->dev))
+                    break;
+
+                out = fopen(args->to.c_str(), "ab");
+            }
 
             *args->offset = ftell(in);
         }
         fclose(in);
+        fclose(out);
     }
     delete[] buff;
 
-    Result res = 0;
-    if(R_FAILED(res = fsdevCommitDevice(args->dev.c_str())))
-        fs::logWrite("Error committing file \"%s\"\n", args->to.c_str());
+    commitToDevice(args->dev.c_str());
 
     args->fin = true;
 }
@@ -574,53 +583,84 @@ void fs::copyDirToZip(const std::string& from, zipFile *to)
 
 void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev)
 {
+    data::titleInfo *tinfo = data::getTitleInfoByTID(data::curData.saveID);
+
+    uint64_t journalSize = tinfo->nacp.user_account_save_data_journal_size, writeCount = 0;
     char filename[FS_MAX_PATH];
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     int readIn = 0;
     unz_file_info info;
-    do
+    int fCount = 0;
+    if(unzGoToFirstFile(*unz) == UNZ_OK)
     {
-        unzGetCurrentFileInfo(*unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
-        if(unzOpenCurrentFile(*unz) == UNZ_OK)
+        do
         {
-            std::string path = to + filename;
-            mkdirRec(path.substr(0, path.find_last_of('/') + 1));
-            ui::progBar prog(info.uncompressed_size);
-            size_t done = 0;
-
-            //Create new empty file using FS
-            fsfcreate(path.c_str(), 0);
-
-            if(data::config["directFsCmd"])
+            unzGetCurrentFileInfo(*unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
+            if(unzOpenCurrentFile(*unz) == UNZ_OK)
             {
-                while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
+                std::string path = to + filename;
+                mkdirRec(path.substr(0, path.find_last_of('/') + 1));
+                ui::progBar prog(info.uncompressed_size);
+                size_t done = 0;
+                if(data::config["directFsCmd"])
                 {
-                    done += readIn;
-                    fwriteCommit(path, buff, readIn, dev);
-                    prog.update(done);
+                    FSFILE *out = fsfopen(path.c_str(), FsOpenMode_Write);
+                    while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
+                    {
+                        done += readIn;
+                        writeCount += readIn;
+                        fsfwrite(buff, 1, readIn, out);
+                        if(writeCount >= (journalSize - 0x100000))
+                        {
+                            writeCount = 0;
+                            fsfclose(out);
+                            if(!commitToDevice(dev.c_str()))
+                                break;
 
-                    prog.draw(filename, ui::copyHead);
-                    gfx::present();
+                            out = fsfopen(path.c_str(), FsOpenMode_Write | FsOpenMode_Append);
+                        }
+
+                        prog.update(done);
+
+                        prog.draw(filename, ui::copyHead);
+                        gfx::present();
+                    }
+                    fsfclose(out);
                 }
-            }
-            else
-            {
-                while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
+                else
                 {
-                    done += readIn;
-                    fwriteCommit(path, buff, readIn, dev);
-                    prog.update(done);
+                    FILE *out = fopen(path.c_str(), "wb");
 
-                    prog.draw(filename, ui::copyHead);
-                    gfx::present();
+                    while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
+                    {
+                        done += readIn;
+                        writeCount += readIn;
+                        fwrite(buff, 1, readIn, out);
+                        if(writeCount >= (journalSize - 0x100000))
+                        {
+                            writeCount = 0;
+                            fclose(out);
+                            if(!commitToDevice(dev.c_str()))
+                                break;
+
+                            out = fopen(path.c_str(), "ab");
+                        }
+
+                        prog.update(done);
+
+                        prog.draw(filename, ui::copyHead);
+                        gfx::present();
+                    }
+                    fclose(out);
                 }
+                unzCloseCurrentFile(*unz);
+                commitToDevice(dev.c_str());
             }
-            unzCloseCurrentFile(*unz);
-            if(R_FAILED(fsdevCommitDevice(dev.c_str())))
-                ui::showMessage("*Error*", "Error committing file to device.");
         }
+        while(unzGoToNextFile(*unz) != UNZ_END_OF_LIST_OF_FILE);
     }
-    while(unzGoToNextFile(*unz) != UNZ_END_OF_LIST_OF_FILE);
+    else
+        ui::showPopMessage(POP_FRAME_DEFAULT, "ZIP file is empty!");
 
     delete[] buff;
 }

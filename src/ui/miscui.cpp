@@ -1,5 +1,6 @@
 #include <cstring>
 #include <cstdarg>
+#include <cmath>
 #include <switch.h>
 
 #include "gfx.h"
@@ -7,10 +8,7 @@
 #include "miscui.h"
 #include "util.h"
 
-static bool popDraw = false;
-static std::string popText;
 static const char *okt = "OK \ue0e0";
-static unsigned popY, popX, popWidth, popState, frameCount, frameHold;
 
 static const SDL_Color divLight  = {0x6D, 0x6D, 0x6D, 0xFF};
 static const SDL_Color divDark   = {0xCC, 0xCC, 0xCC, 0xFF};
@@ -22,13 +20,6 @@ static const SDL_Color fillDark  = {0x32, 0x50, 0xF0, 0xFF};
 
 static const SDL_Color menuColorLight = {0x32, 0x50, 0xF0, 0xFF};
 static const SDL_Color menuColorDark  = {0x00, 0xFF, 0xC5, 0xFF};
-
-enum popStates
-{
-    popRise,
-    popShow,
-    popFall
-};
 
 //8
 static const std::string loadGlyphArray[] =
@@ -315,10 +306,6 @@ ui::slideOutPanel::slideOutPanel(int _w, int _h, int _y, funcPtr _draw)
     drawFunc = _draw;
     panel = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, w, h);
     SDL_SetTextureBlendMode(panel, SDL_BLENDMODE_BLEND);
-
-    int getDiv = 99;
-    while(w % getDiv != 0) { getDiv--; }
-    slideSpd = getDiv;
 }
 
 ui::slideOutPanel::~slideOutPanel()
@@ -338,11 +325,13 @@ void ui::slideOutPanel::draw(const SDL_Color *backCol)
 
     if(open && x > 1280 - w)
     {
-        x -= slideSpd;
+        float add = ((1280 - (float)w) - (float)x) / 2;
+        x += round(add);
     }
     else if(!open && x < 1280)
     {
-        x += slideSpd;
+        float add = (1280 - (float)x) / 2;
+        x += round(add);
     }
 
     //don't waste time drawing if you can't even see it.
@@ -464,14 +453,19 @@ void ui::titleview::update()
 
 void ui::titleview::draw(SDL_Texture *target)
 {
-    if(selRectY > 264)
-        y -= 48;
-    else if(selRectY > 144)
-        y -= 24;
-    else if(selRectY < -82)
-        y += 48;
+    int tH = 0, tY = 0;
+    SDL_QueryTexture(target, NULL, NULL, NULL, &tH);
+    tY = tH - 214;
+    if(selRectY > tY)
+    {
+        float add = ((float)tY - (float)selRectY) / 2;
+        y += round(add);
+    }
     else if(selRectY < 38)
-        y += 24;
+    {
+        float add = (38.0f - (float)selRectY) / 2;
+        y += round(add);
+    }
 
     if(clrAdd)
     {
