@@ -13,6 +13,7 @@
 #include "usr.h"
 #include "ttl.h"
 #include "sett.h"
+#include "fm.h"
 
 enum menuState
 {
@@ -25,11 +26,11 @@ enum menuState
 
 namespace ui
 {
-    //Text menus
-    extern bool textMode;
-
     //Current menu/ui state
     extern int mstate, prevState;
+
+    //Slide/animation scaling
+    extern float animScale;
 
     //pad data cause i don't know where else to put it
     extern PadState pad;

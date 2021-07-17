@@ -96,6 +96,12 @@ static void toggleOpt(void *a)
             data::loadUsersTitles(false);
             ui::refreshAllViews();
             break;
+
+        case 13:
+            ui::animScale += 0.5f;
+            if(ui::animScale > 8)
+                ui::animScale = 1;
+            break;
     }
 }
 
@@ -114,6 +120,10 @@ static void updateMenuText()
     ui::settMenu->editOpt(10, NULL, ui::optMenuStr[10] + getBoolText(data::config["zip"]));
     ui::settMenu->editOpt(11, NULL, ui::optMenuStr[11] + getBoolText(data::config["langOverride"]));
     ui::settMenu->editOpt(12, NULL, ui::optMenuStr[12] + ui::sortString[data::sortType]);
+
+    char tmp[16];
+    sprintf(tmp, "%.1f", ui::animScale);
+    ui::settMenu->editOpt(13, NULL, ui::optMenuStr[13] + std::string(tmp));
 }
 
 void ui::settInit()
@@ -125,10 +135,10 @@ void ui::settInit()
 
     optHelpX = 1220 - gfx::getTextWidth(ui::optHelp.c_str(), 18);
 
-    for(unsigned i = 0; i < 13; i++)
+    for(unsigned i = 0; i < 14; i++)
     {
         ui::settMenu->addOpt(NULL, ui::optMenuStr[i]);
-        ui::settMenu->setOptFunc(i, FUNC_A, toggleOpt, NULL);
+        ui::settMenu->optAddButtonEvent(i, HidNpadButton_A, toggleOpt, NULL);
     }
 }
 

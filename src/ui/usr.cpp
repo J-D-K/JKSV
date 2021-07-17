@@ -308,26 +308,27 @@ void ui::usrInit()
     for(data::user u : data::users)
     {
         int usrPos = usrMenu->addOpt(u.getUserIcon(), u.getUsername());
-        usrMenu->setOptFunc(usrPos, FUNC_A, toTTL, NULL);
+        usrMenu->optAddButtonEvent(usrPos, HidNpadButton_A, toTTL, NULL);
     }
 
     sett = util::createIconGeneric("Settings", 40);
     int pos = usrMenu->addOpt(sett, "Settings");
-    usrMenu->setOptFunc(pos, FUNC_A, toOPT, NULL);
+    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toOPT, NULL);
 
     ext = util::createIconGeneric("Extras", 40);
     pos = usrMenu->addOpt(ext, "Extras");
-    usrMenu->setOptFunc(pos, FUNC_A, toEXT, NULL);
+    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
 
     usrMenu->setOnChangeFunc(onMainChange);
     usrMenu->editParam(MENU_RECT_WIDTH, 126);
 
     usrOptPanel = new ui::slideOutPanel(410, 720, 0, usrOptPanelDraw);
     ui::registerPanel(usrOptPanel);
+
     usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
-    usrOptMenu->setOptFunc(0, FUNC_A, usrOptSaveCreate, usrMenu);
+    usrOptMenu->optAddButtonEvent(0, HidNpadButton_A, usrOptSaveCreate, usrMenu);
     usrOptMenu->addOpt(NULL, ui::usrOptString[1]);
-    usrOptMenu->setOptFunc(1, FUNC_A, usrOptDeleteAllUserSaves, NULL);
+    usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
     usrOptMenu->setActive(false);
 
     saveCreatePanel = new ui::slideOutPanel(410, 720, 0, saveCreatePanelDraw);
@@ -353,28 +354,28 @@ void ui::usrInit()
         if(nacp->user_account_save_data_size > 0)
         {
             int optPos = saveCreateMenu->addOpt(NULL, t.second.title);
-            saveCreateMenu->setOptFunc(optPos, FUNC_A, createSaveData, &accCreate);
+            saveCreateMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &accCreate);
             accSids.push_back(t.first);
         }
 
         if(nacp->device_save_data_size > 0)
         {
             int optPos = deviceSaveMenu->addOpt(NULL,  t.second.title);
-            deviceSaveMenu->setOptFunc(optPos, FUNC_A, createSaveData, &devCreate);
+            deviceSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &devCreate);
             devSids.push_back(t.first);
         }
 
         if(nacp->bcat_delivery_cache_storage_size > 0)
         {
             int optPos = bcatSaveMenu->addOpt(NULL, t.second.title);
-            bcatSaveMenu->setOptFunc(optPos, FUNC_A, createSaveData, &bcatCreate);
+            bcatSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &bcatCreate);
             bcatSids.push_back(t.first);
         }
 
         if(nacp->cache_storage_size > 0)
         {
             int optPos = cacheSaveMenu->addOpt(NULL, t.second.title);
-            cacheSaveMenu->setOptFunc(optPos, FUNC_A, createSaveData, &cacheCreate);
+            cacheSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &cacheCreate);
             cacheSids.push_back(t.first);
         }
     }

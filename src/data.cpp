@@ -497,6 +497,9 @@ void data::loadCfg()
         uint64_t cfgIn = 0;
         fread(&cfgIn, sizeof(uint64_t), 1, cfg);
         fread(&data::sortType, 1, 1, cfg);
+        fread(&ui::animScale, sizeof(float), 1, cfg);
+        if(ui::animScale == 0)
+            ui::animScale = 3.5f;
         fclose(cfg);
 
         data::config["incDev"] = cfgIn >> 63 & 1;
@@ -535,6 +538,7 @@ void data::saveCfg()
     cfgOut |= (uint64_t)data::config["langOverride"] << 50;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
     fwrite(&data::sortType, 1, 1, cfg);
+    fwrite(&ui::animScale, sizeof(float), 1, cfg);
 
     fclose(cfg);
 }
@@ -553,6 +557,7 @@ void data::restoreDefaultConfig()
     data::config["directFsCmd"] = false;
     data::config["zip"] = false;
     data::sortType = 0;
+    ui::animScale = 3.5f;
 }
 
 void data::loadFav()

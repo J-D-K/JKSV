@@ -13,14 +13,6 @@
 
 typedef enum
 {
-    FUNC_A,
-    FUNC_B,
-    FUNC_X,
-    FUNC_Y,
-} menuFuncTypes;
-
-typedef enum
-{
     MENU_X,
     MENU_Y,
     MENU_RECT_WIDTH,
@@ -33,10 +25,16 @@ namespace ui
 {
     typedef struct
     {
+        funcPtr func = NULL;
+        void *args   = NULL;
+        HidNpadButton button = (HidNpadButton)0;
+    } menuOptEvent;
+
+    typedef struct
+    {
         SDL_Texture *icn = NULL;
         std::string txt;
-        funcPtr func[4] = {NULL};
-        void *argPtr[4] = {NULL};
+        std::vector<menuOptEvent> events;
     } menuOpt;
 
     class menu
@@ -56,10 +54,11 @@ namespace ui
 
             //Adds option.
             int addOpt(SDL_Texture *_icn, const std::string& add);
+
+            //Adds an function to be executed on pressing button specified
+            void optAddButtonEvent(unsigned _ind, HidNpadButton _button, funcPtr _func, void *args);
             //Changes opt text
             void editOpt(int ind, SDL_Texture *_icn, const std::string& ch);
-            void setOptFunc(unsigned _ind, unsigned _funcbtn, funcPtr _func, void *args);
-            void updateOptArgs(unsigned _ind, unsigned _funcbtn, void *args) { opt[_ind].argPtr[_funcbtn] = args; }
             size_t getOptCount() { return opt.size(); }
             int getOptPos(const std::string& txt);
 

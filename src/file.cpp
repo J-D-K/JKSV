@@ -590,7 +590,6 @@ void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& de
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     int readIn = 0;
     unz_file_info info;
-    int fCount = 0;
     if(unzGoToFirstFile(*unz) == UNZ_OK)
     {
         do

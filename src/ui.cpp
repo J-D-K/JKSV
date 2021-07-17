@@ -14,6 +14,8 @@
 //Current menu state
 int ui::mstate = USR_SEL, ui::prevState = USR_SEL;
 
+float ui::animScale = 3.5f;
+
 //pad data?
 PadState ui::pad;
 HidTouchScreenState ui::touchState;

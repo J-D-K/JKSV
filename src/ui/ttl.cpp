@@ -32,15 +32,15 @@ void ui::populateFldMenu()
     *backargs = {fldMenu, fldList};
 
     fldMenu->addOpt(NULL, "New");
-    fldMenu->setOptFunc(0, FUNC_A, fs::createNewBackup, backargs);
+    fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, backargs);
 
     for(unsigned i = 0; i < fldList->getCount(); i++)
     {
         fldMenu->addOpt(NULL, fldList->getItem(i));
 
-        fldMenu->setOptFunc(i + 1, FUNC_A, fs::overwriteBackup, backargs);
-        fldMenu->setOptFunc(i + 1, FUNC_X, fs::deleteBackup, backargs);
-        fldMenu->setOptFunc(i + 1, FUNC_Y, fs::restoreBackup, backargs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_A, fs::overwriteBackup, backargs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, fs::deleteBackup, backargs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, fs::restoreBackup, backargs);
     }
 
     fldMenu->setActive(true);
@@ -209,15 +209,19 @@ static void ttlOptsExtendSaveData(void *a)
 
         Result res = 0;
         if(R_SUCCEEDED(res = fs::extendSaveDataFileSystem(space, sid, expSize, journ)))
+        {
             ui::showPopMessage(POP_FRAME_DEFAULT, "Save data expanded for %s!", extend->title.c_str());
+            fs::logWrite("Extend Succeeded!\n");
+        }
         else
         {
             int64_t totalSize = 0;
             fs::mountSave(data::curData.saveInfo);
             fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sv"), "/", &totalSize);
+            fs::unmountSave();
+
             fs::logWrite("Extend Failed: %uMB to %uMB  -> %X\n", totalSize / 1024 / 1024, expSize / 1024 / 1024, res);
             ui::showPopMessage(POP_FRAME_DEFAULT, "Failed to expand save data.");
-            fs::unmountSave();
         }
     }
 }
@@ -261,15 +265,15 @@ void ui::ttlInit()
 
     ttlOpts->setActive(false);
     ttlOpts->addOpt(NULL, ui::titleOptString[0]);
-    ttlOpts->setOptFunc(0, FUNC_A, ttlOptsShowInfoPanel, NULL);
+    ttlOpts->optAddButtonEvent(0, HidNpadButton_A, ttlOptsShowInfoPanel, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[1]);
-    ttlOpts->setOptFunc(1, FUNC_A, ttlOptsBlacklistTitle, NULL);
+    ttlOpts->optAddButtonEvent(1, HidNpadButton_A, ttlOptsBlacklistTitle, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[2]);
-    ttlOpts->setOptFunc(2, FUNC_A, ttlOptsResetSaveData, NULL);
+    ttlOpts->optAddButtonEvent(2, HidNpadButton_A, ttlOptsResetSaveData, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[3]);
-    ttlOpts->setOptFunc(3, FUNC_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->optAddButtonEvent(3, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[4]);
-    ttlOpts->setOptFunc(4, FUNC_A, ttlOptsExtendSaveData, NULL);
+    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
 
 }
 

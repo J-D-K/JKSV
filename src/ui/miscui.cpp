@@ -100,10 +100,10 @@ void ui::menu::editOpt(int ind, SDL_Texture *_icn, const std::string& ch)
     opt[ind].txt = ch;
 }
 
-void ui::menu::setOptFunc(unsigned _ind, unsigned _funcbtn, funcPtr _func, void *args)
+void ui::menu::optAddButtonEvent(unsigned _ind, HidNpadButton _button, funcPtr _func, void *args)
 {
-    opt[_ind].func[_funcbtn] = _func;
-    opt[_ind].argPtr[_funcbtn] = args;
+    ui::menuOptEvent newEvent = {_func, args, _button};
+    opt[_ind].events.push_back(newEvent);
 }
 
 int ui::menu::getOptPos(const std::string& txt)
@@ -182,28 +182,13 @@ void ui::menu::update()
             start = selected - scrL;
     }
 
-    //func exec
-    switch(down)
+    if(down)
     {
-        case HidNpadButton_A:
-            if(opt[selected].func[FUNC_A])
-                (*opt[selected].func[FUNC_A])(opt[selected].argPtr[FUNC_A]);
-            break;
-
-        case HidNpadButton_B:
-            if(opt[selected].func[FUNC_B])
-                (*opt[selected].func[FUNC_B])(opt[selected].argPtr[FUNC_B]);
-            break;
-
-        case HidNpadButton_X:
-            if(opt[selected].func[FUNC_X])
-                (*opt[selected].func[FUNC_X])(opt[selected].argPtr[FUNC_X]);
-            break;
-
-        case HidNpadButton_Y:
-            if(opt[selected].func[FUNC_Y])
-                (*opt[selected].func[FUNC_Y])(opt[selected].argPtr[FUNC_Y]);
-            break;
+        for(ui::menuOptEvent& e : opt[selected].events)
+        {
+            if((down & e.button) && e.func)
+                (*e.func)(e.args);
+        }
     }
 
     if(selected != oldSel && onChange)
@@ -325,13 +310,13 @@ void ui::slideOutPanel::draw(const SDL_Color *backCol)
 
     if(open && x > 1280 - w)
     {
-        float add = ((1280 - (float)w) - (float)x) / 2;
-        x += round(add);
+        float add = ((1280 - (float)w) - (float)x) / ui::animScale;
+        x += ceil(add);
     }
     else if(!open && x < 1280)
     {
-        float add = (1280 - (float)x) / 2;
-        x += round(add);
+        float add = (1280 - (float)x) / ui::animScale;
+        x += ceil(add);
     }
 
     //don't waste time drawing if you can't even see it.
@@ -345,9 +330,9 @@ void ui::slideOutPanel::draw(const SDL_Color *backCol)
 //Todo make less hardcoded
 void ui::titleTile::draw(SDL_Texture *target, int x, int y, bool sel)
 {
+    unsigned xScale = w * 1.28, yScale = h * 1.28;
     if(sel)
     {
-        unsigned xScale = w * 1.28, yScale = h * 1.28;
         if(wS < xScale)
             wS += 18;
         if(hS < yScale)
@@ -453,18 +438,21 @@ void ui::titleview::update()
 
 void ui::titleview::draw(SDL_Texture *target)
 {
+    if(tiles.size() <= 0)
+        return;
+
     int tH = 0, tY = 0;
     SDL_QueryTexture(target, NULL, NULL, NULL, &tH);
     tY = tH - 214;
     if(selRectY > tY)
     {
-        float add = ((float)tY - (float)selRectY) / 2;
-        y += round(add);
+        float add = ((float)tY - (float)selRectY) / ui::animScale;
+        y += ceil(add);
     }
     else if(selRectY < 38)
     {
-        float add = (38.0f - (float)selRectY) / 2;
-        y += round(add);
+        float add = (38.0f - (float)selRectY) / ui::animScale;
+        y += ceil(add);
     }
 
     if(clrAdd)
@@ -489,7 +477,7 @@ void ui::titleview::draw(SDL_Texture *target)
             if(i >= totalTitles)
                 break;
 
-            if(i == selected && showSel)
+            if(i == selected)
             {
                 //save x and y for later so it's draw over top
                 selX = tX;
@@ -507,6 +495,8 @@ void ui::titleview::draw(SDL_Texture *target)
         ui::drawBoundBox(target, selRectX, selRectY, 176, 176, clrShft);
         tiles[selected]->draw(target, selX, selY, true);
     }
+    else
+        tiles[selected]->draw(target, selX, selY, false);
 }
 
 ui::popMessageMngr::~popMessageMngr()
@@ -538,7 +528,7 @@ void ui::popMessageMngr::draw()
     {
         y -= 48;
         if(p.y != y)
-            p.y += (y - p.y) / 2;
+            p.y += (y - p.y) / ui::animScale;
 
         gfx::drawRect(NULL, &ui::tboxClr, 64, p.y, p.rectWidth, 40);
         gfx::drawTextf(NULL, 24, 80, p.y + 8, &ui::txtDiag, p.message.c_str());
@@ -585,7 +575,7 @@ bool ui::confirm(bool hold, const char *fmt, ...)
     uint8_t holdClrDiff = 0;
     SDL_Color holdClr = ui::txtDiag;
 
-    unsigned headX = (640 / 2) - (gfx::getTextWidth("Confirm", 20) / 2);
+    unsigned headX = (640 / 2) - (gfx::getTextWidth(ui::confirmHead.c_str(), 20) / 2);
     unsigned yesX = 160 - (gfx::getTextWidth(ui::yt.c_str(), 20) / 2);
     unsigned noX = 160 - (gfx::getTextWidth(ui::nt.c_str(), 20) / 2);
 
