@@ -135,6 +135,15 @@ static void ttlOptsBlacklistTitle(void *a)
     }
 }
 
+static void ttlOptsDefinePath(void *a)
+{
+    uint64_t tid = data::curData.saveID;
+    std::string safeTitle = data::getTitleInfoByTID(tid)->safeTitle;
+    std::string newSafeTitle = util::getStringInput(safeTitle, "Input New Output Folder", 32, 0, NULL);
+    if(!newSafeTitle.empty())
+        data::pathDefAdd(tid, newSafeTitle);
+}
+
 static void ttlOptsResetSaveData(void *a)
 {
     std::string title = data::getTitleNameByTID(data::curData.saveID);
@@ -164,6 +173,8 @@ static void fldPanelDraw(void *a)
 {
     SDL_Texture *target = (SDL_Texture *)a;
     fldMenu->draw(target, &ui::txtCont, true);
+    gfx::drawLine(target, &ui::divClr, 10, 648, 502, 648);
+    gfx::drawTextf(target, 18, 32, 673, &ui::txtCont, ui::folderHelp.c_str());
 }
 
 static void ttlOptsDeleteSaveData(void *a)
@@ -246,7 +257,7 @@ void ui::ttlInit()
     ttlOpts->setActive(false);
 
     fldMenu = new ui::menu;
-    fldMenu->setParams(10, 32, 390, 18, 8);
+    fldMenu->setParams(10, 32, 492, 18, 8);
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
 
@@ -257,7 +268,7 @@ void ui::ttlInit()
     ui::registerPanel(infoPanel);
     infoPanel->setCallback(infoPanelCallback, NULL);
 
-    fldPanel = new ui::slideOutPanel(410, 720, 0, fldPanelDraw);
+    fldPanel = new ui::slideOutPanel(512, 720, 0, fldPanelDraw);
     ui::registerPanel(fldPanel);
 
     fldList = new fs::dirList;
@@ -269,11 +280,13 @@ void ui::ttlInit()
     ttlOpts->addOpt(NULL, ui::titleOptString[1]);
     ttlOpts->optAddButtonEvent(1, HidNpadButton_A, ttlOptsBlacklistTitle, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[2]);
-    ttlOpts->optAddButtonEvent(2, HidNpadButton_A, ttlOptsResetSaveData, NULL);
+    ttlOpts->optAddButtonEvent(2, HidNpadButton_A, ttlOptsDefinePath, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[3]);
-    ttlOpts->optAddButtonEvent(3, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->optAddButtonEvent(3, HidNpadButton_A, ttlOptsResetSaveData, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[4]);
-    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
+    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->addOpt(NULL, ui::titleOptString[5]);
+    ttlOpts->optAddButtonEvent(5, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
 
 }
 

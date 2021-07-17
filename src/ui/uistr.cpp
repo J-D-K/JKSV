@@ -19,7 +19,7 @@ static std::unordered_map<std::string, unsigned> uistrdef =
 std::string ui::author = "NULL";
 std::string ui::userHelp = "[A] Select   [X] User Options";
 std::string ui::titleHelp = "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back";
-std::string ui::folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Selected  [ZR] Erase  [B] Back";
+std::string ui::folderHelp = "[A] Select  [Y] Restore  [X] Delete  [B] Close";
 std::string ui::optHelp = "[A] Toggle   [X] Defaults   [B] Back";
 std::string ui::yt = "Yes [A]", ui::nt = "No  [B]";
 std::string ui::on = ">On>", ui::off = "Off";
@@ -45,12 +45,12 @@ std::string ui::optMenuStr[14] = { "Include Device Saves: ", "AutoBackup: ", "Ov
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };
 std::string ui::usrOptString[2] = { "Create Save Data", "Delete All User Saves" };
-std::string ui::titleOptString[5] = {"Information", "Blacklist", "Reset Save Data", "Delete Save Filesystem", "Extend Save Filesystem"};
+std::string ui::titleOptString[6] = {"Information", "Blacklist", "Change Output folder", "Reset Save Data", "Delete Save Filesystem", "Extend Save Filesystem"};
 
 void ui::loadTrans()
 {
     bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
-    if(!transFile && data::sysLang == SetLanguage_ENUS)
+    if(!transFile && (data::sysLang == SetLanguage_ENUS || data::config["langOverride"]))
         return;//Don't bother loading from file. It serves as a translation guide
 
     std::string file;

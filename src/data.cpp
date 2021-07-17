@@ -158,6 +158,8 @@ static inline void addTitleToList(const uint64_t& tid)
             data::titles[tid].fav = true;
 
         data::titles[tid].icon = gfx::loadJPEGMem(ctrlData->icon, iconSize);
+        if(!data::titles[tid].icon)
+            data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32);
     }
     else
     {
@@ -171,7 +173,6 @@ static inline void addTitleToList(const uint64_t& tid)
 
         data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32);
     }
-
     delete ctrlData;
 }
 
@@ -355,6 +356,7 @@ void data::exit()
     saveFav();
     saveCfg();
     saveBlackList();
+    saveDefs();
     util::setCPU(1020000000);
 }
 
@@ -451,12 +453,15 @@ void data::loadBlacklist()
 
 void data::saveBlackList()
 {
-    std::string blPath = fs::getWorkDir() + "blacklist.txt";
-    FILE *bl = fopen(blPath.c_str(), "w");
-    for(uint64_t id : blacklist)
-        fprintf(bl, "#%s\n0x%016lX\n", data::getTitleNameByTID(id).c_str(), id);
+    if(!blacklist.empty())
+    {
+        std::string blPath = fs::getWorkDir() + "blacklist.txt";
+        FILE *bl = fopen(blPath.c_str(), "w");
+        for(uint64_t id : blacklist)
+            fprintf(bl, "#%s\n0x%016lX\n", data::getTitleNameByTID(id).c_str(), id);
 
-    fclose(bl);
+        fclose(bl);
+    }
 }
 
 void data::blacklistAdd(const uint64_t& tid)
@@ -485,6 +490,25 @@ void data::favoriteTitle(const uint64_t& tid)
 
     for(auto &u : data::users)
         std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
+}
+
+void data::pathDefAdd(const uint64_t& tid, const std::string& newPath)
+{
+    std::string oldSafe = titles[tid].safeTitle;
+    std::string tmp = util::safeString(newPath);
+    if(!tmp.empty())
+    {
+        pathDefs[tid] = tmp;
+        titles[tid].safeTitle = tmp;
+
+        std::string oldOutput = fs::getWorkDir() + oldSafe;
+        std::string newOutput = fs::getWorkDir() + tmp;
+        rename(oldOutput.c_str(), newOutput.c_str());
+
+        ui::showPopMessage(POP_FRAME_DEFAULT, "\"%s\" changed to \"%s\"", oldSafe.c_str(), tmp.c_str());
+    }
+    else
+        ui::showPopMessage(POP_FRAME_DEFAULT, "\"%s\" contains illegal or non-ASCII characters.", newPath.c_str());
 }
 
 void data::loadCfg()
@@ -572,12 +596,15 @@ void data::loadFav()
 
 void data::saveFav()
 {
-    std::string favPath = fs::getWorkDir() + "favorites.txt";
-    FILE *fav = fopen(favPath.c_str(), "w");
-    for(uint64_t& fid : favorites)
-        fprintf(fav, "0x%016lX\n", fid);
+    if(!favorites.empty())
+    {
+        std::string favPath = fs::getWorkDir() + "favorites.txt";
+        FILE *fav = fopen(favPath.c_str(), "w");
+        for(uint64_t& fid : favorites)
+            fprintf(fav, "0x%016lX\n", fid);
 
-    fclose(fav);
+        fclose(fav);
+    }
 }
 
 void data::loadDefs()
@@ -591,6 +618,21 @@ void data::loadDefs()
             uint64_t id = strtoull(def.getName().c_str(), NULL, 16);
             pathDefs[id] = def.getNextValueStr();
         }
+    }
+}
+
+void data::saveDefs()
+{
+    if(!pathDefs.empty())
+    {
+        std::string defPath = fs::getWorkDir() + "titleDefs.txt";
+        FILE *ttlDef = fopen(defPath.c_str(), "w");
+        for(auto& d : pathDefs)
+        {
+            std::string title = data::titles[d.first].title;
+            fprintf(ttlDef, "#%s\n0x%016lX = \"%s\";\n", title.c_str(), d.first, d.second.c_str());
+        }
+        fclose(ttlDef);
     }
 }
 

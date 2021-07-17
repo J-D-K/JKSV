@@ -24,5 +24,5 @@ namespace ui
     //Strings for user options
     extern std::string usrOptString[2];
     //Strings for title options
-    extern std::string titleOptString[5];
+    extern std::string titleOptString[6];
 }

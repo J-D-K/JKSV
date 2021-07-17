@@ -135,9 +135,10 @@ SDL_Texture *gfx::loadJPEGMem(const void *jpegData, size_t jpegsize)
     SDL_RWops *jpeg = SDL_RWFromConstMem(jpegData, jpegsize);
     SDL_Surface *tmpSurf = IMG_LoadJPG_RW(jpeg);
     if(tmpSurf)
+    {
         ret = SDL_CreateTextureFromSurface(render, tmpSurf);
-
-    SDL_FreeSurface(tmpSurf);
+        SDL_FreeSurface(tmpSurf);
+    }
     SDL_RWclose(jpeg);
 
     SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
@@ -150,10 +151,10 @@ SDL_Texture *gfx::loadImageFile(const char *file)
     SDL_Texture *ret = NULL;
     SDL_Surface *tmpSurf = IMG_Load(file);
     if(tmpSurf)
+    {
         ret = SDL_CreateTextureFromSurface(render, tmpSurf);
-
-    SDL_FreeSurface(tmpSurf);
-
+        SDL_FreeSurface(tmpSurf);
+    }
     SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
 
     return ret;

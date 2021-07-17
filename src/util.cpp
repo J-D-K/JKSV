@@ -171,7 +171,7 @@ std::string util::safeString(const std::string& s)
     }
 
     //Check for spaces at end
-    while(ret[ret.length() - 1] == ' ')
+    while(ret[ret.length() - 1] == ' ' || ret[ret.length() - 1] == '.')
         ret.erase(ret.length() - 1, 1);
 
     return ret;

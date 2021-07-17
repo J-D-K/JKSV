@@ -29,6 +29,7 @@ namespace data
     void loadFav();
     void saveFav();
     void loadDefs();
+    void saveDefs();
 
     //Draws some stats to the upper left corner
     void dispStats();
@@ -91,6 +92,8 @@ namespace data
     void blacklistAdd(const uint64_t& tid);
     //Adds title to favorite list
     void favoriteTitle(const uint64_t& tid);
+    //Adds path definition for title
+    void pathDefAdd(const uint64_t& tid, const std::string& newPath);
 
     bool isFavorite(const uint64_t& tid);
 
