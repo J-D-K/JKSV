@@ -11,7 +11,7 @@
 #define curData users[data::selUser].titleInfo[data::selData]
 
 #define BLD_MON 7
-#define BLD_DAY 15
+#define BLD_DAY 18
 #define BLD_YEAR 2021
 
 namespace data
@@ -94,7 +94,6 @@ namespace data
     void favoriteTitle(const uint64_t& tid);
     //Adds path definition for title
     void pathDefAdd(const uint64_t& tid, const std::string& newPath);
-
     bool isFavorite(const uint64_t& tid);
 
     //User vector

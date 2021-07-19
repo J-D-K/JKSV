@@ -20,13 +20,7 @@ static const SDL_Color fillDark  = {0x32, 0x50, 0xF0, 0xFF};
 
 static const SDL_Color menuColorLight = {0x32, 0x50, 0xF0, 0xFF};
 static const SDL_Color menuColorDark  = {0x00, 0xFF, 0xC5, 0xFF};
-
-//8
-static const std::string loadGlyphArray[] =
-{
-    "\ue020", "\ue021", "\ue022", "\ue023",
-    "\ue024", "\ue025", "\ue026", "\ue027"
-};
+static const SDL_Color darkenBack = {0x00, 0x00, 0x00, 0xBB};
 
 void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW, const unsigned& _fS, const unsigned& _mL)
 {
@@ -535,6 +529,63 @@ void ui::popMessageMngr::draw()
     }
 }
 
+ui::threadProcMngr::~threadProcMngr()
+{
+    for(threadInfo *t : threads)
+    {
+        threadWaitForExit(t->thrdPtr);
+        threadClose(t->thrdPtr);
+        delete t->thrdPtr;
+        if(t->argPtr)
+            free(t->argPtr);
+        delete t;
+    }
+}
+
+void ui::threadProcMngr::newThread(ThreadFunc func, void *args)
+{
+    threadInfo *t = new threadInfo;
+    t->thrdPtr = new Thread;
+    t->finished = false;
+    t->argPtr = args;
+
+    threadCreate(t->thrdPtr, func, t, NULL, 0x8000, 0x2B, 1);
+    threads.push_back(t);
+}
+
+void ui::threadProcMngr::update()
+{
+    if(!threads.empty())
+    {
+        threadInfo *t = threads[0];
+        if(t->running == false && t->finished == false)
+        {
+            t->running = true;
+            threadStart(t->thrdPtr);
+        }
+        else if(t->running == true && t->finished == true)
+        {
+            threadWaitForExit(t->thrdPtr);
+            threadClose(t->thrdPtr);
+            delete t->thrdPtr;
+            delete t;
+            threads.erase(threads.begin());
+        }
+    }
+}
+
+void ui::threadProcMngr::draw()
+{
+    if(++frameCount % 4 == 0 && ++lgFrame > 7)
+        lgFrame = 0;
+
+    gfx::drawRect(NULL, &darkenBack, 0, 0, 1280, 720);
+    gfx::drawTextf(NULL, 128, 576, 296, &ui::loadGlyphClr, loadGlyphArray[lgFrame].c_str());
+    int y = 424;
+    int statX = 640 - (gfx::getTextWidth(threads[0]->status.c_str(), 18) / 2);
+    gfx::drawTextf(NULL, 18, statX, 440, &ui::txtCont, threads[0]->status.c_str());
+}
+
 void ui::showMessage(const char *head, const char *fmt, ...)
 {
     char tmp[1024];
@@ -694,7 +745,7 @@ void ui::drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t c
 
     gfx::drawRect(target, &rectClr, x + 4, y + 4, w - 8, h - 8);
 
-    rectClr = {0x00,(uint8_t)(0x88 + clrSh), (uint8_t)(0xC5 + (clrSh / 2)), 0xFF};
+    rectClr = {0x00, (uint8_t)(0x88 + clrSh), (uint8_t)(0xC5 + (clrSh / 2)), 0xFF};
 
     SDL_SetTextureColorMod(mnuTopLeft, rectClr.r, rectClr.g, rectClr.b);
     SDL_SetTextureColorMod(mnuTopRight, rectClr.r, rectClr.g, rectClr.b);

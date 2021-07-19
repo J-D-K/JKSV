@@ -438,7 +438,7 @@ void data::user::addUserTitleInfo(const uint64_t& tid, const FsSaveDataInfo *_sa
     newInfo.saveID = tid;
     memcpy(&newInfo.saveInfo, _saveInfo, sizeof(FsSaveDataInfo));
     memcpy(&newInfo.playStats, _stats, sizeof(PdmPlayStatistics));
-    titleInfo.emplace_back(newInfo);
+    titleInfo.push_back(newInfo);
 }
 
 void data::loadBlacklist()
@@ -523,7 +523,7 @@ void data::loadCfg()
         fread(&data::sortType, 1, 1, cfg);
         fread(&ui::animScale, sizeof(float), 1, cfg);
         if(ui::animScale == 0)
-            ui::animScale = 3.5f;
+            ui::animScale = 3.0f;
         fclose(cfg);
 
         data::config["incDev"] = cfgIn >> 63 & 1;
@@ -538,6 +538,7 @@ void data::loadCfg()
         data::config["directFsCmd"] = cfgIn >> 53 & 1;
         data::config["zip"] = cfgIn >> 51 & 1;
         data::config["langOverride"] = cfgIn >> 50 & 1;
+        data::config["trashBin"] = cfgIn >> 49 & 1;
     }
 }
 
@@ -560,6 +561,7 @@ void data::saveCfg()
     cfgOut |= (uint64_t)data::config["directFsCmd"] << 53;
     cfgOut |= (uint64_t)data::config["zip"] << 51;
     cfgOut |= (uint64_t)data::config["langOverride"] << 50;
+    cfgOut |= (uint64_t)data::config["trashBin"] << 49;
     fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
     fwrite(&data::sortType, 1, 1, cfg);
     fwrite(&ui::animScale, sizeof(float), 1, cfg);
@@ -580,8 +582,10 @@ void data::restoreDefaultConfig()
     data::config["sysSaveWrite"] = false;
     data::config["directFsCmd"] = false;
     data::config["zip"] = false;
+    data::config["langOverride"] = false;
+    data::config["trashBin"] = true;
     data::sortType = 0;
-    ui::animScale = 3.5f;
+    ui::animScale = 3.0f;
 }
 
 void data::loadFav()

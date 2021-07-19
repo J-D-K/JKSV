@@ -129,26 +129,25 @@ static void usrOptSaveCreate(void *a)
 }
 
 //nsDeleteUserSaveDataAll only works if the user is selected at system level
+static void usrOptDeleteAllUserSaves_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    data::user *u = &data::users[data::selUser];
+    for(data::userTitleInfo& tinf : u->titleInfo)
+    {
+        t->status = "Deleting " + data::getTitleNameByTID(tinf.saveID);
+        fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);;
+    }
+    data::loadUsersTitles(false);
+    ui::refreshAllViews();
+    t->finished = true;
+}
+
 static void usrOptDeleteAllUserSaves(void *a)
 {
     data::user *u = &data::users[data::selUser];
     if(ui::confirm(true, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*", u->getUsername().c_str()))
-    {
-        for(data::userTitleInfo& tinf : u->titleInfo)
-        {
-            FsSaveDataAttribute attr;
-            attr.application_id = tinf.saveID;
-            attr.uid = u->getUID();
-            attr.system_save_data_id = 0;
-            attr.save_data_type = tinf.saveInfo.save_data_type;
-            attr.save_data_rank = tinf.saveInfo.save_data_rank;
-            attr.save_data_index = tinf.saveInfo.save_data_index;
-
-            fsDeleteSaveDataFileSystemBySaveDataAttribute(FsSaveDataSpaceId_User, &attr);
-        }
-        data::loadUsersTitles(false);
-        ui::refreshAllViews();
-    }
+        ui::newThread(usrOptDeleteAllUserSaves_t, NULL);
 }
 
 static void usrOptPanelDraw(void *a)
@@ -181,9 +180,10 @@ static void cacheSavePanelDraw(void *a)
     cacheSaveMenu->draw(panel, &ui::txtCont, true);
 }
 
-static void createSaveData(void *a)
+static void createSaveData_t(void *a)
 {
-    svCreateArgs *in = (svCreateArgs *)a;
+    threadInfo *t = (threadInfo *)a;
+    svCreateArgs *in = (svCreateArgs *)t->argPtr;
 
     FsSaveDataType type = in->type;
     ui::menu *m = in->m;
@@ -211,6 +211,7 @@ static void createSaveData(void *a)
             break;
     }
     data::titleInfo *create = data::getTitleInfoByTID(sid);
+    t->status = "Creating save data for " + create->title;
 
     FsSaveDataAttribute attr;
     memset(&attr, 0, sizeof(FsSaveDataAttribute));
@@ -243,7 +244,7 @@ static void createSaveData(void *a)
 
         case FsSaveDataType_Cache:
             saveSize = 32 * 1024 * 1024;//Todo: Add target folder/zip selection for size
-            journalSize = create->nacp.user_account_save_data_journal_size;
+            journalSize = create->nacp.cache_storage_journal_size;
             break;
 
         default:
@@ -265,7 +266,6 @@ static void createSaveData(void *a)
     Result res = 0;
     if(R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &svCreate, &meta)))
     {
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveCreated.c_str(), create->title.c_str());
         data::loadUsersTitles(false);
         ui::refreshAllViews();
     }
@@ -274,6 +274,13 @@ static void createSaveData(void *a)
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveCreateFailed.c_str());
         fs::logWrite("SaveCreate Failed -> %X\n", res);
     }
+
+    t->finished = true;
+}
+
+static void createSaveData(void *a)
+{
+    ui::newThread(createSaveData_t, a);
 }
 
 void ui::usrInit()
@@ -317,7 +324,7 @@ void ui::usrInit()
 
     ext = util::createIconGeneric("Extras", 40);
     pos = usrMenu->addOpt(ext, "Extras");
-    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
+    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, NULL, NULL);
 
     usrMenu->setOnChangeFunc(onMainChange);
     usrMenu->editParam(MENU_RECT_WIDTH, 126);

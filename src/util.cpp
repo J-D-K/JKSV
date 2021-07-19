@@ -261,9 +261,9 @@ std::string util::getStringInput(const std::string& def, const std::string& head
         swkbdConfigSetDictionary(&swkbd, (SwkbdDictWord *)words, dictCnt);
     }
 
-    char out[maxLength];
-    memset(out, 0, maxLength);
-    swkbdShow(&swkbd, out, maxLength);
+    char out[maxLength + 1];
+    memset(out, 0, maxLength + 1);
+    swkbdShow(&swkbd, out, maxLength + 1);
     swkbdClose(&swkbd);
 
     return std::string(out);

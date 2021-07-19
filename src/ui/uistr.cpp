@@ -41,7 +41,7 @@ std::string ui::errorConnecting = "Error Connecting!";
 std::string ui::noUpdate = "No updates available!";
 std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
 std::string ui::exMenuStr[11] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS", "Backup JKSV Folder" };
-std::string ui::optMenuStr[14] = { "Include Device Saves: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Direct FS Cmd: ", "Export to ZIP: ", "Language Override: ", "Sort: ", "Animation Scale: "};
+std::string ui::optMenuStr[16] = { "Empty Trash Bin", "Include Device Saves: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Direct FS Cmd: ", "Export to ZIP: ", "Language Override: ", "Enable Trash Bin: ", "Sort: ", "Animation Scale: "};
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };
 std::string ui::usrOptString[2] = { "Create Save Data", "Delete All User Saves" };
@@ -49,6 +49,9 @@ std::string ui::titleOptString[6] = {"Information", "Blacklist", "Change Output 
 
 void ui::loadTrans()
 {
+    //Disable translation loading until new UI done
+    return;
+
     bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
     if(!transFile && (data::sysLang == SetLanguage_ENUS || data::config["langOverride"]))
         return;//Don't bother loading from file. It serves as a translation guide

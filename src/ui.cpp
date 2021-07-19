@@ -14,7 +14,7 @@
 //Current menu state
 int ui::mstate = USR_SEL, ui::prevState = USR_SEL;
 
-float ui::animScale = 3.5f;
+float ui::animScale = 3.0f;
 
 //pad data?
 PadState ui::pad;
@@ -28,7 +28,7 @@ std::string ui::folderMenuInfo;
 
 //UI colors
 SDL_Color ui::clearClr, ui::txtCont, ui::txtDiag, ui::rectLt, ui::rectSh, ui::tboxClr, ui::divClr, ui::slidePanelColor;
-SDL_Color ui::transparent = {0x00, 0x00, 0x00, 0x00};
+SDL_Color ui::transparent = {0x00, 0x00, 0x00, 0x00}, ui::loadGlyphClr = {0x00, 0xFF, 0xC5, 0xFF};
 
 //textbox pieces
 //I was going to flip them when I draw them, but then laziness kicked in.
@@ -52,9 +52,16 @@ static int settPos, extPos;
 
 //Vector of pointers to slideOutPanels. Is looped and drawn last so they are always on top
 std::vector<ui::slideOutPanel *> panels;
-static unsigned int panelCount = 0;
 
 static ui::popMessageMngr *popMessages;
+static ui::threadProcMngr *threadMngr;
+
+//8
+const std::string ui::loadGlyphArray[] =
+{
+    "\ue020", "\ue021", "\ue022", "\ue023",
+    "\ue024", "\ue025", "\ue026", "\ue027"
+};
 
 void ui::initTheme()
 {
@@ -158,6 +165,7 @@ void ui::init()
     ui::settInit();
 
     popMessages = new ui::popMessageMngr;
+    threadMngr  = new ui::threadProcMngr;
 
     //Need these from user/main menu
     settPos = ui::usrMenu->getOptPos("Settings");
@@ -171,6 +179,7 @@ void ui::exit()
     ui::settExit();
 
     delete popMessages;
+    delete threadMngr;
 
     SDL_DestroyTexture(cornerTopLeft);
     SDL_DestroyTexture(cornerTopRight);
@@ -193,7 +202,13 @@ void ui::exit()
 int ui::registerPanel(slideOutPanel *sop)
 {
     panels.push_back(sop);
-    return panelCount++;
+    return panels.size() - 1;
+}
+
+int ui::newThread(ThreadFunc func, void *args)
+{
+    threadMngr->newThread(func, args);
+    return 0;
 }
 
 void ui::showLoadScreen()
@@ -237,6 +252,9 @@ void ui::drawUI()
     for(slideOutPanel *s : panels)
         s->draw(&ui::slidePanelColor);
 
+    if(!threadMngr->empty())
+        threadMngr->draw();
+
     popMessages->draw();
 }
 
@@ -244,38 +262,44 @@ static bool debugDisp = false;
 
 bool ui::runApp()
 {
-    ui::updateInput();
-    uint64_t down = ui::padKeysDown();
-
-    if(down & HidNpadButton_StickL && down & HidNpadButton_StickR)
-        debugDisp = true;
-    else if(down & HidNpadButton_Plus)
-        return false;
-
-    switch(ui::mstate)
+    if(threadMngr->empty())
     {
-        case USR_SEL:
-            usrUpdate();
-            break;
+        ui::updateInput();
+        uint64_t down = ui::padKeysDown();
 
-        case TTL_SEL:
-            ttlUpdate();
-            break;
+        if(down & HidNpadButton_StickL && down & HidNpadButton_StickR)
+            debugDisp = true;
+        else if(down & HidNpadButton_Plus)
+            return false;
 
-        case OPT_MNU:
-            settUpdate();
-            break;
+        switch(ui::mstate)
+        {
+            case USR_SEL:
+                usrUpdate();
+                break;
 
-        case EX_MNU:
-            /*extMenu.update();
-            if(down & HidNpadButton_B)
-            {
-                ui::changeState(USR_SEL);
-                mainMenu.setActive(true);
-                extMenu.setActive(false);
-            }*/
-            break;
+            case TTL_SEL:
+                ttlUpdate();
+                break;
+
+            case OPT_MNU:
+                settUpdate();
+                break;
+
+            case EX_MNU:
+                /*extMenu.update();
+                if(down & HidNpadButton_B)
+                {
+                    ui::changeState(USR_SEL);
+                    mainMenu.setActive(true);
+                    extMenu.setActive(false);
+                }*/
+                break;
+        }
     }
+    else
+        threadMngr->update();
+
     popMessages->update();
 
     drawUI();

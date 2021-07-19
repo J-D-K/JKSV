@@ -205,6 +205,22 @@ namespace ui
             std::vector<popMessage> message;
     };
 
+    class threadProcMngr
+    {
+        public:
+            ~threadProcMngr();
+            void newThread(ThreadFunc func, void *args);
+            void addThread(threadInfo *t);
+            void update();
+            void draw();
+            bool empty(){ return threads.empty(); }
+
+        private:
+            std::vector<threadInfo *> threads;
+            uint8_t lgFrame = 0;
+            unsigned frameCount = 0;
+    };
+
     //General use
     void showMessage(const char *head, const char *fmt, ...);
     bool confirm(bool hold, const char *fmt, ...);

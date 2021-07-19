@@ -20,7 +20,6 @@ namespace fs
     //Mounts usr's save data for open. Returns false it fails
     bool mountSave(const FsSaveDataInfo& _m);
     inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
-    Result extendSaveDataFileSystem(FsSaveDataSpaceId _id, uint64_t _saveID, uint64_t _expSize, uint64_t _journal);
 
     void copyFile(const std::string& from, const std::string& to);
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
@@ -29,13 +28,13 @@ namespace fs
     void copyDirToDir(const std::string& from, const std::string& to);
 
     //Copies from to zipFile to
-    void copyDirToZip(const std::string& from, zipFile *to);
+    void copyDirToZip(const std::string& from, zipFile to);
 
     //Same as above, but commits data to 'dev' after every file is closed
     void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
 
     //Copies unzfile to 'to'
-    void copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev);
+    void copyZipToDir(unzFile unz, const std::string& to, const std::string& dev);
 
     //deletes file
     void delfile(const std::string& path);

@@ -32,6 +32,9 @@ namespace ui
     //Slide/animation scaling
     extern float animScale;
 
+    //Loading glyph
+    extern const std::string loadGlyphArray[];
+
     //pad data cause i don't know where else to put it
     extern PadState pad;
     extern HidTouchScreenState touchState;
@@ -58,7 +61,7 @@ namespace ui
         txtCont = text that contrasts clearClr
         txtDiag = text color for dialogs
     */
-    extern SDL_Color clearClr, transparent, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect, divClr, heartColor, slidePanelColor;
+    extern SDL_Color clearClr, transparent, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect, divClr, heartColor, slidePanelColor, loadGlyphClr;
 
     //Textbox graphics
     extern SDL_Texture *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;
@@ -81,6 +84,7 @@ namespace ui
     //Adds a panel pointer to a vector since they need to be drawn over everything else
     int registerMenu(ui::menu *m);
     int registerPanel(ui::slideOutPanel *sop);
+    int newThread(ThreadFunc func, void *args);
 
     //Just draws a screen and flips JIC boot takes long.
     void showLoadScreen();

@@ -32,6 +32,15 @@ namespace util
 
     std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 
+    inline std::string getExtensionFromString(const std::string& get)
+    {
+        size_t ext = get.find_last_of('.');
+        if(ext != get.npos)
+            return get.substr(ext + 1, get.npos);
+        else
+            return "";
+    }
+
     std::string generateAbbrev(const uint64_t& tid);
 
     //removes char from C++ string
