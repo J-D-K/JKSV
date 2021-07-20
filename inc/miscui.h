@@ -202,6 +202,7 @@ namespace ui
             void draw();
 
         private:
+            std::vector<popMessage> popQueue;//All graphics need to be on main thread. Directly adding will cause text issues
             std::vector<popMessage> message;
     };
 

@@ -500,6 +500,14 @@ ui::popMessageMngr::~popMessageMngr()
 
 void ui::popMessageMngr::update()
 {
+    //Anything that needs graphics/text must be processed on main thread
+    for(ui::popMessage& p : popQueue)
+    {
+        p.rectWidth = gfx::getTextWidth(p.message.c_str(), 24) + 32;
+        message.push_back(p);
+    }
+    popQueue.clear();
+
     for(unsigned i = 0; i < message.size(); i++)
     {
         message[i].frames--;
@@ -510,9 +518,8 @@ void ui::popMessageMngr::update()
 
 void ui::popMessageMngr::popMessageAdd(const std::string& mess, int frameTime)
 {
-    int rectWidth = gfx::getTextWidth(mess.c_str(), 24);
-    ui::popMessage newPop = {mess, rectWidth + 32, frameTime};
-    message.push_back(newPop);
+    ui::popMessage newPop = {mess, 0, frameTime};
+    popQueue.push_back(newPop);
 }
 
 void ui::popMessageMngr::draw()

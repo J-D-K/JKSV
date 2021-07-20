@@ -182,12 +182,7 @@ static void ttlOptsExtendSaveData_t(void *a)
             journ = extend->nacp.user_account_save_data_journal_size;
 
         Result res = 0;
-        if(R_SUCCEEDED(res = fsExtendSaveDataFileSystem(space, sid, expSize, journ)))
-        {
-            ui::showPopMessage(POP_FRAME_DEFAULT, "Save data expanded for %s!", extend->title.c_str());
-            fs::logWrite("Extend Succeeded!\n");
-        }
-        else
+        if(R_FAILED(res = fsExtendSaveDataFileSystem(space, sid, expSize, journ)))
         {
             int64_t totalSize = 0;
             fs::mountSave(data::curData.saveInfo);
