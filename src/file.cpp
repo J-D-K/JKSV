@@ -30,17 +30,19 @@ typedef struct
 {
     std::string to, from, dev;
     zipFile z;
-    bool fin;
+    unzFile unz;
+    bool closeZip = false;
 } copyArgs;
 
-static copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z)
+static copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _closeZip)
 {
     copyArgs *ret = new copyArgs;
     ret->to = to;
     ret->from = from;
     ret->dev = dev;
     ret->z = z;
-    ret->fin = false;
+    ret->unz = unz;
+    ret->closeZip = _closeZip;
     return ret;
 }
 
@@ -84,6 +86,34 @@ static inline bool commitToDevice(const std::string& dev)
         ret = false;
     }
     return ret;
+}
+
+static uint64_t getJournalSize(const data::titleInfo *t)
+{
+    uint64_t journalSize = 0;
+    switch(data::curData.saveInfo.save_data_type)
+    {
+        case FsSaveDataType_Account:
+            journalSize = t->nacp.user_account_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Device:
+            journalSize = t->nacp.device_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Bcat:
+            journalSize = t->nacp.bcat_delivery_cache_storage_size;
+            break;
+
+        case FsSaveDataType_Cache:
+            journalSize = t->nacp.cache_storage_journal_size;
+            break;
+
+        default:
+            journalSize = BUFF_SIZE;
+            break;
+    }
+    return journalSize;
 }
 
 void fs::init()
@@ -322,7 +352,7 @@ int fs::dataFile::getNextValueInt()
 static inline std::string fileStatusString(const std::string& itm, float complete, float total)
 {
     char tmp[512];
-    sprintf(tmp, "Copying \"%s\" : %.2f MB / %.2f MB", itm.c_str(), complete, total);
+    sprintf(tmp, "Copying \"%s\" : %.2f MB / %.2f MB", itm.c_str(), complete / 1024.0f / 1024.0f, total / 1024.0f / 1024.0f);
     return std::string(tmp);
 }
 
@@ -331,7 +361,7 @@ static void copyfile_t(void *a)
     threadInfo *t = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
 
-    float srcSizeMB = (float)fs::fsize(args->from) / 1024.0f / 1024.0f;
+    float srcSize = (float)fs::fsize(args->from);
 
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     if(data::config["directFsCmd"])
@@ -343,14 +373,14 @@ static void copyfile_t(void *a)
         {
             fsfclose(in);
             fsfclose(out);
-            args->fin = true;
+            t->finished = true;
             return;
         }
         size_t readIn = 0;
         while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
         {
             fsfwrite(buff, 1, readIn, out);
-            t->status = fileStatusString(args->from, (float)in->offset / 1024.0f / 1024.0f, srcSizeMB);
+            *t->status = fileStatusString(args->from, (float)in->offset, srcSize);
         }
         fsfclose(in);
         fsfclose(out);
@@ -363,7 +393,7 @@ static void copyfile_t(void *a)
         {
             fclose(in);
             fclose(out);
-            args->fin = true;
+            t->finished = true;
             return;
         }
 
@@ -371,7 +401,7 @@ static void copyfile_t(void *a)
         while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
         {
             fwrite(buff, 1, readIn, out);
-            t->status = fileStatusString(args->from, (float)ftell(in) / 1024.0f / 1024.0f, srcSizeMB);
+            *t->status = fileStatusString(args->from, (float)ftell(in), srcSize);
         }
         fclose(in);
         fclose(out);
@@ -383,7 +413,7 @@ static void copyfile_t(void *a)
 
 void fs::copyFile(const std::string& from, const std::string& to)
 {
-    copyArgs *send = copyArgsCreate(from, to, "", NULL);
+    copyArgs *send = copyArgsCreate(from, to, "", NULL, NULL, false);
     ui::newThread(copyfile_t, send);
 }
 
@@ -393,8 +423,8 @@ void copyFileCommit_t(void *a)
     copyArgs *args = (copyArgs *)t->argPtr;
     data::titleInfo *info = data::getTitleInfoByTID(data::curData.saveID);
 
-    float srcSizeMB = (float)fs::fsize(args->from) / 1024.0f / 1024.0f;
-    uint64_t journalSize = info->nacp.user_account_save_data_journal_size, writeCount = 0;
+    float srcSize = (float)fs::fsize(args->from);
+    uint64_t journalSize = getJournalSize(info), writeCount = 0;
     uint8_t *buff = new uint8_t[BUFF_SIZE];
 
     if(data::config["directFsCmd"])
@@ -406,7 +436,7 @@ void copyFileCommit_t(void *a)
         {
             fsfclose(in);
             fsfclose(out);
-            args->fin = true;
+            t->finished = true;
             return;
         }
 
@@ -424,7 +454,7 @@ void copyFileCommit_t(void *a)
 
                 out = fsfopen(args->to.c_str(), FsOpenMode_Write | FsOpenMode_Append);
             }
-            t->status = fileStatusString(args->from, (float)out->offset / 1024.0f / 1024.0f, srcSizeMB);
+            *t->status = fileStatusString(args->from, (float)out->offset, srcSize);
         }
         fsfclose(in);
         fsfclose(out);
@@ -438,7 +468,7 @@ void copyFileCommit_t(void *a)
         {
             fclose(in);
             fclose(out);
-            args->fin = true;
+            t->finished = true;
             return;
         }
 
@@ -456,7 +486,7 @@ void copyFileCommit_t(void *a)
 
                 out = fopen(args->to.c_str(), "ab");
             }
-            t->status = fileStatusString(args->from, (float)ftell(out) / 1024.0f / 1024.0f, srcSizeMB);
+            *t->status = fileStatusString(args->from, (float)ftell(out), srcSize);
         }
         fclose(in);
         fclose(out);
@@ -471,7 +501,7 @@ void copyFileCommit_t(void *a)
 void fs::copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
     ui::progBar prog(fsize(from));
-    copyArgs *send = copyArgsCreate(from, to, dev, NULL);
+    copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, false);
     ui::newThread(copyFileCommit_t, send);
 }
 
@@ -501,96 +531,109 @@ void fs::copyDirToDir(const std::string& from, const std::string& to)
     }
 }
 
-void copyFileToZip_t(void *a)
+void closeZip_t(void *a)
 {
-    copyArgs *args = (copyArgs *)a;
-    FILE *cpy = fopen(args->from.c_str(), "rb");
-
-    size_t readIn = 0;
-    uint8_t *inBuff= new uint8_t[BUFF_SIZE];
-    while((readIn = fread(inBuff, 1, BUFF_SIZE, cpy)) > 0)
-    {
-        if(zipWriteInFileInZip(args->z, inBuff, readIn) != 0)
-        {
-            fs::logWrite("Failed", "zipWriteInFileInZip -> \"%s\"\n", args->from.c_str());
-            break;
-        }
-    }
-
-    delete[] inBuff;
-    fclose(cpy);
-    args->fin = true;
+    threadInfo *t = (threadInfo *)a;
+    zipFile z = t->argPtr;
+    zipClose(z, NULL);
+    t->finished = true;
 }
 
-void copyFileToZip(const std::string& from, zipFile z)
+void copyFileToZip(const std::string& from, zipFile z, std::string *_status)
 {
-    ui::progBar prog(fs::fsize(from));
-    uint64_t progress = 0;
-    copyArgs *send = copyArgsCreate(from, "", "", z);
+    float srcSize = fs::fsize(from);
+    FILE *cpy = fopen(from.c_str(), "rb");
 
-    Thread cpyThread;
-    threadCreate(&cpyThread, copyFileToZip_t, send, NULL, 0x4000, 0x2B, 1);
-    threadStart(&cpyThread);
-    while(!send->fin)
+    size_t readIn = 0;
+    uint8_t *buff = new uint8_t[BUFF_SIZE];
+    while((readIn = fread(buff, 1, BUFF_SIZE, cpy)) > 0)
     {
-        prog.update(progress);
-        prog.draw(from, ui::copyHead);
-        gfx::present();
+        zipWriteInFileInZip(z, buff, readIn);
+        *_status = (fileStatusString(from, (float)ftell(cpy), srcSize));
     }
-    threadClose(&cpyThread);
-    free(send);
+
+    delete[] buff;
+    fclose(cpy);
+}
+
+void copyDirToZip_t(void *a)
+{
+    threadInfo *t  = (threadInfo *)a;
+    copyArgs *args = (copyArgs *)t->argPtr;
+
+    t->updateStatus("Opening " + args->from + "...");
+    //fs::logWrite(t->status->c_str());
+    fs::dirList *list = new fs::dirList(args->from);
+
+    unsigned listTotal = list->getCount();
+    for(unsigned i = 0; i < listTotal; i++)
+    {
+        std::string itm = list->getItem(i);
+        if(fs::pathIsFiltered(args->from + itm))
+            continue;
+
+        if(list->isDir(i))
+        {
+            std::string newFrom = args->from + itm + "/";
+            threadInfo *tmpThread = new threadInfo;
+            tmpThread->status = t->status;
+            copyArgs *tmpArgs = copyArgsCreate(newFrom, "", "", args->z, NULL, false);
+            tmpThread->argPtr = tmpArgs;
+            copyDirToZip_t(tmpThread);
+            delete tmpThread;
+        }
+        else
+        {
+            zip_fileinfo inf = {0};
+            std::string filename = args->from + itm;
+            size_t devPos = filename.find_first_of('/') + 1;
+            t->updateStatus("Adding \"" + itm + "\" to ZIP.");
+            if(zipOpenNewFileInZip(args->z, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK)
+            {
+                copyFileToZip(args->from +itm, args->z, t->status);
+                zipCloseFileInZip(args->z);
+            }
+        }
+    }
+    delete list;
+    if(args->closeZip)
+        ui::newThread(closeZip_t, args->z);
+    delete args;
+    t->finished = true;
 }
 
 void fs::copyDirToZip(const std::string& from, zipFile to)
 {
-    fs::dirList list(from);
-
-    for(unsigned i = 0; i < list.getCount(); i++)
-    {
-        if(pathIsFiltered(from + list.getItem(i)))
-            continue;
-
-        if(list.isDir(i))
-        {
-            std::string newFrom = from + list.getItem(i) + "/";
-            fs::copyDirToZip(newFrom, to);
-        }
-        else
-        {
-            zip_fileinfo inf = { 0 };
-            std::string filename = from + list.getItem(i);
-            size_t devPos = filename.find_first_of('/') + 1;
-            if(zipOpenNewFileInZip(to, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK)
-                copyFileToZip(std::string(from) + list.getItem(i).c_str(), to);
-            zipCloseFileInZip(to);
-        }
-    }
+    copyArgs *send = copyArgsCreate(from, "", "", to, NULL, true);
+    ui::newThread(copyDirToZip_t, send);
 }
 
-void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev)
+void copyZipToDir_t(void *a)
 {
-    data::titleInfo *tinfo = data::getTitleInfoByTID(data::curData.saveID);
+    threadInfo *t = (threadInfo *)a;
+    copyArgs *cpyArgs = (copyArgs *)t->argPtr;
 
-    uint64_t journalSize = tinfo->nacp.user_account_save_data_journal_size, writeCount = 0;
+    data::titleInfo *tinfo = data::getTitleInfoByTID(data::curData.saveID);
+    uint64_t journalSize = getJournalSize(tinfo), writeCount = 0;
     char filename[FS_MAX_PATH];
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     int readIn = 0;
     unz_file_info info;
-    if(unzGoToFirstFile(unz) == UNZ_OK)
+    if(unzGoToFirstFile(cpyArgs->unz) == UNZ_OK)
     {
         do
         {
-            unzGetCurrentFileInfo(unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
-            if(unzOpenCurrentFile(unz) == UNZ_OK)
+            unzGetCurrentFileInfo(cpyArgs->unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
+            if(unzOpenCurrentFile(cpyArgs->unz) == UNZ_OK)
             {
-                std::string path = to + filename;
+                std::string path = cpyArgs->to + filename;
                 mkdirRec(path.substr(0, path.find_last_of('/') + 1));
-                ui::progBar prog(info.uncompressed_size);
+                float srcSize = (float)info.uncompressed_size;
                 size_t done = 0;
                 if(data::config["directFsCmd"])
                 {
                     FSFILE *out = fsfopen(path.c_str(), FsOpenMode_Write);
-                    while((readIn = unzReadCurrentFile(unz, buff, BUFF_SIZE)) > 0)
+                    while((readIn = unzReadCurrentFile(cpyArgs->unz, buff, BUFF_SIZE)) > 0)
                     {
                         done += readIn;
                         writeCount += readIn;
@@ -599,16 +642,12 @@ void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev
                         {
                             writeCount = 0;
                             fsfclose(out);
-                            if(!commitToDevice(dev.c_str()))
+                            if(!commitToDevice(cpyArgs->dev.c_str()))
                                 break;
 
                             out = fsfopen(path.c_str(), FsOpenMode_Write | FsOpenMode_Append);
                         }
-
-                        prog.update(done);
-
-                        prog.draw(filename, ui::copyHead);
-                        gfx::present();
+                        t->updateStatus(fileStatusString(filename, (float)done, srcSize));
                     }
                     fsfclose(out);
                 }
@@ -616,7 +655,7 @@ void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev
                 {
                     FILE *out = fopen(path.c_str(), "wb");
 
-                    while((readIn = unzReadCurrentFile(unz, buff, BUFF_SIZE)) > 0)
+                    while((readIn = unzReadCurrentFile(cpyArgs->unz, buff, BUFF_SIZE)) > 0)
                     {
                         done += readIn;
                         writeCount += readIn;
@@ -625,29 +664,36 @@ void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev
                         {
                             writeCount = 0;
                             fclose(out);
-                            if(!commitToDevice(dev.c_str()))
+                            if(!commitToDevice(cpyArgs->dev.c_str()))
                                 break;
 
                             out = fopen(path.c_str(), "ab");
                         }
-
-                        prog.update(done);
-
-                        prog.draw(filename, ui::copyHead);
-                        gfx::present();
+                        t->updateStatus(fileStatusString(filename, (float)done, srcSize));
                     }
                     fclose(out);
                 }
-                unzCloseCurrentFile(unz);
-                commitToDevice(dev.c_str());
+                unzCloseCurrentFile(cpyArgs->unz);
+                commitToDevice(cpyArgs->dev.c_str());
             }
         }
-        while(unzGoToNextFile(unz) != UNZ_END_OF_LIST_OF_FILE);
+        while(unzGoToNextFile(cpyArgs->unz) != UNZ_END_OF_LIST_OF_FILE);
     }
     else
         ui::showPopMessage(POP_FRAME_DEFAULT, "ZIP file is empty!");
 
+    if(cpyArgs->closeZip)
+        unzClose(cpyArgs->unz);
+
+    delete cpyArgs;
     delete[] buff;
+    t->finished = true;
+}
+
+void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev)
+{
+    copyArgs *send = copyArgsCreate("", to, dev, NULL, unz, true);
+    ui::newThread(copyZipToDir_t, send);
 }
 
 void fs::copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev)
@@ -907,7 +953,6 @@ void fs::createNewBackup(void *a)
 
             zipFile zip = zipOpen(path.c_str(), 0);
             fs::copyDirToZip("sv:/", zip);
-            zipClose(zip, NULL);
 
         }
         else
@@ -944,11 +989,10 @@ void fs::overwriteBackup(void *a)
             std::string toPath = util::generatePathByTID(data::curData.saveID) + itemName;
             fs::delfile(toPath);
             zipFile zip = zipOpen(toPath.c_str(), 0);
-            fs::copyDirToZip("sv:/", zip);
-            zipClose(zip, NULL);
+            if(zip)
+                fs::copyDirToZip("sv:/", zip);
         }
     }
-    ui::populateFldMenu();
 }
 
 void fs::restoreBackup(void *a)
@@ -967,7 +1011,6 @@ void fs::restoreBackup(void *a)
             std::string autoZip = util::generatePathByTID(data::curData.saveID) + "/AUTO " + data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
             zipFile zip = zipOpen(autoZip.c_str(), 0);
             fs::copyDirToZip("sv:/", zip);
-            zipClose(zip, NULL);
         }
         else if(data::config["autoBack"])
         {
@@ -988,7 +1031,6 @@ void fs::restoreBackup(void *a)
             std::string path = util::generatePathByTID(data::curData.saveID) + itemName;
             unzFile unz = unzOpen(path.c_str());
             fs::copyZipToDir(unz, "sv:/", "sv");
-            unzClose(unz);
         }
         else
         {

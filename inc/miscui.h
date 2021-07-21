@@ -220,6 +220,7 @@ namespace ui
             std::vector<threadInfo *> threads;
             uint8_t lgFrame = 0;
             unsigned frameCount = 0;
+            Mutex threadLock = 0;
     };
 
     //General use

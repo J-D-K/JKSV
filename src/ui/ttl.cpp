@@ -170,7 +170,7 @@ static void ttlOptsExtendSaveData_t(void *a)
     if(!expSizeStr.empty())
     {
         data::titleInfo *extend = data::getTitleInfoByTID(data::curData.saveID);
-        w->status = "Expanding save filesystem for " + extend->title;
+        w->updateStatus("Expanding save filesystem for " + extend->title);
         uint64_t expMB = strtoul(expSizeStr.c_str(), NULL, 10);
         FsSaveDataSpaceId space = (FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id;
         uint64_t sid = data::curData.saveInfo.save_data_id;

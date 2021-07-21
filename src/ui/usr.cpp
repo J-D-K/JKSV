@@ -135,7 +135,7 @@ static void usrOptDeleteAllUserSaves_t(void *a)
     data::user *u = &data::users[data::selUser];
     for(data::userTitleInfo& tinf : u->titleInfo)
     {
-        t->status = "Deleting " + data::getTitleNameByTID(tinf.saveID);
+        *t->status = "Deleting " + data::getTitleNameByTID(tinf.saveID);
         fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);;
     }
     data::loadUsersTitles(false);
@@ -211,7 +211,7 @@ static void createSaveData_t(void *a)
             break;
     }
     data::titleInfo *create = data::getTitleInfoByTID(sid);
-    t->status = "Creating save data for " + create->title;
+    t->updateStatus("Creating save data for " + create->title);
 
     FsSaveDataAttribute attr;
     memset(&attr, 0, sizeof(FsSaveDataAttribute));
