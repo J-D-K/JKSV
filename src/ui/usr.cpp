@@ -135,7 +135,7 @@ static void usrOptDeleteAllUserSaves_t(void *a)
     data::user *u = &data::users[data::selUser];
     for(data::userTitleInfo& tinf : u->titleInfo)
     {
-        *t->status = "Deleting " + data::getTitleNameByTID(tinf.saveID);
+        t->status->setStatus("Deleting " + data::getTitleNameByTID(tinf.saveID));
         fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);;
     }
     data::loadUsersTitles(false);
@@ -146,8 +146,8 @@ static void usrOptDeleteAllUserSaves_t(void *a)
 static void usrOptDeleteAllUserSaves(void *a)
 {
     data::user *u = &data::users[data::selUser];
-    if(ui::confirm(true, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*", u->getUsername().c_str()))
-        ui::newThread(usrOptDeleteAllUserSaves_t, NULL);
+    ui::confirmArgs *conf = ui::confirmArgsCreate(true, usrOptDeleteAllUserSaves_t, NULL, true, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*", u->getUsername().c_str());
+    ui::confirm(conf);
 }
 
 static void usrOptPanelDraw(void *a)
@@ -211,7 +211,7 @@ static void createSaveData_t(void *a)
             break;
     }
     data::titleInfo *create = data::getTitleInfoByTID(sid);
-    t->updateStatus("Creating save data for " + create->title);
+    t->status->setStatus("Creating save data for " + create->title);
 
     FsSaveDataAttribute attr;
     memset(&attr, 0, sizeof(FsSaveDataAttribute));
@@ -220,7 +220,14 @@ static void createSaveData_t(void *a)
     attr.system_save_data_id = 0;
     attr.save_data_type = type;
     attr.save_data_rank = 0;
-    attr.save_data_index = 0;//Todo: Let user input this
+
+    uint16_t index = 0;
+    if(type == FsSaveDataType_Cache)
+    {
+        std::string getIndex = util::getStringInput(SwkbdType_NumPad, "", "Input Cache save index", 2, 0, NULL);
+        index = strtoul(getIndex.c_str(), 0, 10);
+    }
+    attr.save_data_index = index;
 
     FsSaveDataCreationInfo svCreate;
     memset(&svCreate, 0, sizeof(FsSaveDataCreationInfo));
@@ -239,7 +246,7 @@ static void createSaveData_t(void *a)
 
         case FsSaveDataType_Bcat:
             saveSize = create->nacp.bcat_delivery_cache_storage_size;
-            journalSize = create->nacp.bcat_delivery_cache_storage_size;//This needs to be fixed
+            journalSize = create->nacp.bcat_delivery_cache_storage_size;
             break;
 
         case FsSaveDataType_Cache:
@@ -280,7 +287,7 @@ static void createSaveData_t(void *a)
 
 static void createSaveData(void *a)
 {
-    ui::newThread(createSaveData_t, a);
+    ui::newThread(createSaveData_t, a, NULL);
 }
 
 void ui::usrInit()

@@ -30,7 +30,7 @@ namespace util
 
     std::string getInfoString(data::user& u, const uint64_t& tid);
 
-    std::string getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
+    std::string getStringInput(SwkbdType _type, const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
 
     inline std::string getExtensionFromString(const std::string& get)
     {

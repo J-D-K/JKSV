@@ -75,7 +75,7 @@ void ui::initTheme()
             txtDiag  = {0xFF, 0xFF, 0xFF, 0xFF};
             rectLt   = {0xDF, 0xDF, 0xDF, 0xFF};
             rectSh   = {0xCA, 0xCA, 0xCA, 0xFF};
-            tboxClr  = {0x50, 0x50, 0x50, 0xFF};
+            tboxClr  = {0xEB, 0xEB, 0xEB, 0xFF};
             divClr   = {0x00, 0x00, 0x00, 0xFF};
             slidePanelColor = {0xEE, 0xEE, 0xEE, 0xDD};
             break;
@@ -84,13 +84,12 @@ void ui::initTheme()
         case ColorSetId_Dark:
             //jic
             thmID = ColorSetId_Dark;
-
             clearClr = {0x2D, 0x2D, 0x2D, 0xFF};
             txtCont  = {0xFF, 0xFF, 0xFF, 0xFF};
             txtDiag  = {0x00, 0x00, 0x00, 0xFF};
             rectLt   = {0x50, 0x50, 0x50, 0xFF};
             rectSh   = {0x20, 0x20, 0x20, 0xFF};
-            tboxClr  = {0xEB, 0xEB, 0xEB, 0xFF};
+            tboxClr  = {0x50, 0x50, 0x50, 0xFF};
             divClr   = {0xFF, 0xFF, 0xFF, 0xFF};
             slidePanelColor  = {0x00, 0x00, 0x00, 0xDD};
             break;
@@ -113,10 +112,10 @@ void ui::init()
     {
         case ColorSetId_Light:
             //Dark corners
-            cornerTopLeft     = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
-            cornerTopRight    = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
-            cornerBottomLeft  = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
-            cornerBottomRight = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+            cornerTopLeft     = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
+            cornerTopRight    = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
+            cornerBottomLeft  = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
+            cornerBottomRight = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
             progCovLeft       = gfx::loadImageFile("romfs:/img/tboxDrk/progBarCoverLeftDrk.png");
             progCovRight      = gfx::loadImageFile("romfs:/img/tboxDrk/progBarCoverRightDrk.png");
             icn               = gfx::loadImageFile("romfs:/img/icn/icnDrk.png");
@@ -125,10 +124,10 @@ void ui::init()
 
         default:
             //Light corners
-            cornerTopLeft     = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
-            cornerTopRight    = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
-            cornerBottomLeft  = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
-            cornerBottomRight = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+            cornerTopLeft     = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
+            cornerTopRight    = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
+            cornerBottomLeft  = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
+            cornerBottomRight = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
             progCovLeft       = gfx::loadImageFile("romfs:/img/tboxLght/progBarCoverLeftLight.png");
             progCovRight      = gfx::loadImageFile("romfs:/img/tboxLght/progBarCoverRightLight.png");
             icn               = gfx::loadImageFile("romfs:/img/icn/icnLght.png");
@@ -205,10 +204,9 @@ int ui::registerPanel(slideOutPanel *sop)
     return panels.size() - 1;
 }
 
-int ui::newThread(ThreadFunc func, void *args)
+threadInfo *ui::newThread(ThreadFunc func, void *args, funcPtr _drawFunc)
 {
-    threadMngr->newThread(func, args);
-    return 0;
+    return threadMngr->newThread(func, args, _drawFunc);
 }
 
 void ui::showLoadScreen()
@@ -243,7 +241,7 @@ void ui::drawUI()
     if(ui::usrMenu->getSelected() == settPos || ui::mstate == OPT_MNU)
         ui::settDraw(rightPanel);
     else if(usrMenu->getSelected() == extPos || ui::mstate == EX_MNU)
-        gfx::drawTextf(rightPanel, 24, 32, 32, &ui::txtCont, "PLACE HOLDER SO COMPILER DOESN'T COMPLAIN");
+        gfx::drawTextf(rightPanel, 24, 32, 32, &ui::txtCont, "PLACE HOLDER");
     else
         ui::ttlDraw(rightPanel);
 
@@ -252,21 +250,21 @@ void ui::drawUI()
     for(slideOutPanel *s : panels)
         s->draw(&ui::slidePanelColor);
 
+    popMessages->draw();
+
     if(!threadMngr->empty())
         threadMngr->draw();
-
-    popMessages->draw();
 }
 
 static bool debugDisp = false;
 
 bool ui::runApp()
 {
+    ui::updateInput();
+    uint64_t down = ui::padKeysDown();
+
     if(threadMngr->empty())
     {
-        ui::updateInput();
-        uint64_t down = ui::padKeysDown();
-
         if(down & HidNpadButton_StickL && down & HidNpadButton_StickR)
             debugDisp = true;
         else if(down & HidNpadButton_Plus)

@@ -34,11 +34,11 @@ TARGET		:=	JKSV
 BUILD		:=	build
 SOURCES		:=	src src/ui
 DATA		:=	data
-INCLUDES	:=	inc
+INCLUDES	:=	inc inc/ui
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  07.18.2021
+APP_VERSION :=  07.22.2021
 ROMFS	    :=	romfs
 ICON		:=	icon.jpg
 

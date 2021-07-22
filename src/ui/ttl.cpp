@@ -11,6 +11,7 @@ static ui::menu *ttlOpts, *fldMenu;
 static ui::slideOutPanel *ttlOptsPanel, *infoPanel, *fldPanel;//There's no reason to have a separate folder section
 static fs::dirList *fldList;
 static fs::backupArgs *backargs;
+static ui::confirmArgs *overwriteArgs, *deleteArgs, *restArgs;
 static std::string infoPanelString;
 
 void ui::refreshAllViews()
@@ -30,6 +31,10 @@ void ui::populateFldMenu()
     fs::loadPathFilters(targetDir + "pathFilters.txt");
 
     *backargs = {fldMenu, fldList};
+    //todo: text stuff
+    *overwriteArgs = {"Overwrite?", data::config["holdOver"], false, fs::overwriteBackup, backargs};
+    *deleteArgs    = {"Delete?", data::config["holdDel"], false, fs::deleteBackup, backargs};
+    *restArgs      = {"Restore?", data::config["holdRest"], false, fs::restoreBackup, backargs};
 
     fldMenu->addOpt(NULL, "New");
     fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, backargs);
@@ -38,9 +43,9 @@ void ui::populateFldMenu()
     {
         fldMenu->addOpt(NULL, fldList->getItem(i));
 
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_A, fs::overwriteBackup, backargs);
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, fs::deleteBackup, backargs);
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, fs::restoreBackup, backargs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_A, confirm, overwriteArgs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, confirm, deleteArgs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, confirm, restArgs);
     }
 
     fldMenu->setActive(true);
@@ -115,38 +120,46 @@ static void ttlOptsShowInfoPanel(void *a)
 static void ttlOptsBlacklistTitle(void *a)
 {
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    if(ui::confirm(false, ui::confBlacklist.c_str(), title.c_str()))
-    {
-        data::blacklistAdd(data::curData.saveID);
-        ui::refreshAllViews();
-    }
+    ui::confirmArgs *conf = ui::confirmArgsCreate(false, NULL, NULL, true, ui::confBlacklist.c_str(), title.c_str());
+    ui::confirm(conf);
 }
 
 static void ttlOptsDefinePath(void *a)
 {
     uint64_t tid = data::curData.saveID;
     std::string safeTitle = data::getTitleInfoByTID(tid)->safeTitle;
-    std::string newSafeTitle = util::getStringInput(safeTitle, "Input New Output Folder", 0x200, 0, NULL);
+    std::string newSafeTitle = util::getStringInput(SwkbdType_QWERTY, safeTitle, "Input New Output Folder", 0x200, 0, NULL);
     if(!newSafeTitle.empty())
         data::pathDefAdd(tid, newSafeTitle);
+}
+
+static void ttlOptsResetSaveData_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    std::string title = data::getTitleNameByTID(data::curData.saveID);
+    t->status->setStatus("Resetting save data for " + title + "...");
+
+    fs::mountSave(data::curData.saveInfo);
+    fs::delDir("sv:/");
+    fsdevCommitDevice("sv:/");
+    fs::unmountSave();
+    ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveDataResetSuccess.c_str(), title.c_str());
+    t->finished = true;
 }
 
 static void ttlOptsResetSaveData(void *a)
 {
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    if(ui::confirm(data::config["holdDel"], ui::saveDataReset.c_str(), title.c_str()) && fs::mountSave(data::curData.saveInfo))
-    {
-        fs::delDir("sv:/");
-        fsdevCommitDevice("sv:/");
-        fs::unmountSave();
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveDataResetSuccess.c_str(), title.c_str());
-    }
+    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsResetSaveData_t, NULL, true, ui::saveDataReset.c_str(), title.c_str());
+    ui::confirm(conf);
 }
 
-static void ttlOptsDeleteSaveData(void *a)
+static void ttlOptsDeleteSaveData_t(void *a)
 {
+    threadInfo *t = (threadInfo *)a;
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    if(ui::confirm(data::config["holdDel"], ui::confEraseNand.c_str(), title.c_str()) && R_SUCCEEDED(fsDeleteSaveDataFileSystemBySaveDataSpaceId((FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id, data::curData.saveInfo.save_data_id)))
+    t->status->setStatus("Deleting save data for " + title + "...");
+    if(R_SUCCEEDED(fsDeleteSaveDataFileSystemBySaveDataSpaceId((FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id, data::curData.saveInfo.save_data_id)))
     {
         data::loadUsersTitles(false);
         if(data::curUser.titleInfo.size() == 0)
@@ -161,25 +174,61 @@ static void ttlOptsDeleteSaveData(void *a)
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::saveDataDeleteSuccess.c_str(), title.c_str());
         ttlViews[data::selUser]->refresh();
     }
+    t->finished = true;
+}
+
+static void ttlOptsDeleteSaveData(void *a)
+{
+    std::string title = data::getTitleNameByTID(data::curData.saveID);
+    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsDeleteSaveData_t, NULL, true, ui::confEraseNand.c_str(), title.c_str());
+    ui::confirm(conf);
 }
 
 static void ttlOptsExtendSaveData_t(void *a)
 {
     threadInfo *w = (threadInfo *)a;
-    std::string expSizeStr = util::getStringInput("", "Enter New Size in MB", 4, 0, NULL);
+    std::string expSizeStr = util::getStringInput(SwkbdType_NumPad, "", "Enter New Size in MB", 4, 0, NULL);
     if(!expSizeStr.empty())
     {
         data::titleInfo *extend = data::getTitleInfoByTID(data::curData.saveID);
-        w->updateStatus("Expanding save filesystem for " + extend->title);
+        w->status->setStatus("Expanding save filesystem for " + extend->title);
         uint64_t expMB = strtoul(expSizeStr.c_str(), NULL, 10);
         FsSaveDataSpaceId space = (FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id;
         uint64_t sid = data::curData.saveInfo.save_data_id;
         int64_t expSize = expMB * 1024 * 1024;
         int64_t journ = 0;
-        if(extend->nacp.user_account_save_data_journal_size_max > extend->nacp.user_account_save_data_journal_size)
-            journ = extend->nacp.user_account_save_data_journal_size_max;
-        else
-            journ = extend->nacp.user_account_save_data_journal_size;
+        switch(data::curData.saveInfo.save_data_type)
+        {
+            case FsSaveDataType_Account:
+                if(extend->nacp.user_account_save_data_journal_size_max > extend->nacp.user_account_save_data_journal_size)
+                    journ = extend->nacp.user_account_save_data_journal_size_max;
+                else
+                    journ = extend->nacp.user_account_save_data_journal_size;
+                break;
+
+            case FsSaveDataType_Bcat:
+                journ = extend->nacp.bcat_delivery_cache_storage_size;
+                break;
+
+            case FsSaveDataType_Cache:
+                if(extend->nacp.cache_storage_data_and_journal_size_max > extend->nacp.cache_storage_journal_size)
+                    journ = extend->nacp.cache_storage_data_and_journal_size_max;
+                else
+                    journ = extend->nacp.cache_storage_journal_size;
+                break;
+
+            case FsSaveDataType_Device:
+                if(extend->nacp.device_save_data_journal_size_max > extend->nacp.device_save_data_journal_size)
+                    journ = extend->nacp.device_save_data_journal_size_max;
+                else
+                    journ = extend->nacp.device_save_data_journal_size;
+                break;
+
+            default:
+                //will just fail
+                journ = 0;
+                break;
+        }
 
         Result res = 0;
         if(R_FAILED(res = fsExtendSaveDataFileSystem(space, sid, expSize, journ)))
@@ -198,7 +247,7 @@ static void ttlOptsExtendSaveData_t(void *a)
 
 static void ttlOptsExtendSaveData(void *a)
 {
-    ui::newThread(ttlOptsExtendSaveData_t, NULL);
+    ui::newThread(ttlOptsExtendSaveData_t, NULL, NULL);
 }
 
 static void infoPanelDraw(void *a)
@@ -272,6 +321,9 @@ void ui::ttlInit()
 
     fldList = new fs::dirList;
     backargs = new fs::backupArgs;
+    overwriteArgs = new ui::confirmArgs;
+    deleteArgs = new ui::confirmArgs;
+    restArgs   = new ui::confirmArgs;
 
     ttlOpts->setActive(false);
     ttlOpts->addOpt(NULL, ui::titleOptString[0]);
@@ -301,6 +353,9 @@ void ui::ttlExit()
     delete fldMenu;
     delete fldList;
     delete backargs;
+    delete overwriteArgs;
+    delete deleteArgs;
+    delete restArgs;
 }
 
 void ui::ttlSetActive(int usr)

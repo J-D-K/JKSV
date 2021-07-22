@@ -226,6 +226,7 @@ std::string util::getInfoString(data::user& u, const uint64_t& tid)
 
         case FsSaveDataType_Cache:
             ret += "Cache Storage\n";
+            ret += "Save Index: " + std::to_string(data::curData.saveInfo.save_data_index) + "\n";
             break;
 
         case FsSaveDataType_SystemBcat:
@@ -238,7 +239,7 @@ std::string util::getInfoString(data::user& u, const uint64_t& tid)
     return ret;
 }
 
-std::string util::getStringInput(const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[])
+std::string util::getStringInput(SwkbdType _type, const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[])
 {
     SwkbdConfig swkbd;
     swkbdCreate(&swkbd, dictCnt);
@@ -247,7 +248,7 @@ std::string util::getStringInput(const std::string& def, const std::string& head
     swkbdConfigSetHeaderText(&swkbd, head.c_str());
     swkbdConfigSetGuideText(&swkbd, head.c_str());
     swkbdConfigSetInitialCursorPos(&swkbd, SwkbdPosEnd);
-    swkbdConfigSetType(&swkbd, SwkbdType_QWERTY);
+    swkbdConfigSetType(&swkbd, _type);
     swkbdConfigSetStringLenMax(&swkbd, maxLength);
     swkbdConfigSetKeySetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Percent);
     swkbdConfigSetDicFlag(&swkbd, 1);

@@ -8,12 +8,15 @@
 #include "gfx.h"
 
 //ui headers - split up to keep a bit more organized
-#include "miscui.h"
-#include "uistr.h"
-#include "usr.h"
-#include "ttl.h"
-#include "sett.h"
-#include "fm.h"
+#include "ui/miscui.h"
+#include "ui/uistr.h"
+#include "ui/usr.h"
+#include "ui/ttl.h"
+#include "ui/sett.h"
+#include "ui/fm.h"
+#include "ui/ttlview.h"
+#include "ui/thrdProc.h"
+#include "ui/sldpanel.h"
 
 enum menuState
 {
@@ -84,7 +87,7 @@ namespace ui
     //Adds a panel pointer to a vector since they need to be drawn over everything else
     int registerMenu(ui::menu *m);
     int registerPanel(ui::slideOutPanel *sop);
-    int newThread(ThreadFunc func, void *args);
+    threadInfo *newThread(ThreadFunc func, void *args, funcPtr _drawFunc);
 
     //Just draws a screen and flips JIC boot takes long.
     void showLoadScreen();

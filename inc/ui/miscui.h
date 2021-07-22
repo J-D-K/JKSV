@@ -25,6 +25,19 @@ namespace ui
 {
     typedef struct
     {
+        std::string text;
+        bool hold;
+        bool cleanup;
+        funcPtr func;
+        void *args;
+
+        //Stuff needed to keep track
+        bool sel = 1;//1 = YES
+
+    } confirmArgs;
+
+    typedef struct
+    {
         funcPtr func = NULL;
         void *args   = NULL;
         HidNpadButton button = (HidNpadButton)0;
@@ -103,86 +116,20 @@ namespace ui
     {
         public:
             //Constructor. _max is the maximum value
+            progBar() = default;
             progBar(const uint64_t& _max) { max = _max; }
+
+            void setMax(const uint64_t& _max) { max = _max; };
 
             //Updates progress
             void update(const uint64_t& _prog);
 
             //Draws with text at top
-            void draw(const std::string& text, const std::string& head);
+            void draw(const std::string& text);
 
         private:
-            uint64_t max, prog;
-            float width;
-    };
-
-    //_draw is called and passed the panel texture/target when this.draw() is called.
-    class slideOutPanel
-    {
-        public:
-            slideOutPanel(int _w, int _h, int _y, funcPtr _draw);
-            ~slideOutPanel();
-
-            void update();
-            void setCallback(funcPtr _cb, void *_args) { callback = _cb; cbArgs = _args; }
-            void openPanel() { open = true; }
-            void closePanel() { open = false; }
-            bool isOpen() { return open; }
-            void draw(const SDL_Color *backCol);
-
-        private:
-            int w, h, x = 1280, y;
-            bool open = false;
-            SDL_Texture *panel;
-            funcPtr drawFunc, callback = NULL;
-            void *cbArgs = NULL;
-    };
-
-    class titleTile
-    {
-        public:
-            titleTile(unsigned _w, unsigned _h, bool _fav, SDL_Texture *_icon)
-            {
-                w = _w;
-                h = _h;
-                wS = _w;
-                hS = _h;
-                fav = _fav;
-                icon = _icon;
-            }
-
-            void draw(SDL_Texture *target, int x, int y, bool sel);
-
-        private:
-            unsigned w, h, wS, hS;
-            bool fav = false;
-            SDL_Texture *icon;
-    };
-
-    //Todo less hardcode etc
-    class titleview
-    {
-        public:
-            titleview(const data::user& _u, int _iconW, int _iconH, int _horGap, int _vertGap, int _rowCount, funcPtr _callback);
-            ~titleview();
-
-            void update();
-            void refresh();
-
-            void setActive(bool _set, bool _showSel) { active = _set; showSel = _showSel; }
-            bool getActive(){ return active; }
-            void setSelected(int _set){ selected = _set; }
-            int getSelected(){ return selected; }
-            void draw(SDL_Texture *target);
-
-        private:
-            const data::user *u;//Might not be safe. Users *shouldn't* be touched after initial load
-            bool active = false, showSel = false, clrAdd = true;
-            uint8_t clrShft = 0;
-            funcPtr callback = NULL;
-            int x = 34, y = 69, selected = 0, selRectX = 10, selRectY = 45;
-            int iconW, iconH, horGap, vertGap, rowCount;
-            std::vector<ui::titleTile *> tiles;
+            uint64_t max = 0, prog = 0;
+            float width = 0;
     };
 
     typedef struct
@@ -206,26 +153,10 @@ namespace ui
             std::vector<popMessage> message;
     };
 
-    class threadProcMngr
-    {
-        public:
-            ~threadProcMngr();
-            void newThread(ThreadFunc func, void *args);
-            void addThread(threadInfo *t);
-            void update();
-            void draw();
-            bool empty(){ return threads.empty(); }
-
-        private:
-            std::vector<threadInfo *> threads;
-            uint8_t lgFrame = 0;
-            unsigned frameCount = 0;
-            Mutex threadLock = 0;
-    };
-
     //General use
+    ui::confirmArgs *confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArgs, bool _cleanup, const char *fmt, ...);
     void showMessage(const char *head, const char *fmt, ...);
-    bool confirm(bool hold, const char *fmt, ...);
+    void confirm(void *a);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
     void drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t clrSh);
