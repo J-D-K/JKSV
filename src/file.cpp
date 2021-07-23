@@ -1042,8 +1042,7 @@ void fs::overwriteBackup(void *a)
         std::string toPath = util::generatePathByTID(data::curData.saveID) + itemName;
         fs::delfile(toPath);
         zipFile zip = zipOpen64(toPath.c_str(), 0);
-        if(zip)
-            fs::copyDirToZip("sv:/", zip);
+        fs::copyDirToZip("sv:/", zip);
     }
     t->finished = true;
 }

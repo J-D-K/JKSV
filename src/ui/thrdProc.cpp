@@ -25,7 +25,7 @@ threadInfo *ui::threadProcMngr::newThread(ThreadFunc func, void *args, funcPtr _
     t->drawFunc = _drawfunc;
     t->argPtr = args;
 
-    if(R_SUCCEEDED(threadCreate(&t->thrd, func, t, NULL, 0x8000, 0x2B, 1)))
+    if(R_SUCCEEDED(threadCreate(&t->thrd, func, t, NULL, 0x20000, 0x2B, 1)))
     {
         mutexLock(&threadLock);
         threads.push_back(t);
