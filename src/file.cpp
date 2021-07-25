@@ -641,6 +641,8 @@ void copyDirToZip_t(void *a)
     delete list;
     if(args->cleanup)
     {
+        if(data::config["ovrClk"])
+            util::setCPU(1224000000);
         ui::newThread(closeZip_t, args->z, NULL);
         delete args->prog;
         delete args;
@@ -651,6 +653,11 @@ void copyDirToZip_t(void *a)
 
 void fs::copyDirToZip(const std::string& from, zipFile to)
 {
+    if(data::config["ovrClk"])
+    {
+        util::setCPU(1785000000);
+        ui::showPopMessage(POP_FRAME_DEFAULT, "CPU Boost Enabled for ZIP.");
+    }
     copyArgs *send = copyArgsCreate(from, "", "", to, NULL, true);
     ui::newThread(copyDirToZip_t, send, _fileDrawFunc);
 }
@@ -739,6 +746,8 @@ void copyZipToDir_t(void *a)
     {
         unzClose(args->unz);
         copyArgsDestroy(args);
+        if(data::config["ovrClk"])
+            util::setCPU(1224000000);
     }
     delete[] buff;
     t->finished = true;
@@ -746,6 +755,11 @@ void copyZipToDir_t(void *a)
 
 void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev)
 {
+    if(data::config["ovrClk"])
+    {
+        util::setCPU(1785000000);
+        ui::showPopMessage(POP_FRAME_DEFAULT, "CPU Boost Enabled for ZIP.");
+    }
     copyArgs *send = copyArgsCreate("", to, dev, NULL, unz, true);
     ui::newThread(copyZipToDir_t, send, _fileDrawFunc);
 }

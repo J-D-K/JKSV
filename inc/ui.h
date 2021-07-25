@@ -64,7 +64,7 @@ namespace ui
         txtCont = text that contrasts clearClr
         txtDiag = text color for dialogs
     */
-    extern SDL_Color clearClr, transparent, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect, divClr, heartColor, slidePanelColor, loadGlyphClr;
+    extern SDL_Color clearClr, transparent, txtCont, txtDiag, rectLt, rectSh, tboxClr, sideRect, divClr, heartColor, slidePanelColor;
 
     //Textbox graphics
     extern SDL_Texture *cornerTopLeft, *cornerTopRight, *cornerBottomLeft, *cornerBottomRight;

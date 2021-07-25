@@ -16,7 +16,8 @@ namespace ui
 
         private:
             std::vector<threadInfo *> threads;
-            uint8_t lgFrame = 0;
+            uint8_t lgFrame = 0, clrShft = 0;
+            bool clrAdd = true;
             unsigned frameCount = 0;
             Mutex threadLock = 0;
     };

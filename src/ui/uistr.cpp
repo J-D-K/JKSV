@@ -21,7 +21,7 @@ std::string ui::userHelp = "[A] Select   [X] User Options";
 std::string ui::titleHelp = "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back";
 std::string ui::folderHelp = "[A] Select  [Y] Restore  [X] Delete  [B] Close";
 std::string ui::optHelp = "[A] Toggle   [X] Defaults   [B] Back";
-std::string ui::yt = "Yes [A]", ui::nt = "No  [B]";
+std::string ui::yt = "Yes  [A]", ui::nt = "No  [B]";
 std::string ui::on = ">On>", ui::off = "Off";
 std::string ui::confBlacklist = "Are you sure you want to add #%s# to your blacklist?";
 std::string ui::confOverwrite = "Are you sure you want to overwrite #%s#?";
@@ -208,7 +208,7 @@ void ui::loadTrans()
                 break;
 
             default:
-                ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), lang.getName());
+                fs::logWrite("Translation File Error -> On Line: %s: '%s' is not a known or valid string name.\n", lang.getLine().c_str(), lang.getName().c_str());
                 break;
         }
     }

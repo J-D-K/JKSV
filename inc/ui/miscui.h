@@ -33,6 +33,7 @@ namespace ui
 
         //Stuff needed to keep track
         bool sel = 1;//1 = YES
+        unsigned lgFrame = 0, frameCount = 0;//To count frames cause I don't have time and am lazy
 
     } confirmArgs;
 
@@ -155,7 +156,6 @@ namespace ui
 
     //General use
     ui::confirmArgs *confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArgs, bool _cleanup, const char *fmt, ...);
-    void showMessage(const char *head, const char *fmt, ...);
     void confirm(void *a);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);

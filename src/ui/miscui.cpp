@@ -9,8 +9,6 @@
 #include "util.h"
 #include "type.h"
 
-static const char *okt = "OK \ue0e0";
-
 static const SDL_Color divLight  = {0x6D, 0x6D, 0x6D, 0xFF};
 static const SDL_Color divDark   = {0xCC, 0xCC, 0xCC, 0xFF};
 static const SDL_Color shadow    = {0x66, 0x66, 0x66, 0xFF};
@@ -258,7 +256,7 @@ void ui::progBar::update(const uint64_t& _prog)
     prog = _prog;
 
     if(max > 0)
-        width = (float)((float)prog / (float)max) * 576.0f;
+        width = (float)((float)prog / (float)max) * 648.0f;
 }
 
 void ui::progBar::draw(const std::string& text)
@@ -267,11 +265,12 @@ void ui::progBar::draw(const std::string& text)
     sprintf(progStr, "%.2fMB / %.2fMB", (float)prog / 1024.0f / 1024.0f, (float)max / 1024.0f / 1024.0f);
     int progX = 640 - (gfx::getTextWidth(progStr, 18) / 2);
 
-    ui::drawTextbox(NULL, 320, 262, 640, 256);
-    gfx::drawRect(NULL, &fillBack, 352, 464, 576, 32);
-    gfx::drawRect(NULL, &fillBar, 352, 464, (int)width, 32);
-    gfx::drawTextf(NULL, 18, progX, 471, &ui::txtCont, progStr);
-    gfx::drawTextfWrap(NULL, 16, 352, 288, 576, &ui::txtCont, text.c_str());
+    ui::drawTextbox(NULL, 280, 262, 720, 256);
+    gfx::drawLine(NULL, &ui::rectSh, 280, 454, 999, 454);
+    gfx::drawRect(NULL, &fillBack, 312, 471, 648, 32);
+    gfx::drawRect(NULL, &fillBar, 312, 471, (int)width, 32);
+    gfx::drawTextf(NULL, 18, progX, 478, &ui::txtCont, progStr);
+    gfx::drawTextfWrap(NULL, 16, 312, 288, 648, &ui::txtCont, text.c_str());
 }
 
 ui::popMessageMngr::~popMessageMngr()
@@ -317,33 +316,6 @@ void ui::popMessageMngr::draw()
     }
 }
 
-void ui::showMessage(const char *head, const char *fmt, ...)
-{
-    char tmp[1024];
-    va_list args;
-    va_start(args, fmt);
-    vsprintf(tmp, fmt, args);
-    va_end(args);
-
-    unsigned headX = (640 / 2) - (gfx::getTextWidth(head, 20) / 2);
-    unsigned okX = (640 / 2) - (gfx::getTextWidth(okt, 20) / 2);
-
-    while(true)
-    {
-        ui::updateInput();
-
-        if(ui::padKeysDown())
-            break;
-
-        ui::drawTextbox(NULL, 320, 150, 640, 420);
-        gfx::drawTextf(NULL, 20, 320 + headX, 168, &ui::txtDiag, head);
-        gfx::drawTextfWrap(NULL, 16, 352, 230, 576, &ui::txtDiag, tmp);
-        gfx::drawTextf(NULL, 20, 320 + okX, 522, &ui::txtDiag, okt);
-        gfx::present();
-    }
-    ui::updateInput();
-}
-
 ui::confirmArgs *ui::confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArgs, bool _cleanup, const char *fmt, ...)
 {
     char tmp[1024];
@@ -370,15 +342,29 @@ void confirm_t(void *a)
 
     while(true)
     {
-        if(ui::padKeysDown() & HidNpadButton_A)
+        uint64_t down = ui::padKeysDown();
+        uint64_t held = ui::padKeysHeld();
+
+        if((down & HidNpadButton_A) && !c->hold)
         {
             ui::newThread(c->func, c->args, NULL);
             break;
         }
-        else if(ui::padKeysDown() & HidNpadButton_B)
+        else if((held & HidNpadButton_A) && c->hold)
+        {
+            if(c->frameCount % 4 == 0 && ++c->lgFrame > 7)
+                c->lgFrame = 0;
+
+            if(c->frameCount >= 120)
+            {
+                ui::newThread(c->func, c->args, NULL);
+                break;
+            }
+        }
+        else if(down & HidNpadButton_B)
             break;
 
-        svcSleepThread(1000000);
+        svcSleepThread(10000000);//Close enough
     }
     if(c->cleanup)
         delete c;
@@ -393,10 +379,33 @@ void confirmDrawFunc(void *a)
     ui::confirmArgs *c = (ui::confirmArgs *)t->argPtr;
     if(!t->finished)
     {
-        ui::drawTextbox(NULL, 320, 262, 640, 256);
-        gfx::drawTextfWrap(NULL, 16, 352, 288, 576, &ui::txtCont, c->text.c_str());
-        gfx::drawTextf(NULL, 18, 320 + 128, 476, &ui::txtCont, ui::yt.c_str());
-        gfx::drawTextf(NULL, 18, 960 - 208, 476, &ui::txtCont, ui::nt.c_str());
+        std::string yesTxt = ui::yt;
+        unsigned yesX = 0;
+
+        if((ui::padKeysHeld() & HidNpadButton_A) && c->hold)
+        {
+            c->frameCount++;
+            if(c->frameCount <= 40)
+                yesTxt = ui::holdingText[0];
+            else if(c->frameCount <= 80)
+                yesTxt = ui::holdingText[1];
+            else if(c->frameCount <= 120)
+                yesTxt = ui::holdingText[2];
+
+            yesTxt += ui::loadGlyphArray[c->lgFrame];
+        }
+        else
+            c->frameCount = 0;
+
+
+        //I positioned these by eye. They're probably off.
+        yesX = 458 - (gfx::getTextWidth(yesTxt.c_str(), 18) / 2);
+        ui::drawTextbox(NULL, 280, 262, 720, 256);
+        gfx::drawTextfWrap(NULL, 16, 312, 288, 656, &ui::txtCont, c->text.c_str());
+        gfx::drawLine(NULL, &ui::rectSh, 280, 454, 999, 454);
+        gfx::drawLine(NULL, &ui::rectSh, 640, 454, 640, 518);
+        gfx::drawTextf(NULL, 18, yesX, 478, &ui::txtCont, yesTxt.c_str());
+        gfx::drawTextf(NULL, 18, 782, 478, &ui::txtCont, ui::nt.c_str());
     }
 }
 

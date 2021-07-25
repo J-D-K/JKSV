@@ -11,7 +11,6 @@ static ui::menu *ttlOpts, *fldMenu;
 static ui::slideOutPanel *ttlOptsPanel, *infoPanel, *fldPanel;//There's no reason to have a separate folder section
 static fs::dirList *fldList;
 static fs::backupArgs *backargs;
-static ui::confirmArgs *overwriteArgs, *deleteArgs, *restArgs;
 static std::string infoPanelString;
 
 void ui::refreshAllViews()
@@ -19,6 +18,47 @@ void ui::refreshAllViews()
     for(int i = 0; i < (int)data::users.size(); i++)
         ttlViews[i]->refresh();
 }
+
+static void fldFuncOverwrite(void *a)
+{
+    fs::backupArgs *b = (fs::backupArgs *)a;
+    fs::dirList *d = (fs::dirList *)b->d;
+    ui::menu *m = (ui::menu *)b->m;
+
+    int sel = m->getSelected() - 1;//Skip 'New'
+    std::string itm = d->getItem(sel);
+
+    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdOver"], fs::overwriteBackup, a, true, ui::confOverwrite.c_str(), itm.c_str());
+    ui::confirm(conf);
+}
+
+static void fldFuncDelete(void *a)
+{
+    fs::backupArgs *b = (fs::backupArgs *)a;
+    fs::dirList *d = (fs::dirList *)b->d;
+    ui::menu *m = (ui::menu *)b->m;
+
+    int sel = m->getSelected() - 1;//Skip 'New'
+    std::string itm = d->getItem(sel);
+
+    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], fs::deleteBackup, a, true, ui::confDel.c_str(), itm.c_str());
+    ui::confirm(conf);
+}
+
+static void fldFuncRestore(void *a)
+{
+    fs::backupArgs *b = (fs::backupArgs *)a;
+    fs::dirList *d = (fs::dirList *)b->d;
+    ui::menu *m = (ui::menu *)b->m;
+
+    int sel = m->getSelected() - 1;//Skip 'New'
+    std::string itm = d->getItem(sel);
+
+    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdRest"], fs::restoreBackup, a, true, ui::confRestore.c_str(), itm.c_str());
+    ui::confirm(conf);
+}
+
+
 
 void ui::populateFldMenu()
 {
@@ -31,10 +71,6 @@ void ui::populateFldMenu()
     fs::loadPathFilters(targetDir + "pathFilters.txt");
 
     *backargs = {fldMenu, fldList};
-    //todo: text stuff
-    *overwriteArgs = {"Overwrite?", data::config["holdOver"], false, fs::overwriteBackup, backargs};
-    *deleteArgs    = {"Delete?", data::config["holdDel"], false, fs::deleteBackup, backargs};
-    *restArgs      = {"Restore?", data::config["holdRest"], false, fs::restoreBackup, backargs};
 
     fldMenu->addOpt(NULL, "New");
     fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, backargs);
@@ -43,9 +79,9 @@ void ui::populateFldMenu()
     {
         fldMenu->addOpt(NULL, fldList->getItem(i));
 
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_A, confirm, overwriteArgs);
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, confirm, deleteArgs);
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, confirm, restArgs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_A, fldFuncOverwrite, backargs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, fldFuncDelete, backargs);
+        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, fldFuncRestore, backargs);
     }
 
     fldMenu->setActive(true);
@@ -321,9 +357,6 @@ void ui::ttlInit()
 
     fldList = new fs::dirList;
     backargs = new fs::backupArgs;
-    overwriteArgs = new ui::confirmArgs;
-    deleteArgs = new ui::confirmArgs;
-    restArgs   = new ui::confirmArgs;
 
     ttlOpts->setActive(false);
     ttlOpts->addOpt(NULL, ui::titleOptString[0]);
@@ -353,9 +386,6 @@ void ui::ttlExit()
     delete fldMenu;
     delete fldList;
     delete backargs;
-    delete overwriteArgs;
-    delete deleteArgs;
-    delete restArgs;
 }
 
 void ui::ttlSetActive(int usr)

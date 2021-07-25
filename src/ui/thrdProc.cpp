@@ -4,6 +4,8 @@
 #include "ui.h"
 #include "gfx.h"
 
+//Thread status screen always using white
+static const SDL_Color white = {0xFF, 0xFF, 0xFF, 0xFF};
 static const SDL_Color darkenBack = {0x00, 0x00, 0x00, 0xBB};
 
 ui::threadProcMngr::~threadProcMngr()
@@ -68,8 +70,16 @@ void ui::threadProcMngr::draw()
     if(++frameCount % 4 == 0 && ++lgFrame > 7)
         lgFrame = 0;
 
+    if(clrAdd && (clrShft += 6) >= 0x72)
+        clrAdd = false;
+    else if(!clrAdd && (clrShft -= 3) <= 0x00)
+        clrAdd = true;
+
+
+    SDL_Color glyphCol = {0x00, (uint8_t)(0x88 + clrShft), (uint8_t)(0xC5 + (clrShft / 2)), 0xFF};
+
     gfx::drawRect(NULL, &darkenBack, 0, 0, 1280, 720);
-    gfx::drawTextf(NULL, 32, 56, 673, &ui::loadGlyphClr, loadGlyphArray[lgFrame].c_str());
+    gfx::drawTextf(NULL, 32, 56, 673, &glyphCol, loadGlyphArray[lgFrame].c_str());
     if(threads[0]->drawFunc)
         (*(threads[0]->drawFunc))(threads[0]);
     else
@@ -78,6 +88,6 @@ void ui::threadProcMngr::draw()
         threads[0]->status->getStatus(gStatus);
 
         int statX = 640 - (gfx::getTextWidth(gStatus.c_str(), 18) / 2);
-        gfx::drawTextf(NULL, 18, statX, 387, &ui::txtCont, gStatus.c_str());
+        gfx::drawTextf(NULL, 18, statX, 387, &white, gStatus.c_str());
     }
 }

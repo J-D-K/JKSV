@@ -28,7 +28,7 @@ std::string ui::folderMenuInfo;
 
 //UI colors
 SDL_Color ui::clearClr, ui::txtCont, ui::txtDiag, ui::rectLt, ui::rectSh, ui::tboxClr, ui::divClr, ui::slidePanelColor;
-SDL_Color ui::transparent = {0x00, 0x00, 0x00, 0x00}, ui::loadGlyphClr = {0x00, 0xFF, 0xC5, 0xFF};
+SDL_Color ui::transparent = {0x00, 0x00, 0x00, 0x00};
 
 //textbox pieces
 //I was going to flip them when I draw them, but then laziness kicked in.
