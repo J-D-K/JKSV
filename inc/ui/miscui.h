@@ -92,7 +92,7 @@ namespace ui
             void reset();
 
             //Resets selected + start
-            void resetSel() { selected = 0; start = 0; }
+            void resetSel() { selected = 0; }
 
             //Enables control/disables drawing select box
             void setActive(bool _set);
@@ -100,11 +100,11 @@ namespace ui
 
         private:
             //drawing x and y + rectangle width/height. Height is calc'd with font size
-            int x = 0, y = 0, rW = 0, rY = 0, fSize = 0, rH = 0, mL = 0;
+            int x = 0, mY = 0, tY = 0, y = 0, rW = 0, rY = 0, fSize = 0, rH = 0, mL = 0;
             //Options vector
             std::vector<ui::menuOpt> opt;
             //Selected + frame counting for auto-scroll
-            int selected = 0, fc = 0, start = 0;
+            int selected = 0, fc = 0;
             //How much we shift the color of the rectangle
             uint8_t clrSh = 0;
             bool clrAdd = true, isActive = true;

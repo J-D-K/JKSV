@@ -10,6 +10,7 @@
 #include "data.h"
 #include "file.h"
 #include "util.h"
+#include "type.h"
 
 //FsSaveDataSpaceId_All doesn't work for SD
 static const unsigned saveOrder [] = { 0, 1, 2, 3, 4, 100, 101 };
@@ -464,14 +465,20 @@ void data::saveBlackList()
     }
 }
 
-void data::blacklistAdd(const uint64_t& tid)
+void data::blacklistAdd(void *a)
 {
-    blacklist.push_back(tid);
+    threadInfo *t = (threadInfo *)a;
+    t->status->setStatus("Adding title to blacklist...");
+    uint64_t *tid = (uint64_t *)t->argPtr;
+    blacklist.push_back(*tid);
     for(data::user& _u : data::users)
     {
         for(unsigned i = 0; i < _u.titleInfo.size(); i++)
-            if(_u.titleInfo[i].saveID == tid) _u.titleInfo.erase(_u.titleInfo.begin() + i);
+            if(_u.titleInfo[i].saveID == *tid) _u.titleInfo.erase(_u.titleInfo.begin() + i);
     }
+    ui::refreshAllViews();
+    delete tid;
+    t->finished = true;
 }
 
 void data::favoriteTitle(const uint64_t& tid)

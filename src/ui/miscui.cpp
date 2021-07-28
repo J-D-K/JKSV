@@ -22,7 +22,9 @@ static const SDL_Color menuColorDark  = {0x00, 0xFF, 0xC5, 0xFF};
 void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW, const unsigned& _fS, const unsigned& _mL)
 {
     x = _x;
+    mY = _y;
     y = _y;
+    tY = _y;
     rW = _rW;
     rY = _y;
     fSize = _fS;
@@ -133,44 +135,33 @@ void ui::menu::update()
     int mSize = opt.size() - 1, scrL = mL - 1;
     if( (down & HidNpadButton_AnyUp) || ((held & HidNpadButton_AnyUp) && fc == 10) )
     {
-        --selected;
-        if(selected < 0)
-            selected = mSize;
-
-        if(mSize > (int)mL)
+        if(selected > 0)
         {
-            if(start > selected)
-                --start;
-            else if(selected - scrL > start)
-                start = selected - scrL;
+            --selected;
+            if(selected - mL >= 0 && selected <= mSize - mL)
+                tY += rH;
         }
     }
     else if( (down & HidNpadButton_AnyDown) || ((held & HidNpadButton_AnyDown) && fc == 10))
     {
-        ++selected;
-        if(selected > mSize)
-            selected = 0;
-
-        if(selected > (start + scrL) && (start + scrL) < mSize)
-            ++start;
-        if(selected == 0)
-            start = 0;
+        if(selected < mSize)
+        {
+            ++selected;
+            if(selected - mL > 0 && selected + mL <= mSize + 1)
+                tY -= rH;
+        }
     }
     else if(down & HidNpadButton_AnyLeft)
     {
         selected -= scrL / 2;
         if(selected < 0)
             selected = 0;
-        if(selected < start)
-            start = selected;
     }
     else if(down & HidNpadButton_AnyRight)
     {
         selected += scrL / 2;
         if(selected > mSize)
             selected = mSize;
-        if(selected - scrL > start)
-            start = selected - scrL;
     }
 
     if(down)
@@ -194,6 +185,12 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
     if(opt.size() < 1)
         return;
 
+    if(y != tY)
+    {
+        float add = (float)((float)tY - (float)y) / ui::animScale;
+        y += ceil(add);
+    }
+
     if(clrAdd)
     {
         clrSh += 6;
@@ -207,21 +204,21 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
             clrAdd = true;
     }
 
-    for(int i = start; i < (int)opt.size(); i++)
+    for(int i = 0; i < (int)opt.size(); i++)
     {
         if(i == selected)
         {
             if(isActive)
-                ui::drawBoundBox(target, x, y + ((i - start) * rH), rW, rH, clrSh);
+                ui::drawBoundBox(target, x, y + (i * rH), rW, rH, clrSh);
 
-            gfx::drawRect(target, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, x + 10, ((y + (rH / 2 - fSize / 2)) + ((i - start) * rH)) - 2, 4, fSize + 4);
+            gfx::drawRect(target, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, x + 10, ((y + (rH / 2 - fSize / 2)) + (i * rH)) - 2, 4, fSize + 4);
             if(drawText)
-                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + ((i - start) * rH), ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
+                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
         }
         else
         {
             if(drawText)
-                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + ((i - start) * rH), textClr, opt[i].txt.c_str());
+                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), textClr, opt[i].txt.c_str());
         }
 
         int w, h;
@@ -231,7 +228,7 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
             int dW = scale * w;
             int dH = scale * h;
 
-            gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + ((i - start) * rH), dW, dH);
+            gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), dW, dH);
         }
 
     }
@@ -240,9 +237,9 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
 void ui::menu::reset()
 {
     opt.clear();
-    start = 0;
     selected = 0;
-
+    y = mY;
+    tY = mY;
     fc = 0;
 }
 

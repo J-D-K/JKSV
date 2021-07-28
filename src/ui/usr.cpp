@@ -299,23 +299,23 @@ void ui::usrInit()
     bcatSaveMenu = new ui::menu;
     cacheSaveMenu = new ui::menu;
 
-    usrMenu->setParams(64, 16, 0, 96, 4);
-    usrOptMenu->setParams(8, 32, 390, 18, 8);
+    usrMenu->setParams(64, 16, 0, 96, 2);
+    usrOptMenu->setParams(8, 32, 390, 20, 7);
     usrOptMenu->setCallback(usrOptCallback, NULL);
 
-    saveCreateMenu->setParams(8, 32, 390, 18, 8);
+    saveCreateMenu->setParams(8, 32, 492, 20, 7);
     saveCreateMenu->setActive(false);
     saveCreateMenu->setCallback(saveCreateCallback, NULL);
 
-    deviceSaveMenu->setParams(8, 32, 390, 18, 8);
+    deviceSaveMenu->setParams(8, 32, 492, 20, 7);
     deviceSaveMenu->setActive(false);
     deviceSaveMenu->setCallback(saveCreateCallback, NULL);
 
-    bcatSaveMenu->setParams(8, 32, 390, 18, 8);
+    bcatSaveMenu->setParams(8, 32, 492, 20, 7);
     bcatSaveMenu->setActive(false);
     bcatSaveMenu->setCallback(saveCreateCallback, NULL);
 
-    cacheSaveMenu->setParams(8, 32, 390, 18, 8);
+    cacheSaveMenu->setParams(8, 32, 492, 20, 7);
     cacheSaveMenu->setActive(false);
     cacheSaveMenu->setCallback(saveCreateCallback, NULL);
 
@@ -345,16 +345,16 @@ void ui::usrInit()
     usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
     usrOptMenu->setActive(false);
 
-    saveCreatePanel = new ui::slideOutPanel(410, 720, 0, saveCreatePanelDraw);
+    saveCreatePanel = new ui::slideOutPanel(512, 720, 0, saveCreatePanelDraw);
     ui::registerPanel(saveCreatePanel);
 
-    deviceSavePanel = new ui::slideOutPanel(410, 720, 0, deviceSavePanelDraw);
+    deviceSavePanel = new ui::slideOutPanel(512, 720, 0, deviceSavePanelDraw);
     ui::registerPanel(deviceSavePanel);
 
-    bcatSavePanel = new ui::slideOutPanel(410, 720, 0, bcatSavePanelDraw);
+    bcatSavePanel = new ui::slideOutPanel(512, 720, 0, bcatSavePanelDraw);
     ui::registerPanel(bcatSavePanel);
 
-    cacheSavePanel = new ui::slideOutPanel(410, 720, 0, cacheSavePanelDraw);
+    cacheSavePanel = new ui::slideOutPanel(512, 720, 0, cacheSavePanelDraw);
     ui::registerPanel(cacheSavePanel);
 
     accCreate = {FsSaveDataType_Account, saveCreateMenu};

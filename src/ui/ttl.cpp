@@ -12,6 +12,7 @@ static ui::slideOutPanel *ttlOptsPanel, *infoPanel, *fldPanel;//There's no reaso
 static fs::dirList *fldList;
 static fs::backupArgs *backargs;
 static std::string infoPanelString;
+static SDL_Texture *fldBuffer;//This is so folder menu doesn't draw over guide
 
 void ui::refreshAllViews()
 {
@@ -57,8 +58,6 @@ static void fldFuncRestore(void *a)
     ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdRest"], fs::restoreBackup, a, true, ui::confRestore.c_str(), itm.c_str());
     ui::confirm(conf);
 }
-
-
 
 void ui::populateFldMenu()
 {
@@ -155,8 +154,10 @@ static void ttlOptsShowInfoPanel(void *a)
 
 static void ttlOptsBlacklistTitle(void *a)
 {
+    uint64_t *sendTid = new uint64_t;
+    *sendTid = data::curData.saveID;
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    ui::confirmArgs *conf = ui::confirmArgsCreate(false, NULL, NULL, true, ui::confBlacklist.c_str(), title.c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(false, data::blacklistAdd, sendTid, true, ui::confBlacklist.c_str(), title.c_str());
     ui::confirm(conf);
 }
 
@@ -322,7 +323,9 @@ static void fldMenuCallback(void *a)
 static void fldPanelDraw(void *a)
 {
     SDL_Texture *target = (SDL_Texture *)a;
-    fldMenu->draw(target, &ui::txtCont, true);
+    gfx::clearTarget(fldBuffer, &ui::slidePanelColor);
+    fldMenu->draw(fldBuffer, &ui::txtCont, true);
+    gfx::texDraw(target, fldBuffer, 0, 0);
     gfx::drawLine(target, &ui::divClr, 10, 648, fldHelpWidth + 54, 648);
     gfx::drawTextf(target, 18, 32, 673, &ui::txtCont, ui::folderHelp.c_str());
 }
@@ -336,12 +339,12 @@ void ui::ttlInit()
         ttlViews.emplace_back(new ui::titleview(u, 128, 128, 16, 16, 7, ttlViewCallback));
 
     ttlOpts = new ui::menu;
-    ttlOpts->setParams(10, 32, 390, 18, 8);
+    ttlOpts->setParams(10, 32, 390, 20, 7);
     ttlOpts->setCallback(ttlOptsCallback, NULL);
     ttlOpts->setActive(false);
 
     fldMenu = new ui::menu;
-    fldMenu->setParams(10, 32, fldHelpWidth + 44, 18, 8);
+    fldMenu->setParams(10, 32, fldHelpWidth + 44, 20, 6);
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
 
@@ -353,6 +356,7 @@ void ui::ttlInit()
     infoPanel->setCallback(infoPanelCallback, NULL);
 
     fldPanel = new ui::slideOutPanel(fldHelpWidth + 64, 720, 0, fldPanelDraw);
+    fldBuffer = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, fldHelpWidth + 64, 647);
     ui::registerPanel(fldPanel);
 
     fldList = new fs::dirList;
@@ -379,6 +383,7 @@ void ui::ttlExit()
     for(ui::titleview *t : ttlViews)
         delete t;
 
+    SDL_DestroyTexture(fldBuffer);
     delete ttlOptsPanel;
     delete ttlOpts;
     delete infoPanel;
