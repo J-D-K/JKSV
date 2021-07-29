@@ -53,6 +53,7 @@ static void toEXT(void *a)
 {
     ui::changeState(EX_MNU);
     ui::usrMenu->setActive(false);
+    ui::extMenu->setActive(true);
 }
 
 static void usrOptCallback(void *a)
@@ -331,7 +332,7 @@ void ui::usrInit()
 
     ext = util::createIconGeneric("Extras", 40);
     pos = usrMenu->addOpt(ext, "Extras");
-    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, NULL, NULL);
+    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
 
     usrMenu->setOnChangeFunc(onMainChange);
     usrMenu->editParam(MENU_RECT_WIDTH, 126);

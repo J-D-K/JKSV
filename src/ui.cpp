@@ -162,6 +162,7 @@ void ui::init()
     ui::usrInit();
     ui::ttlInit();
     ui::settInit();
+    ui::extInit();
 
     popMessages = new ui::popMessageMngr;
     threadMngr  = new ui::threadProcMngr;
@@ -176,6 +177,7 @@ void ui::exit()
     ui::usrExit();
     ui::ttlExit();
     ui::settExit();
+    ui::extExit();
 
     delete popMessages;
     delete threadMngr;
@@ -241,7 +243,7 @@ void ui::drawUI()
     if(ui::usrMenu->getSelected() == settPos || ui::mstate == OPT_MNU)
         ui::settDraw(rightPanel);
     else if(usrMenu->getSelected() == extPos || ui::mstate == EX_MNU)
-        gfx::drawTextf(rightPanel, 24, 32, 32, &ui::txtCont, "PLACE HOLDER");
+        ui::extDraw(rightPanel);
     else
         ui::ttlDraw(rightPanel);
 
@@ -273,25 +275,19 @@ bool ui::runApp()
         switch(ui::mstate)
         {
             case USR_SEL:
-                usrUpdate();
+                ui::usrUpdate();
                 break;
 
             case TTL_SEL:
-                ttlUpdate();
+                ui::ttlUpdate();
                 break;
 
             case OPT_MNU:
-                settUpdate();
+                ui::settUpdate();
                 break;
 
             case EX_MNU:
-                /*extMenu.update();
-                if(down & HidNpadButton_B)
-                {
-                    ui::changeState(USR_SEL);
-                    mainMenu.setActive(true);
-                    extMenu.setActive(false);
-                }*/
+                ui::extUpdate();
                 break;
         }
     }

@@ -9,8 +9,11 @@
 #include <minizip/unzip.h>
 
 #include "fsfile.h"
+#include "fsthrd.h"
 #include "data.h"
 #include "miscui.h"
+
+#define BUFF_SIZE 0xC0000
 
 namespace fs
 {
@@ -20,6 +23,7 @@ namespace fs
     //Mounts usr's save data for open. Returns false it fails
     bool mountSave(const FsSaveDataInfo& _m);
     inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
+    bool commitToDevice(const std::string& dev);
 
     void copyFile(const std::string& from, const std::string& to);
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
@@ -36,6 +40,10 @@ namespace fs
     //Copies unzfile to 'to'
     void copyZipToDir(unzFile unz, const std::string& to, const std::string& dev);
 
+    bool dirNotEmpty(const std::string& _dir);
+    bool zipNotEmpty(unzFile unzip);
+
+    void mkdirRec(const std::string& _p);
     //deletes file
     void delfile(const std::string& path);
     //Recursively deletes 'path'
@@ -127,11 +135,29 @@ namespace fs
             bool opened = false;
     };
 
+    //Structs to send data to threads
     typedef struct
     {
         ui::menu *m;
         fs::dirList *d;
     } backupArgs;
+
+    typedef struct
+    {
+        std::string to, from, dev;
+        zipFile z;
+        unzFile unz;
+        bool cleanup = false;
+        uint64_t offset = 0, fileSize = 0;
+        ui::progBar *prog;
+        threadStatus *thrdStatus;
+        Mutex arglck = 0;
+        void argLock() { mutexLock(&arglck); }
+        void argUnlock() { mutexUnlock(&arglck); }
+    } copyArgs;
+
+    copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup);
+    void copyArgsDestroy(copyArgs *c);
 
     //Take a pointer to backupArgs^
     void createNewBackup(void *a);

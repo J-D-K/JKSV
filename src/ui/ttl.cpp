@@ -5,7 +5,7 @@
 #include "file.h"
 #include "util.h"
 
-int ttlHelpX = 0, fldHelpWidth = 0;
+static int ttlHelpX = 0, fldHelpWidth = 0;
 static std::vector<ui::titleview *> ttlViews;
 static ui::menu *ttlOpts, *fldMenu;
 static ui::slideOutPanel *ttlOptsPanel, *infoPanel, *fldPanel;//There's no reason to have a separate folder section
@@ -344,7 +344,7 @@ void ui::ttlInit()
     ttlOpts->setActive(false);
 
     fldMenu = new ui::menu;
-    fldMenu->setParams(10, 32, fldHelpWidth + 44, 20, 6);
+    fldMenu->setParams(10, 32, fldHelpWidth + 44, 20, 7);
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
 

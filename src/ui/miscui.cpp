@@ -230,7 +230,6 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
 
             gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), dW, dH);
         }
-
     }
 }
 

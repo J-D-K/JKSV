@@ -16,7 +16,7 @@ namespace ui
     //Strings for extras menu
     extern std::string exMenuStr[11];
     //Strings for options menu
-    extern std::string optMenuStr[16];
+    extern std::string optMenuStr[17];
     //Strings for the holding thing
     extern std::string holdingText[3];
     //Strings for sort type

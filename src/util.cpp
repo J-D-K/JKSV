@@ -10,6 +10,7 @@
 #include "util.h"
 #include "ui.h"
 #include "curlfuncs.h"
+#include "type.h"
 
 static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '™', '©', '®'};
 
@@ -343,12 +344,15 @@ void util::setCPU(uint32_t hz)
     clkrstExit();
 }
 
-void util::checkForUpdate()
+void util::checkForUpdate(void *a)
 {
+    threadInfo *t = (threadInfo *)a;
+    t->status->setStatus("Checking for Updates...");
     std::string gitJson = getJSONURL(NULL, "https://api.github.com/repos/J-D-K/JKSV/releases/latest");
     if(gitJson.empty())
     {
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::errorConnecting.c_str());
+        t->finished = true;
         return;
     }
 
@@ -361,6 +365,7 @@ void util::checkForUpdate()
     //This can throw false positives as is. need to fix sometime
     if(year > BLD_YEAR || month > BLD_MON || month > BLD_DAY)
     {
+        t->status->setStatus("Downloading Update...");
         //dunno about NSP yet...
         json_object *assets, *asset0, *dlUrl;
         json_object_object_get_ex(jobj, "assets", &assets);
@@ -378,6 +383,7 @@ void util::checkForUpdate()
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::noUpdate.c_str());
 
     json_object_put(jobj);
+    t->finished = true;
 }
 
 Result util::accountDeleteUser(AccountUid *uid)

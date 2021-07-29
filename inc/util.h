@@ -93,6 +93,6 @@ namespace util
     Result accountDeleteUser(AccountUid *uid);
 
     void setCPU(uint32_t hz);
-    void checkForUpdate();
+    void checkForUpdate(void *a);
 }
 #endif // UTIL_H

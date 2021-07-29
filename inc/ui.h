@@ -13,6 +13,7 @@
 #include "ui/usr.h"
 #include "ui/ttl.h"
 #include "ui/sett.h"
+#include "ui/ext.h"
 #include "ui/fm.h"
 #include "ui/ttlview.h"
 #include "ui/thrdProc.h"
