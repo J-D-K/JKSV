@@ -1,2 +1,133 @@
-#Japanese translation file
-#Copy en-US.txt here and use as a guide.
+#JKSV Switch translation guide
+#Button strings [X] are replaced by JKSV at boot.
+#string = set string to this.
+#Translation author. Displayed in UI. NULL is ignored and not displayed.
+author = "NULL"
+
+#Help/Guide strings on bottom
+#User Select
+userHelp = "[A] 選択   [Y] 全てダンプ   [X] UIモード   [R] アップデート   [-] オプション   [ZR] エクストラ"
+
+#Title Select
+titleHelp = "[A] 選択t   [L][R] ユーザーを変更   [Y] 全てダンプ   [X] お気に入り   [-] ブラックリスト   [ZR] 削除   [B] 戻る"
+
+#Folder Select
+folderHelp = "[-] ファイルモード  [L]/[R]+[A] 自動  [A] バックアップ  [Y] リストア  [X] 選択したものを削除  [ZR] 削除  [B] 戻る"
+
+#Options Menu
+optHelp = "[A] トグル   [X] デフォルト   [B] 戻る"
+
+#Button prompts.
+yt = "はい [A]"
+nt = "いいえ  [B]"
+
+#On/Off for options. '>' is used to change color to green.
+on = ">有効>"
+off = "無効"
+
+#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
+#Text shown at the top of confirmation boxes
+confirmHead = "確認"
+
+#Text shown at top of progress dialog when copying files
+copyHead = "ファイルをコピー中..."
+
+#Confirm blacklist.
+confirmBlacklist = "ブラックリストに #%s# を追加してもよろしいですか?"
+
+#Confirm overwriting folder
+confirmOverwrite = "#%s#を上書きしてもよろしいですか?"
+
+#Confirm restoring save
+confirmRestore = "#%s#を復元してもよろしいですか?"
+
+#Confirm deleting.
+confirmDelete = "#%s#を削除してもよろしいですか? *これは永続的です*!"
+
+#Confirm file copy in file mode
+confirmCopy = "#%s#を#%s#にコピーしてもよろしいですか?"
+
+#Warning for erasing save data from system in title menu
+confirmEraseNand = "*警告*: これにより、#%s#の保存データが*システム*から消去されます。これは、#Data Management#から削除するのと同じです!続行してもよろしいですか?"
+
+#Warning for deleting save data in folder menu
+confirmEraseFolder = "*警告*: これにより、#%s# の現在の保存データが*システムから*削除されます*! 続行してもよろしいですか?"
+
+#Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
+noSavesFound = "#%s#の保存データが見つかりません!"
+
+#Error pop-up displayed when git can't be connected to
+errorConnecting = "接続エラー!"
+
+#Pop-up shown when no updates are found on git
+noUpdate = "利用可能なアップデートはありません!"
+
+#Text displayed when holding is required. Should have a trailing space
+holdingText = 0, "(所有) "
+holdingText = 1, "(保持し続けます) "
+holdingText = 2, "(もうすぐです!) "
+
+#Menu options are held in arrays of strings.
+#The number is the option to set, string is what to set to.
+#Only the string after the comma needs to be edited.
+#Adv/file mode menu
+#'Copy to ' NEEDS a trailing space
+advMenu = 0, "にコピー "
+advMenu = 1, "削除"
+advMenu = 2, "リネーム"
+advMenu = 3, "ディレクトリ作成"
+advMenu = 4, "プロパティ"
+advMenu = 5, "閉じる"
+
+#Extras Menu
+extMenu = 0, "SDからSDブラウザ"
+extMenu = 1, "BIS: PRODINFOF"
+extMenu = 2, "BIS: SAFE"
+extMenu = 3, "BIS: SYSTEM"
+extMenu = 4, "BIS: USER"
+extMenu = 5, "アップデートを削除"
+extMenu = 6, "プロセスを終了する"
+extMenu = 7, "システムのセーブをマウント"
+extMenu = 8, "タイトルを再スキャン"
+extMenu = 9, "マウントプロセスRomFS"
+extMenu = 10, "JKSVフォルダをバックアップ"
+
+#Options menu
+#All options need a trailing space. It is the most likely to have things added to it.
+optMenu = 0, "Dev Svを含める: "
+optMenu = 1, "自動バックアップ: "
+optMenu = 2, "オーバークロック: "
+optMenu = 3, "削除するために保持: "
+optMenu = 4, "リストアするために保持: "
+optMenu = 5, "上書きするために保持: "
+optMenu = 6, "フォースマウント: "
+optMenu = 7, "アカウントシステム。保存: "
+optMenu = 8, "Sysに書き込みます。保存: "
+optMenu = 9, "テキストUIモード: "
+optMenu = 10, "ダイレクトFSコマンド: "
+optMenu = 11, "ユーザー選択をスキップ: "
+optMenu = 12, "ZIPにエクスポート: "
+optMenu = 13, "ソート: "
+optMenu = 14, "言語の上書き: "
+
+#Explanations of what options do.
+optMenuExp = 0, "ユーザーアカウントにデバイス保存データが含まれます。"
+optMenuExp = 1, "セーブを復元する前に、セーブのバックアップを自動的に作成します。"
+optMenuExp = 2, "起動時に1224Mhzに小さなCPUオーバークロックを適用します。これは、開発者ユニットが実行されるのと同じ速度です。"
+optMenuExp = 3, "フォルダやファイルを削除するときに[A]を押し続ける必要があるかどうか。"
+optMenuExp = 4, "セーブデータを復元するときに[A]を押し続ける必要があるかどうか。"
+optMenuExp = 5, "上書き時に[A]を押し続ける必要があるかどうかはSDカードに保存されます。"
+optMenuExp = 6, "有効にすると、JKSVは開くことができるセーブデータのみをロードして表示します。無効にすると、見つかったすべてのものが表示されます。"
+optMenuExp = 7, "有効にすると、アカウントに関連付けられたシステム保存データが表示されます。"
+optMenuExp = 8, "システムセーブデータとパーティションにファイルとデータを書き込んだり削除したりできるかどうかを制御します。 *何をしているのかわからない場合、これは非常に危険です。!*"
+optMenuExp = 9, "UIを元のJKSMfor3DSのようなテキストメニューベースに変更します。"
+optMenuExp = 10, "stdioの代わりに、スイッチのFSコマンドを直接使用してファイルをコピーします."
+optMenuExp = 11, "ユーザー選択画面をスキップし、最初に見つかったユーザーアカウントに直接ジャンプします。"
+optMenuExp = 12, "セーブデータをzipファイルにエクスポートします。"
+optMenuExp = 13, "タイトルの並べ替えと一覧表示の方法を変更します。"
+opeMenuExp = 14, "システム言語に関係なく、英語を強制的に使用します。"
+
+#Sort Types
+sortType = 0, "アルファベット順"
+sortType = 1, "プレイ時間"
+sortType = 2, "最後にプレイした"
