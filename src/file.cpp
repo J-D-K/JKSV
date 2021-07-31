@@ -289,8 +289,8 @@ void fs::dataFile::procLine()
 
 std::string fs::dataFile::getNextValueStr()
 {
-    std::string ret = "";
     //Skip all spaces until we hit actual text
+    std::string ret;
     size_t pos1 = line.find_first_not_of(", ", lPos);
     //If reading from quotes
     if(line[pos1] == '"')
@@ -298,7 +298,9 @@ std::string fs::dataFile::getNextValueStr()
     else
         lPos = line.find_first_of(",;\n", pos1);//Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
 
-    return line.substr(pos1, lPos++ - pos1);
+    ret = line.substr(pos1, lPos++ - pos1);
+
+    return ret;
 }
 
 int fs::dataFile::getNextValueInt()

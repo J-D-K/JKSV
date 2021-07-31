@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <map>
+#include <vector>
 #include <switch.h>
 #include <SDL.h>
 #include <SDL_image.h>
@@ -28,6 +29,7 @@ static const uint32_t redMask   = 0xFF000000;
 static const uint32_t greenMask = 0x00FF0000;
 static const uint32_t blueMask  = 0x0000FF00;
 static const uint32_t alphaMask = 0x000000FF;
+static const uint32_t breakPoints[6] = {' ', '/', '_', '-', L'。', L'、'};
 
 static inline bool compClr(const SDL_Color *c1, const SDL_Color *c2)
 {
@@ -285,9 +287,36 @@ void gfx::drawTextf(int fontSize, int x, int y, const SDL_Color *c, const char *
     }
 }
 
+bool isBreakChar(uint32_t point)
+{
+    for(int i = 0; i < 6; i++)
+    {
+        if(breakPoints[i] == point)
+            return true;
+    }
+    return false;
+}
+
+size_t findNextBreak(const char *str)
+{
+    size_t length = strlen(str);
+    for(size_t i = 0; i < length; )
+    {
+        uint32_t nextPoint = 0;
+        ssize_t unitCnt = decode_utf8(&nextPoint, (const uint8_t *)&str[i]);
+        i += unitCnt;
+        if(unitCnt <= 0)
+            return length;
+
+        if(isBreakChar(nextPoint))
+            return i;
+    }
+    return length;
+}
+
 void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Color *c, const char *fmt, ...)
 {
-    char tmp[VA_SIZE], wordBuff[128];
+    char tmp[VA_SIZE], wordBuff[256];
     va_list args;
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
@@ -301,9 +330,9 @@ void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Colo
 
     for(unsigned i = 0; i < strlength; )
     {
-        nextBreak = strcspn(&tmp[i], " /_-");
-        memset(wordBuff, 0, 128);
-        memcpy(wordBuff, &tmp[i], nextBreak + 1);
+        nextBreak = findNextBreak(&tmp[i]);
+        memset(wordBuff, 0, 256);
+        memcpy(wordBuff, &tmp[i], nextBreak);
 
         size_t width = gfx::getTextWidth(wordBuff, fontSize);
 

@@ -71,6 +71,10 @@ static void loadTrans()
         file = "romfs:/lang/";
         switch(data::sysLang)
         {
+            case SetLanguage_JA:
+                file += "ja.txt";
+                break;
+
             case SetLanguage_ZHCN:
             case SetLanguage_ZHHANS:
                 file += "zh-CN.txt";
@@ -79,6 +83,11 @@ static void loadTrans()
             case SetLanguage_ZHTW:
             case SetLanguage_ZHHANT:
                 file += "zh-TW.txt";
+                break;
+
+
+            case SetLanguage_PTBR:
+                file += "pt-BR.txt";
                 break;
 
             default:
