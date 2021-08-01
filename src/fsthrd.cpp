@@ -21,7 +21,10 @@ static uint64_t getJournalSize(const data::titleInfo *t)
             break;
 
         case FsSaveDataType_Cache:
-            journalSize = t->nacp.cache_storage_journal_size;
+            if(t->nacp.cache_storage_journal_size > 0)
+                journalSize = t->nacp.cache_storage_journal_size;
+            else
+                journalSize = t->nacp.cache_storage_data_and_journal_size_max;
             break;
 
         default:

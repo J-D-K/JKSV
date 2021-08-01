@@ -319,16 +319,23 @@ void util::replaceButtonsInString(std::string& rep)
     replaceStr(rep, "[-]", "\ue0f0");
 }
 
-SDL_Texture *util::createIconGeneric(const char *txt, int fontSize)
+SDL_Texture *util::createIconGeneric(const char *txt, int fontSize, bool clearBack)
 {
     SDL_Texture *ret = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, 256, 256);
     SDL_SetRenderTarget(gfx::render, ret);
-    SDL_SetRenderDrawColor(gfx::render, ui::rectLt.r, ui::rectLt.g, ui::rectLt.b, ui::rectLt.a);
-    SDL_RenderClear(gfx::render);
+    if(clearBack)
+    {
+        SDL_SetRenderDrawColor(gfx::render, ui::rectLt.r, ui::rectLt.g, ui::rectLt.b, ui::rectLt.a);
+        SDL_RenderClear(gfx::render);
+    }
+    else
+        gfx::clearTarget(ret, &ui::transparent);
+
     unsigned int x = 128 - (gfx::getTextWidth(txt, fontSize) / 2);
     unsigned int y = 128 - (fontSize / 2);
     gfx::drawTextf(ret, fontSize, x, y, &ui::txtCont, txt);
     SDL_SetRenderTarget(gfx::render, NULL);
+    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
     return ret;
 }
 

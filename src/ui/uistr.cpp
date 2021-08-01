@@ -45,7 +45,7 @@ std::string ui::optMenuStr[17] = { "Empty Trash Bin", "Check for Update", "Inclu
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };
 std::string ui::usrOptString[2] = { "Create Save Data", "Delete All User Saves" };
-std::string ui::titleOptString[6] = {"Information", "Blacklist", "Change Output folder", "Reset Save Data", "Delete Save Filesystem", "Extend Save Filesystem"};
+std::string ui::titleOptString[7] = {"Information", "Blacklist", "Change Output folder", "Open in File Mode", "Reset Save Data", "Delete Save Filesystem", "Extend Save Filesystem"};
 
 void ui::loadTrans()
 {

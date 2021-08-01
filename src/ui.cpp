@@ -43,7 +43,7 @@ SDL_Texture *ui::mnuTopLeft, *ui::mnuTopRight, *ui::mnuBotLeft, *ui::mnuBotRight
 //Select box + top left icon
 SDL_Texture *ui::sideBar;
 
-static SDL_Texture *icn, *leftPanel, *rightPanel;
+static SDL_Texture *icn, *corePanel;
 SDL_Color ui::heartColor = {0xFF, 0x44, 0x44, 0xFF};
 
 //X position of help texts. Calculated to make editing quicker/easier
@@ -103,10 +103,8 @@ void ui::init()
     mnuBotLeft  = gfx::loadImageFile("romfs:/img/fb/menuBotLeft.png");
     mnuBotRight = gfx::loadImageFile("romfs:/img/fb/menuBotRight.png");
 
-    leftPanel = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET | SDL_TEXTUREACCESS_STATIC, 200, 559);
-    rightPanel  = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET | SDL_TEXTUREACCESS_STATIC, 1080, 559);
-    SDL_SetTextureBlendMode(leftPanel, SDL_BLENDMODE_BLEND);
-    SDL_SetTextureBlendMode(rightPanel, SDL_BLENDMODE_BLEND);
+    corePanel  = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET | SDL_TEXTUREACCESS_STATIC, 1220, 559);
+    SDL_SetTextureBlendMode(corePanel, SDL_BLENDMODE_BLEND);
 
     switch(ui::thmID)
     {
@@ -158,11 +156,11 @@ void ui::init()
     //Setup touch
     hidInitializeTouchScreen();
 
-    //advCopyMenuPrep();
     ui::usrInit();
     ui::ttlInit();
     ui::settInit();
     ui::extInit();
+    ui::fmInit();
 
     popMessages = new ui::popMessageMngr;
     threadMngr  = new ui::threadProcMngr;
@@ -178,6 +176,7 @@ void ui::exit()
     ui::ttlExit();
     ui::settExit();
     ui::extExit();
+    ui::fmExit();
 
     delete popMessages;
     delete threadMngr;
@@ -194,8 +193,7 @@ void ui::exit()
     SDL_DestroyTexture(mnuBotLeft);
     SDL_DestroyTexture(mnuBotRight);
 
-    SDL_DestroyTexture(leftPanel);
-    SDL_DestroyTexture(rightPanel);
+    SDL_DestroyTexture(corePanel);
 
     SDL_DestroyTexture(icn);
 }
@@ -224,8 +222,7 @@ void ui::showLoadScreen()
 void ui::drawUI()
 {
     gfx::clearTarget(NULL, &ui::clearClr);
-    gfx::clearTarget(leftPanel, &transparent);
-    gfx::clearTarget(rightPanel, &transparent);
+    gfx::clearTarget(corePanel, &transparent);
 
     gfx::drawLine(NULL, &divClr, 30, 88, 1250, 88);
     gfx::drawLine(NULL, &divClr, 30, 648, 1250, 648);
@@ -237,18 +234,16 @@ void ui::drawUI()
     if(author != "NULL")
         gfx::drawTextf(NULL, 12, 8, 682, &ui::txtCont, "Translation: %s", author.c_str());
 
-    gfx::texDraw(leftPanel, sideBar, 0, 89);
-    ui::usrDraw(leftPanel);
-
-    if(ui::usrMenu->getSelected() == settPos || ui::mstate == OPT_MNU)
-        ui::settDraw(rightPanel);
-    else if(usrMenu->getSelected() == extPos || ui::mstate == EX_MNU)
-        ui::extDraw(rightPanel);
+    if((ui::usrMenu->getActive() && ui::usrMenu->getSelected() == settPos) || ui::mstate == OPT_MNU)
+        ui::settDraw(corePanel);
+    else if((ui::usrMenu->getActive() && ui::usrMenu->getSelected() == extPos) || ui::mstate == EX_MNU)
+        ui::extDraw(corePanel);
+    else if(ui::mstate == FIL_MDE)
+        ui::fmDraw(corePanel);
     else
-        ui::ttlDraw(rightPanel);
+        ui::ttlDraw(corePanel);
 
-    gfx::texDraw(NULL, rightPanel, 200, 89);
-    gfx::texDraw(NULL, leftPanel, 0, 89);
+    gfx::texDraw(NULL, corePanel, 30, 89);
     for(slideOutPanel *s : panels)
         s->draw(&ui::slidePanelColor);
 
@@ -288,6 +283,10 @@ bool ui::runApp()
 
             case EX_MNU:
                 ui::extUpdate();
+                break;
+
+            case FIL_MDE:
+                ui::fmUpdate();
                 break;
         }
     }

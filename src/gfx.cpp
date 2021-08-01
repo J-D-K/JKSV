@@ -29,6 +29,7 @@ static const uint32_t redMask   = 0xFF000000;
 static const uint32_t greenMask = 0x00FF0000;
 static const uint32_t blueMask  = 0x0000FF00;
 static const uint32_t alphaMask = 0x000000FF;
+static const uint32_t breakPoints[7] = {' ', L'　', '/', '_', '-', L'。', L'、'};
 
 static uint8_t *alphaMod;
 
@@ -302,6 +303,33 @@ void gfx::drawTextf(SDL_Texture *target, int fontSize, int x, int y, const SDL_C
     SDL_SetRenderTarget(gfx::render, NULL);
 }
 
+inline bool isBreakChar(uint32_t point)
+{
+    for(int i = 0; i < 7; i++)
+    {
+        if(breakPoints[i] == point)
+            return true;
+    }
+    return false;
+}
+
+inline size_t findNextBreak(const char *str)
+{
+    size_t length = strlen(str);
+    for(size_t i = 0; i < length; )
+    {
+        uint32_t nextPoint = 0;
+        ssize_t unitCnt = decode_utf8(&nextPoint, (const uint8_t *)&str[i]);
+        i += unitCnt;
+        if(unitCnt <= 0)
+            return length;
+
+        if(isBreakChar(nextPoint))
+            return i;
+    }
+    return length;
+}
+
 void gfx::drawTextfWrap(SDL_Texture *target, int fontSize, int x, int y, int maxWidth, const SDL_Color *c, const char *fmt, ...)
 {
     SDL_SetRenderTarget(gfx::render, target);
@@ -319,9 +347,9 @@ void gfx::drawTextfWrap(SDL_Texture *target, int fontSize, int x, int y, int max
 
     for(unsigned i = 0; i < strlength; )
     {
-        nextBreak = strcspn(&tmp[i], " /_-");
+        nextBreak = findNextBreak(&tmp[i]);
         memset(wordBuff, 0, 128);
-        memcpy(wordBuff, &tmp[i], nextBreak + 1);
+        memcpy(wordBuff, &tmp[i], nextBreak);
 
         size_t width = gfx::getTextWidth(wordBuff, fontSize);
 

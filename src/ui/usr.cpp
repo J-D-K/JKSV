@@ -13,6 +13,7 @@
 
 //Main menu/Users + options, folder
 ui::menu *ui::usrMenu;
+ui::slideOutPanel *ui::usrSelPanel;
 
 static ui::menu *usrOptMenu, *saveCreateMenu, *deviceSaveMenu, *bcatSaveMenu, *cacheSaveMenu;
 //All save types have different entries.
@@ -40,6 +41,13 @@ static void onMainChange(void *a)
 {
     if(ui::usrMenu->getSelected() < (int)data::users.size())
         data::selUser = ui::usrMenu->getSelected();
+}
+
+static void _usrSelPanelDraw(void *a)
+{
+    SDL_Texture *target = (SDL_Texture *)a;
+    gfx::texDraw(target, ui::sideBar, 0, 0);
+    ui::usrMenu->draw(target, &ui::txtCont, false);
 }
 
 static void toOPT(void *a)
@@ -134,10 +142,16 @@ static void usrOptDeleteAllUserSaves_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     data::user *u = &data::users[data::selUser];
+
+    int devUser = ui::usrMenu->getOptPos("Device");
+
     for(data::userTitleInfo& tinf : u->titleInfo)
     {
-        t->status->setStatus("Deleting " + data::getTitleNameByTID(tinf.saveID));
-        fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);;
+        if(tinf.saveInfo.save_data_type != FsSaveDataType_System && (tinf.saveInfo.save_data_type != FsSaveDataType_Device || data::selUser == devUser))
+        {
+            t->status->setStatus("Deleting " + data::getTitleNameByTID(tinf.saveID));
+            fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);
+        }
     }
     data::loadUsersTitles(false);
     ui::refreshAllViews();
@@ -252,7 +266,10 @@ static void createSaveData_t(void *a)
 
         case FsSaveDataType_Cache:
             saveSize = 32 * 1024 * 1024;//Todo: Add target folder/zip selection for size
-            journalSize = create->nacp.cache_storage_journal_size;
+            if(create->nacp.cache_storage_journal_size > create->nacp.cache_storage_data_and_journal_size_max)
+                journalSize = create->nacp.cache_storage_journal_size;
+            else
+                journalSize = create->nacp.cache_storage_data_and_journal_size_max;
             break;
 
         default:
@@ -326,18 +343,23 @@ void ui::usrInit()
         usrMenu->optAddButtonEvent(usrPos, HidNpadButton_A, toTTL, NULL);
     }
 
-    sett = util::createIconGeneric("Settings", 40);
+    sett = util::createIconGeneric("Settings", 48, false);
     int pos = usrMenu->addOpt(sett, "Settings");
     usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toOPT, NULL);
 
-    ext = util::createIconGeneric("Extras", 40);
+    ext = util::createIconGeneric("Extras", 48, false);
     pos = usrMenu->addOpt(ext, "Extras");
     usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
 
     usrMenu->setOnChangeFunc(onMainChange);
     usrMenu->editParam(MENU_RECT_WIDTH, 126);
 
-    usrOptPanel = new ui::slideOutPanel(410, 720, 0, usrOptPanelDraw);
+    usrSelPanel = new ui::slideOutPanel(200, 559, 89, ui::SLD_LEFT, _usrSelPanelDraw);
+    usrSelPanel->setX(0);
+    ui::registerPanel(usrSelPanel);
+    usrSelPanel->openPanel();
+
+    usrOptPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, usrOptPanelDraw);
     ui::registerPanel(usrOptPanel);
 
     usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
@@ -346,16 +368,16 @@ void ui::usrInit()
     usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
     usrOptMenu->setActive(false);
 
-    saveCreatePanel = new ui::slideOutPanel(512, 720, 0, saveCreatePanelDraw);
+    saveCreatePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, saveCreatePanelDraw);
     ui::registerPanel(saveCreatePanel);
 
-    deviceSavePanel = new ui::slideOutPanel(512, 720, 0, deviceSavePanelDraw);
+    deviceSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, deviceSavePanelDraw);
     ui::registerPanel(deviceSavePanel);
 
-    bcatSavePanel = new ui::slideOutPanel(512, 720, 0, bcatSavePanelDraw);
+    bcatSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, bcatSavePanelDraw);
     ui::registerPanel(bcatSavePanel);
 
-    cacheSavePanel = new ui::slideOutPanel(512, 720, 0, cacheSavePanelDraw);
+    cacheSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, cacheSavePanelDraw);
     ui::registerPanel(cacheSavePanel);
 
     accCreate = {FsSaveDataType_Account, saveCreateMenu};
@@ -387,7 +409,7 @@ void ui::usrInit()
             bcatSids.push_back(t.first);
         }
 
-        if(nacp->cache_storage_size > 0)
+        if(nacp->cache_storage_size > 0 || nacp->cache_storage_journal_size > 0 || nacp->cache_storage_data_and_journal_size_max > 0)
         {
             int optPos = cacheSaveMenu->addOpt(NULL, t.second.title);
             cacheSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &cacheCreate);
@@ -399,6 +421,7 @@ void ui::usrInit()
 
 void ui::usrExit()
 {
+    delete usrSelPanel;
     delete usrOptPanel;
     delete saveCreatePanel;
     delete deviceSavePanel;
@@ -426,7 +449,7 @@ void ui::usrUpdate()
     cacheSaveMenu->update();
 
     //Todo: Not this
-    if(!usrOptMenu->getActive() && !saveCreateMenu->getActive() && !deviceSaveMenu->getActive() && !bcatSaveMenu->getActive() && !cacheSaveMenu->getActive())
+    if(usrMenu->getActive())
     {
         switch(ui::padKeysDown())
         {

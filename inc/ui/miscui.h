@@ -85,6 +85,9 @@ namespace ui
             //Returns selected option
             int getSelected() { return selected; }
 
+            //Returns menu option count
+            int getCount() { return opt.size(); }
+
             //Draws the menu at x and y. rectWidth is the width of the rectangle drawn under the selected
             void draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText);
 

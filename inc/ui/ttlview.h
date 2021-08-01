@@ -49,7 +49,7 @@ namespace ui
             bool active = false, showSel = false, clrAdd = true;
             uint8_t clrShft = 0;
             funcPtr callback = NULL;
-            int x = 34, y = 62, selected = 0, selRectX = 10, selRectY = 45;
+            int x = 200, y = 62, selected = 0, selRectX = 10, selRectY = 45;
             int iconW, iconH, horGap, vertGap, rowCount;
             std::vector<ui::titleTile *> tiles;
     };

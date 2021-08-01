@@ -10,14 +10,14 @@
 //ui headers - split up to keep a bit more organized
 #include "ui/miscui.h"
 #include "ui/uistr.h"
+#include "ui/ttlview.h"
+#include "ui/thrdProc.h"
+#include "ui/sldpanel.h"
 #include "ui/usr.h"
 #include "ui/ttl.h"
 #include "ui/sett.h"
 #include "ui/ext.h"
 #include "ui/fm.h"
-#include "ui/ttlview.h"
-#include "ui/thrdProc.h"
-#include "ui/sldpanel.h"
 
 enum menuState
 {
@@ -25,7 +25,8 @@ enum menuState
     TTL_SEL,
     ADV_MDE,
     EX_MNU,
-    OPT_MNU
+    OPT_MNU,
+    FIL_MDE
 };
 
 namespace ui

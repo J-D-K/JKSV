@@ -160,7 +160,7 @@ static inline void addTitleToList(const uint64_t& tid)
 
         data::titles[tid].icon = gfx::loadJPEGMem(ctrlData->icon, iconSize);
         if(!data::titles[tid].icon)
-            data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32);
+            data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
     }
     else
     {
@@ -172,7 +172,7 @@ static inline void addTitleToList(const uint64_t& tid)
         else
             data::titles[tid].safeTitle = util::getIDStr(tid);
 
-        data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32);
+        data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
     }
     delete ctrlData;
 }
@@ -415,7 +415,7 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
     {
         username = _backupName.empty() ? util::getIDStr((uint64_t)uID128) : _backupName;
         userSafe = _backupName.empty() ? util::getIDStr((uint64_t)uID128) : _backupName;
-        userIcon = util::createIconGeneric(_backupName.c_str(), 40);
+        userIcon = util::createIconGeneric(_backupName.c_str(), 48, false);
     }
     titles.reserve(64);
 }

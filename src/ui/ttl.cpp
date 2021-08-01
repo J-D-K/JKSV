@@ -8,7 +8,8 @@
 static int ttlHelpX = 0, fldHelpWidth = 0;
 static std::vector<ui::titleview *> ttlViews;
 static ui::menu *ttlOpts, *fldMenu;
-static ui::slideOutPanel *ttlOptsPanel, *infoPanel, *fldPanel;//There's no reason to have a separate folder section
+ui::slideOutPanel *ui::ttlOptsPanel;
+static ui::slideOutPanel *infoPanel, *fldPanel;//There's no reason to have a separate folder section
 static fs::dirList *fldList;
 static fs::backupArgs *backargs;
 static std::string infoPanelString;
@@ -104,13 +105,10 @@ static void ttlViewCallback(void *a)
             break;
 
         case HidNpadButton_X:
-            if(data::curUser.getUID128() != 0)//system
-            {
-                data::selData = ttlViews[data::selUser]->getSelected();
-                ttlViews[data::selUser]->setActive(false, true);
-                ttlOpts->setActive(true);
-                ttlOptsPanel->openPanel();
-            }
+            data::selData = ttlViews[data::selUser]->getSelected();
+            ttlViews[data::selUser]->setActive(false, true);
+            ttlOpts->setActive(true);
+            ui::ttlOptsPanel->openPanel();
             break;
 
         case HidNpadButton_Y:
@@ -131,7 +129,7 @@ static void ttlOptsCallback(void *a)
     {
         case HidNpadButton_B:
             ttlOpts->setActive(false);
-            ttlOptsPanel->closePanel();
+            ui::ttlOptsPanel->closePanel();
             ttlViews[data::selUser]->setActive(true, true);
             ui::updateInput();
             break;
@@ -147,7 +145,7 @@ static void ttlOptsPanelDraw(void *a)
 static void ttlOptsShowInfoPanel(void *a)
 {
     ttlOpts->setActive(false);
-    ttlOptsPanel->closePanel();
+    ui::ttlOptsPanel->closePanel();
     infoPanelString = util::getInfoString(data::curUser, data::curData.saveID);
     infoPanel->openPanel();
 }
@@ -170,6 +168,17 @@ static void ttlOptsDefinePath(void *a)
         data::pathDefAdd(tid, newSafeTitle);
 }
 
+static void ttlOptsToFileMode(void *a)
+{
+    if(fs::mountSave(data::curData.saveInfo))
+    {
+        ui::fmPrep((FsSaveDataType)data::curData.saveInfo.save_data_type, "sv:/", true);
+        ui::usrSelPanel->closePanel();
+        ui::ttlOptsPanel->closePanel();
+        ui::changeState(FIL_MDE);
+    }
+}
+
 static void ttlOptsResetSaveData_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
@@ -186,9 +195,12 @@ static void ttlOptsResetSaveData_t(void *a)
 
 static void ttlOptsResetSaveData(void *a)
 {
-    std::string title = data::getTitleNameByTID(data::curData.saveID);
-    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsResetSaveData_t, NULL, true, ui::saveDataReset.c_str(), title.c_str());
-    ui::confirm(conf);
+    if(data::curData.saveInfo.save_data_type != FsSaveDataType_System)
+    {
+        std::string title = data::getTitleNameByTID(data::curData.saveID);
+        ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsResetSaveData_t, NULL, true, ui::saveDataReset.c_str(), title.c_str());
+        ui::confirm(conf);
+    }
 }
 
 static void ttlOptsDeleteSaveData_t(void *a)
@@ -202,7 +214,7 @@ static void ttlOptsDeleteSaveData_t(void *a)
         if(data::curUser.titleInfo.size() == 0)
         {
             //Kick back to user
-            ttlOptsPanel->closePanel();//JIC
+            ui::ttlOptsPanel->closePanel();//JIC
             ttlOpts->setActive(false);
             ttlViews[data::selUser]->setActive(false, false);
             ui::usrMenu->setActive(true);
@@ -216,9 +228,12 @@ static void ttlOptsDeleteSaveData_t(void *a)
 
 static void ttlOptsDeleteSaveData(void *a)
 {
-    std::string title = data::getTitleNameByTID(data::curData.saveID);
-    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsDeleteSaveData_t, NULL, true, ui::confEraseNand.c_str(), title.c_str());
-    ui::confirm(conf);
+    if(data::curData.saveInfo.save_data_type != FsSaveDataType_System)
+    {
+        std::string title = data::getTitleNameByTID(data::curData.saveID);
+        ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsDeleteSaveData_t, NULL, true, ui::confEraseNand.c_str(), title.c_str());
+        ui::confirm(conf);
+    }
 }
 
 static void ttlOptsExtendSaveData_t(void *a)
@@ -227,13 +242,10 @@ static void ttlOptsExtendSaveData_t(void *a)
     std::string expSizeStr = util::getStringInput(SwkbdType_NumPad, "", "Enter New Size in MB", 4, 0, NULL);
     if(!expSizeStr.empty())
     {
+        int64_t journ = 0, expSize;
         data::titleInfo *extend = data::getTitleInfoByTID(data::curData.saveID);
         w->status->setStatus("Expanding save filesystem for " + extend->title);
-        uint64_t expMB = strtoul(expSizeStr.c_str(), NULL, 10);
-        FsSaveDataSpaceId space = (FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id;
-        uint64_t sid = data::curData.saveInfo.save_data_id;
-        int64_t expSize = expMB * 1024 * 1024;
-        int64_t journ = 0;
+        //Get journal size
         switch(data::curData.saveInfo.save_data_type)
         {
             case FsSaveDataType_Account:
@@ -266,7 +278,10 @@ static void ttlOptsExtendSaveData_t(void *a)
                 journ = 0;
                 break;
         }
-
+        uint64_t expMB = strtoul(expSizeStr.c_str(), NULL, 10);
+        expSize = expMB * 0x100000;
+        FsSaveDataSpaceId space = (FsSaveDataSpaceId)data::curData.saveInfo.save_data_space_id;
+        uint64_t sid = data::curData.saveInfo.save_data_id;
         Result res = 0;
         if(R_FAILED(res = fsExtendSaveDataFileSystem(space, sid, expSize, journ)))
         {
@@ -284,7 +299,8 @@ static void ttlOptsExtendSaveData_t(void *a)
 
 static void ttlOptsExtendSaveData(void *a)
 {
-    ui::newThread(ttlOptsExtendSaveData_t, NULL, NULL);
+    if(data::curData.saveInfo.save_data_type != FsSaveDataType_System)
+        ui::newThread(ttlOptsExtendSaveData_t, NULL, NULL);
 }
 
 static void infoPanelDraw(void *a)
@@ -300,7 +316,7 @@ static void infoPanelCallback(void *a)
     {
         case HidNpadButton_B:
             infoPanel->closePanel();
-            ttlOptsPanel->openPanel();
+            ui::ttlOptsPanel->openPanel();
             ttlOpts->setActive(true);
             ui::updateInput();
             break;
@@ -348,14 +364,14 @@ void ui::ttlInit()
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
 
-    ttlOptsPanel = new ui::slideOutPanel(410, 720, 0, ttlOptsPanelDraw);
+    ttlOptsPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, ttlOptsPanelDraw);
     ui::registerPanel(ttlOptsPanel);
 
-    infoPanel = new ui::slideOutPanel(410, 720, 0, infoPanelDraw);
+    infoPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, infoPanelDraw);
     ui::registerPanel(infoPanel);
     infoPanel->setCallback(infoPanelCallback, NULL);
 
-    fldPanel = new ui::slideOutPanel(fldHelpWidth + 64, 720, 0, fldPanelDraw);
+    fldPanel = new ui::slideOutPanel(fldHelpWidth + 64, 720, 0, ui::SLD_RIGHT, fldPanelDraw);
     fldBuffer = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, fldHelpWidth + 64, 647);
     ui::registerPanel(fldPanel);
 
@@ -370,11 +386,13 @@ void ui::ttlInit()
     ttlOpts->addOpt(NULL, ui::titleOptString[2]);
     ttlOpts->optAddButtonEvent(2, HidNpadButton_A, ttlOptsDefinePath, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[3]);
-    ttlOpts->optAddButtonEvent(3, HidNpadButton_A, ttlOptsResetSaveData, NULL);
+    ttlOpts->optAddButtonEvent(3, HidNpadButton_A, ttlOptsToFileMode, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[4]);
-    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsResetSaveData, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[5]);
-    ttlOpts->optAddButtonEvent(5, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
+    ttlOpts->optAddButtonEvent(5, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->addOpt(NULL, ui::titleOptString[6]);
+    ttlOpts->optAddButtonEvent(6, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
 
 }
 

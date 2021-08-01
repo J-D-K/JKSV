@@ -50,7 +50,7 @@ namespace util
     void replaceButtonsInString(std::string& rep);
 
     //Creates a basic generic icon for stuff without one
-    SDL_Texture *createIconGeneric(const char *txt, int fontSize);
+    SDL_Texture *createIconGeneric(const char *txt, int fontSize, bool clearBack);
 
     inline u128 accountUIDToU128(AccountUid uid)
     {

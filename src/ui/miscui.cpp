@@ -185,6 +185,9 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
     if(opt.size() < 1)
         return;
 
+    int tH = 0;
+    SDL_QueryTexture(target, NULL, NULL, NULL, &tH);
+
     if(y != tY)
     {
         float add = (float)((float)tY - (float)y) / ui::animScale;
@@ -204,7 +207,7 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
             clrAdd = true;
     }
 
-    for(int i = 0; i < (int)opt.size(); i++)
+    for(int i = 0, tY = y; i < (int)opt.size(); i++, tY += rH)
     {
         if(i == selected)
         {
@@ -217,7 +220,7 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
         }
         else
         {
-            if(drawText)
+            if(drawText && (tY > -rH || tY < tH))
                 gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), textClr, opt[i].txt.c_str());
         }
 

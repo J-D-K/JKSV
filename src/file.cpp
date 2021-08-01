@@ -78,8 +78,8 @@ bool fs::commitToDevice(const std::string& dev)
     Result res = fsdevCommitDevice(dev.c_str());
     if(R_FAILED(res))
     {
-        fs::logWrite("Error committing to device -> 0x%X", res);
-        ui::showPopMessage(POP_FRAME_DEFAULT, "Error commmitting file to device!");
+        fs::logWrite("Error committing file to device -> 0x%X\n", res);
+        ui::showPopMessage(POP_FRAME_DEFAULT, "Error committing file to device!");
         ret = false;
     }
     return ret;
@@ -108,7 +108,7 @@ void fs::init()
 
 void fs::exit()
 {
-    fs::logClose();
+
 }
 
 bool fs::mountSave(const FsSaveDataInfo& _m)
@@ -637,7 +637,8 @@ void fs::createNewBackup(void *a)
             util::generateAbbrev(data::curData.saveID),
             ".zip"
         };
-        out = util::getStringInput(SwkbdType_QWERTY, "", "Enter a name", 64, 9, dict);
+        std::string defaultText = data::curUser.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+        out = util::getStringInput(SwkbdType_QWERTY, defaultText, "Enter a name", 64, 9, dict);
     }
 
     if(!out.empty())
@@ -792,22 +793,20 @@ void fs::deleteBackup(void *a)
 void fs::logOpen()
 {
     std::string logPath = wd + "log.txt";
-    remove(logPath.c_str());
     debLog = fsfopen(logPath.c_str(), FsOpenMode_Write);
+    fsfclose(debLog);
 }
 
 void fs::logWrite(const char *fmt, ...)
 {
+    std::string logPath = wd + "log.txt";
+    debLog = fsfopen(logPath.c_str(), FsOpenMode_Append | FsOpenMode_Write);
     char tmp[256];
     va_list args;
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
     va_end(args);
     fsfwrite(tmp, 1, strlen(tmp), debLog);
-}
-
-void fs::logClose()
-{
     fsfclose(debLog);
 }
 
