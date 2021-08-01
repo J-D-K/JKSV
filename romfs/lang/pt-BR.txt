@@ -125,7 +125,7 @@ optMenuExp = 10, "Usa comandos do Switch FS diretamente ao invés do stdio ao co
 optMenuExp = 11, "Pula a tela de seleção de usuário e vai direto para a primeira conta que encontrar."
 optMenuExp = 12, "Exporta os saves para arquivos ZIP."
 optMenuExp = 13, "Muda a maneira como que os títulos são listados e ordenados."
-opeMenuExp = 14, "Força o uso do idioma Inglês independente do idioma do sistema."
+optMenuExp = 14, "Força o uso do idioma Inglês independente do idioma do sistema."
 
 #Sort Types
 sortType = 0, "Alfabética"

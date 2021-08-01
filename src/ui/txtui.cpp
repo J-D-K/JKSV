@@ -367,7 +367,7 @@ static inline void changeSort()
 
 void ui::optMenuInit()
 {
-    optMenu.setParams(76, 98, 310);
+    optMenu.setParams(30, 98, 370);
     for(unsigned i = 0; i < 15; i++)
         optMenu.addOpt(ui::optMenuStr[i]);
 }

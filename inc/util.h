@@ -36,6 +36,7 @@ namespace util
 
     //removes char from C++ string
     void stripChar(char _c, std::string& _s);
+    void replaceStr(std::string& _str, const std::string& _find, const std::string& _rep);
 
     //For future external translation support. Replaces [button] with button chars
     void replaceButtonsInString(std::string& rep);

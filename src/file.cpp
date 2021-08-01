@@ -267,8 +267,10 @@ bool fs::dataFile::readNextLine(bool proc)
     }
     util::stripChar('\n', line);
     util::stripChar('\r', line);
-    if(proc)
+    if(!line.empty() && proc)
         procLine();
+    else if(line.empty())
+        ret = false;
 
     return ret;
 }
@@ -299,6 +301,7 @@ std::string fs::dataFile::getNextValueStr()
         lPos = line.find_first_of(",;\n", pos1);//Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
 
     ret = line.substr(pos1, lPos++ - pos1);
+    util::replaceStr(line, "\\n", "\n");
 
     return ret;
 }

@@ -99,6 +99,7 @@ static void loadTrans()
     fs::dataFile lang(file);
     while(lang.readNextLine(true))
     {
+        fs::logWrite("%s: %u\n", lang.getName().c_str(), uistrdef[lang.getName()]);
         switch(uistrdef[lang.getName()])
         {
             case 0:
@@ -228,7 +229,7 @@ static void loadTrans()
                 break;
 
             default:
-                ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), lang.getName());
+                //ui::showMessage("*Translation File Error:*", "On Line: %s\n*%s* is not a known or valid string name.", lang.getLine(), lang.getName());
                 break;
         }
     }
