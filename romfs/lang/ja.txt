@@ -9,7 +9,7 @@ author = "NULL"
 userHelp = "[A] 選択   [Y] 全てダンプ   [X] UIモード   [R] アップデート   [-] オプション   [ZR] エクストラ"
 
 #Title Select
-titleHelp = "[A] 選択t   [L][R] ユーザーを変更   [Y] 全てダンプ   [X] お気に入り   [-] ブラックリスト   [ZR] 削除   [B] 戻る"
+titleHelp = "[A] 選択   [L][R] ユーザーを変更   [Y] 全てダンプ   [X] お気に入り   [-] ブラックリスト   [ZR] 削除   [B] 戻る"
 
 #Folder Select
 folderHelp = "[-] ファイルモード  [L]/[R]+[A] 自動  [A] バックアップ  [Y] リストア  [X] 選択したものを削除  [ZR] 削除  [B] 戻る"
