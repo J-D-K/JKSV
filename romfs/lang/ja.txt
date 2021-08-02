@@ -72,7 +72,7 @@ holdingText = 2, "(もうすぐです!) "
 #Only the string after the comma needs to be edited.
 #Adv/file mode menu
 #'Copy to ' NEEDS a trailing space
-advMenu = 0, "にコピー "
+advMenu = 0, "コピー "
 advMenu = 1, "削除"
 advMenu = 2, "リネーム"
 advMenu = 3, "ディレクトリ作成"
