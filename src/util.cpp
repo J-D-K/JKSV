@@ -30,7 +30,7 @@ static inline bool isASCII(const uint32_t& t)
     return t > 30 && t < 127;
 }
 
-inline void replaceStr(std::string& _str, const std::string& _find, const std::string& _rep)
+void util::replaceStr(std::string& _str, const std::string& _find, const std::string& _rep)
 {
     size_t pos = 0;
     while((pos = _str.find(_find)) != _str.npos)

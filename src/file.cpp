@@ -303,7 +303,11 @@ std::string fs::dataFile::getNextValueStr()
     else
         lPos = line.find_first_of(",;\n", pos1);//Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
 
-    return line.substr(pos1, lPos++ - pos1);
+    ret = line.substr(pos1, lPos++ - pos1);
+
+    util::replaceStr(ret, "\\n", "\n");
+
+    return ret;
 }
 
 int fs::dataFile::getNextValueInt()

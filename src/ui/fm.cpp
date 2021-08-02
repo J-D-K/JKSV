@@ -4,8 +4,13 @@
 #include "file.h"
 #include "util.h"
 #include "fm.h"
+#include "type.h"
 
 //This is going to be a mess but the old one was too.
+//It gets more complicated because of system saves and committing.
+
+//Major Todo: have thread status update
+//Todo: Not have menus completely reset.
 
 //Struct to hold info so i don't have to if else if if if
 typedef struct
@@ -27,29 +32,34 @@ static bool commit = false;
 static void _listFunctionA(void *a);
 
 /*General stuff*/
-static void refreshMenu(ui::menu *m, fs::dirList *d, menuFuncArgs *_args, const std::string& _path)
+static void refreshMenu(void *a)
 {
-    d->reassign(_path);
-    util::copyDirListToMenu(*d, *m);
-    for(int i = 1; i < m->getCount(); i++)
+    threadInfo *t = (threadInfo *)a;
+    menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
+    fs::backupArgs *b = ma->b;
+
+    b->d->reassign(*ma->path);
+    util::copyDirListToMenu(*b->d, *b->m);
+    for(int i = 1; i < b->m->getCount(); i++)
     {
-        m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, _args);
+        b->m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
     }
+    t->finished = true;
 }
 
 /*Callbacks and menu functions*/
 static void _devMenuCallback(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = (fs::backupArgs *)ma->b;
-
     switch(ui::padKeysDown())
     {
         case HidNpadButton_B:
             if(*ma->path != dev && *ma->path != "sdmc:/")
             {
                 util::removeLastFolderFromString(*ma->path);
-                refreshMenu(b->m, b->d, ma, *ma->path);
+                threadInfo fake;
+                fake.argPtr = ma;
+                refreshMenu(&fake);
             }
             break;
 
@@ -76,14 +86,15 @@ static void _devCopyMenuCallback(void *a)
 static void _sdMenuCallback(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = (fs::backupArgs *)ma->b;
     switch(ui::padKeysDown())
     {
         case HidNpadButton_B:
             if(*ma->path != dev && *ma->path != "sdmc:/")
             {
                 util::removeLastFolderFromString(*ma->path);
-                refreshMenu(b->m, b->d, ma, *ma->path);
+                threadInfo fake;
+                fake.argPtr = ma;
+                refreshMenu(&fake);
             }
             break;
 
@@ -107,6 +118,7 @@ static void _sdCopyMenuCallback(void *a)
     }
 }
 
+//These draw to the panel texture passed
 static void _devCopyPanelDraw(void *a)
 {
     SDL_Texture *target = (SDL_Texture *)a;
@@ -122,7 +134,7 @@ static void _sdCopyPanelDraw(void *a)
 static void _listFunctionA(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = (fs::backupArgs *)ma->b;
+    fs::backupArgs *b = ma->b;
 
     int sel = b->m->getSelected();
     bool isDir = b->d->isDir(sel - 2);
@@ -143,6 +155,218 @@ static void _listFunctionA(void *a)
     for(int i = 1; i < b->m->getCount(); i++)
     {
         b->m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
+    }
+}
+
+static void _copyMenuCopy_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
+    fs::backupArgs *b = ma->b;
+
+    int sel = b->m->getSelected();
+    if(ma == devArgs)
+    {
+        if(sel == 0)
+            fs::copyDirToDir(*ma->path, *sdmcArgs->path);
+        else if(sel > 1 && b->d->isDir(sel - 2))
+        {
+            std::string srcPath = *ma->path + b->d->getItem(sel - 2) + "/";
+            std::string dstPath = *sdmcArgs->path + b->d->getItem(sel - 2) + "/";
+            mkdir(dstPath.substr(0, dstPath.length() - 1).c_str(), 777);
+            fs::copyDirToDir(srcPath, dstPath);
+        }
+        else if(sel > 1)
+        {
+            std::string srcPath = *ma->path + b->d->getItem(sel - 2);
+            std::string dstPath = *sdmcArgs->path + b->d->getItem(sel - 2);
+            fs::copyFile(srcPath, dstPath);
+        }
+    }
+    else if(ma == sdmcArgs)
+    {
+        //I know
+        if(sel == 0)
+        {
+            if(commit)
+                fs::copyDirToDirCommit(*ma->path, *devArgs->path, dev);
+            else
+                fs::copyDirToDir(*ma->path, *devArgs->path);
+        }
+        else if(sel > 1 && b->d->isDir(sel - 2))
+        {
+            std::string srcPath = *ma->path + b->d->getItem(sel - 2) + "/";
+            std::string dstPath = *devArgs->path + b->d->getItem(sel - 2) + "/";
+            mkdir(dstPath.substr(0, dstPath.length() - 1).c_str(), 777);
+            if(commit)
+                fs::copyDirToDirCommit(srcPath, dstPath, dev);
+            else
+                fs::copyDirToDir(srcPath, dstPath);
+        }
+        else if(sel > 1)
+        {
+            std::string srcPath = *ma->path + b->d->getItem(sel - 2);
+            std::string dstPath = *devArgs->path + b->d->getItem(sel - 2);
+            if(commit)
+                fs::copyFileCommit(srcPath, dstPath, dev);
+            else
+                fs::copyFile(srcPath, dstPath);
+        }
+    }
+    ui::newThread(refreshMenu, devArgs, NULL);
+    ui::newThread(refreshMenu, sdmcArgs, NULL);
+    t->finished = true;
+}
+
+//Sets up a confirm thread that then runs ^
+static void _copyMenuCopy(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    fs::backupArgs *b = ma->b;
+    std::string srcPath, dstPath;
+    if(ma == devArgs)
+    {
+        srcPath = *ma->path + b->d->getItem(b->m->getSelected() - 2);
+        dstPath = *sdmcArgs->path + b->d->getItem(b->m->getSelected() - 2);
+    }
+    else
+    {
+        srcPath = *ma->path + b->d->getItem(b->m->getSelected() - 2);
+        dstPath = *devArgs->path + b->d->getItem(b->m->getSelected() - 2);
+    }
+
+    if(ma == devArgs ||  (ma == sdmcArgs && (type != FsSaveDataType_System || data::config["sysSaveWrite"])))
+    {
+        ui::confirmArgs *send = ui::confirmArgsCreate(false, _copyMenuCopy_t, ma, true, ui::confCopy.c_str(), srcPath.c_str(), dstPath.c_str());
+        ui::confirm(send);
+    }
+}
+
+static void _copyMenuDelete_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
+    fs::backupArgs *b = ma->b;
+
+    t->status->setStatus("Deleting...");
+
+    int sel = b->m->getSelected();
+    if(ma == devArgs)
+    {
+        if(sel == 0 && *ma->path != "sdmc:/")
+        {
+            fs::delDir(*ma->path);
+            if(commit)
+                fs::commitToDevice(dev);
+        }
+        else if(sel > 1 && b->d->isDir(sel - 2))
+        {
+            std::string delPath = *ma->path + b->d->getItem(sel - 2) + "/";
+            fs::delDir(delPath);
+            if(commit)
+                fs::commitToDevice(dev);
+        }
+        else if(sel > 1)
+        {
+            std::string delPath = *ma->path + b->d->getItem(sel - 2);
+            fs::delfile(delPath);
+            if(commit)
+                fs::commitToDevice(dev);
+        }
+    }
+    else
+    {
+        if(sel == 0 && *ma->path != "sdmc:/")
+            fs::delDir(*ma->path);
+        else if(sel > 1 && b->d->isDir(sel - 2))
+        {
+            std::string delPath = *ma->path + b->d->getItem(sel - 2) + "/";
+            fs::delDir(delPath);
+        }
+        else if(sel > 1)
+        {
+            std::string delPath = *ma->path + b->d->getItem(sel - 2);
+            fs::delfile(delPath);
+        }
+    }
+    ui::newThread(refreshMenu, devArgs, NULL);
+    ui::newThread(refreshMenu, sdmcArgs, NULL);
+    t->finished = true;
+}
+
+//Prepares confirm then runs ^
+static void _copyMenuDelete(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    fs::backupArgs *b = ma->b;
+
+    int sel = b->m->getSelected();
+    std::string itmPath;
+    if(sel == 0)
+        itmPath = *ma->path;
+    else if(sel > 1)
+        itmPath = *ma->path + b->d->getItem(sel - 2);
+
+    if(sel == 0 || sel > 1)
+    {
+        ui::confirmArgs *send = ui::confirmArgsCreate(data::config["holdDel"], _copyMenuDelete_t, a, true, ui::confDel.c_str(), itmPath.c_str());
+        ui::confirm(send);
+    }
+}
+
+static void _copyMenuRename(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    fs::backupArgs *b = ma->b;
+
+    int sel = b->m->getSelected();
+    if(sel > 1)
+    {
+        std::string getNewName = util::getStringInput(SwkbdType_QWERTY, b->d->getItem(sel - 2), "Enter a new name", 64, 0, NULL);
+        if(!getNewName.empty())
+        {
+            std::string prevPath = *ma->path + b->d->getItem(sel - 2);
+            std::string newPath  = *ma->path + getNewName;
+            rename(prevPath.c_str(), newPath.c_str());
+        }
+        threadInfo fake;
+        fake.argPtr = devArgs;
+        refreshMenu(&fake);
+        fake.argPtr = sdmcArgs;
+        refreshMenu(&fake);
+    }
+}
+
+static void _copyMenuMkDir(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    std::string getNewFolder = util::getStringInput(SwkbdType_QWERTY, "New Folder", "Enter a name", 64, 0, NULL);
+    if(!getNewFolder.empty())
+    {
+        std::string createPath = *ma->path + getNewFolder;
+        mkdir(createPath.c_str(), 777);
+    }
+    threadInfo fake;
+    fake.argPtr = devArgs;
+    refreshMenu(&fake);
+    fake.argPtr = sdmcArgs;
+    refreshMenu(&fake);
+}
+
+static void _copyMenuClose(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    if(ma == devArgs)
+    {
+        devCopyMenu->setActive(false);
+        devMenu->setActive(true);
+        devPanel->closePanel();
+    }
+    else
+    {
+        sdCopyMenu->setActive(false);
+        sdMenu->setActive(true);
+        sdPanel->closePanel();
     }
 }
 
@@ -171,6 +395,11 @@ void ui::fmInit()
     devCopyMenu->addOpt(NULL, ui::advMenuStr[0] + "SDMC");
     for(int i = 1; i < 6; i++)
         devCopyMenu->addOpt(NULL, advMenuStr[i]);
+    devCopyMenu->optAddButtonEvent(0, HidNpadButton_A, _copyMenuCopy, devArgs);
+    devCopyMenu->optAddButtonEvent(1, HidNpadButton_A, _copyMenuDelete, devArgs);
+    devCopyMenu->optAddButtonEvent(2, HidNpadButton_A, _copyMenuRename, devArgs);
+    devCopyMenu->optAddButtonEvent(3, HidNpadButton_A, _copyMenuMkDir, devArgs);
+    devCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuClose, devArgs);
     ui::registerPanel(devPanel);
 
     sdMenu = new ui::menu;
@@ -186,6 +415,11 @@ void ui::fmInit()
     sdCopyMenu->setParams(10, 236, 246, 20, 5);
     for(int i = 0; i < 6; i++)
         sdCopyMenu->addOpt(NULL, advMenuStr[i]);
+    sdCopyMenu->optAddButtonEvent(0, HidNpadButton_A, _copyMenuCopy, sdmcArgs);
+    sdCopyMenu->optAddButtonEvent(1, HidNpadButton_A, _copyMenuDelete, sdmcArgs);
+    sdCopyMenu->optAddButtonEvent(2, HidNpadButton_A, _copyMenuRename, sdmcArgs);
+    sdCopyMenu->optAddButtonEvent(3, HidNpadButton_A, _copyMenuMkDir, sdmcArgs);
+    sdCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuClose, sdmcArgs);
     ui::registerPanel(sdPanel);
 
     devList = new fs::dirList;
