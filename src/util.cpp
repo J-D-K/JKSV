@@ -66,10 +66,10 @@ void swkbdDictWordCreate(dictWord *w, const char *read, const char *word)
     uint16_t tmp[0x32 / sizeof(uint16_t)];
     memset(tmp, 0, 0x32);
 
-    utf8_to_utf16(tmp, (uint8_t *)read, 0x30);
+    utf8_to_utf16(tmp, (uint8_t *)read, 0x19);
     memcpy(w->read, tmp, 0x30);
 
-    utf8_to_utf16(tmp, (uint8_t *)word, 0x30);
+    utf8_to_utf16(tmp, (uint8_t *)word, 0x19);
     memcpy(w->word, tmp, 0x30);
 }
 
