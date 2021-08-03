@@ -60,17 +60,10 @@ typedef struct
 
 void swkbdDictWordCreate(dictWord *w, const char *read, const char *word)
 {
-    memset(w->read, 0, 0x32);
-    memset(w->word, 0, 0x32);
+    memset(w, 0, sizeof(*w));
 
-    uint16_t tmp[0x32 / sizeof(uint16_t)];
-    memset(tmp, 0, 0x32);
-
-    utf8_to_utf16(tmp, (uint8_t *)read, 0x19);
-    memcpy(w->read, tmp, 0x30);
-
-    utf8_to_utf16(tmp, (uint8_t *)word, 0x19);
-    memcpy(w->word, tmp, 0x30);
+    utf8_to_utf16(w->read, (uint8_t *)read, (sizeof(w->read) / sizeof(uint16_t)) - 1);
+    utf8_to_utf16(w->word, (uint8_t *)word, (sizeof(w->word) / sizeof(uint16_t)) - 1);
 }
 
 uint32_t replaceChar(uint32_t c)
