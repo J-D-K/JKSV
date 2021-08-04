@@ -383,7 +383,7 @@ void ui::fmInit()
 
     devMenu = new ui::menu;
     devMenu->setCallback(_devMenuCallback, devArgs);
-    devMenu->setParams(10, 8, 590, 18, 6);
+    devMenu->setParams(10, 8, 590, 18, 5);
     devMenu->setActive(true);
     devArgs->b->m = devMenu;
 
@@ -404,7 +404,7 @@ void ui::fmInit()
 
     sdMenu = new ui::menu;
     sdMenu->setCallback(_sdMenuCallback, sdmcArgs);
-    sdMenu->setParams(620, 8, 590, 18, 6);
+    sdMenu->setParams(620, 8, 590, 18, 5);
     sdMenu->setActive(false);
     sdmcArgs->b->m = sdMenu;
 

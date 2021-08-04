@@ -247,10 +247,9 @@ void ui::drawUI()
     for(slideOutPanel *s : panels)
         s->draw(&ui::slidePanelColor);
 
-    popMessages->draw();
+    threadMngr->draw();
 
-    if(!threadMngr->empty())
-        threadMngr->draw();
+    popMessages->draw();
 }
 
 static bool debugDisp = false;

@@ -30,6 +30,7 @@ typedef struct
 {
     bool running = false, finished = false;
     Thread thrd;
+    ThreadFunc thrdFunc;
     void *argPtr = NULL;
     funcPtr drawFunc = NULL;//Draw func is passed threadInfo pointer too
     threadStatus *status;

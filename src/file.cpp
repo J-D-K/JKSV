@@ -484,6 +484,11 @@ void fs::freePathFilters()
     pathFilter.clear();
 }
 
+void fs::wipeSave()
+{
+    ui::newThread(fs::wipesave_t, NULL, NULL);
+}
+
 bool fs::dumpAllUserSaves(const data::user& u)
 {
     for(unsigned i = 0; i < u.titleInfo.size(); i++)

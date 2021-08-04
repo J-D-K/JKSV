@@ -54,11 +54,7 @@ namespace fs
     bool pathIsFiltered(const std::string& _path);
     void freePathFilters();
 
-    inline void wipeSave()
-    {
-        fs::delDir("sv:/");
-        fsdevCommitDevice("sv");
-    }
+    void wipeSave();
 
     //Dumps all titles for 'user'. returns false to bail
     bool dumpAllUserSaves(const data::user& u);

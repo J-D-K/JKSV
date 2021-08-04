@@ -267,14 +267,6 @@ void fs::copyDirToZip_t(void *a)
     t->finished = true;
 }
 
-void fs::closeZip_t(void *a)
-{
-    threadInfo *t = (threadInfo *)a;
-    zipFile z = t->argPtr;
-    zipClose(z, NULL);
-    t->finished = true;
-}
-
 void fs::copyZipToDir_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
@@ -358,5 +350,22 @@ void fs::copyZipToDir_t(void *a)
             util::setCPU(1224000000);
     }
     delete[] buff;
+    t->finished = true;
+}
+
+void fs::wipesave_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    t->status->setStatus("Resetting current save...");
+    fs::delDir("sv:/");
+    fs::commitToDevice("sv");
+    t->finished = true;
+}
+
+void fs::closeZip_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    zipFile z = t->argPtr;
+    zipClose(z, NULL);
     t->finished = true;
 }

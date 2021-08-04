@@ -29,7 +29,7 @@ void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned&
     rY = _y;
     fSize = _fS;
     mL = _mL;
-    rH = _fS + 24;
+    rH = _fS + 32;
 }
 
 void ui::menu::editParam(int _param, unsigned newVal)
@@ -73,7 +73,7 @@ int ui::menu::addOpt(SDL_Texture *_icn, const std::string& add)
 
             tmp += add.substr(i, untCnt);
             i += untCnt;
-            if((int)gfx::getTextWidth(tmp.c_str(), fSize) >= rW - 48)
+            if((int)gfx::getTextWidth(tmp.c_str(), fSize) >= rW - 56)
             {
                 newOpt.txt = tmp;
                 break;
@@ -136,35 +136,26 @@ void ui::menu::update()
     if( (down & HidNpadButton_AnyUp) || ((held & HidNpadButton_AnyUp) && fc == 10) )
     {
         if(selected > 0)
-        {
             --selected;
-            if(selected - mL >= 0 && selected <= mSize - mL)
-                tY += rH;
-        }
     }
     else if( (down & HidNpadButton_AnyDown) || ((held & HidNpadButton_AnyDown) && fc == 10))
     {
         if(selected < mSize)
-        {
             ++selected;
-            if(selected - mL > 0 && selected + mL <= mSize + 1)
-                tY -= rH;
-        }
     }
     else if(down & HidNpadButton_AnyLeft)
     {
-        selected -= scrL / 2;
+        selected -= mL;
         if(selected < 0)
             selected = 0;
     }
     else if(down & HidNpadButton_AnyRight)
     {
-        selected += scrL / 2;
+        selected += mL;
         if(selected > mSize)
             selected = mSize;
     }
-
-    if(down)
+    if(down && !opt[selected].events.empty())
     {
         for(ui::menuOptEvent& e : opt[selected].events)
         {
@@ -172,6 +163,13 @@ void ui::menu::update()
                 (*e.func)(e.args);
         }
     }
+
+    if(selected <= mL)
+        tY = mY;
+    else if(selected >= (mSize - mL) && mSize > mL * 2)
+        tY = mY + -(rH * (mSize - (mL * 2)));
+    else if(selected > mL && selected < (mSize - mL))
+        tY = -(rH * (selected - mL));
 
     if(selected != oldSel && onChange)
         (*onChange)(NULL);
@@ -209,6 +207,9 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
 
     for(int i = 0, tY = y; i < (int)opt.size(); i++, tY += rH)
     {
+        if(tY < -rH || tY > tH)
+            continue;
+
         if(i == selected)
         {
             if(isActive)
@@ -220,7 +221,7 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
         }
         else
         {
-            if(drawText && (tY > -rH || tY < tH))
+            if(drawText)
                 gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), textClr, opt[i].txt.c_str());
         }
 

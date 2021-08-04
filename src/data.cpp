@@ -50,16 +50,17 @@ static struct
                 {
                     std::string titleA = data::getTitleNameByTID(a.saveID);
                     std::string titleB = data::getTitleNameByTID(b.saveID);
-                    uint32_t tmpA, tmpB;
-                    for(unsigned i = 0; i < titleA.length(); )
+                    uint32_t pointA, pointB;
+                    for(unsigned i = 0, j = 0; i < titleA.length(); )
                     {
-                        ssize_t uCnt = decode_utf8(&tmpA, (const uint8_t *)&titleA.data()[i]);
-                        decode_utf8(&tmpB, (const uint8_t *)&titleB.data()[i]);
-                        tmpA = tolower(tmpA), tmpB = tolower(tmpB);
-                        if(tmpA != tmpB)
-                            return tmpA < tmpB;
+                        ssize_t aCnt = decode_utf8(&pointA, (const uint8_t *)&titleA.data()[i]);
+                        ssize_t bCnt = decode_utf8(&pointB, (const uint8_t *)&titleB.data()[j]);
+                        pointA = tolower(pointA), pointB = tolower(pointB);
+                        if(pointA != pointB)
+                            return pointA < pointB;
 
-                        i += uCnt;
+                        i += aCnt;
+                        j += bCnt;
                     }
                 }
                 break;

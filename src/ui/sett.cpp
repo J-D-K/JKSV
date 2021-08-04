@@ -146,7 +146,7 @@ static void updateMenuText()
 void ui::settInit()
 {
     ui::settMenu = new ui::menu;
-    ui::settMenu->setParams(200, 32, 1016, 24, 5);
+    ui::settMenu->setParams(200, 24, 1002, 24, 4);
     ui::settMenu->setCallback(settMenuCallback, NULL);
     ui::settMenu->setActive(false);
 

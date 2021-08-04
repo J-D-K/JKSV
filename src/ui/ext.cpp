@@ -3,6 +3,7 @@
 
 #include "ui.h"
 #include "file.h"
+#include "util.h"
 
 ui::menu *ui::extMenu;
 
@@ -88,10 +89,53 @@ static void extMenuOptRemoveUpdate(void *a)
     ui::newThread(_delUpdate, NULL, NULL);
 }
 
+static void extMenuTerminateProcess(void *a)
+{
+    std::string idStr = util::getStringInput(SwkbdType_QWERTY, "0100000000000000", "Enter Process ID", 18, 0, NULL);
+    if(!idStr.empty())
+    {
+        uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
+        if(R_SUCCEEDED(pmshellTerminateProgram(termID)))
+            ui::showPopMessage(POP_FRAME_DEFAULT, "Process %s successfully shutdown.", idStr.c_str());
+    }
+}
+
+static void extMenuMountSysSave(void *a)
+{
+    FsFileSystem sys;
+    std::string idStr = util::getStringInput(SwkbdType_QWERTY, "8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
+    uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
+    if(R_SUCCEEDED(fsOpen_SystemSaveData(&sys, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
+    {
+        fsdevMountDevice("sv", sys);
+        ui::fmPrep(FsSaveDataType_System, "sv:/", true);
+        ui::usrSelPanel->closePanel();
+        ui::changeState(FIL_MDE);
+    }
+}
+
+//Todo: Not so simple now.
+static void extMenuReloadTitles(void *a)
+{
+
+}
+
+static void extMenuMountRomFS(void *a)
+{
+    FsFileSystem tromfs;
+    if(R_SUCCEEDED(fsOpenDataFileSystemByCurrentProcess(&tromfs)))
+    {
+        fsdevMountDevice("tromfs", tromfs);
+        ui::fmPrep(FsSaveDataType_System, "tromfs:/", false);
+        ui::usrSelPanel->closePanel();
+        ui::changeState(FIL_MDE);
+    }
+}
+
 void ui::extInit()
 {
     ui::extMenu = new ui::menu;
-    ui::extMenu->setParams(200, 32, 1016, 24, 5);
+    ui::extMenu->setParams(200, 24, 1002, 24, 4);
     ui::extMenu->setCallback(extMenuCallback, NULL);
     ui::extMenu->setActive(false);
     for(unsigned i = 0; i < 11; i++)
@@ -109,6 +153,14 @@ void ui::extInit()
     ui::extMenu->optAddButtonEvent(4, HidNpadButton_A, toFMUser, NULL);
     //Del update
     ui::extMenu->optAddButtonEvent(5, HidNpadButton_A, extMenuOptRemoveUpdate, NULL);
+    //Terminate Process
+    ui::extMenu->optAddButtonEvent(6, HidNpadButton_A, extMenuTerminateProcess, NULL);
+    //Mount system save
+    ui::extMenu->optAddButtonEvent(7, HidNpadButton_A, extMenuMountSysSave, NULL);
+    //Rescan
+    ui::extMenu->optAddButtonEvent(8, HidNpadButton_A, extMenuReloadTitles, NULL);
+    //RomFS
+    ui::extMenu->optAddButtonEvent(9, HidNpadButton_A, extMenuMountRomFS, NULL);
 }
 
 void ui::extExit()

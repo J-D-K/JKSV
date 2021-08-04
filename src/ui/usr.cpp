@@ -1,5 +1,6 @@
 #include <string>
 #include <vector>
+#include <algorithm>
 #include <switch.h>
 
 #include "file.h"
@@ -36,6 +37,30 @@ static svCreateArgs accCreate, devCreate, bcatCreate, cacheCreate;
 static std::vector<uint64_t> accSids, devSids, bcatSids, cacheSids;
 
 static unsigned usrHelpX = 0;
+
+//Sort save create tids alphabetically by title from data
+static struct
+{
+    bool operator()(const uint64_t& tid1, const uint64_t& tid2)
+    {
+        std::string tid1Title = data::getTitleNameByTID(tid1);
+        std::string tid2Title = data::getTitleNameByTID(tid2);
+
+        uint32_t pointA = 0, pointB = 0;
+        for(unsigned i = 0, j = 0; i < tid1Title.length(); )
+        {
+            ssize_t tid1Cnt = decode_utf8(&pointA, (const uint8_t *)&tid1Title.c_str()[i]);
+            ssize_t tid2Cnt = decode_utf8(&pointB, (const uint8_t *)&tid2Title.c_str()[j]);
+
+            pointA = tolower(pointA), pointB = tolower(pointB);
+            if(pointA != pointB)
+                return pointA < pointB;
+
+            i += tid1Cnt, j += tid2Cnt;
+        }
+        return false;
+    }
+} sortCreateTIDs;
 
 static void onMainChange(void *a)
 {
@@ -317,23 +342,23 @@ void ui::usrInit()
     bcatSaveMenu = new ui::menu;
     cacheSaveMenu = new ui::menu;
 
-    usrMenu->setParams(64, 16, 0, 96, 2);
-    usrOptMenu->setParams(8, 32, 390, 20, 7);
+    usrMenu->setParams(54, 16, 0, 106, 1);
+    usrOptMenu->setParams(8, 32, 390, 20, 6);
     usrOptMenu->setCallback(usrOptCallback, NULL);
 
-    saveCreateMenu->setParams(8, 32, 492, 20, 7);
+    saveCreateMenu->setParams(8, 32, 492, 20, 6);
     saveCreateMenu->setActive(false);
     saveCreateMenu->setCallback(saveCreateCallback, NULL);
 
-    deviceSaveMenu->setParams(8, 32, 492, 20, 7);
+    deviceSaveMenu->setParams(8, 32, 492, 20, 6);
     deviceSaveMenu->setActive(false);
     deviceSaveMenu->setCallback(saveCreateCallback, NULL);
 
-    bcatSaveMenu->setParams(8, 32, 492, 20, 7);
+    bcatSaveMenu->setParams(8, 32, 492, 20, 6);
     bcatSaveMenu->setActive(false);
     bcatSaveMenu->setCallback(saveCreateCallback, NULL);
 
-    cacheSaveMenu->setParams(8, 32, 492, 20, 7);
+    cacheSaveMenu->setParams(8, 32, 492, 20, 6);
     cacheSaveMenu->setActive(false);
     cacheSaveMenu->setCallback(saveCreateCallback, NULL);
 
@@ -352,7 +377,7 @@ void ui::usrInit()
     usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
 
     usrMenu->setOnChangeFunc(onMainChange);
-    usrMenu->editParam(MENU_RECT_WIDTH, 126);
+    usrMenu->editParam(MENU_RECT_WIDTH, 136);
 
     usrSelPanel = new ui::slideOutPanel(200, 559, 89, ui::SLD_LEFT, _usrSelPanelDraw);
     usrSelPanel->setX(0);
@@ -384,38 +409,55 @@ void ui::usrInit()
     devCreate = {FsSaveDataType_Device, deviceSaveMenu};
     bcatCreate = {FsSaveDataType_Bcat, bcatSaveMenu};
     cacheCreate = {FsSaveDataType_Cache, cacheSaveMenu};
+
+    //Group into vectors to match
     for(auto& t : data::titles)
     {
         NacpStruct *nacp = &t.second.nacp;
 
         if(nacp->user_account_save_data_size > 0)
-        {
-            int optPos = saveCreateMenu->addOpt(NULL, t.second.title);
-            saveCreateMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &accCreate);
             accSids.push_back(t.first);
-        }
 
         if(nacp->device_save_data_size > 0)
-        {
-            int optPos = deviceSaveMenu->addOpt(NULL,  t.second.title);
-            deviceSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &devCreate);
             devSids.push_back(t.first);
-        }
 
         if(nacp->bcat_delivery_cache_storage_size > 0)
-        {
-            int optPos = bcatSaveMenu->addOpt(NULL, t.second.title);
-            bcatSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &bcatCreate);
             bcatSids.push_back(t.first);
-        }
 
         if(nacp->cache_storage_size > 0 || nacp->cache_storage_journal_size > 0 || nacp->cache_storage_data_and_journal_size_max > 0)
-        {
-            int optPos = cacheSaveMenu->addOpt(NULL, t.second.title);
-            cacheSaveMenu->optAddButtonEvent(optPos, HidNpadButton_A, createSaveData, &cacheCreate);
             cacheSids.push_back(t.first);
-        }
     }
+
+    //Sort them alphabetically
+    std::sort(accSids.begin(), accSids.end(), sortCreateTIDs);
+    std::sort(devSids.begin(), devSids.end(), sortCreateTIDs);
+    std::sort(bcatSids.begin(), bcatSids.end(), sortCreateTIDs);
+    std::sort(cacheSids.begin(), cacheSids.end(), sortCreateTIDs);
+
+    for(unsigned i = 0; i < accSids.size(); i++)
+    {
+        saveCreateMenu->addOpt(NULL, data::getTitleNameByTID(accSids[i]));
+        saveCreateMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, &accCreate);
+    }
+
+    for(unsigned i = 0; i < devSids.size(); i++)
+    {
+        deviceSaveMenu->addOpt(NULL, data::getTitleNameByTID(devSids[i]));
+        deviceSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, &devCreate);
+    }
+
+    for(unsigned i = 0; i < bcatSids.size(); i++)
+    {
+        bcatSaveMenu->addOpt(NULL, data::getTitleNameByTID(bcatSids[i]));
+        bcatSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, &bcatCreate);
+    }
+
+    for(unsigned i = 0; i < cacheSids.size(); i++)
+    {
+        cacheSaveMenu->addOpt(NULL, data::getTitleNameByTID(cacheSids[i]));
+        cacheSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, &cacheCreate);
+    }
+
     usrHelpX = 1220 - gfx::getTextWidth(ui::userHelp.c_str(), 18);
 }
 
