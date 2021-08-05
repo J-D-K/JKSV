@@ -224,12 +224,23 @@ static void _copyMenuCopy(void *a)
     menuFuncArgs *ma = (menuFuncArgs *)a;
     fs::backupArgs *b = ma->b;
     std::string srcPath, dstPath;
-    if(ma == devArgs)
+    int sel = b->m->getSelected();
+    if(sel == 0 && ma == devArgs)
     {
-        srcPath = *ma->path + b->d->getItem(b->m->getSelected() - 2);
-        dstPath = *sdmcArgs->path + b->d->getItem(b->m->getSelected() - 2);
+        srcPath = *ma->path;
+        dstPath = *sdmcArgs->path;
     }
-    else
+    else if(sel > 1 && ma == devArgs)
+    {
+        srcPath = *ma->path + b->d->getItem(sel - 2);
+        dstPath = *sdmcArgs->path + b->d->getItem(sel - 2);
+    }
+    else if(sel == 0 && ma == sdmcArgs)
+    {
+        srcPath = *ma->path;
+        dstPath = *devArgs->path;
+    }
+    else if(sel > 1 && ma == sdmcArgs)
     {
         srcPath = *ma->path + b->d->getItem(b->m->getSelected() - 2);
         dstPath = *devArgs->path + b->d->getItem(b->m->getSelected() - 2);
@@ -307,7 +318,7 @@ static void _copyMenuDelete(void *a)
     else if(sel > 1)
         itmPath = *ma->path + b->d->getItem(sel - 2);
 
-    if(sel == 0 || sel > 1)
+    if(ma == sdmcArgs || (ma == devArgs && (sel == 0 || sel > 1) && (type != FsSaveDataType_System || data::config["sysSaveWrite"])))
     {
         ui::confirmArgs *send = ui::confirmArgsCreate(data::config["holdDel"], _copyMenuDelete_t, a, true, ui::confDel.c_str(), itmPath.c_str());
         ui::confirm(send);
@@ -381,17 +392,15 @@ void ui::fmInit()
     sdmcArgs->b = new fs::backupArgs;
     sdmcArgs->path = &sdPath;
 
-    devMenu = new ui::menu;
+    devMenu = new ui::menu(10, 8, 590, 18, 5);
     devMenu->setCallback(_devMenuCallback, devArgs);
-    devMenu->setParams(10, 8, 590, 18, 5);
     devMenu->setActive(true);
     devArgs->b->m = devMenu;
 
     devPanel = new ui::slideOutPanel(260, 720, 0, ui::SLD_LEFT, _devCopyPanelDraw);
-    devCopyMenu = new ui::menu;
+    devCopyMenu = new ui::menu(10, 236, 246, 20, 5);
     devCopyMenu->setActive(false);
     devCopyMenu->setCallback(_devCopyMenuCallback, NULL);
-    devCopyMenu->setParams(10, 236, 246, 20, 5);
     devCopyMenu->addOpt(NULL, ui::advMenuStr[0] + "SDMC");
     for(int i = 1; i < 6; i++)
         devCopyMenu->addOpt(NULL, advMenuStr[i]);
@@ -402,17 +411,15 @@ void ui::fmInit()
     devCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuClose, devArgs);
     ui::registerPanel(devPanel);
 
-    sdMenu = new ui::menu;
+    sdMenu = new ui::menu(620, 8, 590, 18, 5);
     sdMenu->setCallback(_sdMenuCallback, sdmcArgs);
-    sdMenu->setParams(620, 8, 590, 18, 5);
     sdMenu->setActive(false);
     sdmcArgs->b->m = sdMenu;
 
     sdPanel = new ui::slideOutPanel(260, 720, 0, ui::SLD_RIGHT, _sdCopyPanelDraw);
-    sdCopyMenu = new ui::menu;
+    sdCopyMenu = new ui::menu(10, 236, 246, 20, 5);
     sdCopyMenu->setActive(false);
     sdCopyMenu->setCallback(_sdCopyMenuCallback, NULL);
-    sdCopyMenu->setParams(10, 236, 246, 20, 5);
     for(int i = 0; i < 6; i++)
         sdCopyMenu->addOpt(NULL, advMenuStr[i]);
     sdCopyMenu->optAddButtonEvent(0, HidNpadButton_A, _copyMenuCopy, sdmcArgs);

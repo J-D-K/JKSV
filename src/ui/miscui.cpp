@@ -19,7 +19,7 @@ static const SDL_Color fillBar   = {0x00, 0xDD, 0x00, 0xFF};
 static const SDL_Color menuColorLight = {0x32, 0x50, 0xF0, 0xFF};
 static const SDL_Color menuColorDark  = {0x00, 0xFF, 0xC5, 0xFF};
 
-void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW, const unsigned& _fS, const unsigned& _mL)
+ui::menu::menu(const int& _x, const int& _y, const int& _rW, const int& _fS, const int& _mL)
 {
     x = _x;
     mY = _y;
@@ -29,10 +29,14 @@ void ui::menu::setParams(const unsigned& _x, const unsigned& _y, const unsigned&
     rY = _y;
     fSize = _fS;
     mL = _mL;
-    rH = _fS + 32;
+    rH = _fS + 30;
+    spcWidth = gfx::getTextWidth(" ", _fS) * 3;
+
+    optTex = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, rW - 24, rH - 8);
+    SDL_SetTextureBlendMode(optTex, SDL_BLENDMODE_BLEND);
 }
 
-void ui::menu::editParam(int _param, unsigned newVal)
+void ui::menu::editParam(int _param, int newVal)
 {
     switch(_param)
     {
@@ -48,6 +52,10 @@ void ui::menu::editParam(int _param, unsigned newVal)
             rW = newVal;
             break;
 
+        case MENU_RECT_HEIGHT:
+            rH = newVal;
+            break;
+
         case MENU_FONT_SIZE:
             fSize = newVal;
             break;
@@ -61,25 +69,8 @@ void ui::menu::editParam(int _param, unsigned newVal)
 int ui::menu::addOpt(SDL_Texture *_icn, const std::string& add)
 {
     ui::menuOpt newOpt;
-    if((int)gfx::getTextWidth(add.c_str(), fSize) < rW - 56 || rW == 0)
-        newOpt.txt = add;
-    else
-    {
-        std::string tmp;
-        for(unsigned i = 0; i < add.length(); )
-        {
-            uint32_t tmpChr = 0;
-            ssize_t untCnt = decode_utf8(&tmpChr, (uint8_t *)&add.c_str()[i]);
-
-            tmp += add.substr(i, untCnt);
-            i += untCnt;
-            if((int)gfx::getTextWidth(tmp.c_str(), fSize) >= rW - 56)
-            {
-                newOpt.txt = tmp;
-                break;
-            }
-        }
-    }
+    newOpt.txt = add;
+    newOpt.txtWidth = gfx::getTextWidth(newOpt.txt.c_str(), fSize);
     newOpt.icn = _icn;
     opt.push_back(newOpt);
     return opt.size() - 1;
@@ -112,6 +103,7 @@ int ui::menu::getOptPos(const std::string& txt)
 
 ui::menu::~menu()
 {
+    SDL_DestroyTexture(optTex);
     opt.clear();
 }
 
@@ -132,29 +124,49 @@ void ui::menu::update()
         fc = 0;
 
     int oldSel = selected;
-    int mSize = opt.size() - 1, scrL = mL - 1;
+    int mSize = opt.size() - 1;
+    bool change = false;
     if( (down & HidNpadButton_AnyUp) || ((held & HidNpadButton_AnyUp) && fc == 10) )
     {
         if(selected > 0)
             --selected;
+
+        change = true;
     }
     else if( (down & HidNpadButton_AnyDown) || ((held & HidNpadButton_AnyDown) && fc == 10))
     {
         if(selected < mSize)
             ++selected;
+
+        change = true;
     }
     else if(down & HidNpadButton_AnyLeft)
     {
         selected -= mL;
         if(selected < 0)
             selected = 0;
+
+        change = true;
     }
     else if(down & HidNpadButton_AnyRight)
     {
         selected += mL;
         if(selected > mSize)
             selected = mSize;
+
+        change = true;
     }
+
+    ++hoverCount;
+
+    if(!change && hoverCount >= 90)
+        hover = true;
+    else if(change)
+    {
+        hoverCount = 0;
+        hover = false;
+    }
+
     if(down && !opt[selected].events.empty())
     {
         for(ui::menuOptEvent& e : opt[selected].events)
@@ -210,28 +222,58 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
         if(tY < -rH || tY > tH)
             continue;
 
-        if(i == selected)
+        //Todo: Clean this up maybe
+        if(i == selected && drawText)
         {
+            gfx::clearTarget(optTex, &ui::transparent);
             if(isActive)
                 ui::drawBoundBox(target, x, y + (i * rH), rW, rH, clrSh);
 
             gfx::drawRect(target, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, x + 10, ((y + (rH / 2 - fSize / 2)) + (i * rH)) - 2, 4, fSize + 4);
-            if(drawText)
-                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
-        }
-        else
-        {
-            if(drawText)
-                gfx::drawTextf(target, fSize, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), textClr, opt[i].txt.c_str());
-        }
 
-        int w, h;
-        if(opt[i].icn && SDL_QueryTexture(opt[i].icn, NULL, NULL, &w, &h) == 0)
+            static int dX = 0;
+            if(hover && opt[i].txtWidth > rW - 24)
+            {
+                if((dX -= 2) <= -(opt[i].txtWidth + spcWidth))
+                    dX = 0;
+
+                gfx::drawTextf(optTex, fSize, dX, ((rH - 8) / 2) - fSize / 2, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
+                gfx::drawTextf(optTex, fSize, dX + opt[i].txtWidth + spcWidth, ((rH - 8) / 2) - fSize / 2, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
+            }
+            else
+            {
+                dX = 0;
+                gfx::drawTextf(optTex, fSize, 0, ((rH - 8) / 2) - fSize / 2, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
+            }
+
+            gfx::texDraw(target, optTex, x + 20, (y + 4 + (i * rH)));
+        }
+        else if(i == selected && !drawText && opt[i].icn)
         {
+            int w, h;
+            SDL_QueryTexture(opt[i].icn, NULL, NULL, &w, &h);
             float scale = (float)fSize / (float)h;
             int dW = scale * w;
             int dH = scale * h;
+            if(isActive)
+                ui::drawBoundBox(target, x, y + (i * rH), rW, rH, clrSh);
 
+            gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), dW, dH);
+            gfx::drawRect(target, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, x + 10, ((y + (rH / 2 - fSize / 2)) + (i * rH)) - 2, 4, fSize + 4);
+        }
+        else if(drawText)
+        {
+            gfx::clearTarget(optTex, &ui::transparent);
+            gfx::drawTextf(optTex, fSize, 0, ((rH - 8) / 2) - fSize / 2, textClr, opt[i].txt.c_str());
+            gfx::texDraw(target, optTex, x + 20, (y + 4 + (i * rH)));
+        }
+        else if(!drawText && opt[i].icn)
+        {
+            int w, h;
+            SDL_QueryTexture(opt[i].icn, NULL, NULL, &w, &h);
+            float scale = (float)fSize / (float)h;
+            int dW = scale * w;
+            int dH = scale * h;
             gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), dW, dH);
         }
     }

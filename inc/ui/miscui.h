@@ -16,6 +16,7 @@ typedef enum
     MENU_X,
     MENU_Y,
     MENU_RECT_WIDTH,
+    MENU_RECT_HEIGHT,
     MENU_FONT_SIZE,
     MENU_MAX_SCROLL
 } menuParams;
@@ -48,6 +49,7 @@ namespace ui
     {
         SDL_Texture *icn = NULL;
         std::string txt;
+        int txtWidth;
         std::vector<menuOptEvent> events;
     } menuOpt;
 
@@ -55,10 +57,8 @@ namespace ui
     {
         public:
             menu() = default;
-
-            //X, Y, Rect width/Max length, Font size, max to show
-            void setParams(const unsigned& _x, const unsigned& _y, const unsigned& _rW, const unsigned& _fS, const unsigned& _mL);
-            void editParam(int _param, unsigned newVal);
+            menu(const int& _x, const int& _y, const int& _rW, const int& _fS, const int& _mL);
+            void editParam(int _param, int newVal);
 
             //Gets executed when menu changes at all
             void setOnChangeFunc(funcPtr func) { onChange = func; }
@@ -106,11 +106,13 @@ namespace ui
             int x = 0, mY = 0, tY = 0, y = 0, rW = 0, rY = 0, fSize = 0, rH = 0, mL = 0;
             //Options vector
             std::vector<ui::menuOpt> opt;
-            //Selected + frame counting for auto-scroll
-            int selected = 0, fc = 0;
+            //Selected + frame counting for auto-scroll. Hover count is to not break autoscroll
+            int selected = 0, fc = 0, hoverCount = 0, spcWidth = 0;
             //How much we shift the color of the rectangle
             uint8_t clrSh = 0;
-            bool clrAdd = true, isActive = true;
+            bool clrAdd = true, isActive = true, hover = false;
+            //Option buffer. Basically, text is draw to this so it can't overlap. Also allows scrolling
+            SDL_Texture *optTex;
             funcPtr onChange = NULL, callback = NULL;
             void *callbackArgs, *funcArgs;
     };

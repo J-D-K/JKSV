@@ -15,7 +15,7 @@ static fs::backupArgs *backargs;
 static std::string infoPanelString;
 static SDL_Texture *fldBuffer;//This is so folder menu doesn't draw over guide
 
-void ui::refreshAllViews()
+void ui::ttlRefresh()
 {
     for(int i = 0; i < (int)data::users.size(); i++)
         ttlViews[i]->refresh();
@@ -116,7 +116,7 @@ static void ttlViewCallback(void *a)
                 uint64_t sid = data::curData.saveID;
                 data::favoriteTitle(sid);
                 int newSel = data::getTitleIndexInUser(data::curUser, sid);
-                ui::refreshAllViews();
+                ui::ttlRefresh();
                 ttlViews[data::selUser]->setSelected(newSel);
             }
             break;
@@ -354,13 +354,11 @@ void ui::ttlInit()
     for(data::user& u : data::users)
         ttlViews.emplace_back(new ui::titleview(u, 128, 128, 16, 16, 7, ttlViewCallback));
 
-    ttlOpts = new ui::menu;
-    ttlOpts->setParams(10, 32, 390, 20, 7);
+    ttlOpts = new ui::menu(10, 32, 390, 20, 7);
     ttlOpts->setCallback(ttlOptsCallback, NULL);
     ttlOpts->setActive(false);
 
-    fldMenu = new ui::menu;
-    fldMenu->setParams(10, 32, fldHelpWidth + 44, 20, 7);
+    fldMenu = new ui::menu(10, 8, fldHelpWidth + 44, 20, 6);
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
 
@@ -393,7 +391,6 @@ void ui::ttlInit()
     ttlOpts->optAddButtonEvent(5, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
     ttlOpts->addOpt(NULL, ui::titleOptString[6]);
     ttlOpts->optAddButtonEvent(6, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
-
 }
 
 void ui::ttlExit()

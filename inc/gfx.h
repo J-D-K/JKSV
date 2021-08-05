@@ -71,4 +71,9 @@ namespace gfx
         SDL_SetRenderDrawColor(gfx::render, clear->r, clear->g, clear->b, clear->a);
         SDL_RenderClear(gfx::render);
     }
+
+    inline void resetRender()
+    {
+        SDL_SetRenderDrawColor(gfx::render, 0xFF, 0xFF, 0xFF, 0xFF);
+    }
 }

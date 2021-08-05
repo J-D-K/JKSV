@@ -16,6 +16,7 @@ namespace ui
             slideOutPanel(int _w, int _h, int _y, slidePanelOrientation _side, funcPtr _draw);
             ~slideOutPanel();
 
+            void resizePanel(int _w, int _h, int _y);
             void update();
             void setCallback(funcPtr _cb, void *_args) { callback = _cb; cbArgs = _args; }
             void openPanel() { open = true; }

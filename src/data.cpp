@@ -211,7 +211,7 @@ static void loadTitlesFromRecords()
 
 bool data::loadUsersTitles(bool clearUsers)
 {
-    static unsigned systemUserCount = 3;
+    static unsigned systemUserCount = 4;
     FsSaveDataInfoReader it;
     FsSaveDataInfo info;
     s64 total = 0;
@@ -477,7 +477,7 @@ void data::blacklistAdd(void *a)
         for(unsigned i = 0; i < _u.titleInfo.size(); i++)
             if(_u.titleInfo[i].saveID == *tid) _u.titleInfo.erase(_u.titleInfo.begin() + i);
     }
-    ui::refreshAllViews();
+    ui::ttlRefresh();
     delete tid;
     t->finished = true;
 }

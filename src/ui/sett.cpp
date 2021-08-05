@@ -110,7 +110,7 @@ static void toggleOpt(void *a)
             if(++data::sortType > 2)
                 data::sortType = 0;
             data::loadUsersTitles(false);
-            ui::refreshAllViews();
+            ui::ttlRefresh();
             break;
 
         case 16:
@@ -145,8 +145,7 @@ static void updateMenuText()
 
 void ui::settInit()
 {
-    ui::settMenu = new ui::menu;
-    ui::settMenu->setParams(200, 24, 1002, 24, 4);
+    ui::settMenu = new ui::menu(200, 24, 1002, 24, 4);
     ui::settMenu->setCallback(settMenuCallback, NULL);
     ui::settMenu->setActive(false);
 

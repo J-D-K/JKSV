@@ -117,7 +117,9 @@ static void extMenuMountSysSave(void *a)
 //Todo: Not so simple now.
 static void extMenuReloadTitles(void *a)
 {
-
+    data::loadUsersTitles(false);
+    ui::usrRefresh();
+    ui::ttlRefresh();
 }
 
 static void extMenuMountRomFS(void *a)
@@ -134,8 +136,7 @@ static void extMenuMountRomFS(void *a)
 
 void ui::extInit()
 {
-    ui::extMenu = new ui::menu;
-    ui::extMenu->setParams(200, 24, 1002, 24, 4);
+    ui::extMenu = new ui::menu(200, 24, 1002, 24, 4);
     ui::extMenu->setCallback(extMenuCallback, NULL);
     ui::extMenu->setActive(false);
     for(unsigned i = 0; i < 11; i++)

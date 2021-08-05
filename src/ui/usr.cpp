@@ -12,6 +12,8 @@
 #include "usr.h"
 #include "ttl.h"
 
+static const char *settText = "Settings", *extText = "Extras";
+
 //Main menu/Users + options, folder
 ui::menu *ui::usrMenu;
 ui::slideOutPanel *ui::usrSelPanel;
@@ -127,7 +129,7 @@ static void usrOptSaveCreate(void *a)
     int bcatPos = m->getOptPos("BCAT");
     int cachePos = m->getOptPos("Cache");
 
-    ui::updateInput();//Todo: Need to go through with fine tooth comb so this isn't needed
+    ui::updateInput();
     int sel = m->getSelected();
     bool closeUsrOpt = false;
     if(sel == devPos && deviceSaveMenu->getOptCount() > 0)
@@ -179,7 +181,7 @@ static void usrOptDeleteAllUserSaves_t(void *a)
         }
     }
     data::loadUsersTitles(false);
-    ui::refreshAllViews();
+    ui::ttlRefresh();
     t->finished = true;
 }
 
@@ -317,7 +319,7 @@ static void createSaveData_t(void *a)
     if(R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &svCreate, &meta)))
     {
         data::loadUsersTitles(false);
-        ui::refreshAllViews();
+        ui::ttlRefresh();
     }
     else
     {
@@ -333,77 +335,18 @@ static void createSaveData(void *a)
     ui::newThread(createSaveData_t, a, NULL);
 }
 
-void ui::usrInit()
+//Sets up save create menus
+static void initSaveCreateMenus()
 {
-    usrMenu = new ui::menu;
-    usrOptMenu = new ui::menu;
-    saveCreateMenu = new ui::menu;
-    deviceSaveMenu = new ui::menu;
-    bcatSaveMenu = new ui::menu;
-    cacheSaveMenu = new ui::menu;
+    saveCreateMenu->reset();
+    deviceSaveMenu->reset();
+    bcatSaveMenu->reset();
+    cacheSaveMenu->reset();
 
-    usrMenu->setParams(54, 16, 0, 106, 1);
-    usrOptMenu->setParams(8, 32, 390, 20, 6);
-    usrOptMenu->setCallback(usrOptCallback, NULL);
-
-    saveCreateMenu->setParams(8, 32, 492, 20, 6);
-    saveCreateMenu->setActive(false);
-    saveCreateMenu->setCallback(saveCreateCallback, NULL);
-
-    deviceSaveMenu->setParams(8, 32, 492, 20, 6);
-    deviceSaveMenu->setActive(false);
-    deviceSaveMenu->setCallback(saveCreateCallback, NULL);
-
-    bcatSaveMenu->setParams(8, 32, 492, 20, 6);
-    bcatSaveMenu->setActive(false);
-    bcatSaveMenu->setCallback(saveCreateCallback, NULL);
-
-    cacheSaveMenu->setParams(8, 32, 492, 20, 6);
-    cacheSaveMenu->setActive(false);
-    cacheSaveMenu->setCallback(saveCreateCallback, NULL);
-
-    for(data::user u : data::users)
-    {
-        int usrPos = usrMenu->addOpt(u.getUserIcon(), u.getUsername());
-        usrMenu->optAddButtonEvent(usrPos, HidNpadButton_A, toTTL, NULL);
-    }
-
-    sett = util::createIconGeneric("Settings", 48, false);
-    int pos = usrMenu->addOpt(sett, "Settings");
-    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toOPT, NULL);
-
-    ext = util::createIconGeneric("Extras", 48, false);
-    pos = usrMenu->addOpt(ext, "Extras");
-    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
-
-    usrMenu->setOnChangeFunc(onMainChange);
-    usrMenu->editParam(MENU_RECT_WIDTH, 136);
-
-    usrSelPanel = new ui::slideOutPanel(200, 559, 89, ui::SLD_LEFT, _usrSelPanelDraw);
-    usrSelPanel->setX(0);
-    ui::registerPanel(usrSelPanel);
-    usrSelPanel->openPanel();
-
-    usrOptPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, usrOptPanelDraw);
-    ui::registerPanel(usrOptPanel);
-
-    usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
-    usrOptMenu->optAddButtonEvent(0, HidNpadButton_A, usrOptSaveCreate, usrMenu);
-    usrOptMenu->addOpt(NULL, ui::usrOptString[1]);
-    usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
-    usrOptMenu->setActive(false);
-
-    saveCreatePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, saveCreatePanelDraw);
-    ui::registerPanel(saveCreatePanel);
-
-    deviceSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, deviceSavePanelDraw);
-    ui::registerPanel(deviceSavePanel);
-
-    bcatSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, bcatSavePanelDraw);
-    ui::registerPanel(bcatSavePanel);
-
-    cacheSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, cacheSavePanelDraw);
-    ui::registerPanel(cacheSavePanel);
+    accSids.clear();
+    devSids.clear();
+    bcatSids.clear();
+    cacheSids.clear();
 
     accCreate = {FsSaveDataType_Account, saveCreateMenu};
     devCreate = {FsSaveDataType_Device, deviceSaveMenu};
@@ -457,6 +400,76 @@ void ui::usrInit()
         cacheSaveMenu->addOpt(NULL, data::getTitleNameByTID(cacheSids[i]));
         cacheSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, &cacheCreate);
     }
+}
+
+void ui::usrInit()
+{
+    usrMenu = new ui::menu(50, 16, 0, 112, 1);
+    usrOptMenu = new ui::menu(8, 32, 390, 20, 6);
+    saveCreateMenu = new ui::menu(8, 32, 492, 20, 6);
+    deviceSaveMenu = new ui::menu(8, 32, 492, 20, 6);
+    bcatSaveMenu = new ui::menu(8, 32, 492, 20, 6);
+    cacheSaveMenu = new ui::menu(8, 32, 492, 20, 6);
+
+    usrOptMenu->setCallback(usrOptCallback, NULL);
+
+    saveCreateMenu->setActive(false);
+    saveCreateMenu->setCallback(saveCreateCallback, NULL);
+
+    deviceSaveMenu->setActive(false);
+    deviceSaveMenu->setCallback(saveCreateCallback, NULL);
+
+    bcatSaveMenu->setActive(false);
+    bcatSaveMenu->setCallback(saveCreateCallback, NULL);
+
+    cacheSaveMenu->setActive(false);
+    cacheSaveMenu->setCallback(saveCreateCallback, NULL);
+
+    for(data::user u : data::users)
+    {
+        int usrPos = usrMenu->addOpt(u.getUserIcon(), u.getUsername());
+        usrMenu->optAddButtonEvent(usrPos, HidNpadButton_A, toTTL, NULL);
+    }
+
+    sett = util::createIconGeneric(settText, 48, false);
+    int pos = usrMenu->addOpt(sett, settText);
+    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toOPT, NULL);
+
+    ext = util::createIconGeneric(extText, 48, false);
+    pos = usrMenu->addOpt(ext, extText);
+    usrMenu->optAddButtonEvent(pos, HidNpadButton_A, toEXT, NULL);
+
+    usrMenu->setOnChangeFunc(onMainChange);
+    usrMenu->editParam(MENU_RECT_WIDTH, 142);
+    usrMenu->editParam(MENU_RECT_HEIGHT, 130);
+
+    usrSelPanel = new ui::slideOutPanel(200, 559, 89, ui::SLD_LEFT, _usrSelPanelDraw);
+    usrSelPanel->setX(0);
+    ui::registerPanel(usrSelPanel);
+    usrSelPanel->openPanel();
+
+    usrOptPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, usrOptPanelDraw);
+    ui::registerPanel(usrOptPanel);
+
+    usrOptMenu->addOpt(NULL, ui::usrOptString[0]);
+    usrOptMenu->optAddButtonEvent(0, HidNpadButton_A, usrOptSaveCreate, usrMenu);
+    usrOptMenu->addOpt(NULL, ui::usrOptString[1]);
+    usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
+    usrOptMenu->setActive(false);
+
+    saveCreatePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, saveCreatePanelDraw);
+    ui::registerPanel(saveCreatePanel);
+
+    deviceSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, deviceSavePanelDraw);
+    ui::registerPanel(deviceSavePanel);
+
+    bcatSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, bcatSavePanelDraw);
+    ui::registerPanel(bcatSavePanel);
+
+    cacheSavePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, cacheSavePanelDraw);
+    ui::registerPanel(cacheSavePanel);
+
+    initSaveCreateMenus();
 
     usrHelpX = 1220 - gfx::getTextWidth(ui::userHelp.c_str(), 18);
 }
@@ -481,16 +494,13 @@ void ui::usrExit()
     SDL_DestroyTexture(ext);
 }
 
+void ui::usrRefresh()
+{
+    initSaveCreateMenus();
+}
+
 void ui::usrUpdate()
 {
-    usrMenu->update();
-    usrOptMenu->update();
-    saveCreateMenu->update();
-    deviceSaveMenu->update();
-    bcatSaveMenu->update();
-    cacheSaveMenu->update();
-
-    //Todo: Not this
     if(usrMenu->getActive())
     {
         switch(ui::padKeysDown())
@@ -508,6 +518,12 @@ void ui::usrUpdate()
                 break;
         }
     }
+    usrMenu->update();
+    usrOptMenu->update();
+    saveCreateMenu->update();
+    deviceSaveMenu->update();
+    bcatSaveMenu->update();
+    cacheSaveMenu->update();
 }
 
 void ui::usrDraw(SDL_Texture *target)

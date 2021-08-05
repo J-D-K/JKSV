@@ -5,7 +5,7 @@ namespace ui
     void ttlInit();
     void ttlExit();
     void ttlSetActive(int usr);
-    void refreshAllViews();
+    void ttlRefresh();
     void populateFldMenu();
 
     //JIC for func ptr
