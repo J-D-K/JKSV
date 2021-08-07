@@ -4,6 +4,7 @@
 #include "ui.h"
 #include "file.h"
 #include "sett.h"
+#include "cfg.h"
 #include "util.h"
 
 ui::menu *ui::settMenu;
@@ -34,7 +35,7 @@ static void settMenuCallback(void *a)
             break;
 
         case HidNpadButton_X:
-            data::restoreDefaultConfig();
+            cfg::resetConfig();
             break;
     }
 }
@@ -55,65 +56,77 @@ static void toggleOpt(void *a)
             break;
 
         case 2:
-            toggleBool(data::config["incDev"]);
+            {
+                std::string oldWD = fs::getWorkDir();
+                std::string getWD = util::getStringInput(SwkbdType_QWERTY, fs::getWorkDir(), "Enter a new Output Path", 64, 0, NULL);
+                if(!getWD.empty())
+                {
+                    rename(oldWD.c_str(), getWD.c_str());
+                    fs::setWorkDir(getWD);
+                }
+            }
             break;
 
         case 3:
-            toggleBool(data::config["autoBack"]);
+            toggleBool(cfg::config["incDev"]);
             break;
 
         case 4:
-            toggleBool(data::config["ovrClk"]);
+            toggleBool(cfg::config["autoBack"]);
             break;
 
         case 5:
-            toggleBool(data::config["holdDel"]);
+            toggleBool(cfg::config["ovrClk"]);
             break;
 
         case 6:
-            toggleBool(data::config["holdRest"]);
+            toggleBool(cfg::config["holdDel"]);
             break;
 
         case 7:
-            toggleBool(data::config["holdOver"]);
+            toggleBool(cfg::config["holdRest"]);
             break;
 
         case 8:
-            toggleBool(data::config["forceMount"]);
+            toggleBool(cfg::config["holdOver"]);
             break;
 
         case 9:
-            toggleBool(data::config["accSysSave"]);
+            toggleBool(cfg::config["forceMount"]);
             break;
 
         case 10:
-            toggleBool(data::config["sysSaveWrite"]);
+            toggleBool(cfg::config["accSysSave"]);
             break;
 
         case 11:
-            toggleBool(data::config["directFsCmd"]);
+            toggleBool(cfg::config["sysSaveWrite"]);
             break;
 
         case 12:
-            toggleBool(data::config["zip"]);
+            toggleBool(cfg::config["directFsCmd"]);
             break;
 
         case 13:
-            toggleBool(data::config["langOverride"]);
+            toggleBool(cfg::config["zip"]);
             break;
 
         case 14:
-            toggleBool(data::config["trashBin"]);
+            toggleBool(cfg::config["langOverride"]);
             break;
 
         case 15:
-            if(++data::sortType > 2)
-                data::sortType = 0;
+            toggleBool(cfg::config["trashBin"]);
+            break;
+
+        case 16:
+            if(++cfg::sortType > 2)
+                cfg::sortType = 0;
             data::loadUsersTitles(false);
             ui::ttlRefresh();
             break;
 
-        case 16:
+        case 17:
             ui::animScale += 0.5f;
             if(ui::animScale > 8)
                 ui::animScale = 1;
@@ -123,24 +136,24 @@ static void toggleOpt(void *a)
 
 static void updateMenuText()
 {
-    ui::settMenu->editOpt(2, NULL, ui::optMenuStr[2] + getBoolText(data::config["incDev"]));
-    ui::settMenu->editOpt(3, NULL, ui::optMenuStr[3] + getBoolText(data::config["autoBack"]));
-    ui::settMenu->editOpt(4, NULL, ui::optMenuStr[4] + getBoolText(data::config["ovrClk"]));
-    ui::settMenu->editOpt(5, NULL, ui::optMenuStr[5] + getBoolText(data::config["holdDel"]));
-    ui::settMenu->editOpt(6, NULL, ui::optMenuStr[6] + getBoolText(data::config["holdRest"]));
-    ui::settMenu->editOpt(7, NULL, ui::optMenuStr[7] + getBoolText(data::config["holdOver"]));
-    ui::settMenu->editOpt(8, NULL, ui::optMenuStr[8] + getBoolText(data::config["forceMount"]));
-    ui::settMenu->editOpt(9, NULL, ui::optMenuStr[9] + getBoolText(data::config["accSysSave"]));
-    ui::settMenu->editOpt(10, NULL, ui::optMenuStr[10] + getBoolText(data::config["sysSaveWrite"]));
-    ui::settMenu->editOpt(11, NULL, ui::optMenuStr[11] + getBoolText(data::config["directFsCmd"]));
-    ui::settMenu->editOpt(12, NULL, ui::optMenuStr[12] + getBoolText(data::config["zip"]));
-    ui::settMenu->editOpt(13, NULL, ui::optMenuStr[13] + getBoolText(data::config["langOverride"]));
-    ui::settMenu->editOpt(14, NULL, ui::optMenuStr[14] + getBoolText(data::config["trashBin"]));
-    ui::settMenu->editOpt(15, NULL, ui::optMenuStr[15] + ui::sortString[data::sortType]);
+    ui::settMenu->editOpt(3, NULL, ui::optMenuStr[3] + getBoolText(cfg::config["incDev"]));
+    ui::settMenu->editOpt(4, NULL, ui::optMenuStr[4] + getBoolText(cfg::config["autoBack"]));
+    ui::settMenu->editOpt(5, NULL, ui::optMenuStr[5] + getBoolText(cfg::config["ovrClk"]));
+    ui::settMenu->editOpt(6, NULL, ui::optMenuStr[6] + getBoolText(cfg::config["holdDel"]));
+    ui::settMenu->editOpt(7, NULL, ui::optMenuStr[7] + getBoolText(cfg::config["holdRest"]));
+    ui::settMenu->editOpt(8, NULL, ui::optMenuStr[8] + getBoolText(cfg::config["holdOver"]));
+    ui::settMenu->editOpt(9, NULL, ui::optMenuStr[9] + getBoolText(cfg::config["forceMount"]));
+    ui::settMenu->editOpt(10, NULL, ui::optMenuStr[10] + getBoolText(cfg::config["accSysSave"]));
+    ui::settMenu->editOpt(11, NULL, ui::optMenuStr[11] + getBoolText(cfg::config["sysSaveWrite"]));
+    ui::settMenu->editOpt(12, NULL, ui::optMenuStr[12] + getBoolText(cfg::config["directFsCmd"]));
+    ui::settMenu->editOpt(13, NULL, ui::optMenuStr[13] + getBoolText(cfg::config["zip"]));
+    ui::settMenu->editOpt(14, NULL, ui::optMenuStr[14] + getBoolText(cfg::config["langOverride"]));
+    ui::settMenu->editOpt(15, NULL, ui::optMenuStr[15] + getBoolText(cfg::config["trashBin"]));
+    ui::settMenu->editOpt(16, NULL, ui::optMenuStr[16] + ui::sortString[cfg::sortType]);
 
     char tmp[16];
     sprintf(tmp, "%.1f", ui::animScale);
-    ui::settMenu->editOpt(16, NULL, ui::optMenuStr[16] + std::string(tmp));
+    ui::settMenu->editOpt(17, NULL, ui::optMenuStr[17] + std::string(tmp));
 }
 
 void ui::settInit()
@@ -151,7 +164,7 @@ void ui::settInit()
 
     optHelpX = 1220 - gfx::getTextWidth(ui::optHelp.c_str(), 18);
 
-    for(unsigned i = 0; i < 17; i++)
+    for(unsigned i = 0; i < 18; i++)
     {
         ui::settMenu->addOpt(NULL, ui::optMenuStr[i]);
         ui::settMenu->optAddButtonEvent(i, HidNpadButton_A, toggleOpt, NULL);

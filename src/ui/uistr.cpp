@@ -2,6 +2,7 @@
 #include <unordered_map>
 
 #include "file.h"
+#include "cfg.h"
 #include "uistr.h"
 
 //Map to associate external string names to unsigned ints for switch case.
@@ -39,9 +40,9 @@ std::string ui::saveDataResetSuccess = "Save for %s reset!";
 std::string ui::saveDataDeleteSuccess = "Save data for %s deleted!";
 std::string ui::errorConnecting = "Error Connecting!";
 std::string ui::noUpdate = "No updates available!";
-std::string ui::advMenuStr[6] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close" };
+std::string ui::advMenuStr[7] = { "Copy to ", "Delete", "Rename", "Make Dir", "Properties", "Close", "Add to Path Filter" };
 std::string ui::exMenuStr[11] = { "SD to SD Browser", "BIS: PRODINFOF", "BIS: SAFE", "BIS: SYSTEM", "BIS: USER", "Remove Update", "Terminate Process", "Mount System Save", "Rescan Titles", "Mount Process RomFS", "Backup JKSV Folder" };
-std::string ui::optMenuStr[17] = { "Empty Trash Bin", "Check for Update", "Include Device Saves: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Direct FS Cmd: ", "Export to ZIP: ", "Language Override: ", "Enable Trash Bin: ", "Sort: ", "Animation Scale: "};
+std::string ui::optMenuStr[18] = { "Empty Trash Bin", "Check for Update", "Set Output Folder", "Include Device Saves: ", "AutoBackup: ", "Overclock: ", "Hold to Delete: ", "Hold to Restore: ", "Hold to Overwrite: ", "Force Mount: ", "Account Sys. Saves: ", "Write to Sys. Saves: ", "Direct FS Cmd: ", "Export to ZIP: ", "Language Override: ", "Enable Trash Bin: ", "Sort: ", "Animation Scale: "};
 std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
 std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };
 std::string ui::usrOptString[2] = { "Create Save Data", "Delete All User Saves" };
@@ -53,7 +54,7 @@ void ui::loadTrans()
     return;
 
     bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
-    if(!transFile && (data::sysLang == SetLanguage_ENUS || data::config["langOverride"]))
+    if(!transFile && (data::sysLang == SetLanguage_ENUS || cfg::config["langOverride"]))
         return;//Don't bother loading from file. It serves as a translation guide
 
     std::string file;

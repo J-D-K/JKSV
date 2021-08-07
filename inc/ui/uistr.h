@@ -12,11 +12,11 @@ namespace ui
     saveDataReset, saveDataResetSuccess, saveDataDeleteSuccess;
 
     //Strings for file mode menu
-    extern std::string advMenuStr[6];
+    extern std::string advMenuStr[7];
     //Strings for extras menu
     extern std::string exMenuStr[11];
     //Strings for options menu
-    extern std::string optMenuStr[17];
+    extern std::string optMenuStr[18];
     //Strings for the holding thing
     extern std::string holdingText[3];
     //Strings for sort type

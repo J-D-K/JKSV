@@ -1,0 +1,322 @@
+#include <switch.h>
+#include <string>
+#include <unordered_map>
+
+#include "cfg.h"
+#include "data.h"
+#include "file.h"
+#include "ui.h"
+#include "util.h"
+#include "type.h"
+
+std::unordered_map<std::string, bool> cfg::config;
+static std::vector<uint64_t> blacklist;
+static std::vector<uint64_t> favorites;
+static std::unordered_map<uint64_t, std::string> pathDefs;
+uint8_t cfg::sortType;
+const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg";
+static std::unordered_map<std::string, unsigned> cfgStrings =
+{
+    {"workDir", 0}, {"includeDeviceSaves", 1}, {"autoBackup", 2}, {"overclock", 3}, {"holdToDelete", 4}, {"holdToRestore", 5},
+    {"holdToOverwrite", 6}, {"forceMount", 7}, {"accountSystemSaves", 8}, {"allowSystemSaveWrite", 9}, {"directFSCommands", 10},
+    {"exportToZIP", 11}, {"languageOverride", 12}, {"enableTrashBin", 13}, {"titleSortType", 14}, {"animationScale", 15},
+    {"favorite", 16}, {"blacklist", 17}, {"pathDef", 18}
+};
+
+const std::string _true_ = "true", _false_ = "false";
+
+bool cfg::isBlacklisted(const uint64_t& tid)
+{
+    for(uint64_t& bid : blacklist)
+        if(tid == bid) return true;
+
+    return false;
+}
+
+//Has to be threaded to be compatible with ui::confirm
+void cfg::addTitleToBlacklist(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    uint64_t tid = data::curData.saveID;
+    blacklist.push_back(tid);
+    for(data::user& u : data::users)
+    {
+        for(unsigned i = 0; i < u.titleInfo.size(); i++)
+            if(u.titleInfo[i].saveID == tid) u.titleInfo.erase(u.titleInfo.begin() + i);
+    }
+    ui::ttlRefresh();
+    t->finished = true;
+}
+
+bool cfg::isFavorite(const uint64_t& tid)
+{
+    for(uint64_t& fid : favorites)
+        if(tid == fid) return true;
+
+    return false;
+}
+
+static int getFavoriteIndex(const uint64_t& tid)
+{
+    for(unsigned i = 0; i < favorites.size(); i++)
+    {
+        if(tid == favorites[i])
+            return i;
+    }
+    return -1;
+}
+
+void cfg::addTitleToFavorites(const uint64_t& tid)
+{
+    if(cfg::isFavorite(tid))
+    {
+        int rem = getFavoriteIndex(tid);
+        favorites.erase(favorites.begin() + rem);
+    }
+    else
+        favorites.push_back(tid);
+
+    data::sortUserTitles();
+    ui::ttlRefresh();
+}
+
+bool cfg::isDefined(const uint64_t& tid)
+{
+    for(auto& def : pathDefs)
+        if(def.first == tid) return true;
+
+    return false;
+}
+
+void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
+{
+    std::string oldSafe = data::titles[tid].safeTitle;
+    std::string tmp = util::safeString(newPath);
+    if(!tmp.empty())
+    {
+        pathDefs[tid] = tmp;
+        data::titles[tid].safeTitle = tmp;
+
+        std::string oldOutput = fs::getWorkDir() + oldSafe;
+        std::string newOutput = fs::getWorkDir() + tmp;
+        rename(oldOutput.c_str(), newOutput.c_str());
+
+        ui::showPopMessage(POP_FRAME_DEFAULT, "'%s' changed to '%s'", oldSafe.c_str(), tmp.c_str());
+    }
+    else
+        ui::showPopMessage(POP_FRAME_DEFAULT, "'%s' contains illegal or non-ASCII characters.", newPath.c_str());
+}
+
+std::string cfg::getPathDefinition(const uint64_t& tid)
+{
+    return pathDefs[tid];
+}
+
+void cfg::addPathToFilter(const uint64_t& tid, const std::string& _p)
+{
+    char outpath[128];
+    sprintf(outpath, "sdmc:/config/JKSV/0x%016lX_filter.txt", tid);
+    FILE *filters = fopen(outpath, "a");
+    fprintf(filters, "%s\n", _p.c_str());
+    fclose(filters);
+}
+
+void cfg::resetConfig()
+{
+    cfg::config["incDev"] = false;
+    cfg::config["autoBack"] = true;
+    cfg::config["ovrClk"] = false;
+    cfg::config["holdDel"] = true;
+    cfg::config["holdRest"] = true;
+    cfg::config["holdOver"] = true;
+    cfg::config["forceMount"] = true;
+    cfg::config["accSysSave"] = false;
+    cfg::config["sysSaveWrite"] = false;
+    cfg::config["directFsCmd"] = false;
+    cfg::config["zip"] = false;
+    cfg::config["langOverride"] = false;
+    cfg::config["trashBin"] = true;
+    cfg::sortType = cfg::ALPHA;
+    ui::animScale = 3.0f;
+}
+
+static inline bool textToBool(const std::string& _txt)
+{
+    return _txt == _true_ ? true : false;
+}
+
+static inline std::string boolToText(bool _b)
+{
+    return _b ? _true_ : _false_;
+}
+
+static inline std::string sortTypeText()
+{
+    switch(cfg::sortType)
+    {
+        case cfg::ALPHA:
+            return "ALPHA";
+            break;
+
+        case cfg::MOST_PLAYED:
+            return "MOST_PLAYED";
+            break;
+
+        case cfg::LAST_PLAYED:
+            return "LAST_PLAYED";
+            break;
+    }
+    return "";
+}
+
+void cfg::loadConfig()
+{
+    if(fs::fileExists(cfgPath))
+    {
+        fs::dataFile cfgRead(cfgPath);
+        while(cfgRead.readNextLine(true))
+        {
+            switch(cfgStrings[cfgRead.getName()])
+            {
+                case 0:
+                    fs::setWorkDir(cfgRead.getNextValueStr());
+                    break;
+
+                case 1:
+                    cfg::config["incDev"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 2:
+                    cfg::config["autoBack"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 3:
+                    cfg::config["ovrClk"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 4:
+                    cfg::config["holdDel"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 5:
+                    cfg::config["holdRest"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 6:
+                    cfg::config["holdOver"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 7:
+                    cfg::config["forceMount"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 8:
+                    cfg::config["accSysSave"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 9:
+                    cfg::config["sysSaveWrite"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 10:
+                    cfg::config["directFsCmd"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 11:
+                    cfg::config["zip"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 12:
+                    cfg::config["langOverride"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 13:
+                    cfg::config["trashBin"] = textToBool(cfgRead.getNextValueStr());
+                    break;
+
+                case 14:
+                    {
+                        std::string getSort = cfgRead.getNextValueStr();
+                        if(getSort == "ALPHA")
+                            cfg::sortType = cfg::ALPHA;
+                        else if(getSort == "MOST_PLAYED")
+                            cfg::sortType = cfg::MOST_PLAYED;
+                        else
+                            cfg::sortType = cfg::LAST_PLAYED;
+                    }
+                    break;
+
+                case 15:
+                    {
+                        std::string animFloat = cfgRead.getNextValueStr();
+                        ui::animScale = strtof(animFloat.c_str(), NULL);
+                    }
+                    break;
+
+                case 16:
+                    {
+                        std::string tid = cfgRead.getNextValueStr();
+                    favorites.push_back(strtoul(tid.c_str(), NULL, 16));
+                    }
+                    break;
+
+                case 17:
+                    {
+                        std::string tid = cfgRead.getNextValueStr();
+                        blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
+                    }
+                    break;
+
+                case 18:
+                    {
+                        uint64_t tid = strtoul(cfgRead.getNextValueStr().c_str(), NULL, 16);
+                        pathDefs[tid] = cfgRead.getNextValueStr();
+                    }
+                    break;
+            }
+        }
+    }
+}
+
+void cfg::saveConfig()
+{
+    FILE *cfgOut = fopen("sdmc:/config/JKSV/JKSV.cfg", "w");
+    fprintf(cfgOut, "#JKSV config.\nworkDir = \"%s\"\n\n", fs::getWorkDir().c_str());
+    fprintf(cfgOut, "includeDeviceSaves = %s\n", boolToText(cfg::config["incDev"]).c_str());
+    fprintf(cfgOut, "autoBackup = %s\n", boolToText(cfg::config["autoBack"]).c_str());
+    fprintf(cfgOut, "overclock = %s\n", boolToText(cfg::config["ovrClk"]).c_str());
+    fprintf(cfgOut, "holdToDelete = %s\n", boolToText(cfg::config["holdDel"]).c_str());
+    fprintf(cfgOut, "holdToRestore = %s\n", boolToText(cfg::config["holdRest"]).c_str());
+    fprintf(cfgOut, "holdToOverwrite = %s\n", boolToText(cfg::config["autoOver"]).c_str());
+    fprintf(cfgOut, "forceMount = %s\n", boolToText(cfg::config["forceMount"]).c_str());
+    fprintf(cfgOut, "accountSystemSaves = %s\n", boolToText(cfg::config["accSysSaves"]).c_str());
+    fprintf(cfgOut, "allowSystemSaveWrite = %s\n", boolToText(cfg::config["sysSaveWrite"]).c_str());
+    fprintf(cfgOut, "directFSCommands = %s\n", boolToText(cfg::config["directFsCmd"]).c_str());
+    fprintf(cfgOut, "exportToZIP = %s\n", boolToText(cfg::config["zip"]).c_str());
+    fprintf(cfgOut, "languageOverride = %s\n", boolToText(cfg::config["langOverride"]).c_str());
+    fprintf(cfgOut, "enableTrashBin = %s\n", boolToText(cfg::config["trashBin"]).c_str());
+    fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
+    fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
+
+    if(!favorites.empty())
+    {
+        fprintf(cfgOut, "\n#favorites\n");
+        for(uint64_t& f : favorites)
+            fprintf(cfgOut, "favorite = 0x%016lX\n", f);
+    }
+
+    if(!blacklist.empty())
+    {
+        fprintf(cfgOut, "\n#blacklist\n");
+        for(uint64_t& b : blacklist)
+            fprintf(cfgOut, "blacklist = 0x%016lX\n", b);
+    }
+
+    if(!pathDefs.empty())
+    {
+        fprintf(cfgOut, "\n#Output Path Definitions\n");
+        for(auto& p : pathDefs)
+            fprintf(cfgOut, "pathDef(0x%016lX, \"%s\")\n", p.first, p.second.c_str());
+    }
+    fclose(cfgOut);
+}

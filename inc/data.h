@@ -22,14 +22,7 @@ namespace data
     void init();
     void exit();
     bool loadUsersTitles(bool clearUsers);
-    void loadBlacklist();
-    void saveBlackList();
-    void loadCfg();
-    void saveCfg();
-    void loadFav();
-    void saveFav();
-    void loadDefs();
-    void saveDefs();
+    void sortUserTitles();
 
     //Draws some stats to the upper left corner
     void dispStats();
@@ -88,14 +81,6 @@ namespace data
             SDL_Texture *userIcon;
     };
 
-    //Adds title to blacklist
-    void blacklistAdd(void *a);
-    //Adds title to favorite list
-    void favoriteTitle(const uint64_t& tid);
-    //Adds path definition for title
-    void pathDefAdd(const uint64_t& tid, const std::string& newPath);
-    bool isFavorite(const uint64_t& tid);
-
     //User vector
     extern std::vector<user> users;
     //Title data/info map
@@ -117,12 +102,6 @@ namespace data
         }
         return -1;
     }
-
-    //Options and info
-    //Restores config to default
-    void restoreDefaultConfig();
     extern int selUser, selData;
     extern SetLanguage sysLang;
-    extern std::unordered_map<std::string, bool> config;
-    extern uint8_t sortType;
 }

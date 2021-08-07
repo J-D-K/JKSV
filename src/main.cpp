@@ -5,6 +5,7 @@
 #include "data.h"
 #include "ui.h"
 #include "util.h"
+#include "cfg.h"
 
 extern "C"
 {
@@ -38,6 +39,8 @@ extern "C"
 int main(int argc, const char *argv[])
 {
     romfsInit();
+    cfg::resetConfig();
+    cfg::loadConfig();
     fs::init();
     gfx::init();
     ui::initTheme();
@@ -48,6 +51,7 @@ int main(int argc, const char *argv[])
 
     while(ui::runApp()){ }
 
+    cfg::saveConfig();
     ui::exit();
     data::exit();
     gfx::exit();

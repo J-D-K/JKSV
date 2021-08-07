@@ -2,6 +2,7 @@
 
 #include "file.h"
 #include "util.h"
+#include "cfg.h"
 
 static uint64_t getJournalSize(const data::titleInfo *t)
 {
@@ -34,7 +35,6 @@ static uint64_t getJournalSize(const data::titleInfo *t)
     return journalSize;
 }
 
-//Todo: Weird flickering?
 void fs::_fileDrawFunc(void *a)
 {
     threadInfo *t = (threadInfo *)a;
@@ -49,14 +49,17 @@ void fs::_fileDrawFunc(void *a)
     }
 }
 
-void fs::copyfile_t(void *a)
+void fs::copyFile_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
     t->status->setStatus("Copying '" + args->from + "'...");
 
+    args->prog->setMax(fs::fsize(args->from));
+    args->prog->update(0);
+
     uint8_t *buff = new uint8_t[BUFF_SIZE];
-    if(data::config["directFsCmd"])
+    if(cfg::config["directFsCmd"])
     {
         FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
         FSFILE *out = fsfopen(args->to.c_str(), FsOpenMode_Write);
@@ -105,7 +108,8 @@ void fs::copyfile_t(void *a)
         fclose(out);
     }
     delete[] buff;
-    copyArgsDestroy(args);
+    if(args->cleanup)
+        copyArgsDestroy(args);
     t->finished = true;
 }
 
@@ -116,10 +120,13 @@ void fs::copyFileCommit_t(void *a)
     data::titleInfo *info = data::getTitleInfoByTID(data::curData.saveID);
     t->status->setStatus("Copying '" + args->from + "'...");
 
+    args->prog->setMax(fs::fsize(args->from));
+    args->prog->update(0);
+
     uint64_t journalSize = getJournalSize(info), writeCount = 0;
     uint8_t *buff = new uint8_t[BUFF_SIZE];
 
-    if(data::config["directFsCmd"])
+    if(cfg::config["directFsCmd"])
     {
         FSFILE *in  = fsfopen(args->from.c_str(), FsOpenMode_Read);
         FSFILE *out = fsfopen(args->to.c_str(), FsOpenMode_Write);
@@ -192,7 +199,115 @@ void fs::copyFileCommit_t(void *a)
     delete[] buff;
 
     commitToDevice(args->dev.c_str());
-    copyArgsDestroy(args);
+
+    if(args->cleanup)
+        copyArgsDestroy(args);
+    t->finished = true;
+}
+
+void fs::copyDirToDir_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    copyArgs *args = (copyArgs *)t->argPtr;
+
+    fs::dirList *list = new fs::dirList(args->from);
+    for(int i = 0; i < (int)list->getCount(); i++)
+    {
+        if(pathIsFiltered(args->from + list->getItem(i)))
+            continue;
+
+        if(list->isDir(i))
+        {
+            std::string newSrc = args->from + list->getItem(i) + "/";
+            std::string newDst = args->to   + list->getItem(i) + "/";
+            fs::mkDir(newDst.substr(0, newDst.length() - 1));
+
+            threadInfo fakeThread;
+            fs::copyArgs tmpArgs;
+            fakeThread.status = t->status;
+            fakeThread.argPtr = &tmpArgs;
+            tmpArgs.from = newSrc;
+            tmpArgs.to   = newDst;
+            tmpArgs.prog = args->prog;
+            tmpArgs.cleanup = false;
+            fs::copyDirToDir_t(&fakeThread);
+        }
+        else
+        {
+            std::string fullSrc = args->from + list->getItem(i);
+            std::string fullDst = args->to   + list->getItem(i);
+
+            threadInfo fakeThread;
+            fs::copyArgs tmpArgs;
+            fakeThread.status = t->status;
+            fakeThread.argPtr = &tmpArgs;
+            tmpArgs.from = fullSrc;
+            tmpArgs.to   = fullDst;
+            tmpArgs.prog = args->prog;
+            tmpArgs.cleanup = false;
+            fs::copyFile_t(&fakeThread);
+        }
+    }
+
+    delete list;
+
+    if(args->cleanup)
+        copyArgsDestroy(args);
+
+    t->finished = true;
+}
+
+void fs::copyDirToDirCommit_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    copyArgs *args = (copyArgs *)t->argPtr;
+
+    fs::dirList *list = new fs::dirList(args->from);
+    for(int i = 0; i < (int)list->getCount(); i++)
+    {
+        if(pathIsFiltered(args->from + list->getItem(i)))
+            continue;
+
+        if(list->isDir(i))
+        {
+            std::string newSrc = args->from + list->getItem(i) + "/";
+            std::string newDst = args->to   + list->getItem(i) + "/";
+            fs::mkDir(newDst.substr(0, newDst.length() - 1));
+
+            threadInfo fakeThread;
+            fs::copyArgs tmpArgs;
+            fakeThread.status = t->status;
+            fakeThread.argPtr = &tmpArgs;
+            tmpArgs.from = newSrc;
+            tmpArgs.to   = newDst;
+            tmpArgs.dev = args->dev;
+            tmpArgs.prog = args->prog;
+            tmpArgs.cleanup = false;
+            fs::copyDirToDirCommit_t(&fakeThread);
+        }
+        else
+        {
+            std::string fullSrc = args->from + list->getItem(i);
+            std::string fullDst = args->to   + list->getItem(i);
+
+            threadInfo fakeThread;
+            fs::copyArgs tmpArgs;
+            fakeThread.status = t->status;
+            fakeThread.argPtr = &tmpArgs;
+            tmpArgs.from = fullSrc;
+            tmpArgs.to   = fullDst;
+            tmpArgs.dev = args->dev;
+            tmpArgs.prog = args->prog;
+            tmpArgs.cleanup = false;
+            fs::copyFileCommit_t(&fakeThread);
+        }
+    }
+
+    delete list;
+
+    if(args->cleanup)
+        copyArgsDestroy(args);
+
     t->finished = true;
 }
 
@@ -236,10 +351,9 @@ void fs::copyDirToZip_t(void *a)
             if(zOpenFile == ZIP_OK)
             {
                 std::string fullFrom = args->from + itm;
-                args->offset = 0;
-                args->fileSize = fs::fsize(fullFrom);
-                args->prog->setMax(args->fileSize);
+                args->prog->setMax(fs::fsize(fullFrom));
                 args->prog->update(0);
+                args->offset = 0;
                 FILE *cpy = fopen(fullFrom.c_str(), "rb");
                 size_t readIn = 0;
                 uint8_t *buff = new uint8_t[BUFF_SIZE];
@@ -258,7 +372,7 @@ void fs::copyDirToZip_t(void *a)
     delete list;
     if(args->cleanup)
     {
-        if(data::config["ovrClk"])
+        if(cfg::config["ovrClk"])
             util::setCPU(1224000000);
         ui::newThread(closeZip_t, args->z, NULL);
         delete args->prog;
@@ -285,13 +399,13 @@ void fs::copyZipToDir_t(void *a)
         {
             t->status->setStatus("Copying '" + std::string(filename) + "'...");
             std::string path = args->to + filename;
-            mkdirRec(path.substr(0, path.find_last_of('/') + 1));
+            mkDirRec(path.substr(0, path.find_last_of('/') + 1));
 
-            args->fileSize = info.uncompressed_size;
-            args->offset = 0.0f;
-            args->prog->setMax(args->fileSize);
+            args->prog->setMax(info.uncompressed_size);
+            args->prog->update(0);
+            args->offset = 0;
             size_t done = 0;
-            if(data::config["directFsCmd"])
+            if(cfg::config["directFsCmd"])
             {
                 FSFILE *out = fsfopen(path.c_str(), FsOpenMode_Write);
                 while((readIn = unzReadCurrentFile(args->unz, buff, BUFF_SIZE)) > 0)
@@ -346,7 +460,7 @@ void fs::copyZipToDir_t(void *a)
     {
         unzClose(args->unz);
         copyArgsDestroy(args);
-        if(data::config["ovrClk"])
+        if(cfg::config["ovrClk"])
             util::setCPU(1224000000);
     }
     delete[] buff;

@@ -68,7 +68,6 @@ void ui::slideOutPanel::draw(const SDL_Color *backCol)
         x += ceil(add);
     }
 
-    //don't waste time drawing if you can't even see it.
     if((sldSide == ui::SLD_LEFT && x > -w) || (sldSide == ui::SLD_RIGHT && x < 1280))
     {
         (*drawFunc)(panel);

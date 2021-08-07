@@ -4,6 +4,7 @@
 #include "file.h"
 #include "util.h"
 #include "fm.h"
+#include "cfg.h"
 #include "type.h"
 
 //This is going to be a mess but the old one was too.
@@ -246,7 +247,7 @@ static void _copyMenuCopy(void *a)
         dstPath = *devArgs->path + b->d->getItem(b->m->getSelected() - 2);
     }
 
-    if(ma == devArgs ||  (ma == sdmcArgs && (type != FsSaveDataType_System || data::config["sysSaveWrite"])))
+    if(ma == devArgs ||  (ma == sdmcArgs && (type != FsSaveDataType_System || cfg::config["sysSaveWrite"])))
     {
         ui::confirmArgs *send = ui::confirmArgsCreate(false, _copyMenuCopy_t, ma, true, ui::confCopy.c_str(), srcPath.c_str(), dstPath.c_str());
         ui::confirm(send);
@@ -318,9 +319,9 @@ static void _copyMenuDelete(void *a)
     else if(sel > 1)
         itmPath = *ma->path + b->d->getItem(sel - 2);
 
-    if(ma == sdmcArgs || (ma == devArgs && (sel == 0 || sel > 1) && (type != FsSaveDataType_System || data::config["sysSaveWrite"])))
+    if(ma == sdmcArgs || (ma == devArgs && (sel == 0 || sel > 1) && (type != FsSaveDataType_System || cfg::config["sysSaveWrite"])))
     {
-        ui::confirmArgs *send = ui::confirmArgsCreate(data::config["holdDel"], _copyMenuDelete_t, a, true, ui::confDel.c_str(), itmPath.c_str());
+        ui::confirmArgs *send = ui::confirmArgsCreate(cfg::config["holdDel"], _copyMenuDelete_t, a, true, ui::confDel.c_str(), itmPath.c_str());
         ui::confirm(send);
     }
 }
@@ -381,6 +382,20 @@ static void _copyMenuClose(void *a)
     }
 }
 
+static void _devMenuAddToPathFilter(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    fs::backupArgs *b = ma->b;
+
+    int sel = b->m->getSelected();
+    if(sel > 1)
+    {
+        std::string filterPath = *ma->path + b->d->getItem(sel - 2);
+        cfg::addPathToFilter(data::curData.saveID, filterPath);
+        ui::showPopMessage(POP_FRAME_DEFAULT, "'%s' added to path filter.", filterPath.c_str());
+    }
+}
+
 void ui::fmInit()
 {
     //This needs to be done in a strange order so everything works
@@ -397,18 +412,24 @@ void ui::fmInit()
     devMenu->setActive(true);
     devArgs->b->m = devMenu;
 
-    devPanel = new ui::slideOutPanel(260, 720, 0, ui::SLD_LEFT, _devCopyPanelDraw);
-    devCopyMenu = new ui::menu(10, 236, 246, 20, 5);
+    devPanel = new ui::slideOutPanel(288, 720, 0, ui::SLD_LEFT, _devCopyPanelDraw);
+    devCopyMenu = new ui::menu(10, 185, 268, 20, 5);
     devCopyMenu->setActive(false);
     devCopyMenu->setCallback(_devCopyMenuCallback, NULL);
     devCopyMenu->addOpt(NULL, ui::advMenuStr[0] + "SDMC");
-    for(int i = 1; i < 6; i++)
+    for(int i = 1; i < 4; i++)
         devCopyMenu->addOpt(NULL, advMenuStr[i]);
+    //Manually do this so I can place the last option higher up
+    devCopyMenu->addOpt(NULL, advMenuStr[6]);
+    devCopyMenu->addOpt(NULL, advMenuStr[4]);
+    devCopyMenu->addOpt(NULL, advMenuStr[5]);
+
     devCopyMenu->optAddButtonEvent(0, HidNpadButton_A, _copyMenuCopy, devArgs);
     devCopyMenu->optAddButtonEvent(1, HidNpadButton_A, _copyMenuDelete, devArgs);
     devCopyMenu->optAddButtonEvent(2, HidNpadButton_A, _copyMenuRename, devArgs);
     devCopyMenu->optAddButtonEvent(3, HidNpadButton_A, _copyMenuMkDir, devArgs);
-    devCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuClose, devArgs);
+    devCopyMenu->optAddButtonEvent(4, HidNpadButton_A, _devMenuAddToPathFilter, devArgs);
+    devCopyMenu->optAddButtonEvent(6, HidNpadButton_A, _copyMenuClose, devArgs);
     ui::registerPanel(devPanel);
 
     sdMenu = new ui::menu(620, 8, 590, 18, 5);
@@ -416,8 +437,8 @@ void ui::fmInit()
     sdMenu->setActive(false);
     sdmcArgs->b->m = sdMenu;
 
-    sdPanel = new ui::slideOutPanel(260, 720, 0, ui::SLD_RIGHT, _sdCopyPanelDraw);
-    sdCopyMenu = new ui::menu(10, 236, 246, 20, 5);
+    sdPanel = new ui::slideOutPanel(288, 720, 0, ui::SLD_RIGHT, _sdCopyPanelDraw);
+    sdCopyMenu = new ui::menu(10, 210, 268, 20, 5);
     sdCopyMenu->setActive(false);
     sdCopyMenu->setCallback(_sdCopyMenuCallback, NULL);
     for(int i = 0; i < 6; i++)
@@ -463,15 +484,11 @@ void ui::fmPrep(const FsSaveDataType& _type, const std::string& _dev, bool _comm
     sdList->reassign(sdPath);
     util::copyDirListToMenu(*devList, *devMenu);
     for(int i = 1; i < devMenu->getCount(); i++)
-    {
         devMenu->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, devArgs);
-    }
 
     util::copyDirListToMenu(*sdList, *sdMenu);
     for(int i = 1; i < sdMenu->getCount(); i++)
-    {
         sdMenu->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, sdmcArgs);
-    }
 }
 
 void ui::fmUpdate()

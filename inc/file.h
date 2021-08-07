@@ -43,7 +43,8 @@ namespace fs
     bool dirNotEmpty(const std::string& _dir);
     bool zipNotEmpty(unzFile unzip);
 
-    void mkdirRec(const std::string& _p);
+    void mkDir(const std::string& _p);
+    void mkDirRec(const std::string& _p);
     //deletes file
     void delfile(const std::string& path);
     //Recursively deletes 'path'
@@ -71,6 +72,7 @@ namespace fs
     bool isDir(const std::string& _path);
 
     std::string getWorkDir();
+    void setWorkDir(const std::string& _w);
 
     class dirItem
     {
@@ -144,7 +146,7 @@ namespace fs
         zipFile z;
         unzFile unz;
         bool cleanup = false;
-        uint64_t offset = 0, fileSize = 0;
+        uint64_t offset = 0;
         ui::progBar *prog;
         threadStatus *thrdStatus;
         Mutex arglck = 0;

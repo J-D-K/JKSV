@@ -31,6 +31,17 @@ char *getFilePath(char *pathOut, size_t _max, const char *path)
     return pathOut;
 }
 
+bool fsMkDir(const char *_p)
+{
+    char devStr[16];
+    char path[FS_MAX_PATH];
+    if(!getDeviceFromPath(devStr, 16, _p) || !getFilePath(path, FS_MAX_PATH, _p))
+        return false;
+
+    Result res = fsFsCreateDirectory(fsdevGetDeviceFileSystem(devStr), path);
+    return res == 0;
+}
+
 int fsremove(const char *_p)
 {
     char devStr[16];

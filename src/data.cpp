@@ -11,6 +11,7 @@
 #include "file.h"
 #include "util.h"
 #include "type.h"
+#include "cfg.h"
 
 //FsSaveDataSpaceId_All doesn't work for SD
 static const unsigned saveOrder [] = { 0, 1, 2, 3, 4, 100, 101 };
@@ -23,17 +24,9 @@ std::vector<data::user> data::users;
 //System language
 SetLanguage data::sysLang;
 
-uint8_t data::sortType = 0;
-
 //For other save types
 static bool sysBCATPushed = false, tempPushed = false;
-
-static std::vector<uint64_t> blacklist;
-static std::vector<uint64_t> favorites;
-static std::unordered_map<uint64_t, std::string> pathDefs;
 std::unordered_map<uint64_t, data::titleInfo> data::titles;
-std::unordered_map<std::string, bool> data::config;
-
 static SDL_Texture *iconMask;
 
 //Sorts titles by sortType
@@ -42,11 +35,11 @@ static struct
     bool operator()(const data::userTitleInfo& a, const data::userTitleInfo& b)
     {
         //Favorites override EVERYTHING
-        if(data::isFavorite(a.saveID) != data::isFavorite(b.saveID)) return data::isFavorite(a.saveID);
+        if(cfg::isFavorite(a.saveID) != cfg::isFavorite(b.saveID)) return cfg::isFavorite(a.saveID);
 
-        switch(data::sortType)
+        switch(cfg::sortType)
         {
-            case 0://Alpha
+            case cfg::ALPHA:
                 {
                     std::string titleA = data::getTitleNameByTID(a.saveID);
                     std::string titleB = data::getTitleNameByTID(b.saveID);
@@ -65,11 +58,11 @@ static struct
                 }
                 break;
 
-            case 1://Most played
+            case cfg::MOST_PLAYED:
                 return a.playStats.playtimeMinutes > b.playStats.playtimeMinutes;
                 break;
 
-            case 2://Last Played
+            case cfg::LAST_PLAYED:
                 return a.playStats.last_timestampUser > b.playStats.last_timestampUser;
                 break;
         }
@@ -87,33 +80,9 @@ static int getUserIndex(const AccountUid& id)
     return -1;
 }
 
-static bool blacklisted(const uint64_t& tid)
-{
-    for(uint64_t& bid : blacklist)
-        if(tid == bid) return true;
-
-    return false;
-}
-
-bool data::isFavorite(const uint64_t& tid)
-{
-    for(uint64_t& fid : favorites)
-        if(tid == fid) return true;
-
-    return false;
-}
-
-static bool isDefined(const uint64_t& id)
-{
-    for(auto& def : pathDefs)
-        if(def.first == id) return true;
-
-    return false;
-}
-
 static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 {
-    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !data::config["accSysSave"])
+    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !cfg::config["accSysSave"])
         return false;
 
     return true;
@@ -123,7 +92,7 @@ static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
 static bool testMount(const FsSaveDataInfo& _inf)
 {
     bool ret = false;
-    if(!data::config["forceMount"])
+    if(!cfg::config["forceMount"])
         return true;
 
     if((ret = fs::mountSave(_inf)))
@@ -151,12 +120,12 @@ static inline void addTitleToList(const uint64_t& tid)
         nacpGetLanguageEntry(&data::titles[tid].nacp, &ent);
         data::titles[tid].title = ent->name;
         data::titles[tid].author = ent->author;
-        if(isDefined(tid))
-            data::titles[tid].safeTitle = pathDefs[tid];
+        if(cfg::isDefined(tid))
+            data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
         else if((data::titles[tid].safeTitle = util::safeString(ent->name)) == "")
             data::titles[tid].safeTitle = util::getIDStr(tid);
 
-        if(data::isFavorite(tid))
+        if(cfg::isFavorite(tid))
             data::titles[tid].fav = true;
 
         data::titles[tid].icon = gfx::loadJPEGMem(ctrlData->icon, iconSize);
@@ -168,8 +137,8 @@ static inline void addTitleToList(const uint64_t& tid)
         memset(&data::titles[tid].nacp, 0, sizeof(NacpStruct));
         data::titles[tid].title = util::getIDStr(tid);
         data::titles[tid].author = "Someone?";
-        if(isDefined(tid))
-            data::titles[tid].safeTitle = pathDefs[tid];
+        if(cfg::isDefined(tid))
+            data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
         else
             data::titles[tid].safeTitle = util::getIDStr(tid);
 
@@ -251,7 +220,7 @@ bool data::loadUsersTitles(bool clearUsers)
                 saveID = info.application_id;
 
             //Don't bother with this stuff
-            if(blacklisted(saveID) || !accountSystemSaveCheck(info) || !testMount(info))
+            if(cfg::isBlacklisted(saveID) || !accountSystemSaveCheck(info) || !testMount(info))
                 continue;
 
             switch(info.save_data_type)
@@ -310,7 +279,7 @@ bool data::loadUsersTitles(bool clearUsers)
         fsSaveDataInfoReaderClose(&it);
     }
 
-    if(data::config["incDev"])
+    if(cfg::config["incDev"])
     {
         //Get reference to device save user
         unsigned devPos = getUserIndex(util::u128ToAccountUID(3));
@@ -323,21 +292,21 @@ bool data::loadUsersTitles(bool clearUsers)
         }
     }
 
-    for(data::user& u : data::users)
-        std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
+    data::sortUserTitles();
 
     return true;
 }
 
+void data::sortUserTitles()
+{
+
+    for(data::user& u : data::users)
+        std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
+}
+
 void data::init()
 {
-    loadBlacklist();
-    loadFav();
-    data::restoreDefaultConfig();
-    loadCfg();
-    loadDefs();
-
-    if(data::config["ovrClk"])
+    if(cfg::config["ovrClk"])
         util::setCPU(1224000000);
 
     uint64_t lang;
@@ -355,11 +324,8 @@ void data::exit()
 
     SDL_DestroyTexture(iconMask);
 
-    saveFav();
-    saveCfg();
-    saveBlackList();
-    saveDefs();
-    util::setCPU(1020000000);
+    if(cfg::config["ovrClk"])
+        util::setCPU(1020000000);
 }
 
 data::titleInfo *data::getTitleInfoByTID(const uint64_t& tid)
@@ -443,211 +409,6 @@ void data::user::addUserTitleInfo(const uint64_t& tid, const FsSaveDataInfo *_sa
     titleInfo.push_back(newInfo);
 }
 
-void data::loadBlacklist()
-{
-    fs::dataFile blk(fs::getWorkDir() + "blacklist.txt");
-    if(blk.isOpen())
-    {
-        while(blk.readNextLine(false))
-            blacklist.push_back(strtoul(blk.getLine().c_str(), NULL, 16));
-    }
-}
-
-void data::saveBlackList()
-{
-    if(!blacklist.empty())
-    {
-        std::string blPath = fs::getWorkDir() + "blacklist.txt";
-        FILE *bl = fopen(blPath.c_str(), "w");
-        for(uint64_t id : blacklist)
-            fprintf(bl, "#%s\n0x%016lX\n", data::getTitleNameByTID(id).c_str(), id);
-
-        fclose(bl);
-    }
-}
-
-void data::blacklistAdd(void *a)
-{
-    threadInfo *t = (threadInfo *)a;
-    t->status->setStatus("Adding title to blacklist...");
-    uint64_t *tid = (uint64_t *)t->argPtr;
-    blacklist.push_back(*tid);
-    for(data::user& _u : data::users)
-    {
-        for(unsigned i = 0; i < _u.titleInfo.size(); i++)
-            if(_u.titleInfo[i].saveID == *tid) _u.titleInfo.erase(_u.titleInfo.begin() + i);
-    }
-    ui::ttlRefresh();
-    delete tid;
-    t->finished = true;
-}
-
-void data::favoriteTitle(const uint64_t& tid)
-{
-    if(!isFavorite(tid))
-    {
-        titles[tid].fav = true;
-        favorites.push_back(tid);
-    }
-    else
-    {
-        titles[tid].fav = false;
-        auto ind = std::find(favorites.begin(), favorites.end(), tid);
-        favorites.erase(ind);
-    }
-
-    for(auto &u : data::users)
-        std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
-}
-
-void data::pathDefAdd(const uint64_t& tid, const std::string& newPath)
-{
-    std::string oldSafe = titles[tid].safeTitle;
-    std::string tmp = util::safeString(newPath);
-    if(!tmp.empty())
-    {
-        pathDefs[tid] = tmp;
-        titles[tid].safeTitle = tmp;
-
-        std::string oldOutput = fs::getWorkDir() + oldSafe;
-        std::string newOutput = fs::getWorkDir() + tmp;
-        rename(oldOutput.c_str(), newOutput.c_str());
-
-        ui::showPopMessage(POP_FRAME_DEFAULT, "\"%s\" changed to \"%s\"", oldSafe.c_str(), tmp.c_str());
-    }
-    else
-        ui::showPopMessage(POP_FRAME_DEFAULT, "\"%s\" contains illegal or non-ASCII characters.", newPath.c_str());
-}
-
-void data::loadCfg()
-{
-    std::string cfgPath = fs::getWorkDir() + "cfg.bin";
-    if(fs::fileExists(cfgPath))
-    {
-        FILE *cfg = fopen(cfgPath.c_str(), "rb");
-
-        uint64_t cfgIn = 0;
-        fread(&cfgIn, sizeof(uint64_t), 1, cfg);
-        fread(&data::sortType, 1, 1, cfg);
-        fread(&ui::animScale, sizeof(float), 1, cfg);
-        if(ui::animScale == 0)
-            ui::animScale = 3.0f;
-        fclose(cfg);
-
-        data::config["incDev"] = cfgIn >> 63 & 1;
-        data::config["autoBack"] = cfgIn >> 62 & 1;
-        data::config["ovrClk"] = cfgIn >> 61 & 1;
-        data::config["holdDel"] = cfgIn >> 60 & 1;
-        data::config["holdRest"] = cfgIn >> 59 & 1;
-        data::config["holdOver"] = cfgIn >> 58 & 1;
-        data::config["forceMount"] = cfgIn >> 57 & 1;
-        data::config["accSysSave"] = cfgIn >> 56 & 1;
-        data::config["sysSaveWrite"] = cfgIn >> 55 & 1;
-        data::config["directFsCmd"] = cfgIn >> 53 & 1;
-        data::config["zip"] = cfgIn >> 51 & 1;
-        data::config["langOverride"] = cfgIn >> 50 & 1;
-        data::config["trashBin"] = cfgIn >> 49 & 1;
-    }
-}
-
-void data::saveCfg()
-{
-    std::string cfgPath = fs::getWorkDir() + "cfg.bin";
-    FILE *cfg = fopen(cfgPath.c_str(), "wb");
-
-    //Use 64bit int for space future stuff. Like this for readability.
-    uint64_t cfgOut = 0;
-    cfgOut |= (uint64_t)data::config["incDev"] << 63;
-    cfgOut |= (uint64_t)data::config["autoBack"] << 62;
-    cfgOut |= (uint64_t)data::config["ovrClk"] << 61;
-    cfgOut |= (uint64_t)data::config["holdDel"] << 60;
-    cfgOut |= (uint64_t)data::config["holdRest"] << 59;
-    cfgOut |= (uint64_t)data::config["holdOver"] << 58;
-    cfgOut |= (uint64_t)data::config["forceMount"] << 57;
-    cfgOut |= (uint64_t)data::config["accSysSave"] << 56;
-    cfgOut |= (uint64_t)data::config["sysSaveWrite"] << 55;
-    cfgOut |= (uint64_t)data::config["directFsCmd"] << 53;
-    cfgOut |= (uint64_t)data::config["zip"] << 51;
-    cfgOut |= (uint64_t)data::config["langOverride"] << 50;
-    cfgOut |= (uint64_t)data::config["trashBin"] << 49;
-    fwrite(&cfgOut, sizeof(uint64_t), 1, cfg);
-    fwrite(&data::sortType, 1, 1, cfg);
-    fwrite(&ui::animScale, sizeof(float), 1, cfg);
-
-    fclose(cfg);
-}
-
-void data::restoreDefaultConfig()
-{
-    data::config["incDev"] = false;
-    data::config["autoBack"] = true;
-    data::config["ovrClk"] = false;
-    data::config["holdDel"] = true;
-    data::config["holdRest"] = true;
-    data::config["holdOver"] = true;
-    data::config["forceMount"] = true;
-    data::config["accSysSave"] = false;
-    data::config["sysSaveWrite"] = false;
-    data::config["directFsCmd"] = false;
-    data::config["zip"] = false;
-    data::config["langOverride"] = false;
-    data::config["trashBin"] = true;
-    data::sortType = 0;
-    ui::animScale = 3.0f;
-}
-
-void data::loadFav()
-{
-    fs::dataFile fav(fs::getWorkDir() + "favorites.txt");
-    if(fav.isOpen())
-    {
-        while(fav.readNextLine(false))
-            favorites.push_back(strtoul(fav.getLine().c_str(), NULL, 16));
-    }
-}
-
-void data::saveFav()
-{
-    if(!favorites.empty())
-    {
-        std::string favPath = fs::getWorkDir() + "favorites.txt";
-        FILE *fav = fopen(favPath.c_str(), "w");
-        for(uint64_t& fid : favorites)
-            fprintf(fav, "0x%016lX\n", fid);
-
-        fclose(fav);
-    }
-}
-
-void data::loadDefs()
-{
-    std::string defPath = fs::getWorkDir() + "titleDefs.txt";
-    if(fs::fileExists(defPath))
-    {
-        fs::dataFile def(defPath);
-        while(def.readNextLine(true))
-        {
-            uint64_t id = strtoull(def.getName().c_str(), NULL, 16);
-            pathDefs[id] = def.getNextValueStr();
-        }
-    }
-}
-
-void data::saveDefs()
-{
-    if(!pathDefs.empty())
-    {
-        std::string defPath = fs::getWorkDir() + "titleDefs.txt";
-        FILE *ttlDef = fopen(defPath.c_str(), "w");
-        for(auto& d : pathDefs)
-        {
-            std::string title = data::titles[d.first].title;
-            fprintf(ttlDef, "#%s\n0x%016lX = \"%s\";\n", title.c_str(), d.first, d.second.c_str());
-        }
-        fclose(ttlDef);
-    }
-}
-
 static const SDL_Color green = {0x00, 0xDD, 0x00, 0xFF};
 
 void data::dispStats()
@@ -659,6 +420,6 @@ void data::dispStats()
     stats += "Current User: " + data::curUser.getUsername() + "\n";
     stats += "Current Title: " + data::getTitleNameByTID(data::curData.saveID) + "\n";
     stats += "Safe Title: " + data::getTitleSafeNameByTID(data::curData.saveID) + "\n";
-    stats += "Sort Type: " + std::to_string(data::sortType) + "\n";
+    stats += "Sort Type: " + std::to_string(cfg::sortType) + "\n";
     gfx::drawTextf(NULL, 16, 2, 2, &green, stats.c_str());
 }

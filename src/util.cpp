@@ -251,7 +251,7 @@ std::string util::getStringInput(SwkbdType _type, const std::string& def, const 
     swkbdConfigSetInitialCursorPos(&swkbd, SwkbdPosEnd);
     swkbdConfigSetType(&swkbd, _type);
     swkbdConfigSetStringLenMax(&swkbd, maxLength);
-    swkbdConfigSetKeySetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_ForwardSlash | SwkbdKeyDisableBitmask_Percent);
+    swkbdConfigSetKeySetDisableBitmask(&swkbd, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_Percent);
     swkbdConfigSetDicFlag(&swkbd, 1);
 
     if(dictCnt > 0)

@@ -1,5 +1,6 @@
 #include "ui.h"
 #include "ui/ttlview.h"
+#include "cfg.h"
 
 //Todo make less hardcoded
 void ui::titleTile::draw(SDL_Texture *target, int x, int y, bool sel)
@@ -38,7 +39,7 @@ ui::titleview::titleview(const data::user& _u, int _iconW, int _iconH, int _horG
     u = &_u;
 
     for(const data::userTitleInfo& t : u->titleInfo)
-        tiles.emplace_back(new ui::titleTile(_iconW, _iconH, data::isFavorite(t.saveID), data::getTitleIconByTID(t.saveID)));
+        tiles.emplace_back(new ui::titleTile(_iconW, _iconH, cfg::isFavorite(t.saveID), data::getTitleIconByTID(t.saveID)));
 }
 
 ui::titleview::~titleview()
@@ -54,7 +55,7 @@ void ui::titleview::refresh()
 
     tiles.clear();
     for(const data::userTitleInfo& t : u->titleInfo)
-        tiles.emplace_back(new ui::titleTile(iconW, iconH, data::isFavorite(t.saveID), data::getTitleIconByTID(t.saveID)));
+        tiles.emplace_back(new ui::titleTile(iconW, iconH, cfg::isFavorite(t.saveID), data::getTitleIconByTID(t.saveID)));
 
     if(selected > (int)tiles.size() - 1 && selected > 0)
         selected = tiles.size() - 1;

@@ -4,6 +4,7 @@
 #include "ttl.h"
 #include "file.h"
 #include "util.h"
+#include "cfg.h"
 
 static int ttlHelpX = 0, fldHelpWidth = 0;
 static std::vector<ui::titleview *> ttlViews;
@@ -30,7 +31,7 @@ static void fldFuncOverwrite(void *a)
     int sel = m->getSelected() - 1;//Skip 'New'
     std::string itm = d->getItem(sel);
 
-    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdOver"], fs::overwriteBackup, a, true, ui::confOverwrite.c_str(), itm.c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdOver"], fs::overwriteBackup, a, true, ui::confOverwrite.c_str(), itm.c_str());
     ui::confirm(conf);
 }
 
@@ -43,7 +44,7 @@ static void fldFuncDelete(void *a)
     int sel = m->getSelected() - 1;//Skip 'New'
     std::string itm = d->getItem(sel);
 
-    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], fs::deleteBackup, a, true, ui::confDel.c_str(), itm.c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdDel"], fs::deleteBackup, a, true, ui::confDel.c_str(), itm.c_str());
     ui::confirm(conf);
 }
 
@@ -56,7 +57,7 @@ static void fldFuncRestore(void *a)
     int sel = m->getSelected() - 1;//Skip 'New'
     std::string itm = d->getItem(sel);
 
-    ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdRest"], fs::restoreBackup, a, true, ui::confRestore.c_str(), itm.c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdRest"], fs::restoreBackup, a, true, ui::confRestore.c_str(), itm.c_str());
     ui::confirm(conf);
 }
 
@@ -68,7 +69,10 @@ void ui::populateFldMenu()
     std::string targetDir = util::generatePathByTID(data::curData.saveID);
 
     fldList->reassign(targetDir);
-    fs::loadPathFilters(targetDir + "pathFilters.txt");
+
+    char filterPath[128];
+    sprintf(filterPath, "sdmc:/config/JKSV/0x%016lX_filter.txt", data::curData.saveID);
+    fs::loadPathFilters(filterPath);
 
     *backargs = {fldMenu, fldList};
 
@@ -83,7 +87,6 @@ void ui::populateFldMenu()
         fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, fldFuncDelete, backargs);
         fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, fldFuncRestore, backargs);
     }
-
     fldMenu->setActive(true);
     fldPanel->openPanel();
 }
@@ -114,7 +117,7 @@ static void ttlViewCallback(void *a)
         case HidNpadButton_Y:
             {
                 uint64_t sid = data::curData.saveID;
-                data::favoriteTitle(sid);
+                cfg::addTitleToFavorites(sid);
                 int newSel = data::getTitleIndexInUser(data::curUser, sid);
                 ui::ttlRefresh();
                 ttlViews[data::selUser]->setSelected(newSel);
@@ -152,10 +155,8 @@ static void ttlOptsShowInfoPanel(void *a)
 
 static void ttlOptsBlacklistTitle(void *a)
 {
-    uint64_t *sendTid = new uint64_t;
-    *sendTid = data::curData.saveID;
     std::string title = data::getTitleNameByTID(data::curData.saveID);
-    ui::confirmArgs *conf = ui::confirmArgsCreate(false, data::blacklistAdd, sendTid, true, ui::confBlacklist.c_str(), title.c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(false, cfg::addTitleToBlacklist, NULL, true, ui::confBlacklist.c_str(), title.c_str());
     ui::confirm(conf);
 }
 
@@ -165,7 +166,7 @@ static void ttlOptsDefinePath(void *a)
     std::string safeTitle = data::getTitleInfoByTID(tid)->safeTitle;
     std::string newSafeTitle = util::getStringInput(SwkbdType_QWERTY, safeTitle, "Input New Output Folder", 0x200, 0, NULL);
     if(!newSafeTitle.empty())
-        data::pathDefAdd(tid, newSafeTitle);
+        cfg::pathDefAdd(tid, newSafeTitle);
 }
 
 static void ttlOptsToFileMode(void *a)
@@ -198,7 +199,7 @@ static void ttlOptsResetSaveData(void *a)
     if(data::curData.saveInfo.save_data_type != FsSaveDataType_System)
     {
         std::string title = data::getTitleNameByTID(data::curData.saveID);
-        ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsResetSaveData_t, NULL, true, ui::saveDataReset.c_str(), title.c_str());
+        ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdDel"], ttlOptsResetSaveData_t, NULL, true, ui::saveDataReset.c_str(), title.c_str());
         ui::confirm(conf);
     }
 }
@@ -231,7 +232,7 @@ static void ttlOptsDeleteSaveData(void *a)
     if(data::curData.saveInfo.save_data_type != FsSaveDataType_System)
     {
         std::string title = data::getTitleNameByTID(data::curData.saveID);
-        ui::confirmArgs *conf = ui::confirmArgsCreate(data::config["holdDel"], ttlOptsDeleteSaveData_t, NULL, true, ui::confEraseNand.c_str(), title.c_str());
+        ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdDel"], ttlOptsDeleteSaveData_t, NULL, true, ui::confEraseNand.c_str(), title.c_str());
         ui::confirm(conf);
     }
 }
@@ -329,6 +330,7 @@ static void fldMenuCallback(void *a)
     {
         case HidNpadButton_B:
             fs::unmountSave();
+            fs::freePathFilters();
             fldMenu->setActive(false);
             fldPanel->closePanel();
             break;
