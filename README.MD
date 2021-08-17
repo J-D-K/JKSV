@@ -80,8 +80,7 @@ JKSV on Switch started as a small project/port to test some things and get famil
 2. Requires switch-freetype, libpng, zlib, libjpeg-turbo, lib-curl, and lib-json-c
 
 ## Credits and Thanks:
-* [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8
-* Authors of switch-examples for account and save mounting code.
+* [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8 for loading system font with Freetype. All other font handling code (converting to SDL2, resizing on the fly, checking for glyphs, cache, etc) is my own.
 * [Iguniisu](https://github.com/igniscitrinus) for the icon.
 	* Uses graphics from [Twemoji](https://github.com/twitter/twemoji) covered by the [Creative Commons License](https://creativecommons.org/licenses/by/4.0/legalcode)
 * [Leo](https://github.com/qazrfv1234) For the Traditional Chinese translation

@@ -7,7 +7,8 @@
 static uint64_t getJournalSize(const data::titleInfo *t)
 {
     uint64_t journalSize = 0;
-    switch(data::curData.saveInfo.save_data_type)
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    switch(d->saveInfo.save_data_type)
     {
         case FsSaveDataType_Account:
             journalSize = t->nacp.user_account_save_data_journal_size;
@@ -49,11 +50,90 @@ void fs::_fileDrawFunc(void *a)
     }
 }
 
+void fs::createSaveData_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::svCreateArgs *s = (fs::svCreateArgs *)t->argPtr;
+
+    data::titleInfo *create = data::getTitleInfoByTID(s->tid);
+    t->status->setStatus(ui::getUICString("threadStatusCreatingSaveData", 0), create->title.c_str());
+
+    FsSaveDataAttribute attr;
+    memset(&attr, 0, sizeof(FsSaveDataAttribute));
+    attr.application_id = s->tid;
+    attr.uid = s->account;
+    attr.system_save_data_id = 0;
+    attr.save_data_type = s->type;
+    attr.save_data_rank = 0;
+    attr.save_data_index = s->index;
+
+    FsSaveDataCreationInfo svCreate;
+    memset(&svCreate, 0, sizeof(FsSaveDataCreationInfo));
+    int64_t saveSize = 0, journalSize = 0;
+    switch(s->type)
+    {
+        case FsSaveDataType_Account:
+            saveSize = create->nacp.user_account_save_data_size;
+            journalSize = create->nacp.user_account_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Device:
+            saveSize = create->nacp.device_save_data_size;
+            journalSize = create->nacp.device_save_data_journal_size;
+            break;
+
+        case FsSaveDataType_Bcat:
+            saveSize = create->nacp.bcat_delivery_cache_storage_size;
+            journalSize = create->nacp.bcat_delivery_cache_storage_size;
+            break;
+
+        case FsSaveDataType_Cache:
+            saveSize = 32 * 1024 * 1024;//Todo: Add target folder/zip selection for size
+            if(create->nacp.cache_storage_journal_size > create->nacp.cache_storage_data_and_journal_size_max)
+                journalSize = create->nacp.cache_storage_journal_size;
+            else
+                journalSize = create->nacp.cache_storage_data_and_journal_size_max;
+            break;
+
+        default:
+            delete s;
+            t->finished = true;
+            return;
+            break;
+    }
+    svCreate.save_data_size = saveSize;
+    svCreate.journal_size = journalSize;
+    svCreate.available_size = 0x4000;
+    svCreate.owner_id = create->nacp.save_data_owner_id;
+    svCreate.flags = 0;
+    svCreate.save_data_space_id = FsSaveDataSpaceId_User;
+
+    FsSaveDataMetaInfo meta;
+    memset(&meta, 0, sizeof(FsSaveDataMetaInfo));
+    meta.size = 0x40060;
+    meta.type = FsSaveDataMetaType_Thumbnail;
+
+    Result res = 0;
+    if(R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &svCreate, &meta)))
+    {
+        util::createTitleDirectoryByTID(s->tid);
+        data::loadUsersTitles(false);
+        ui::ttlRefresh();
+    }
+    else
+    {
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataCreationFailed", 0));
+        fs::logWrite("SaveCreate Failed -> %X\n", res);
+    }
+    delete s;
+    t->finished = true;
+}
+
 void fs::copyFile_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
-    t->status->setStatus("Copying '" + args->from + "'...");
+    t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), args->from.c_str());
 
     args->prog->setMax(fs::fsize(args->from));
     args->prog->update(0);
@@ -117,8 +197,9 @@ void fs::copyFileCommit_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
-    data::titleInfo *info = data::getTitleInfoByTID(data::curData.saveID);
-    t->status->setStatus("Copying '" + args->from + "'...");
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    data::titleInfo *info = data::getTitleInfoByTID(d->saveID);
+    t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), args->from.c_str());
 
     args->prog->setMax(fs::fsize(args->from));
     args->prog->update(0);
@@ -316,7 +397,7 @@ void fs::copyDirToZip_t(void *a)
     threadInfo *t  = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
 
-    t->status->setStatus("Opening " + args->from + "...");
+    t->status->setStatus(ui::getUICString("threadStatusOpeningFolder", 0), args->from.c_str());
     fs::dirList *list = new fs::dirList(args->from);
 
     unsigned listTotal = list->getCount();
@@ -346,7 +427,7 @@ void fs::copyDirToZip_t(void *a)
             zip_fileinfo inf = {0};
             std::string filename = args->from + itm;
             size_t devPos = filename.find_first_of('/') + 1;
-            t->status->setStatus("Adding '" + itm + "' to ZIP.");
+            t->status->setStatus(ui::getUICString("threadStatusAddingFileToZip", 0), itm.c_str());
             int zOpenFile = zipOpenNewFileInZip64(args->z, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0);
             if(zOpenFile == ZIP_OK)
             {
@@ -386,7 +467,8 @@ void fs::copyZipToDir_t(void *a)
     threadInfo *t = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
 
-    data::titleInfo *tinfo = data::getTitleInfoByTID(data::curData.saveID);
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    data::titleInfo *tinfo = data::getTitleInfoByTID(d->saveID);
     uint64_t journalSize = getJournalSize(tinfo), writeCount = 0;
     char filename[FS_MAX_PATH];
     uint8_t *buff = new uint8_t[BUFF_SIZE];
@@ -397,7 +479,7 @@ void fs::copyZipToDir_t(void *a)
         unzGetCurrentFileInfo64(args->unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
         if(unzOpenCurrentFile(args->unz) == UNZ_OK)
         {
-            t->status->setStatus("Copying '" + std::string(filename) + "'...");
+            t->status->setStatus(ui::getUICString("threadStatusDecompressingFile", 0), filename);
             std::string path = args->to + filename;
             mkDirRec(path.substr(0, path.find_last_of('/') + 1));
 
@@ -470,7 +552,7 @@ void fs::copyZipToDir_t(void *a)
 void fs::wipesave_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    t->status->setStatus("Resetting current save...");
+    t->status->setStatus(ui::getUICString("threadStatusResettingSaveData", 0));
     fs::delDir("sv:/");
     fs::commitToDevice("sv");
     t->finished = true;

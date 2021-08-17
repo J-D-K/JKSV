@@ -188,7 +188,7 @@ static inline std::string getTimeString(const uint32_t& _h, const uint32_t& _m)
 std::string util::getInfoString(data::user& u, const uint64_t& tid)
 {
     data::titleInfo *tinfo = data::getTitleInfoByTID(tid);
-    data::userTitleInfo *userTinfo = &u.titleInfo[data::selData];
+    data::userTitleInfo *userTinfo = data::getCurrentUserTitleInfo();
 
     std::string ret = tinfo->title + "\n";
 
@@ -226,8 +226,11 @@ std::string util::getInfoString(data::user& u, const uint64_t& tid)
             break;
 
         case FsSaveDataType_Cache:
-            ret += "Cache Storage\n";
-            ret += "Save Index: " + std::to_string(data::curData.saveInfo.save_data_index) + "\n";
+            {
+                data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+                ret += "Cache Storage\n";
+                ret += "Save Index: " + std::to_string(d->saveInfo.save_data_index) + "\n";
+            }
             break;
 
         case FsSaveDataType_SystemBcat:
@@ -354,11 +357,11 @@ void util::setCPU(uint32_t hz)
 void util::checkForUpdate(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    t->status->setStatus("Checking for Updates...");
+    t->status->setStatus(ui::getUICString("threadStatusCheckingForUpdate", 0));
     std::string gitJson = getJSONURL(NULL, "https://api.github.com/repos/J-D-K/JKSV/releases/latest");
     if(gitJson.empty())
     {
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::errorConnecting.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("onlineErrorConnecting", 0));
         t->finished = true;
         return;
     }
@@ -372,7 +375,7 @@ void util::checkForUpdate(void *a)
     //This can throw false positives as is. need to fix sometime
     if(year > BLD_YEAR || month > BLD_MON || month > BLD_DAY)
     {
-        t->status->setStatus("Downloading Update...");
+        t->status->setStatus(ui::getUICString("threadStatusDownloadingUpdate", 0));
         //dunno about NSP yet...
         json_object *assets, *asset0, *dlUrl;
         json_object_object_get_ex(jobj, "assets", &assets);
@@ -387,7 +390,7 @@ void util::checkForUpdate(void *a)
         fclose(jksvOut);
     }
     else
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::noUpdate.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("onlineNoUpdates", 0));
 
     json_object_put(jobj);
     t->finished = true;

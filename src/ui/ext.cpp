@@ -75,7 +75,7 @@ static void toFMUser(void *a)
 static void _delUpdate(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    t->status->setStatus("Deleting update from NAND...");
+    t->status->setStatus(ui::getUICString("threadStatusDeletingUpdate", 0));
     FsFileSystem sys;
     fsOpenBisFileSystem(&sys, FsBisPartitionId_System, "");
     fsdevMountDevice("sys", sys);
@@ -91,19 +91,19 @@ static void extMenuOptRemoveUpdate(void *a)
 
 static void extMenuTerminateProcess(void *a)
 {
-    std::string idStr = util::getStringInput(SwkbdType_QWERTY, "0100000000000000", "Enter Process ID", 18, 0, NULL);
+    std::string idStr = util::getStringInput(SwkbdType_QWERTY, "0100000000000000", ui::getUIString("swkbdProcessID", 0), 18, 0, NULL);
     if(!idStr.empty())
     {
         uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
         if(R_SUCCEEDED(pmshellTerminateProgram(termID)))
-            ui::showPopMessage(POP_FRAME_DEFAULT, "Process %s successfully shutdown.", idStr.c_str());
+            ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popProcessShutdown", 0), idStr.c_str());
     }
 }
 
 static void extMenuMountSysSave(void *a)
 {
     FsFileSystem sys;
-    std::string idStr = util::getStringInput(SwkbdType_QWERTY, "8000000000000000", "Enter Sys Save ID", 18, 0, NULL);
+    std::string idStr = util::getStringInput(SwkbdType_QWERTY, "8000000000000000", ui::getUIString("swkbdSysSavID", 0), 18, 0, NULL);
     uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
     if(R_SUCCEEDED(fsOpen_SystemSaveData(&sys, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
     {
@@ -134,13 +134,18 @@ static void extMenuMountRomFS(void *a)
     }
 }
 
+static void extMenuOutputEnUs(void *a)
+{
+    ui::newThread(ui::saveTranslationFile, NULL, NULL);
+}
+
 void ui::extInit()
 {
     ui::extMenu = new ui::menu(200, 24, 1002, 24, 4);
     ui::extMenu->setCallback(extMenuCallback, NULL);
     ui::extMenu->setActive(false);
-    for(unsigned i = 0; i < 11; i++)
-        ui::extMenu->addOpt(NULL, ui::exMenuStr[i]);
+    for(unsigned i = 0; i < 12; i++)
+        ui::extMenu->addOpt(NULL, ui::getUIString("extrasMenu", i));
 
     //SD to SD
     ui::extMenu->optAddButtonEvent(0, HidNpadButton_A, toFMSDtoSD, NULL);
@@ -162,6 +167,8 @@ void ui::extInit()
     ui::extMenu->optAddButtonEvent(8, HidNpadButton_A, extMenuReloadTitles, NULL);
     //RomFS
     ui::extMenu->optAddButtonEvent(9, HidNpadButton_A, extMenuMountRomFS, NULL);
+    //Translation so I can be lazy
+    ui::extMenu->optAddButtonEvent(11, HidNpadButton_A, extMenuOutputEnUs, NULL);
 }
 
 void ui::extExit()

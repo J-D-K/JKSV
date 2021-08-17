@@ -249,7 +249,7 @@ static void _copyMenuCopy(void *a)
 
     if(ma == devArgs ||  (ma == sdmcArgs && (type != FsSaveDataType_System || cfg::config["sysSaveWrite"])))
     {
-        ui::confirmArgs *send = ui::confirmArgsCreate(false, _copyMenuCopy_t, ma, true, ui::confCopy.c_str(), srcPath.c_str(), dstPath.c_str());
+        ui::confirmArgs *send = ui::confirmArgsCreate(false, _copyMenuCopy_t, ma, true, ui::getUICString("confirmCopy", 0), srcPath.c_str(), dstPath.c_str());
         ui::confirm(send);
     }
 }
@@ -260,7 +260,7 @@ static void _copyMenuDelete_t(void *a)
     menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
     fs::backupArgs *b = ma->b;
 
-    t->status->setStatus("Deleting...");
+    t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
 
     int sel = b->m->getSelected();
     if(ma == devArgs)
@@ -321,7 +321,7 @@ static void _copyMenuDelete(void *a)
 
     if(ma == sdmcArgs || (ma == devArgs && (sel == 0 || sel > 1) && (type != FsSaveDataType_System || cfg::config["sysSaveWrite"])))
     {
-        ui::confirmArgs *send = ui::confirmArgsCreate(cfg::config["holdDel"], _copyMenuDelete_t, a, true, ui::confDel.c_str(), itmPath.c_str());
+        ui::confirmArgs *send = ui::confirmArgsCreate(cfg::config["holdDel"], _copyMenuDelete_t, a, true, ui::getUICString("confirmDelete", 0), itmPath.c_str());
         ui::confirm(send);
     }
 }
@@ -334,7 +334,7 @@ static void _copyMenuRename(void *a)
     int sel = b->m->getSelected();
     if(sel > 1)
     {
-        std::string getNewName = util::getStringInput(SwkbdType_QWERTY, b->d->getItem(sel - 2), "Enter a new name", 64, 0, NULL);
+        std::string getNewName = util::getStringInput(SwkbdType_QWERTY, b->d->getItem(sel - 2), ui::getUIString("swkbdRename", 0), 64, 0, NULL);
         if(!getNewName.empty())
         {
             std::string prevPath = *ma->path + b->d->getItem(sel - 2);
@@ -352,7 +352,7 @@ static void _copyMenuRename(void *a)
 static void _copyMenuMkDir(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    std::string getNewFolder = util::getStringInput(SwkbdType_QWERTY, "New Folder", "Enter a name", 64, 0, NULL);
+    std::string getNewFolder = util::getStringInput(SwkbdType_QWERTY, "New Folder", ui::getUIString("swkbdMkDir", 0), 64, 0, NULL);
     if(!getNewFolder.empty())
     {
         std::string createPath = *ma->path + getNewFolder;
@@ -390,9 +390,10 @@ static void _devMenuAddToPathFilter(void *a)
     int sel = b->m->getSelected();
     if(sel > 1)
     {
+        data::userTitleInfo *d = data::getCurrentUserTitleInfo();
         std::string filterPath = *ma->path + b->d->getItem(sel - 2);
-        cfg::addPathToFilter(data::curData.saveID, filterPath);
-        ui::showPopMessage(POP_FRAME_DEFAULT, "'%s' added to path filter.", filterPath.c_str());
+        cfg::addPathToFilter(d->saveID, filterPath);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popAddedToPathFilter", 0), filterPath.c_str());
     }
 }
 
@@ -416,13 +417,13 @@ void ui::fmInit()
     devCopyMenu = new ui::menu(10, 185, 268, 20, 5);
     devCopyMenu->setActive(false);
     devCopyMenu->setCallback(_devCopyMenuCallback, NULL);
-    devCopyMenu->addOpt(NULL, ui::advMenuStr[0] + "SDMC");
+    devCopyMenu->addOpt(NULL, ui::getUIString("fileModeMenu", 0) + "SDMC");
     for(int i = 1; i < 4; i++)
-        devCopyMenu->addOpt(NULL, advMenuStr[i]);
+        devCopyMenu->addOpt(NULL, ui::getUIString("fileModeMenu", i));
     //Manually do this so I can place the last option higher up
-    devCopyMenu->addOpt(NULL, advMenuStr[6]);
-    devCopyMenu->addOpt(NULL, advMenuStr[4]);
-    devCopyMenu->addOpt(NULL, advMenuStr[5]);
+    devCopyMenu->addOpt(NULL, ui::getUIString("fileModeMenu", 6));
+    devCopyMenu->addOpt(NULL, ui::getUIString("fileModeMenu", 4));
+    devCopyMenu->addOpt(NULL, ui::getUIString("fileModeMenu", 5));
 
     devCopyMenu->optAddButtonEvent(0, HidNpadButton_A, _copyMenuCopy, devArgs);
     devCopyMenu->optAddButtonEvent(1, HidNpadButton_A, _copyMenuDelete, devArgs);
@@ -442,7 +443,7 @@ void ui::fmInit()
     sdCopyMenu->setActive(false);
     sdCopyMenu->setCallback(_sdCopyMenuCallback, NULL);
     for(int i = 0; i < 6; i++)
-        sdCopyMenu->addOpt(NULL, advMenuStr[i]);
+        sdCopyMenu->addOpt(NULL, ui::getUIString("fileModeMenu", i));
     sdCopyMenu->optAddButtonEvent(0, HidNpadButton_A, _copyMenuCopy, sdmcArgs);
     sdCopyMenu->optAddButtonEvent(1, HidNpadButton_A, _copyMenuDelete, sdmcArgs);
     sdCopyMenu->optAddButtonEvent(2, HidNpadButton_A, _copyMenuRename, sdmcArgs);
@@ -478,7 +479,7 @@ void ui::fmPrep(const FsSaveDataType& _type, const std::string& _dev, bool _comm
     devPath = _dev;
     sdPath = "sdmc:/";
 
-    sdCopyMenu->editOpt(0, NULL, ui::advMenuStr[0] + _dev);
+    sdCopyMenu->editOpt(0, NULL, ui::getUIString("fileModeMenu", 0) + _dev);
 
     devList->reassign(dev);
     sdList->reassign(sdPath);

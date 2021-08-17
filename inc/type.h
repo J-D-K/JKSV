@@ -6,25 +6,16 @@
 //Misc stuff for new menu code
 typedef void (*funcPtr)(void *);
 
-typedef struct
+class threadStatus
 {
-    Mutex statusLock = 0;
-    std::string status;
-    void setStatus(const std::string& newStatus)
-    {
-        mutexLock(&statusLock);
-        status = newStatus;
-        mutexUnlock(&statusLock);
-    }
+    public:
+        void setStatus(const char *fmt, ...);
+        void getStatus(std::string& statusOut);
 
-    void getStatus(std::string& statusOut)
-    {
-        mutexLock(&statusLock);
-        statusOut = status;
-        mutexUnlock(&statusLock);
-    }
-
-} threadStatus;
+    private:
+        Mutex statusLock = 0;
+        std::string status;
+};
 
 typedef struct
 {

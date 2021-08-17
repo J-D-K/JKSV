@@ -46,8 +46,6 @@ SDL_Texture *ui::sideBar;
 static SDL_Texture *icn, *corePanel;
 SDL_Color ui::heartColor = {0xFF, 0x44, 0x44, 0xFF};
 
-//X position of help texts. Calculated to make editing quicker/easier
-static unsigned userHelpX, titleHelpX, folderHelpX, optHelpX;
 static int settPos, extPos;
 
 //Vector of pointers to slideOutPanels. Is looped and drawn last so they are always on top
@@ -77,7 +75,7 @@ void ui::initTheme()
             rectSh   = {0xCA, 0xCA, 0xCA, 0xFF};
             tboxClr  = {0xEB, 0xEB, 0xEB, 0xFF};
             divClr   = {0x00, 0x00, 0x00, 0xFF};
-            slidePanelColor = {0xEE, 0xEE, 0xEE, 0xDD};
+            slidePanelColor = {0xEE, 0xEE, 0xEE, 0xEE};
             break;
 
         default:
@@ -91,7 +89,7 @@ void ui::initTheme()
             rectSh   = {0x20, 0x20, 0x20, 0xFF};
             tboxClr  = {0x50, 0x50, 0x50, 0xFF};
             divClr   = {0xFF, 0xFF, 0xFF, 0xFF};
-            slidePanelColor  = {0x00, 0x00, 0x00, 0xDD};
+            slidePanelColor  = {0x00, 0x00, 0x00, 0xEE};
             break;
     }
 }
@@ -136,18 +134,12 @@ void ui::init()
     loadTrans();
 
     //Replace the button [x] in strings that need it. Needs to be outside loadTrans so even defaults will get replaced
-    util::replaceButtonsInString(ui::userHelp);
-    util::replaceButtonsInString(ui::titleHelp);
-    util::replaceButtonsInString(ui::folderHelp);
-    util::replaceButtonsInString(ui::optHelp);
-    util::replaceButtonsInString(ui::yt);
-    util::replaceButtonsInString(ui::nt);
-
-    //Calculate x position of help text
-    userHelpX = 1220 - gfx::getTextWidth(ui::userHelp.c_str(), 18);
-    titleHelpX = 1220 - gfx::getTextWidth(ui::titleHelp.c_str(), 18);
-    folderHelpX = 1220 - gfx::getTextWidth(ui::folderHelp.c_str(), 18);
-    optHelpX = 1220 - gfx::getTextWidth(ui::optHelp.c_str(), 18);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpUser", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpTitle", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpFolder", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpSettings", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("dialogYes", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("dialogNo", 0)]);
 
     //setup pad
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
@@ -231,8 +223,11 @@ void ui::drawUI()
 
     //Version / translation author
     gfx::drawTextf(NULL, 12, 8, 700, &ui::txtCont, "v. %02d.%02d.%04d", BLD_MON, BLD_DAY, BLD_YEAR);
-    if(author != "NULL")
-        gfx::drawTextf(NULL, 12, 8, 682, &ui::txtCont, "Translation: %s", author.c_str());
+    if(ui::getUIString("author", 0) != "NULL")
+        gfx::drawTextf(NULL, 12, 8, 682, &ui::txtCont, "Translation: %s", ui::getUICString("author", 0));
+
+    //This only draws the help text now and only does when user select is open
+    ui::usrDraw(NULL);
 
     if((ui::usrMenu->getActive() && ui::usrMenu->getSelected() == settPos) || ui::mstate == OPT_MNU)
         ui::settDraw(corePanel);
@@ -316,12 +311,17 @@ void ui::showPopMessage(int frameCount, const char *fmt, ...)
 
 void ui::toTTL(void *a)
 {
-    if(data::curUser.titleInfo.size() > 0)
+    data::user *u = data::getCurrentUser();
+    unsigned curUserIndex = data::getCurrentUserIndex();
+    if(u->titleInfo.size() > 0)
     {
         ui::changeState(TTL_SEL);
-        ui::ttlSetActive(data::selUser);
+        ui::ttlSetActive(curUserIndex);
         ui::usrMenu->setActive(false);
     }
     else
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::noSavesFound.c_str(), data::curUser.getUsername().c_str());
+    {
+        data::user *u = data::getCurrentUser();
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataNoneFound", 0), u->getUsername().c_str());
+    }
 }

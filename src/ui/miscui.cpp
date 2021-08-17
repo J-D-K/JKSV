@@ -50,10 +50,16 @@ void ui::menu::editParam(int _param, int newVal)
 
         case MENU_RECT_WIDTH:
             rW = newVal;
+            SDL_DestroyTexture(optTex);
+            optTex = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, rW, rH);
+            SDL_SetTextureBlendMode(optTex, SDL_BLENDMODE_BLEND);
             break;
 
         case MENU_RECT_HEIGHT:
             rH = newVal;
+            SDL_DestroyTexture(optTex);
+            optTex = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, rW, rH);
+            SDL_SetTextureBlendMode(optTex, SDL_BLENDMODE_BLEND);
             break;
 
         case MENU_FONT_SIZE:
@@ -222,10 +228,11 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
         if(tY < -rH || tY > tH)
             continue;
 
+        gfx::clearTarget(optTex, &ui::transparent);
+
         //Todo: Clean this up maybe
         if(i == selected && drawText)
         {
-            gfx::clearTarget(optTex, &ui::transparent);
             if(isActive)
                 ui::drawBoundBox(target, x, y + (i * rH), rW, rH, clrSh);
 
@@ -235,7 +242,11 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
             if(hover && opt[i].txtWidth > rW - 24)
             {
                 if((dX -= 2) <= -(opt[i].txtWidth + spcWidth))
+                {
                     dX = 0;
+                    hoverCount = 0;
+                    hover = false;
+                }
 
                 gfx::drawTextf(optTex, fSize, dX, ((rH - 8) / 2) - fSize / 2, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
                 gfx::drawTextf(optTex, fSize, dX + opt[i].txtWidth + spcWidth, ((rH - 8) / 2) - fSize / 2, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
@@ -245,7 +256,6 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
                 dX = 0;
                 gfx::drawTextf(optTex, fSize, 0, ((rH - 8) / 2) - fSize / 2, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, opt[i].txt.c_str());
             }
-
             gfx::texDraw(target, optTex, x + 20, (y + 4 + (i * rH)));
         }
         else if(i == selected && !drawText && opt[i].icn)
@@ -258,8 +268,9 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
             if(isActive)
                 ui::drawBoundBox(target, x, y + (i * rH), rW, rH, clrSh);
 
-            gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), dW, dH);
             gfx::drawRect(target, ui::thmID == ColorSetId_Light ? &menuColorLight : &menuColorDark, x + 10, ((y + (rH / 2 - fSize / 2)) + (i * rH)) - 2, 4, fSize + 4);
+            gfx::texDrawStretch(optTex, opt[i].icn, 0, ((rH - 8) / 2) - fSize / 2, dW, dH);
+            gfx::texDraw(target, optTex, x + 20, (y + 4 + (i * rH)));
         }
         else if(drawText)
         {
@@ -274,7 +285,8 @@ void ui::menu::draw(SDL_Texture *target, const SDL_Color *textClr, bool drawText
             float scale = (float)fSize / (float)h;
             int dW = scale * w;
             int dH = scale * h;
-            gfx::texDrawStretch(target, opt[i].icn, x + 20, (y + (rH / 2 - fSize / 2)) + (i * rH), dW, dH);
+            gfx::texDrawStretch(optTex, opt[i].icn, 0, ((rH - 8) / 2) - fSize / 2, dW, dH);
+            gfx::texDraw(target, optTex, x + 20, (y + 4 + (i * rH)));
         }
     }
 }
@@ -340,8 +352,16 @@ void ui::popMessageMngr::update()
 
 void ui::popMessageMngr::popMessageAdd(const std::string& mess, int frameTime)
 {
-    ui::popMessage newPop = {mess, 0, frameTime};
-    popQueue.push_back(newPop);
+    //Suppress multiple of the same
+    int lastMessageIndex = message.size() - 1;
+    std::string lastMessage;
+    if(lastMessageIndex >= 0)
+        lastMessage = message[lastMessageIndex].message;
+    if(lastMessage != mess)
+    {
+        ui::popMessage newPop = {mess, 0, frameTime};
+        popQueue.push_back(newPop);
+    }
 }
 
 void ui::popMessageMngr::draw()
@@ -421,18 +441,18 @@ void confirmDrawFunc(void *a)
     ui::confirmArgs *c = (ui::confirmArgs *)t->argPtr;
     if(!t->finished)
     {
-        std::string yesTxt = ui::yt;
+        std::string yesTxt = ui::getUIString("dialogYes", 0);
         unsigned yesX = 0;
 
         if((ui::padKeysHeld() & HidNpadButton_A) && c->hold)
         {
             c->frameCount++;
             if(c->frameCount <= 40)
-                yesTxt = ui::holdingText[0];
+                yesTxt = ui::getUIString("holdingText", 0);
             else if(c->frameCount <= 80)
-                yesTxt = ui::holdingText[1];
+                yesTxt = ui::getUIString("holdingText", 1);
             else if(c->frameCount <= 120)
-                yesTxt = ui::holdingText[2];
+                yesTxt = ui::getUICString("holdingText", 2);
 
             yesTxt += ui::loadGlyphArray[c->lgFrame];
         }
@@ -447,7 +467,7 @@ void confirmDrawFunc(void *a)
         gfx::drawLine(NULL, &ui::rectSh, 280, 454, 999, 454);
         gfx::drawLine(NULL, &ui::rectSh, 640, 454, 640, 518);
         gfx::drawTextf(NULL, 18, yesX, 478, &ui::txtCont, yesTxt.c_str());
-        gfx::drawTextf(NULL, 18, 782, 478, &ui::txtCont, ui::nt.c_str());
+        gfx::drawTextf(NULL, 18, 782, 478, &ui::txtCont, ui::getUICString("dialogNo", 0));
     }
 }
 

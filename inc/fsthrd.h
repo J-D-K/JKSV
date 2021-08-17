@@ -6,6 +6,7 @@
 namespace fs
 {
     void _fileDrawFunc(void *a);
+    void createSaveData_t(void *a);
     void copyFile_t(void *a);
     void copyFileCommit_t(void *a);
     void copyDirToDir_t(void *a);

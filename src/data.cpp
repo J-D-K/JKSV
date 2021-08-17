@@ -16,7 +16,7 @@
 //FsSaveDataSpaceId_All doesn't work for SD
 static const unsigned saveOrder [] = { 0, 1, 2, 3, 4, 100, 101 };
 
-int data::selUser = 0, data::selData = 0;
+int selUser = 0, selData = 0;
 
 //User vector
 std::vector<data::user> data::users;
@@ -328,6 +328,36 @@ void data::exit()
         util::setCPU(1020000000);
 }
 
+void data::setUserIndex(unsigned _sUser)
+{
+    selUser = _sUser;
+}
+
+data::user *data::getCurrentUser()
+{
+    return &users[selUser];
+}
+
+unsigned data::getCurrentUserIndex()
+{
+    return selUser;
+}
+
+void data::setTitleIndex(unsigned _sTitle)
+{
+    selData = _sTitle;
+}
+
+data::userTitleInfo *data::getCurrentUserTitleInfo()
+{
+    return &users[selUser].titleInfo[selData];
+}
+
+unsigned data::getCurrentUserTitleInfoIndex()
+{
+    return selData;
+}
+
 data::titleInfo *data::getTitleInfoByTID(const uint64_t& tid)
 {
     if(titles.find(tid) != titles.end())
@@ -413,13 +443,16 @@ static const SDL_Color green = {0x00, 0xDD, 0x00, 0xFF};
 
 void data::dispStats()
 {
+    data::user *cu = data::getCurrentUser();
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+
     //Easiest/laziest way to do this
     std::string stats = "User Count: " + std::to_string(users.size()) + "\n";
     for(data::user& u : data::users)
         stats += u.getUsername() + ": " + std::to_string(u.titleInfo.size()) + "\n";
-    stats += "Current User: " + data::curUser.getUsername() + "\n";
-    stats += "Current Title: " + data::getTitleNameByTID(data::curData.saveID) + "\n";
-    stats += "Safe Title: " + data::getTitleSafeNameByTID(data::curData.saveID) + "\n";
+    stats += "Current User: " + cu->getUsername() + "\n";
+    stats += "Current Title: " + data::getTitleNameByTID(d->saveID) + "\n";
+    stats += "Safe Title: " + data::getTitleSafeNameByTID(d->saveID) + "\n";
     stats += "Sort Type: " + std::to_string(cfg::sortType) + "\n";
     gfx::drawTextf(NULL, 16, 2, 2, &green, stats.c_str());
 }

@@ -14,13 +14,13 @@ static std::vector<uint64_t> blacklist;
 static std::vector<uint64_t> favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 uint8_t cfg::sortType;
-const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg";
+const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt", *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
 static std::unordered_map<std::string, unsigned> cfgStrings =
 {
     {"workDir", 0}, {"includeDeviceSaves", 1}, {"autoBackup", 2}, {"overclock", 3}, {"holdToDelete", 4}, {"holdToRestore", 5},
     {"holdToOverwrite", 6}, {"forceMount", 7}, {"accountSystemSaves", 8}, {"allowSystemSaveWrite", 9}, {"directFSCommands", 10},
     {"exportToZIP", 11}, {"languageOverride", 12}, {"enableTrashBin", 13}, {"titleSortType", 14}, {"animationScale", 15},
-    {"favorite", 16}, {"blacklist", 17}, {"pathDef", 18}
+    {"favorite", 16}, {"blacklist", 17}
 };
 
 const std::string _true_ = "true", _false_ = "false";
@@ -37,7 +37,8 @@ bool cfg::isBlacklisted(const uint64_t& tid)
 void cfg::addTitleToBlacklist(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    uint64_t tid = data::curData.saveID;
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    uint64_t tid = d->saveID;
     blacklist.push_back(tid);
     for(data::user& u : data::users)
     {
@@ -169,8 +170,105 @@ static inline std::string sortTypeText()
     return "";
 }
 
+static void loadWorkDirLegacy()
+{
+    if(fs::fileExists(workDirLegacy))
+    {
+        char tmp[256];
+        memset(tmp, 0, 256);
+
+        FILE *getDir = fopen(workDirLegacy, "r");
+        fgets(tmp, FS_MAX_PATH, getDir);
+        fclose(getDir);
+        std::string tmpStr = tmp;
+        util::stripChar('\n', tmpStr);
+        util::stripChar('\r', tmpStr);
+        fs::setWorkDir(tmpStr);
+        fs::delfile(workDirLegacy);
+    }
+}
+
+static void loadConfigLegacy()
+{
+    std::string legacyCfgPath = fs::getWorkDir() + "cfg.bin";
+    if(fs::fileExists(legacyCfgPath))
+    {
+        FILE *oldCfg = fopen(legacyCfgPath.c_str(), "rb");
+        uint64_t cfgIn = 0;
+        fread(&cfgIn, sizeof(uint64_t), 1, oldCfg);
+        fread(&cfg::sortType, 1, 1, oldCfg);
+        fread(&ui::animScale, sizeof(float), 1, oldCfg);
+        if(ui::animScale == 0)
+            ui::animScale = 3.0f;
+        fclose(oldCfg);
+
+        cfg::config["incDev"] = cfgIn >> 63 & 1;
+        cfg::config["autoBack"] = cfgIn >> 62 & 1;
+        cfg::config["ovrClk"] = cfgIn >> 61 & 1;
+        cfg::config["holdDel"] = cfgIn >> 60 & 1;
+        cfg::config["holdRest"] = cfgIn >> 59 & 1;
+        cfg::config["holdOver"] = cfgIn >> 58 & 1;
+        cfg::config["forceMount"] = cfgIn >> 57 & 1;
+        cfg::config["accSysSave"] = cfgIn >> 56 & 1;
+        cfg::config["sysSaveWrite"] = cfgIn >> 55 & 1;
+        cfg::config["directFsCmd"] = cfgIn >> 53 & 1;
+        cfg::config["zip"] = cfgIn >> 51 & 1;
+        cfg::config["langOverride"] = cfgIn >> 50 & 1;
+        cfg::config["trashBin"] = cfgIn >> 49 & 1;
+        fs::delfile(cfgPath);
+    }
+}
+
+static void loadFavoritesLegacy()
+{
+    std::string legacyFavPath = fs::getWorkDir() + "favorites.txt";
+    if(fs::fileExists(legacyFavPath))
+    {
+        fs::dataFile fav(legacyFavPath);
+        while(fav.readNextLine(false))
+            favorites.push_back(strtoul(fav.getLine().c_str(), NULL, 16));
+        fav.close();
+        fs::delfile(legacyFavPath);
+    }
+}
+
+static void loadBlacklistLegacy()
+{
+    std::string legacyBlPath = fs::getWorkDir() + "blacklist.txt";
+    if(fs::fileExists(legacyBlPath))
+    {
+        fs::dataFile bl(legacyBlPath);
+        while(bl.readNextLine(false))
+            blacklist.push_back(strtoul(bl.getLine().c_str(), NULL, 16));
+        bl.close();
+        fs::delfile(legacyBlPath);
+    }
+}
+
+static void loadTitleDefs()
+{
+    std::string titleDefLegacy = fs::getWorkDir() + "titleDefs.txt";
+    if(fs::fileExists(titleDefLegacy))
+        rename(titleDefLegacy.c_str(), titleDefPath);
+
+    if(fs::fileExists(titleDefPath))
+    {
+        fs::dataFile getPaths(titleDefPath);
+        while(getPaths.readNextLine(true))
+        {
+            uint64_t tid = strtoul(getPaths.getName().c_str(), NULL, 16);
+            pathDefs[tid] = getPaths.getNextValueStr();
+        }
+    }
+}
+
 void cfg::loadConfig()
 {
+    loadWorkDirLegacy();
+    loadConfigLegacy();
+    loadFavoritesLegacy();
+    loadBlacklistLegacy();
+
     if(fs::fileExists(cfgPath))
     {
         fs::dataFile cfgRead(cfgPath);
@@ -256,7 +354,7 @@ void cfg::loadConfig()
                 case 16:
                     {
                         std::string tid = cfgRead.getNextValueStr();
-                    favorites.push_back(strtoul(tid.c_str(), NULL, 16));
+                        favorites.push_back(strtoul(tid.c_str(), NULL, 16));
                     }
                     break;
 
@@ -266,16 +364,18 @@ void cfg::loadConfig()
                         blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
                     }
                     break;
-
-                case 18:
-                    {
-                        uint64_t tid = strtoul(cfgRead.getNextValueStr().c_str(), NULL, 16);
-                        pathDefs[tid] = cfgRead.getNextValueStr();
-                    }
-                    break;
             }
         }
     }
+    loadTitleDefs();
+}
+
+static void savePathDefs()
+{
+    FILE *pathOut = fopen(titleDefPath, "w");
+    for(auto& p : pathDefs)
+        fprintf(pathOut, "0x%016lX = \"%s\"\n", p.first, p.second.c_str());
+    fclose(pathOut);
 }
 
 void cfg::saveConfig()
@@ -287,7 +387,7 @@ void cfg::saveConfig()
     fprintf(cfgOut, "overclock = %s\n", boolToText(cfg::config["ovrClk"]).c_str());
     fprintf(cfgOut, "holdToDelete = %s\n", boolToText(cfg::config["holdDel"]).c_str());
     fprintf(cfgOut, "holdToRestore = %s\n", boolToText(cfg::config["holdRest"]).c_str());
-    fprintf(cfgOut, "holdToOverwrite = %s\n", boolToText(cfg::config["autoOver"]).c_str());
+    fprintf(cfgOut, "holdToOverwrite = %s\n", boolToText(cfg::config["holdOver"]).c_str());
     fprintf(cfgOut, "forceMount = %s\n", boolToText(cfg::config["forceMount"]).c_str());
     fprintf(cfgOut, "accountSystemSaves = %s\n", boolToText(cfg::config["accSysSaves"]).c_str());
     fprintf(cfgOut, "allowSystemSaveWrite = %s\n", boolToText(cfg::config["sysSaveWrite"]).c_str());
@@ -311,12 +411,8 @@ void cfg::saveConfig()
         for(uint64_t& b : blacklist)
             fprintf(cfgOut, "blacklist = 0x%016lX\n", b);
     }
+    fclose(cfgOut);
 
     if(!pathDefs.empty())
-    {
-        fprintf(cfgOut, "\n#Output Path Definitions\n");
-        for(auto& p : pathDefs)
-            fprintf(cfgOut, "pathDef(0x%016lX, \"%s\")\n", p.first, p.second.c_str());
-    }
-    fclose(cfgOut);
+        savePathDefs();
 }

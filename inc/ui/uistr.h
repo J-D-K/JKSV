@@ -1,28 +1,15 @@
 #pragma once
 
+#include <map>
+
 //Strings since translation support
 namespace ui
 {
+    void initStrings();
     void loadTrans();
+    void saveTranslationFile(void *a);
+    extern std::map<std::pair<std::string, int>, std::string> strings;
 
-    extern std::string author, userHelp, titleHelp, folderHelp, optHelp, \
-    confBlacklist, confOverwrite, confRestore, confDel, confCopy, \
-    confEraseNand, confEraseFolder, yt, nt, on, off, confirmHead, \
-    copyHead, noSavesFound, errorConnecting, noUpdate, saveCreated, saveCreateFailed, \
-    saveDataReset, saveDataResetSuccess, saveDataDeleteSuccess;
-
-    //Strings for file mode menu
-    extern std::string advMenuStr[7];
-    //Strings for extras menu
-    extern std::string exMenuStr[11];
-    //Strings for options menu
-    extern std::string optMenuStr[18];
-    //Strings for the holding thing
-    extern std::string holdingText[3];
-    //Strings for sort type
-    extern std::string sortString[3];
-    //Strings for user options
-    extern std::string usrOptString[2];
-    //Strings for title options
-    extern std::string titleOptString[7];
+    inline std::string getUIString(const std::string& _name, int ind){ return strings[std::make_pair(_name, ind)]; }
+    inline const char *getUICString(const std::string& _name, int ind){ return strings[std::make_pair(_name, ind)].c_str(); }
 }

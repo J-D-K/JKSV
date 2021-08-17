@@ -7,11 +7,8 @@
 
 #include "gfx.h"
 
-#define curUser users[data::selUser]
-#define curData users[data::selUser].titleInfo[data::selData]
-
 #define BLD_MON 8
-#define BLD_DAY 4
+#define BLD_DAY 16
 #define BLD_YEAR 2021
 
 namespace data
@@ -86,7 +83,16 @@ namespace data
     //Title data/info map
     extern std::unordered_map<uint64_t, data::titleInfo> titles;
 
-    //Gets pointer to info
+    //Sets/Retrieves current user/title
+    void setUserIndex(unsigned _sUser);
+    data::user *getCurrentUser();
+    unsigned getCurrentUserIndex();
+
+    void setTitleIndex(unsigned _sTitle);
+    data::userTitleInfo *getCurrentUserTitleInfo();
+    unsigned getCurrentUserTitleInfoIndex();
+
+    //Gets pointer to info that also has title + nacp
     data::titleInfo *getTitleInfoByTID(const uint64_t& tid);
 
     //More shortcut functions
@@ -102,6 +108,5 @@ namespace data
         }
         return -1;
     }
-    extern int selUser, selData;
     extern SetLanguage sysLang;
 }

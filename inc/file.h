@@ -24,6 +24,7 @@ namespace fs
     bool mountSave(const FsSaveDataInfo& _m);
     inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
     bool commitToDevice(const std::string& dev);
+    void createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _userID);
 
     void copyFile(const std::string& from, const std::string& to);
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
@@ -114,6 +115,7 @@ namespace fs
         public:
             dataFile(const std::string& _path);
             ~dataFile();
+            void close(){ fclose(f); }
 
             bool isOpen() const { return opened; }
 
@@ -153,6 +155,14 @@ namespace fs
         void argLock() { mutexLock(&arglck); }
         void argUnlock() { mutexUnlock(&arglck); }
     } copyArgs;
+
+    typedef struct
+    {
+        FsSaveDataType type;
+        uint64_t tid;
+        AccountUid account;
+        uint16_t index;
+    } svCreateArgs;
 
     copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup);
     void copyArgsDestroy(copyArgs *c);

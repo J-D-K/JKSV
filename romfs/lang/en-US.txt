@@ -1,133 +1,114 @@
-#JKSV Switch translation guide
-#Button strings [X] are replaced by JKSV at boot.
-#string = set string to this.
-#Translation author. Displayed in UI. NULL is ignored and not displayed.
-author = "NULL"
+#JKSV Translation File
+#File can be placed and named "/JKSV/trans.txt" for testing without building
+#Format is: stringName = index, "string"
+#You only need to translate "string", there is no need to touch the other two parameters.
+#'%s' is replaced with game titles and paths. '#', '*', '>', etc change text color. [x] are replaced with button glyphs
+#This is exported from JKSV itself to make adding strings to this easier.
+#It can also export already made translations with new strings if added, cutting down work for everyone.
+#If there are issues with spacing, line breaking, untranslatable English text, etc let me know in a git issue or your pull request.
 
-#Help/Guide strings on bottom
-#User Select
-userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [R] Update   [-] Options   [ZR] Extras"
-
-#Title Select
-titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back"
-
-#Folder Select
-folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Selected  [ZR] Erase  [B] Back"
-
-#Options Menu
-optHelp = "[A] Toggle   [X] Defaults   [B] Back"
-
-#Button prompts.
-yt = "Yes [A]"
-nt = "No  [B]"
-
-#On/Off for options. '>' is used to change color to green.
-on = ">On>"
-off = "Off"
-
-#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
-#Text shown at the top of confirmation boxes
-confirmHead = "Confirm"
-
-#Text shown at top of progress dialog when copying files
-copyHead = "Copying File..."
-
-#Confirm blacklist.
-confirmBlacklist = "Are you sure you want to add #%s# to your blacklist?"
-
-#Confirm overwriting folder
-confirmOverwrite = "Are you sure you want to overwrite #%s#?"
-
-#Confirm restoring save
-confirmRestore = "Are you sure you want to restore #%s#?"
-
-#Confirm deleting.
-confirmDelete = "Are you sure you want to delete #%s#? *This is permanent*!"
-
-#Confirm file copy in file mode
-confirmCopy = "Are you sure you want to copy #%s# to #%s#?"
-
-#Warning for erasing save data from system in title menu
-confirmEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?"
-
-#Warning for deleting save data in folder menu
-confirmEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?"
-
-#Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
-noSavesFound = "No save data found for #%s#!"
-
-#Error pop-up displayed when git can't be connected to
-errorConnecting = "Error Connecting!"
-
-#Pop-up shown when no updates are found on git
-noUpdate = "No updates available!"
-
-#Text displayed when holding is required. Should have a trailing space
+#If author is not "NULL", your name will be displayed in the UI 
+author = 0, "NULL"
+confirmBlacklist = 0, "Are you sure you want to add #%s# to your blacklist?"
+confirmCopy = 0, "Are you sure you want to copy #%s# to #%s#?"
+confirmDelete = 0, "Are you sure you want to delete #%s#? *This is permanent*!"
+confirmDeleteSaveData = 0, "*WARNING*: This *will* erase the save data for #%s# *from your system*. Are you sure you want to do this?"
+confirmOverwrite = 0, "Are you sure you want to overwrite #%s#?"
+confirmResetSaveData = 0, "*WARNING*: This *will* reset the save data for this game as if it was never ran before. Are you sure you want to do this?"
+confirmRestore = 0, "Are you sure you want to restore #%s#?"
+dialogNo = 0, "No [B]"
+dialogYes = 0, "Yes [A]"
+extrasMenu = 0, "SD to SD Browser"
+extrasMenu = 1, "BIS: ProdInfoF"
+extrasMenu = 2, "BIS: Safe"
+extrasMenu = 3, "BIS: System"
+extrasMenu = 4, "BIS: User"
+extrasMenu = 5, "Remove Pending Update"
+extrasMenu = 6, "Terminate Process"
+extrasMenu = 7, "Mount System Save"
+extrasMenu = 8, "Rescan Titles"
+extrasMenu = 9, "Mount Process RomFS"
+extrasMenu = 10, "Backup JKSV Folder"
+extrasMenu = 11, "*[DEV]* Output en-US"
+fileModeMenu = 0, "Copy To "
+fileModeMenu = 1, "Delete"
+fileModeMenu = 2, "Rename"
+fileModeMenu = 3, "Make Dir"
+fileModeMenu = 4, "Properties"
+fileModeMenu = 5, "Close"
+fileModeMenu = 6, "Add to Path Filters"
+helpFolder = 0, "[A] Select  [Y] Restore  [X] Delete  [B] Close"
+helpSettings = 0, "[A] Toggle   [X] Defaults   [B] Back"
+helpTitle = 0, "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back"
+helpUser = 0, "[A] Select   [X] User Options"
 holdingText = 0, "(Hold) "
 holdingText = 1, "(Keep Holding) "
 holdingText = 2, "(Almost There!) "
-
-#Menu options are held in arrays of strings.
-#The number is the option to set, string is what to set to.
-#Only the string after the comma needs to be edited.
-#Adv/file mode menu
-#'Copy to ' NEEDS a trailing space
-advMenu = 0, "Copy to "
-advMenu = 1, "Delete"
-advMenu = 2, "Rename"
-advMenu = 3, "Make Dir"
-advMenu = 4, "Properties"
-advMenu = 5, "Close"
-
-#Extras Menu
-extMenu = 0, "SD to SD Browser"
-extMenu = 1, "BIS: PRODINFOF"
-extMenu = 2, "BIS: SAFE"
-extMenu = 3, "BIS: SYSTEM"
-extMenu = 4, "BIS: USER"
-extMenu = 5, "Remove Update"
-extMenu = 6, "Terminate Process"
-extMenu = 7, "Mount System Save"
-extMenu = 8, "Rescan Titles"
-extMenu = 9, "Mount Process RomFS"
-extMenu = 10, "Backup JKSV Folder"
-
-#Options menu
-#All options need a trailing space. It is the most likely to have things added to it.
-optMenu = 0, "Include Dev Sv: "
-optMenu = 1, "AutoBackup: "
-optMenu = 2, "Overclock: "
-optMenu = 3, "Hold to Delete: "
-optMenu = 4, "Hold to Restore: "
-optMenu = 5, "Hold to Overwrite: "
-optMenu = 6, "Force Mount: "
-optMenu = 7, "Account Sys. Saves: "
-optMenu = 8, "Write to Sys. Saves: "
-optMenu = 9, "Text UI Mode: "
-optMenu = 10, "Direct FS Cmd: "
-optMenu = 11, "Skip User Select: "
-optMenu = 12, "Export to ZIP: "
-optMenu = 13, "Sort: "
-optMenu = 14, "Language Override: "
-
-#Explanations of what options do.
-optMenuExp = 0, "Includes Device Save data in user accounts."
-optMenuExp = 1, "Automatically creates a save backup before restoring a save."
-optMenuExp = 2, "Applies a small CPU overclock to 1224Mhz at boot. This is the same speed developer units run at."
-optMenuExp = 3, "Whether or not holding [A] is required when deleting folders and files."
-optMenuExp = 4, "Whether or not holding [A] is required when restoring save data."
-optMenuExp = 5, "Whether or not holding [A] is required when overwriting saves on SD."
-optMenuExp = 6, "When enabled, JKSV will only load and show save data that can be opened. When disabled, everything found will be shown."
-optMenuExp = 7, "When enabled, system save data tied to accounts will be shown."
-optMenuExp = 8, "Controls whether system save data and partitions can have files and data written and deleted from them. *This can be extremely dangerous if you don't know what you're doing!*"
-optMenuExp = 9, "Changes the UI to be text menu based like the original JKSM for 3DS."
-optMenuExp = 10, "Directly uses the Switch's FS commands to copy files instead of stdio."
-optMenuExp = 11, "Skips the user selection screen and jumps directly to the first user account found."
-optMenuExp = 12, "Exports saves to zip files."
-optMenuExp = 13, "Changes the way titles are sorted and listed."
-opeMenuExp = 14, "Forces English to be used regardless of system language."
-
-#Sort Types
+onlineErrorConnecting = 0, "Error Connecting!"
+onlineNoUpdates = 0, "No Updates Available."
+popAddedToPathFilter = 0, "'#%s#' added to path filters."
+popCPUBoostEnabled = 0, "CPU Boost Enabled for ZIP."
+popErrorCommittingFile = 0, "Error committing file to save!"
+popProcessShutdown = 0, "#%s# successfully shutdown."
+saveDataBackupDeleted = 0, "#%s# has been deleted."
+saveDataBackupMovedToTrash = 0, "#%s# has been moved to trash."
+saveDataCreatedForUser = 0, "Save data created for %s!"
+saveDataCreationFailed = 0, "Save data creation failed!"
+saveDataDeleteAllUser = 0, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*"
+saveDataDeleteSuccess = 0, "Save data for #%s# deleted!"
+saveDataExtendFailed = 0, "Failed to extend save data."
+saveDataExtendSuccess = 0, "Save data for #%s# extended!"
+saveDataNoneFound = 0, "No saves found for #%s#!"
+saveDataResetSuccess = 0, "Save for #%s# reset!"
+settingsMenu = 0, "Empty Trash Bin"
+settingsMenu = 1, "Check for Updates"
+settingsMenu = 2, "Set JKSV Save Output Folder"
+settingsMenu = 3, "Include Device Saves With Users: "
+settingsMenu = 4, "Auto Backup On Restore: "
+settingsMenu = 5, "Overclock/CPU Boost: "
+settingsMenu = 6, "Hold To Delete: "
+settingsMenu = 7, "Hold To Restore: "
+settingsMenu = 8, "Hold To Overwrite: "
+settingsMenu = 9, "Force Mount: "
+settingsMenu = 10, "Account System Saves: "
+settingsMenu = 11, "Enable Writing to System Saves: "
+settingsMenu = 12, "Use FS Commands Directly: "
+settingsMenu = 13, "Export Saves to ZIP: "
+settingsMenu = 14, "Force English To Be Used: "
+settingsMenu = 15, "Enable Trash Bin: "
+settingsMenu = 16, "Title Sorting Type: "
+settingsMenu = 17, "Animation Scale: "
+settingsOff = 0, "Off"
+settingsOn = 0, ">On>"
 sortType = 0, "Alphabetical"
 sortType = 1, "Time Played"
 sortType = 2, "Last Played"
+swkbdEnterName = 0, "Enter a new name"
+swkbdMkDir = 0, "Enter a folder name"
+swkbdProcessID = 0, "Enter Process ID"
+swkbdRename = 0, "Enter a new name for item"
+swkbdSaveIndex = 0, "Enter Cache Index"
+swkbdSetWorkDir = 0, "Enter a new Output Path"
+swkbdSysSavID = 0, "Enter System Save ID"
+threadStatusAddingFileToZip = 0, "Adding '#%s#' to ZIP..."
+threadStatusCheckingForUpdate = 0, "Checking for updates..."
+threadStatusCopyingFile = 0, "Copying '#%s#'..."
+threadStatusCreatingSaveData = 0, "Creating Save Data for #%s#..."
+threadStatusDecompressingFile = 0, "Decompressing '#%s#'..."
+threadStatusDeletingFile = 0, "Deleting..."
+threadStatusDeletingSaveData = 0, "Deleting Save Data for #%s#..."
+threadStatusDeletingUpdate = 0, "Deleting pending update..."
+threadStatusDownloadingUpdate = 0, "Downloading update..."
+threadStatusExtendingSaveData = 0, "Extending Save Data for #%s#..."
+threadStatusOpeningFolder = 0, "Opening '#%s#'..."
+threadStatusResettingSaveData = 0, "Resetting save data..."
+titleOptions = 0, "Information"
+titleOptions = 1, "Blacklist"
+titleOptions = 2, "Change Output Folder"
+titleOptions = 3, "Open in File Mode"
+titleOptions = 4, "Reset Save Data"
+titleOptions = 5, "Delete Save Data"
+titleOptions = 6, "Extend Save Data"
+userOptions = 0, "Create Save Data"
+userOptions = 1, "Create All Save Data"
+userOptions = 2, "Delete All User Saves"
