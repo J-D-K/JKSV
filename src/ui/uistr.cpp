@@ -114,11 +114,10 @@ void ui::initStrings()
     addUIString("titleOptions", 0, "Information");
     addUIString("titleOptions", 1, "Blacklist");
     addUIString("titleOptions", 2, "Change Output Folder");
-    addUIString("titleOptions", 3, "Export");
-    addUIString("titleOptions", 4, "Open in File Mode");
-    addUIString("titleOptions", 5, "Reset Save Data");
-    addUIString("titleOptions", 6, "Delete Save Data");
-    addUIString("titleOptions", 7, "Extend Save Data");
+    addUIString("titleOptions", 3, "Open in File Mode");
+    addUIString("titleOptions", 4, "Reset Save Data");
+    addUIString("titleOptions", 5, "Delete Save Data");
+    addUIString("titleOptions", 6, "Extend Save Data");
 
     //Thread Status Strings
     addUIString("threadStatusCreatingSaveData", 0, "Creating save data for #%s#...");
