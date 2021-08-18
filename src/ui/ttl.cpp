@@ -66,14 +66,14 @@ void ui::populateFldMenu()
     fldMenu->reset();
 
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-    util::createTitleDirectoryByTID(d->saveID);
-    std::string targetDir = util::generatePathByTID(d->saveID);
+    util::createTitleDirectoryByTID(d->tid);
+    std::string targetDir = util::generatePathByTID(d->tid);
 
     fldList->reassign(targetDir);
 
     char filterPath[128];
-    sprintf(filterPath, "sdmc:/config/JKSV/0x%016lX_filter.txt", d->saveID);
-    fs::loadPathFilters(filterPath);
+    sprintf(filterPath, "sdmc:/config/JKSV/0x%016lX_filter.txt", d->tid);
+    fs::loadPathFilters(d->tid);
 
     *backargs = {fldMenu, fldList};
 
@@ -113,7 +113,6 @@ static void ttlViewCallback(void *a)
             break;
 
         case HidNpadButton_X:
-            data::setTitleIndex(ttlViews[curUserIndex]->getSelected());
             ttlViews[curUserIndex]->setActive(false, true);
             ttlOpts->setActive(true);
             ui::ttlOptsPanel->openPanel();
@@ -121,9 +120,9 @@ static void ttlViewCallback(void *a)
 
         case HidNpadButton_Y:
             {
-                cfg::addTitleToFavorites(d->saveID);
-                int newSel = data::getTitleIndexInUser(*data::getCurrentUser(), d->saveID);
-                ui::ttlRefresh();
+                cfg::addTitleToFavorites(d->tid);
+                data::user *u = data::getCurrentUser();
+                int newSel = data::getTitleIndexInUser(u, d->tid);
                 ttlViews[curUserIndex]->setSelected(newSel);
             }
             break;
@@ -156,20 +155,20 @@ static void ttlOptsShowInfoPanel(void *a)
 {
     ttlOpts->setActive(false);
     ui::ttlOptsPanel->closePanel();
-    infoPanelString = util::getInfoString(*data::getCurrentUser(), data::getCurrentUserTitleInfo()->saveID);
+    infoPanelString = util::getInfoString(*data::getCurrentUser(), data::getCurrentUserTitleInfo()->tid);
     infoPanel->openPanel();
 }
 
 static void ttlOptsBlacklistTitle(void *a)
 {
-    std::string title = data::getTitleNameByTID(data::getCurrentUserTitleInfo()->saveID);
+    std::string title = data::getTitleNameByTID(data::getCurrentUserTitleInfo()->tid);
     ui::confirmArgs *conf = ui::confirmArgsCreate(false, cfg::addTitleToBlacklist, NULL, true, ui::getUICString("confirmBlacklist", 0), title.c_str());
     ui::confirm(conf);
 }
 
 static void ttlOptsDefinePath(void *a)
 {
-    uint64_t tid = data::getCurrentUserTitleInfo()->saveID;
+    uint64_t tid = data::getCurrentUserTitleInfo()->tid;
     std::string safeTitle = data::getTitleInfoByTID(tid)->safeTitle;
     std::string newSafeTitle = util::getStringInput(SwkbdType_QWERTY, safeTitle, "Input New Output Folder", 0x200, 0, NULL);
     if(!newSafeTitle.empty())
@@ -192,7 +191,7 @@ static void ttlOptsResetSaveData_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-    std::string title = data::getTitleNameByTID(d->saveID);
+    std::string title = data::getTitleNameByTID(d->tid);
     t->status->setStatus(ui::getUICString("threadStatusResettingSaveData", 0), title.c_str());
 
     fs::mountSave(d->saveInfo);
@@ -208,7 +207,7 @@ static void ttlOptsResetSaveData(void *a)
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     if(d->saveInfo.save_data_type != FsSaveDataType_System)
     {
-        std::string title = data::getTitleNameByTID(d->saveID);
+        std::string title = data::getTitleNameByTID(d->tid);
         ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdDel"], ttlOptsResetSaveData_t, NULL, true, ui::getUICString("confirmResetSaveData", 0), title.c_str());
         ui::confirm(conf);
     }
@@ -221,7 +220,7 @@ static void ttlOptsDeleteSaveData_t(void *a)
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     unsigned userIndex = data::getCurrentUserIndex();
 
-    std::string title = data::getTitleNameByTID(d->saveID);
+    std::string title = data::getTitleNameByTID(d->tid);
     t->status->setStatus(ui::getUICString("threadStatusDeletingSaveData", 0), title.c_str());
     if(R_SUCCEEDED(fsDeleteSaveDataFileSystemBySaveDataSpaceId((FsSaveDataSpaceId)d->saveInfo.save_data_space_id, d->saveInfo.save_data_id)))
     {
@@ -246,7 +245,7 @@ static void ttlOptsDeleteSaveData(void *a)
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     if(d->saveInfo.save_data_type != FsSaveDataType_System)
     {
-        std::string title = data::getTitleNameByTID(d->saveID);
+        std::string title = data::getTitleNameByTID(d->tid);
         ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdDel"], ttlOptsDeleteSaveData_t, NULL, true, ui::getUICString("confirmDeleteSaveData", 0), title.c_str());
         ui::confirm(conf);
     }
@@ -261,7 +260,7 @@ static void ttlOptsExtendSaveData_t(void *a)
     if(!expSizeStr.empty())
     {
         int64_t journ = 0, expSize;
-        data::titleInfo *extend = data::getTitleInfoByTID(d->saveID);
+        data::titleInfo *extend = data::getTitleInfoByTID(d->tid);
         t->status->setStatus(ui::getUICString("threadStatusExtendingSaveData", 0), extend->title.c_str());
         //Get journal size
         switch(d->saveInfo.save_data_type)
@@ -328,7 +327,7 @@ static void infoPanelDraw(void *a)
 {
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     SDL_Texture *panel = (SDL_Texture *)a;
-    gfx::texDraw(panel, data::getTitleIconByTID(d->saveID), 77, 32);
+    gfx::texDraw(panel, data::getTitleIconByTID(d->tid), 77, 32);
     gfx::drawTextfWrap(panel, 18, 32, 320, 362, &ui::txtCont, infoPanelString.c_str());
 }
 

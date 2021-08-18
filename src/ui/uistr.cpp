@@ -38,6 +38,7 @@ void ui::initStrings()
     addUIString("confirmCopy", 0, "Are you sure you want to copy #%s# to #%s#?");
     addUIString("confirmDeleteSaveData", 0, "*WARNING*: This *will* erase the save data for #%s# *from your system*. Are you sure you want to do this?");
     addUIString("confirmResetSaveData", 0, "*WARNING*: This *will* reset the save data for this game as if it was never ran before. Are you sure you want to do this?");
+    addUIString("confirmCreateAllSaveData", 0, "Are you sure you would like to create all save data on this system for #%s#? This can take a while depending on how many titles are found.");
 
     //Save Data related strings
     addUIString("saveDataNoneFound", 0, "No saves found for #%s#!");
@@ -104,18 +105,20 @@ void ui::initStrings()
     addUIString("extrasMenu", 11, "*[DEV]* Output en-US");
 
     //User Options
-    addUIString("userOptions", 0, "Create Save Data");
-    addUIString("userOptions", 1, "Create All Save Data");
-    addUIString("userOptions", 2, "Delete All User Saves");
+    addUIString("userOptions", 0, "Dump All For ");
+    addUIString("userOptions", 1, "Create Save Data");
+    addUIString("userOptions", 2, "Create All Save Data");
+    addUIString("userOptions", 3, "Delete All User Saves");
 
     //Title Options
     addUIString("titleOptions", 0, "Information");
     addUIString("titleOptions", 1, "Blacklist");
     addUIString("titleOptions", 2, "Change Output Folder");
-    addUIString("titleOptions", 3, "Open in File Mode");
-    addUIString("titleOptions", 4, "Reset Save Data");
-    addUIString("titleOptions", 5, "Delete Save Data");
-    addUIString("titleOptions", 6, "Extend Save Data");
+    addUIString("titleOptions", 3, "Export");
+    addUIString("titleOptions", 4, "Open in File Mode");
+    addUIString("titleOptions", 5, "Reset Save Data");
+    addUIString("titleOptions", 6, "Delete Save Data");
+    addUIString("titleOptions", 7, "Extend Save Data");
 
     //Thread Status Strings
     addUIString("threadStatusCreatingSaveData", 0, "Creating save data for #%s#...");

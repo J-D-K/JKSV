@@ -392,7 +392,7 @@ static void _devMenuAddToPathFilter(void *a)
     {
         data::userTitleInfo *d = data::getCurrentUserTitleInfo();
         std::string filterPath = *ma->path + b->d->getItem(sel - 2);
-        cfg::addPathToFilter(d->saveID, filterPath);
+        cfg::addPathToFilter(d->tid, filterPath);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popAddedToPathFilter", 0), filterPath.c_str());
     }
 }

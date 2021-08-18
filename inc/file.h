@@ -52,14 +52,14 @@ namespace fs
     void delDir(const std::string& path);
 
     //Loads paths to filter from backup/deletion
-    void loadPathFilters(const std::string& _file);
+    void loadPathFilters(const uint64_t& tid);
     bool pathIsFiltered(const std::string& _path);
     void freePathFilters();
 
     void wipeSave();
 
-    //Dumps all titles for 'user'. returns false to bail
-    bool dumpAllUserSaves(const data::user& u);
+    //Dumps all titles for current user
+    void dumpAllUserSaves();
 
     //returns file properties as C++ string
     std::string getFileProps(const std::string& _path);

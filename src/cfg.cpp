@@ -38,12 +38,12 @@ void cfg::addTitleToBlacklist(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-    uint64_t tid = d->saveID;
+    uint64_t tid = d->tid;
     blacklist.push_back(tid);
     for(data::user& u : data::users)
     {
         for(unsigned i = 0; i < u.titleInfo.size(); i++)
-            if(u.titleInfo[i].saveID == tid) u.titleInfo.erase(u.titleInfo.begin() + i);
+            if(u.titleInfo[i].tid == tid) u.titleInfo.erase(u.titleInfo.begin() + i);
     }
     ui::ttlRefresh();
     t->finished = true;

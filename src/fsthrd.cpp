@@ -198,7 +198,7 @@ void fs::copyFileCommit_t(void *a)
     threadInfo *t = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-    data::titleInfo *info = data::getTitleInfoByTID(d->saveID);
+    data::titleInfo *info = data::getTitleInfoByTID(d->tid);
     t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), args->from.c_str());
 
     args->prog->setMax(fs::fsize(args->from));
@@ -424,7 +424,13 @@ void fs::copyDirToZip_t(void *a)
         }
         else
         {
-            zip_fileinfo inf = {0};
+            time_t raw;
+            time(&raw);
+            tm *locTime = localtime(&raw);
+
+            zip_fileinfo inf = { (unsigned)locTime->tm_sec, (unsigned)locTime->tm_min, (unsigned)locTime->tm_hour,
+                (unsigned)locTime->tm_mday, (unsigned)locTime->tm_mon, (unsigned)(1900 + locTime->tm_year), 0, 0, 0 };
+
             std::string filename = args->from + itm;
             size_t devPos = filename.find_first_of('/') + 1;
             t->status->setStatus(ui::getUICString("threadStatusAddingFileToZip", 0), itm.c_str());
@@ -454,7 +460,7 @@ void fs::copyDirToZip_t(void *a)
     if(args->cleanup)
     {
         if(cfg::config["ovrClk"])
-            util::setCPU(1224000000);
+            util::setCPU(util::cpu1224MHz);
         ui::newThread(closeZip_t, args->z, NULL);
         delete args->prog;
         delete args;
@@ -468,7 +474,7 @@ void fs::copyZipToDir_t(void *a)
     copyArgs *args = (copyArgs *)t->argPtr;
 
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-    data::titleInfo *tinfo = data::getTitleInfoByTID(d->saveID);
+    data::titleInfo *tinfo = data::getTitleInfoByTID(d->tid);
     uint64_t journalSize = getJournalSize(tinfo), writeCount = 0;
     char filename[FS_MAX_PATH];
     uint8_t *buff = new uint8_t[BUFF_SIZE];
@@ -543,7 +549,7 @@ void fs::copyZipToDir_t(void *a)
         unzClose(args->unz);
         copyArgsDestroy(args);
         if(cfg::config["ovrClk"])
-            util::setCPU(1224000000);
+            util::setCPU(util::cpu1224MHz);
     }
     delete[] buff;
     t->finished = true;
@@ -563,5 +569,72 @@ void fs::closeZip_t(void *a)
     threadInfo *t = (threadInfo *)a;
     zipFile z = t->argPtr;
     zipClose(z, NULL);
+    t->finished = true;
+}
+
+void fs::backupUserSaves_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *c = (fs::copyArgs *)t->argPtr;
+    data::user *u = data::getCurrentUser();
+
+    if(cfg::config["ovrClk"] && cfg::config["zip"])
+    {
+        util::setCPU(util::cpu1785MHz);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
+    }
+
+    for(unsigned i = 0; i < u->titleInfo.size(); i++)
+    {
+        std::string title = data::getTitleNameByTID(u->titleInfo[i].tid);
+        t->status->setStatus(std::string("#" + title + "#").c_str());
+        if((ui::padKeysDown() & HidNpadButton_B) || (ui::padKeysHeld() & HidNpadButton_B))
+        {
+            delete c;
+            t->finished = true;
+            return;
+        }
+
+        bool saveMounted = fs::mountSave(u->titleInfo[i].saveInfo);
+        util::createTitleDirectoryByTID(u->titleInfo[i].tid);
+        if(saveMounted && cfg::config["zip"] && fs::dirNotEmpty("sv:/"))
+        {
+            fs::loadPathFilters(u->titleInfo[i].tid);
+            std::string outPath = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+            zipFile zip = zipOpen64(outPath.c_str(), 0);
+            threadInfo fakeThread;
+            fs::copyArgs tmpArgs;
+            tmpArgs.from = "sv:/";
+            tmpArgs.z = zip;
+            tmpArgs.cleanup = false;
+            tmpArgs.prog = c->prog;
+            fakeThread.status = t->status;
+            fakeThread.argPtr = &tmpArgs;
+            copyDirToZip_t(&fakeThread);
+            zipClose(zip, NULL);
+            fs::freePathFilters();
+        }
+        else if(saveMounted && fs::dirNotEmpty("sv:/"))
+        {
+            fs::loadPathFilters(u->titleInfo[i].tid);
+            std::string outPath = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+            fs::mkDir(outPath.substr(0, outPath.length() - 1));
+            threadInfo fakeThread;
+            fs::copyArgs tmpArgs;
+            tmpArgs.from = "sv:/";
+            tmpArgs.to = outPath;
+            tmpArgs.cleanup = false;
+            tmpArgs.prog = c->prog;
+            fakeThread.status = t->status;
+            fakeThread.argPtr = &tmpArgs;
+            copyDirToDir_t(&fakeThread);
+            fs::freePathFilters();
+        }
+        fs::unmountSave();
+    }
+    delete c;
+    if(cfg::config["ovrClk"] && cfg::config["zip"])
+        util::setCPU(util::cpu1224MHz);
+
     t->finished = true;
 }

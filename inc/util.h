@@ -17,6 +17,26 @@ namespace util
         DATE_FMT_ASC
     };
 
+    typedef enum
+    {
+        cpu204MHz = 204000000,
+        cpu306MHz = 306000000,
+        cpu408MHz = 408000000,
+        cpu510MHz = 510000000,
+        cpu612MHz = 612000000,
+        cpu714MHz = 714000000,
+        cpu816MHz = 816000000,
+        cpu918MHz = 918000000,
+        cpu1020MHz = 1020000000, //Default
+        cpu1122MHz = 1122000000,
+        cpu1224MHz = 1224000000,
+        cpu1326MHz = 1326000000,
+        cpu1428MHz = 1428000000,
+        cpu1581MHz = 1581000000,
+        cpu1683MHz = 1683000000,
+        cpu1785MHz = 1785000000
+    } cpuSpds;
+
     //Returns string with date S+ time
     std::string getDateTime(int fmt);
 

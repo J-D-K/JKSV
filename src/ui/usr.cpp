@@ -170,7 +170,7 @@ static void usrOptDeleteAllUserSaves_t(void *a)
     {
         if(tinf.saveInfo.save_data_type != FsSaveDataType_System && (tinf.saveInfo.save_data_type != FsSaveDataType_Device || curUserIndex == devUser))
         {
-            t->status->setStatus(ui::getUICString("threadStatusDeletingSaveData", 0), data::getTitleNameByTID(tinf.saveID).c_str());
+            t->status->setStatus(ui::getUICString("threadStatusDeletingSaveData", 0), data::getTitleNameByTID(tinf.tid).c_str());
             fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);
         }
     }
@@ -216,6 +216,13 @@ static void cacheSavePanelDraw(void *a)
     cacheSaveMenu->draw(panel, &ui::txtCont, true);
 }
 
+static void usrOptDumpAllUserSaves(void *a)
+{
+    data::user *u = data::getCurrentUser();
+    if(u->titleInfo.size() > 0)
+        fs::dumpAllUserSaves();
+}
+
 static void createSaveData(void *a)
 {
     data::user *u = data::getCurrentUser();
@@ -250,8 +257,9 @@ static void createSaveData(void *a)
     }
 }
 
-static void usrOptCreateAllSaves(void *a)
+static void usrOptCreateAllSaves_t(void *a)
 {
+    threadInfo *t = (threadInfo *)a;
     data::user *u = data::getCurrentUser();
     int devPos = ui::usrMenu->getOptPos("Device");
     int bcatPos = ui::usrMenu->getOptPos("BCAT");
@@ -272,6 +280,14 @@ static void usrOptCreateAllSaves(void *a)
         for(unsigned i = 0; i < bcatSids.size(); i++)
             fs::createSaveData(FsSaveDataType_Bcat, bcatSids[i], util::u128ToAccountUID(0));
     }
+    t->finished = true;
+}
+
+static void usrOptCreateAllSaves(void *a)
+{
+    data::user *u = data::getCurrentUser();
+    ui::confirmArgs *send = ui::confirmArgsCreate(true, usrOptCreateAllSaves_t, NULL, true, ui::getUICString("confirmCreateAllSaveData", 0), u->getUsername().c_str());
+    ui::confirm(send);
 }
 
 //Sets up save create menus
@@ -385,15 +401,17 @@ void ui::usrInit()
     usrOptPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, usrOptPanelDraw);
     ui::registerPanel(usrOptPanel);
 
-    for(int i = 0; i < 3; i++)
+    for(int i = 0; i < 4; i++)
         usrOptMenu->addOpt(NULL, ui::getUIString("userOptions", i));
 
+    //Dump All User Saves
+    usrOptMenu->optAddButtonEvent(0, HidNpadButton_A, usrOptDumpAllUserSaves, NULL);
     //Create Save Data
-    usrOptMenu->optAddButtonEvent(0, HidNpadButton_A, usrOptSaveCreate, usrMenu);
+    usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptSaveCreate, usrMenu);
     //Create All
-    usrOptMenu->optAddButtonEvent(1, HidNpadButton_A, usrOptCreateAllSaves, NULL);
+    usrOptMenu->optAddButtonEvent(2, HidNpadButton_A, usrOptCreateAllSaves, NULL);
     //Delete All
-    usrOptMenu->optAddButtonEvent(2, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
+    usrOptMenu->optAddButtonEvent(3, HidNpadButton_A, usrOptDeleteAllUserSaves, NULL);
     usrOptMenu->setActive(false);
 
     saveCreatePanel = new ui::slideOutPanel(512, 720, 0, ui::SLD_RIGHT, saveCreatePanelDraw);
@@ -449,6 +467,8 @@ void ui::usrUpdate()
                     int cachePos = usrMenu->getOptPos("Cache");
                     if(usrMenu->getSelected() <= cachePos)
                     {
+                        data::user *u = data::getCurrentUser();
+                        usrOptMenu->editOpt(0, NULL, ui::getUIString("userOptions", 0) + u->getUsername());
                         usrOptMenu->setActive(true);
                         usrMenu->setActive(false);
                         usrOptPanel->openPanel();

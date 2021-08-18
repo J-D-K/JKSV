@@ -8,7 +8,7 @@
 #include "gfx.h"
 
 #define BLD_MON 8
-#define BLD_DAY 16
+#define BLD_DAY 17
 #define BLD_YEAR 2021
 
 namespace data
@@ -37,7 +37,7 @@ namespace data
     typedef struct
     {
         //Makes it easier to grab id
-        uint64_t saveID;
+        uint64_t tid;
         FsSaveDataInfo saveInfo;
         PdmPlayStatistics playStats;
     } userTitleInfo;
@@ -99,14 +99,6 @@ namespace data
     std::string getTitleNameByTID(const uint64_t& tid);
     std::string getTitleSafeNameByTID(const uint64_t& tid);
     SDL_Texture *getTitleIconByTID(const uint64_t& tid);
-    inline int getTitleIndexInUser(const data::user& u, const uint64_t& sid)
-    {
-        for(unsigned i = 0; i < u.titleInfo.size(); i++)
-        {
-            if(u.titleInfo[i].saveID == sid)
-                return i;
-        }
-        return -1;
-    }
+    int getTitleIndexInUser(const data::user *u, const uint64_t& tid);
     extern SetLanguage sysLang;
 }

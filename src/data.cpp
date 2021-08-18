@@ -35,14 +35,14 @@ static struct
     bool operator()(const data::userTitleInfo& a, const data::userTitleInfo& b)
     {
         //Favorites override EVERYTHING
-        if(cfg::isFavorite(a.saveID) != cfg::isFavorite(b.saveID)) return cfg::isFavorite(a.saveID);
+        if(cfg::isFavorite(a.tid) != cfg::isFavorite(b.tid)) return cfg::isFavorite(a.tid);
 
         switch(cfg::sortType)
         {
             case cfg::ALPHA:
                 {
-                    std::string titleA = data::getTitleNameByTID(a.saveID);
-                    std::string titleB = data::getTitleNameByTID(b.saveID);
+                    std::string titleA = data::getTitleNameByTID(a.tid);
+                    std::string titleB = data::getTitleNameByTID(b.tid);
                     uint32_t pointA, pointB;
                     for(unsigned i = 0, j = 0; i < titleA.length(); )
                     {
@@ -213,14 +213,14 @@ bool data::loadUsersTitles(bool clearUsers)
 
         while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
         {
-            uint64_t saveID = 0;
+            uint64_t tid = 0;
             if(info.save_data_type == FsSaveDataType_System || info.save_data_type == FsSaveDataType_SystemBcat)
-                saveID = info.system_save_data_id;
+                tid = info.system_save_data_id;
             else
-                saveID = info.application_id;
+                tid = info.application_id;
 
             //Don't bother with this stuff
-            if(cfg::isBlacklisted(saveID) || !accountSystemSaveCheck(info) || !testMount(info))
+            if(cfg::isBlacklisted(tid) || !accountSystemSaveCheck(info) || !testMount(info))
                 continue;
 
             switch(info.save_data_type)
@@ -258,8 +258,8 @@ bool data::loadUsersTitles(bool clearUsers)
                     break;
             }
 
-            if(!titleIsLoaded(saveID))
-                addTitleToList(saveID);
+            if(!titleIsLoaded(tid))
+                addTitleToList(tid);
 
             int u = getUserIndex(info.uid);
             if(u == -1)
@@ -274,7 +274,7 @@ bool data::loadUsersTitles(bool clearUsers)
             else
                 memset(&playStats, 0, sizeof(PdmPlayStatistics));
 
-            users[u].addUserTitleInfo(saveID, &info, &playStats);
+            users[u].addUserTitleInfo(tid, &info, &playStats);
         }
         fsSaveDataInfoReaderClose(&it);
     }
@@ -307,7 +307,7 @@ void data::sortUserTitles()
 void data::init()
 {
     if(cfg::config["ovrClk"])
-        util::setCPU(1224000000);
+        util::setCPU(util::cpu1224MHz);
 
     uint64_t lang;
     setGetSystemLanguage(&lang);
@@ -325,7 +325,7 @@ void data::exit()
     SDL_DestroyTexture(iconMask);
 
     if(cfg::config["ovrClk"])
-        util::setCPU(1020000000);
+        util::setCPU(util::cpu1020MHz);
 }
 
 void data::setUserIndex(unsigned _sUser)
@@ -378,6 +378,16 @@ std::string data::getTitleSafeNameByTID(const uint64_t& tid)
 SDL_Texture *data::getTitleIconByTID(const uint64_t& tid)
 {
     return titles[tid].icon;
+}
+
+int data::getTitleIndexInUser(const data::user *u, const uint64_t& tid)
+{
+    for(unsigned i = 0; i < u->titleInfo.size(); i++)
+    {
+        if(u->titleInfo[i].tid == tid)
+            return i;
+    }
+    return -1;
 }
 
 data::user::user(const AccountUid& _id, const std::string& _backupName)
@@ -433,7 +443,7 @@ void data::user::setUID(const AccountUid& _id)
 void data::user::addUserTitleInfo(const uint64_t& tid, const FsSaveDataInfo *_saveInfo, const PdmPlayStatistics *_stats)
 {
     data::userTitleInfo newInfo;
-    newInfo.saveID = tid;
+    newInfo.tid = tid;
     memcpy(&newInfo.saveInfo, _saveInfo, sizeof(FsSaveDataInfo));
     memcpy(&newInfo.playStats, _stats, sizeof(PdmPlayStatistics));
     titleInfo.push_back(newInfo);
@@ -451,8 +461,8 @@ void data::dispStats()
     for(data::user& u : data::users)
         stats += u.getUsername() + ": " + std::to_string(u.titleInfo.size()) + "\n";
     stats += "Current User: " + cu->getUsername() + "\n";
-    stats += "Current Title: " + data::getTitleNameByTID(d->saveID) + "\n";
-    stats += "Safe Title: " + data::getTitleSafeNameByTID(d->saveID) + "\n";
+    stats += "Current Title: " + data::getTitleNameByTID(d->tid) + "\n";
+    stats += "Safe Title: " + data::getTitleSafeNameByTID(d->tid) + "\n";
     stats += "Sort Type: " + std::to_string(cfg::sortType) + "\n";
     gfx::drawTextf(NULL, 16, 2, 2, &green, stats.c_str());
 }

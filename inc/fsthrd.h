@@ -15,4 +15,6 @@ namespace fs
     void copyZipToDir_t(void *a);
     void wipesave_t(void *a);
     void closeZip_t(void *a);
+
+    void backupUserSaves_t(void *a);
 }

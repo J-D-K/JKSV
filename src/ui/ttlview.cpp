@@ -39,7 +39,7 @@ ui::titleview::titleview(const data::user& _u, int _iconW, int _iconH, int _horG
     u = &_u;
 
     for(const data::userTitleInfo& t : u->titleInfo)
-        tiles.emplace_back(new ui::titleTile(_iconW, _iconH, cfg::isFavorite(t.saveID), data::getTitleIconByTID(t.saveID)));
+        tiles.emplace_back(new ui::titleTile(_iconW, _iconH, cfg::isFavorite(t.tid), data::getTitleIconByTID(t.tid)));
 }
 
 ui::titleview::~titleview()
@@ -55,7 +55,7 @@ void ui::titleview::refresh()
 
     tiles.clear();
     for(const data::userTitleInfo& t : u->titleInfo)
-        tiles.emplace_back(new ui::titleTile(iconW, iconH, cfg::isFavorite(t.saveID), data::getTitleIconByTID(t.saveID)));
+        tiles.emplace_back(new ui::titleTile(iconW, iconH, cfg::isFavorite(t.tid), data::getTitleIconByTID(t.tid)));
 
     if(selected > (int)tiles.size() - 1 && selected > 0)
         selected = tiles.size() - 1;
