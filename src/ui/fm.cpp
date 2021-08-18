@@ -365,6 +365,26 @@ static void _copyMenuMkDir(void *a)
     refreshMenu(&fake);
 }
 
+static void _copyMenuGetProps(void *a)
+{
+    menuFuncArgs *ma = (menuFuncArgs *)a;
+    fs::backupArgs *b = (fs::backupArgs *)ma->b;
+
+    int sel = b->m->getSelected();
+    if(sel == 0)
+        fs::getShowDirProps(*ma->path);
+    else if(sel > 1 && b->d->isDir(sel - 2))
+    {
+        std::string folderPath = *ma->path + b->d->getItem(sel - 2) + "/";
+        fs::getShowDirProps(folderPath);
+    }
+    else if(sel > 1)
+    {
+        std::string filePath = *ma->path + b->d->getItem(sel - 2);
+        fs::getShowFileProps(filePath);
+    }
+}
+
 static void _copyMenuClose(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
@@ -430,6 +450,7 @@ void ui::fmInit()
     devCopyMenu->optAddButtonEvent(2, HidNpadButton_A, _copyMenuRename, devArgs);
     devCopyMenu->optAddButtonEvent(3, HidNpadButton_A, _copyMenuMkDir, devArgs);
     devCopyMenu->optAddButtonEvent(4, HidNpadButton_A, _devMenuAddToPathFilter, devArgs);
+    devCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuGetProps, devArgs);
     devCopyMenu->optAddButtonEvent(6, HidNpadButton_A, _copyMenuClose, devArgs);
     ui::registerPanel(devPanel);
 
@@ -448,6 +469,7 @@ void ui::fmInit()
     sdCopyMenu->optAddButtonEvent(1, HidNpadButton_A, _copyMenuDelete, sdmcArgs);
     sdCopyMenu->optAddButtonEvent(2, HidNpadButton_A, _copyMenuRename, sdmcArgs);
     sdCopyMenu->optAddButtonEvent(3, HidNpadButton_A, _copyMenuMkDir, sdmcArgs);
+    sdCopyMenu->optAddButtonEvent(4, HidNpadButton_A, _copyMenuGetProps, sdmcArgs);
     sdCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuClose, sdmcArgs);
     ui::registerPanel(sdPanel);
 

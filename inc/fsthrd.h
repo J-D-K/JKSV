@@ -17,4 +17,5 @@ namespace fs
     void closeZip_t(void *a);
 
     void backupUserSaves_t(void *a);
+    void getShowDirProps_t(void *a);
 }

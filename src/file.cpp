@@ -359,7 +359,7 @@ void fs::copyDirToZip(const std::string& from, zipFile to)
 {
     if(cfg::config["ovrClk"])
     {
-        util::setCPU(util::cpu1785MHz);
+        util::setCPU(util::CPU_SPEED_1785MHz);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
     copyArgs *send = copyArgsCreate(from, "", "", to, NULL, true);
@@ -370,7 +370,7 @@ void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev
 {
     if(cfg::config["ovrClk"])
     {
-        util::setCPU(util::cpu1785MHz);
+        util::setCPU(util::CPU_SPEED_1785MHz);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
     copyArgs *send = copyArgsCreate("", to, dev, NULL, unz, true);
@@ -470,61 +470,18 @@ void fs::dumpAllUserSaves()
     ui::newThread(fs::backupUserSaves_t, send, _fileDrawFunc);
 }
 
-std::string fs::getFileProps(const std::string& _path)
+void fs::getShowFileProps(const std::string& _path)
 {
-    std::string ret = "";
-
-    FILE *get = fopen(_path.c_str(), "rb");
-    if(get != NULL)
-    {
-        //Size
-        fseek(get, 0, SEEK_END);
-        unsigned fileSize = ftell(get);
-        fseek(get, 0, SEEK_SET);
-
-        fclose(get);
-
-        //Probably add more later
-
-        char tmp[256];
-        std::sprintf(tmp, "Path: #%s#\nSize: %u", _path.c_str(), fileSize);
-
-        ret = tmp;
-    }
-    return ret;
+    size_t size = fs::fsize(_path);
+    ui::showMessage(ui::getUICString("fileModeFileProperties", 0), _path.c_str(), util::getSizeString(size).c_str());
 }
 
-void fs::getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize)
+void fs::getShowDirProps(const std::string& _path)
 {
-    fs::dirList list(_path);
-
-    for(unsigned i = 0; i < list.getCount(); i++)
-    {
-        if(list.isDir(i))
-        {
-            ++dirCount;
-            std::string newPath = _path + list.getItem(i) + "/";
-            uint32_t dirAdd = 0, fileAdd = 0;
-            uint64_t sizeAdd = 0;
-
-            getDirProps(newPath, dirAdd, fileAdd, sizeAdd);
-            dirCount += dirAdd;
-            fileCount += fileAdd;
-            totalSize += sizeAdd;
-        }
-        else
-        {
-            ++fileCount;
-            std::string filePath = _path + list.getItem(i);
-
-            FILE *gSize = fopen(filePath.c_str(), "rb");
-            fseek(gSize, 0, SEEK_END);
-            size_t fSize = ftell(gSize);
-            fclose(gSize);
-
-            totalSize += fSize;
-        }
-    }
+    fs::dirCountArgs *send = new fs::dirCountArgs;
+    send->path = _path;
+    send->origin = true;
+    ui::newThread(fs::getShowDirProps_t, send, NULL);
 }
 
 bool fs::fileExists(const std::string& path)
@@ -562,6 +519,12 @@ bool fs::isDir(const std::string& _path)
 
 void fs::createNewBackup(void *a)
 {
+    if(!fs::dirNotEmpty("sv:/"))
+    {
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popSaveIsEmpty", 0));
+        return;
+    }
+
     uint64_t held = ui::padKeysHeld();
 
     data::user *u = data::getCurrentUser();
@@ -609,7 +572,7 @@ void fs::createNewBackup(void *a)
         }
         else
         {
-            mkdir(path.c_str(), 777);
+            fs::mkDir(path);
             path += "/";
             fs::copyDirToDir("sv:/", path);
         }
@@ -629,15 +592,16 @@ void fs::overwriteBackup(void *a)
     unsigned ind = m->getSelected() - 1;;//Skip new
 
     std::string itemName = d->getItem(ind);
-    if(d->isDir(ind))
+    bool saveHasFiles = fs::dirNotEmpty("sv:/");
+    if(d->isDir(ind) && saveHasFiles)
     {
         std::string toPath = util::generatePathByTID(cd->tid) + itemName + "/";
         //Delete and recreate
         fs::delDir(toPath);
-        mkdir(toPath.c_str(), 777);
+        fs::mkDir(toPath);
         fs::copyDirToDir("sv:/", toPath);
     }
-    else if(!d->isDir(ind) && d->getItemExt(ind) == "zip")
+    else if(!d->isDir(ind) && d->getItemExt(ind) == "zip" && saveHasFiles)
     {
         std::string toPath = util::generatePathByTID(cd->tid) + itemName;
         fs::delfile(toPath);
@@ -661,16 +625,17 @@ void fs::restoreBackup(void *a)
     std::string itemName = d->getItem(ind);
     if((cd->saveInfo.save_data_type != FsSaveDataType_System || cfg::config["sysSaveWrite"]) && m->getSelected() > 0)
     {
-        if(cfg::config["autoBack"] && cfg::config["zip"])
+        bool saveHasFiles = fs::dirNotEmpty("sv:/");
+        if(cfg::config["autoBack"] && cfg::config["zip"] && saveHasFiles)
         {
             std::string autoZip = util::generatePathByTID(cd->tid) + "/AUTO " + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
             zipFile zip = zipOpen64(autoZip.c_str(), 0);
             fs::copyDirToZip("sv:/", zip);
         }
-        else if(cfg::config["autoBack"])
+        else if(cfg::config["autoBack"] && saveHasFiles)
         {
             std::string autoFolder = util::generatePathByTID(cd->tid) + "/AUTO - " + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
-            mkdir(autoFolder.substr(0, autoFolder.length() - 1).c_str(), 777);
+            fs::mkDir(autoFolder.substr(0, autoFolder.length() - 1));
             fs::copyDirToDir("sv:/", autoFolder);
         }
 
@@ -683,7 +648,7 @@ void fs::restoreBackup(void *a)
                 fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
             }
             else
-                ui::showPopMessage(POP_FRAME_DEFAULT, "Folder is empty!");
+                ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popFolderIsEmpty", 0));
         }
         else if(!d->isDir(ind) && d->getItemExt(ind) == "zip")
         {
@@ -695,7 +660,7 @@ void fs::restoreBackup(void *a)
                 fs::copyZipToDir(unz, "sv:/", "sv");
             }
             else
-                ui::showPopMessage(POP_FRAME_DEFAULT, "ZIP is empty!");
+                ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popZipIsEmpty", 0));
         }
         else
         {

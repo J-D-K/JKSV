@@ -476,6 +476,47 @@ void ui::confirm(void *a)
     ui::newThread(confirm_t, a, confirmDrawFunc);
 }
 
+static void showMessage_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    std::string *text = (std::string *)t->argPtr;
+    while(true)
+    {
+        if(ui::padKeysDown() & HidNpadButton_A)
+            break;
+
+        svcSleepThread(10000000);
+    }
+    delete text;
+    t->finished = true;
+}
+
+static void showMessageDrawFunc(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    std::string *text = (std::string *)t->argPtr;
+    if(!t->finished)
+    {
+        unsigned okX = 640 - (gfx::getTextWidth(ui::getUICString("dialogOK", 0), 18) / 2);
+        ui::drawTextbox(NULL, 280, 262, 720, 256);
+        gfx::drawLine(NULL, &ui::rectSh, 280, 454, 999, 454);
+        gfx::drawTextfWrap(NULL, 16, 312, 288, 656, &ui::txtCont, text->c_str());
+        gfx::drawTextf(NULL, 18, okX, 478, &ui::txtCont, ui::getUICString("dialogOK", 0));
+    }
+}
+
+void ui::showMessage(const char *fmt, ...)
+{
+    char tmp[1024];
+    va_list args;
+    va_start(args, fmt);
+    vsprintf(tmp, fmt, args);
+    va_end(args);
+
+    std::string *send = new std::string(tmp);
+    ui::newThread(showMessage_t, send, showMessageDrawFunc);
+}
+
 void ui::drawTextbox(SDL_Texture *target, int x, int y, int w, int h)
 {
     //Top

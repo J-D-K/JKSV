@@ -460,7 +460,7 @@ void fs::copyDirToZip_t(void *a)
     if(args->cleanup)
     {
         if(cfg::config["ovrClk"])
-            util::setCPU(util::cpu1224MHz);
+            util::setCPU(util::CPU_SPEED_1224MHz);
         ui::newThread(closeZip_t, args->z, NULL);
         delete args->prog;
         delete args;
@@ -549,7 +549,7 @@ void fs::copyZipToDir_t(void *a)
         unzClose(args->unz);
         copyArgsDestroy(args);
         if(cfg::config["ovrClk"])
-            util::setCPU(util::cpu1224MHz);
+            util::setCPU(util::CPU_SPEED_1224MHz);
     }
     delete[] buff;
     t->finished = true;
@@ -580,7 +580,7 @@ void fs::backupUserSaves_t(void *a)
 
     if(cfg::config["ovrClk"] && cfg::config["zip"])
     {
-        util::setCPU(util::cpu1785MHz);
+        util::setCPU(util::CPU_SPEED_1785MHz);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
 
@@ -634,7 +634,48 @@ void fs::backupUserSaves_t(void *a)
     }
     delete c;
     if(cfg::config["ovrClk"] && cfg::config["zip"])
-        util::setCPU(util::cpu1224MHz);
+        util::setCPU(util::CPU_SPEED_1224MHz);
 
+    t->finished = true;
+}
+
+void fs::getShowDirProps_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::dirCountArgs *d = (fs::dirCountArgs *)t->argPtr;
+
+    t->status->setStatus(ui::getUICString("threadStatusGetDirProps", 0));
+
+    fs::dirList *dir = new fs::dirList(d->path);
+    for(unsigned i = 0; i < dir->getCount(); i++)
+    {
+        if(dir->isDir(i))
+        {
+            d->dirCount++;
+            threadInfo *fakeThread = new threadInfo;
+            dirCountArgs *tmpArgs = new dirCountArgs;
+            tmpArgs->path = d->path + dir->getItem(i) + "/";
+            tmpArgs->origin = false;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = tmpArgs;
+            getShowDirProps_t(fakeThread);
+            d->dirCount += tmpArgs->dirCount;
+            d->fileCount += tmpArgs->fileCount;
+            d->totalSize += tmpArgs->totalSize;
+            delete fakeThread;
+            delete tmpArgs;
+        }
+        else
+        {
+            std::string filePath = d->path + dir->getItem(i);
+            d->fileCount++;
+            d->totalSize += fs::fsize(filePath);
+        }
+    }
+    if(d->origin)
+    {
+        ui::showMessage(ui::getUICString("fileModeFolderProperties", 0), d->path.c_str(), d->dirCount, d->fileCount, util::getSizeString(d->totalSize).c_str());
+        delete d;
+    }
     t->finished = true;
 }

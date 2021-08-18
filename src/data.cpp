@@ -307,7 +307,7 @@ void data::sortUserTitles()
 void data::init()
 {
     if(cfg::config["ovrClk"])
-        util::setCPU(util::cpu1224MHz);
+        util::setCPU(util::CPU_SPEED_1224MHz);
 
     uint64_t lang;
     setGetSystemLanguage(&lang);
@@ -325,7 +325,7 @@ void data::exit()
     SDL_DestroyTexture(iconMask);
 
     if(cfg::config["ovrClk"])
-        util::setCPU(util::cpu1020MHz);
+        util::setCPU(util::CPU_SPEED_1020MHz);
 }
 
 void data::setUserIndex(unsigned _sUser)

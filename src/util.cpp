@@ -389,6 +389,20 @@ void util::checkForUpdate(void *a)
     t->finished = true;
 }
 
+std::string util::getSizeString(const uint64_t& _size)
+{
+    char sizeStr[32];
+    if(_size >= 0x40000000)
+        sprintf(sizeStr, "%.2fGB", (float)_size / 1024.0f / 1024.0f / 1024.0f);
+    else if(_size >= 0x100000)
+        sprintf(sizeStr, "%.2fMB", (float)_size / 1024.0f / 1024.0f);
+    else if(_size >= 0x400)
+        sprintf(sizeStr, "%.2fKB", (float)_size / 1024.0f);
+    else
+        sprintf(sizeStr, "%lu Bytes", _size);
+    return std::string(sizeStr);
+}
+
 Result util::accountDeleteUser(AccountUid *uid)
 {
     Service *account = accountGetServiceSession();

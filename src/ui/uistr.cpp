@@ -24,6 +24,7 @@ void ui::initStrings()
     //Y/N On/Off
     addUIString("dialogYes", 0, "Yes [A]");
     addUIString("dialogNo", 0, "No [B]");
+    addUIString("dialogOK", 0, "OK [A]");
     addUIString("settingsOn", 0, ">On>");
     addUIString("settingsOff", 0, "Off");
     addUIString("holdingText", 0, "(Hold) ");
@@ -64,6 +65,10 @@ void ui::initStrings()
     addUIString("fileModeMenu", 4, "Properties");
     addUIString("fileModeMenu", 5, "Close");
     addUIString("fileModeMenu", 6, "Add to Path Filters");
+
+    //File mode properties string
+    addUIString("fileModeFileProperties", 0, "Path: %s\nSize: %s");
+    addUIString("fileModeFolderProperties", 0, "Path: %s\nSub Folders: %u\nFile Count: %u\nTotal Size: %s");
 
     //Settings menu
     addUIString("settingsMenu", 0, "Empty Trash Bin");
@@ -134,10 +139,14 @@ void ui::initStrings()
     addUIString("threadStatusDeletingUpdate", 0, "Deleting pending update...");
     addUIString("threadStatusCheckingForUpdate", 0, "Checking for updates...");
     addUIString("threadStatusDownloadingUpdate", 0, "Downloading update...");
+    addUIString("threadStatusGetDirProps", 0, "Getting Folder Properties...");
 
     //Random leftover pop-ups
     addUIString("popCPUBoostEnabled", 0, "CPU Boost Enabled for ZIP.");
     addUIString("popErrorCommittingFile", 0, "Error committing file to save!");
+    addUIString("popZipIsEmpty", 0, "ZIP file is empty!");
+    addUIString("popFolderIsEmpty", 0, "Folder is empty!");
+    addUIString("popSaveIsEmpty", 0, "Save data is empty!");
     addUIString("popProcessShutdown", 0, "#%s# successfully shutdown.");
     addUIString("popAddedToPathFilter", 0, "'#%s#' added to path filters.");
 

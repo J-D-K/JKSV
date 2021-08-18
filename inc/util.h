@@ -19,22 +19,22 @@ namespace util
 
     typedef enum
     {
-        cpu204MHz = 204000000,
-        cpu306MHz = 306000000,
-        cpu408MHz = 408000000,
-        cpu510MHz = 510000000,
-        cpu612MHz = 612000000,
-        cpu714MHz = 714000000,
-        cpu816MHz = 816000000,
-        cpu918MHz = 918000000,
-        cpu1020MHz = 1020000000, //Default
-        cpu1122MHz = 1122000000,
-        cpu1224MHz = 1224000000,
-        cpu1326MHz = 1326000000,
-        cpu1428MHz = 1428000000,
-        cpu1581MHz = 1581000000,
-        cpu1683MHz = 1683000000,
-        cpu1785MHz = 1785000000
+        CPU_SPEED_204MHz = 204000000,
+        CPU_SPEED_306MHz = 306000000,
+        CPU_SPEED_408MHz = 408000000,
+        CPU_SPEED_510MHz = 510000000,
+        CPU_SPEED_612MHz = 612000000,
+        CPU_SPEED_714MHz = 714000000,
+        CPU_SPEED_816MHz = 816000000,
+        CPU_SPEED_918MHz = 918000000,
+        CPU_SPEED_1020MHz = 1020000000, //Default
+        CPU_SPEED_1122MHz = 1122000000,
+        CPU_SPEED_1224MHz = 1224000000,
+        CPU_SPEED_1326MHz = 1326000000,
+        CPU_SPEED_1428MHz = 1428000000,
+        CPU_SPEED_1581MHz = 1581000000,
+        CPU_SPEED_1683MHz = 1683000000,
+        CPU_SPEED_1785MHz = 1785000000
     } cpuSpds;
 
     //Returns string with date S+ time
@@ -105,6 +105,8 @@ namespace util
     {
         return fs::getWorkDir() + data::getTitleSafeNameByTID(tid) + "/";
     }
+
+    std::string getSizeString(const uint64_t& _size);
 
     inline void createTitleDirectoryByTID(const uint64_t& tid)
     {

@@ -162,6 +162,7 @@ namespace ui
     //General use
     ui::confirmArgs *confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArgs, bool _cleanup, const char *fmt, ...);
     void confirm(void *a);
+    void showMessage(const char *fmt, ...);
     bool confirmTransfer(const std::string& f, const std::string& t);
     bool confirmDelete(const std::string& p);
     void drawBoundBox(SDL_Texture *target, int x, int y, int w, int h, uint8_t clrSh);

@@ -140,6 +140,7 @@ void ui::init()
     util::replaceButtonsInString(ui::strings[std::make_pair("helpSettings", 0)]);
     util::replaceButtonsInString(ui::strings[std::make_pair("dialogYes", 0)]);
     util::replaceButtonsInString(ui::strings[std::make_pair("dialogNo", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("dialogOK", 0)]);
 
     //setup pad
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);

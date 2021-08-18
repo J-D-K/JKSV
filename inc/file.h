@@ -61,11 +61,8 @@ namespace fs
     //Dumps all titles for current user
     void dumpAllUserSaves();
 
-    //returns file properties as C++ string
-    std::string getFileProps(const std::string& _path);
-
-    //Recursively retrieves info about dir _path
-    void getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize);
+    void getShowFileProps(const std::string& _path);
+    void getShowDirProps(const std::string& _path);
 
     bool fileExists(const std::string& _path);
     //Returns file size
@@ -163,6 +160,15 @@ namespace fs
         AccountUid account;
         uint16_t index;
     } svCreateArgs;
+
+    typedef struct
+    {
+        std::string path;
+        bool origin = false;
+        unsigned dirCount = 0;
+        unsigned fileCount = 0;
+        uint64_t totalSize = 0;
+    } dirCountArgs;
 
     copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup);
     void copyArgsDestroy(copyArgs *c);
