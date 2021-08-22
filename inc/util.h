@@ -45,6 +45,8 @@ namespace util
 
     //Removes last folder from '_path'
     void removeLastFolderFromString(std::string& _path);
+    size_t getTotalPlacesInPath(const std::string& _path);
+    void trimPath(std::string& _path, uint8_t _places);
 
     std::string safeString(const std::string& s);
 

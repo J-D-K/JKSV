@@ -8,7 +8,7 @@
 #include "gfx.h"
 
 #define BLD_MON 8
-#define BLD_DAY 17
+#define BLD_DAY 19
 #define BLD_YEAR 2021
 
 namespace data
@@ -99,6 +99,6 @@ namespace data
     std::string getTitleNameByTID(const uint64_t& tid);
     std::string getTitleSafeNameByTID(const uint64_t& tid);
     SDL_Texture *getTitleIconByTID(const uint64_t& tid);
-    int getTitleIndexInUser(const data::user *u, const uint64_t& tid);
+    int getTitleIndexInUser(const data::user& u, const uint64_t& tid);
     extern SetLanguage sysLang;
 }

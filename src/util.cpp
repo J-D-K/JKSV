@@ -144,6 +144,23 @@ void util::removeLastFolderFromString(std::string& _path)
     _path.erase(last + 1, _path.length());
 }
 
+size_t util::getTotalPlacesInPath(const std::string& _path)
+{
+    //Skip device
+    size_t pos = _path.find_first_of('/'), ret = 0;
+    while((pos = _path.find_first_of('/', ++pos)) != _path.npos)
+        ++ret;
+    return ret;
+}
+
+void util::trimPath(std::string& _path, uint8_t _places)
+{
+    size_t pos = _path.find_first_of('/');
+    for(int i = 0; i < _places; i++)
+        pos = _path.find_first_of('/', ++pos);
+    _path = _path.substr(++pos, _path.npos);
+}
+
 std::string util::safeString(const std::string& s)
 {
     std::string ret = "";

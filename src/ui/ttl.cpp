@@ -98,6 +98,7 @@ static void ttlViewCallback(void *a)
     unsigned setUserTitleIndex = ttlViews[curUserIndex]->getSelected();
     data::setTitleIndex(setUserTitleIndex);
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    uint64_t tid = d->tid;
 
     switch(ui::padKeysDown())
     {
@@ -120,9 +121,8 @@ static void ttlViewCallback(void *a)
 
         case HidNpadButton_Y:
             {
-                cfg::addTitleToFavorites(d->tid);
-                data::user *u = data::getCurrentUser();
-                int newSel = data::getTitleIndexInUser(u, d->tid);
+                cfg::addTitleToFavorites(tid);
+                int newSel = data::getTitleIndexInUser(data::users[curUserIndex], tid);
                 ttlViews[curUserIndex]->setSelected(newSel);
             }
             break;
@@ -185,6 +185,36 @@ static void ttlOptsToFileMode(void *a)
         ui::ttlOptsPanel->closePanel();
         ui::changeState(FIL_MDE);
     }
+}
+
+static void ttlOptsDeleteAllBackups_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    std::string targetPath = util::generatePathByTID(d->tid);
+    fs::dirList *backupList = new fs::dirList(targetPath);
+    for(unsigned i = 0; i < backupList->getCount(); i++)
+    {
+        std::string delPath = targetPath + backupList->getItem(i);
+        if(backupList->isDir(i))
+        {
+            delPath += "/";
+            fs::delDir(delPath);
+        }
+        else
+            fs::delfile(delPath);
+    }
+    delete backupList;
+    t->finished = true;
+}
+
+static void ttlOptsDeleteAllBackups(void *a)
+{
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    std::string currentTitle = data::getTitleNameByTID(d->tid);
+    ui::confirmArgs *send = ui::confirmArgsCreate(cfg::config["holdDel"], ttlOptsDeleteAllBackups_t, NULL, true, ui::getUICString("confirmDeleteBackupsTitle", 0), currentTitle.c_str());
+    ui::confirm(send);
 }
 
 static void ttlOptsResetSaveData_t(void *a)
@@ -399,7 +429,7 @@ void ui::ttlInit()
     backargs = new fs::backupArgs;
 
     ttlOpts->setActive(false);
-    for(int i = 0; i < 7; i++)
+    for(int i = 0; i < 8; i++)
         ttlOpts->addOpt(NULL, ui::getUIString("titleOptions", i));
 
     //Information
@@ -410,12 +440,14 @@ void ui::ttlInit()
     ttlOpts->optAddButtonEvent(2, HidNpadButton_A, ttlOptsDefinePath, NULL);
     //File Mode
     ttlOpts->optAddButtonEvent(3, HidNpadButton_A, ttlOptsToFileMode, NULL);
+    //Delete all backups
+    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsDeleteAllBackups, NULL);
     //Reset Save
-    ttlOpts->optAddButtonEvent(4, HidNpadButton_A, ttlOptsResetSaveData, NULL);
+    ttlOpts->optAddButtonEvent(5, HidNpadButton_A, ttlOptsResetSaveData, NULL);
     //Delete Save
-    ttlOpts->optAddButtonEvent(5, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
+    ttlOpts->optAddButtonEvent(6, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
     //Extend
-    ttlOpts->optAddButtonEvent(6, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
+    ttlOpts->optAddButtonEvent(7, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
 }
 
 void ui::ttlExit()

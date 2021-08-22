@@ -4,6 +4,7 @@
 #include "ui.h"
 #include "file.h"
 #include "util.h"
+#include "cfg.h"
 
 ui::menu *ui::extMenu;
 
@@ -134,6 +135,61 @@ static void extMenuMountRomFS(void *a)
     }
 }
 
+static void extMenuPackJKSVZip_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *c = (fs::copyArgs *)t->argPtr;
+    t->status->setStatus(ui::getUICString("threadStatusPackingJKSV", 0));
+    if(cfg::config["ovrClk"])
+    {
+        util::setCPU(util::CPU_SPEED_1785MHz);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
+    }
+
+    fs::dirList *jksv = new fs::dirList(fs::getWorkDir());
+    uint8_t pathTrimPlaces = util::getTotalPlacesInPath(fs::getWorkDir());
+    fs::logWrite("pathTrimPlaces = %u\n", pathTrimPlaces);
+    size_t dirCount = jksv->getCount();
+    if(dirCount > 0)
+    {
+        std::string zipPath = fs::getWorkDir() + "JKSV - " + util::getDateTime(util::DATE_FMT_ASC) + ".zip";
+        zipFile zip = zipOpen64(zipPath.c_str(), 0);
+        for(unsigned i = 0; i < jksv->getCount(); i++)
+        {
+            if(jksv->isDir(i) && jksv->getItem(i) != "_TRASH_")
+            {
+                std::string srcPath = fs::getWorkDir() + jksv->getItem(i) + "/";
+                threadInfo *fakeThread = new threadInfo;
+                fs::copyArgs *tmpArgs = new fs::copyArgs;
+                tmpArgs->from = srcPath;
+                tmpArgs->z = zip;
+                tmpArgs->prog = c->prog;
+                tmpArgs->trimZipPath = true;
+                tmpArgs->trimZipPlaces = pathTrimPlaces;
+                fakeThread->argPtr = tmpArgs;
+                fakeThread->status = t->status;
+                fs::copyDirToZip_t(fakeThread);
+                delete tmpArgs;
+                delete fakeThread;
+            }
+        }
+        zipClose(zip, NULL);
+    }
+    if(cfg::config["ovrClk"])
+        util::setCPU(util::CPU_SPEED_1224MHz);
+
+    delete jksv;
+    delete c;
+    t->finished = true;
+}
+
+static void extMenuPackJKSV(void *a)
+{
+    //Only for progress bar
+    fs::copyArgs *send = fs::copyArgsCreate("", "", "", NULL, NULL, true, false, 0);
+    ui::newThread(extMenuPackJKSVZip_t, send, fs::_fileDrawFunc);
+}
+
 static void extMenuOutputEnUs(void *a)
 {
     ui::newThread(ui::saveTranslationFile, NULL, NULL);
@@ -167,6 +223,8 @@ void ui::extInit()
     ui::extMenu->optAddButtonEvent(8, HidNpadButton_A, extMenuReloadTitles, NULL);
     //RomFS
     ui::extMenu->optAddButtonEvent(9, HidNpadButton_A, extMenuMountRomFS, NULL);
+    //Backup JKSV
+    ui::extMenu->optAddButtonEvent(10, HidNpadButton_A, extMenuPackJKSV, NULL);
     //Translation so I can be lazy
     ui::extMenu->optAddButtonEvent(11, HidNpadButton_A, extMenuOutputEnUs, NULL);
 }

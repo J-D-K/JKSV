@@ -20,7 +20,7 @@ static std::unordered_map<std::string, unsigned> cfgStrings =
     {"workDir", 0}, {"includeDeviceSaves", 1}, {"autoBackup", 2}, {"overclock", 3}, {"holdToDelete", 4}, {"holdToRestore", 5},
     {"holdToOverwrite", 6}, {"forceMount", 7}, {"accountSystemSaves", 8}, {"allowSystemSaveWrite", 9}, {"directFSCommands", 10},
     {"exportToZIP", 11}, {"languageOverride", 12}, {"enableTrashBin", 13}, {"titleSortType", 14}, {"animationScale", 15},
-    {"favorite", 16}, {"blacklist", 17}
+    {"favorite", 16}, {"blacklist", 17}, {"autoName", 18}
 };
 
 const std::string _true_ = "true", _false_ = "false";
@@ -137,6 +137,7 @@ void cfg::resetConfig()
     cfg::config["zip"] = false;
     cfg::config["langOverride"] = false;
     cfg::config["trashBin"] = true;
+    cfg::config["autoName"] = false;
     cfg::sortType = cfg::ALPHA;
     ui::animScale = 3.0f;
 }
@@ -364,6 +365,10 @@ void cfg::loadConfig()
                         blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
                     }
                     break;
+
+                case 18:
+                    cfg::config["autoName"] = textToBool(cfgRead.getNextValueStr());
+                    break;
             }
         }
     }
@@ -384,6 +389,7 @@ void cfg::saveConfig()
     fprintf(cfgOut, "#JKSV config.\nworkDir = \"%s\"\n\n", fs::getWorkDir().c_str());
     fprintf(cfgOut, "includeDeviceSaves = %s\n", boolToText(cfg::config["incDev"]).c_str());
     fprintf(cfgOut, "autoBackup = %s\n", boolToText(cfg::config["autoBack"]).c_str());
+    fprintf(cfgOut, "autoName = %s\n", boolToText(cfg::config["autoName"]).c_str());
     fprintf(cfgOut, "overclock = %s\n", boolToText(cfg::config["ovrClk"]).c_str());
     fprintf(cfgOut, "holdToDelete = %s\n", boolToText(cfg::config["holdDel"]).c_str());
     fprintf(cfgOut, "holdToRestore = %s\n", boolToText(cfg::config["holdRest"]).c_str());

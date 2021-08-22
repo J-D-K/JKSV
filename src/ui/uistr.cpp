@@ -8,7 +8,7 @@
 
 std::map<std::pair<std::string, int>, std::string> ui::strings;
 
-static inline void addUIString(const std::string& _name, int ind, const std::string& _str)
+static void addUIString(const std::string& _name, int ind, const std::string& _str)
 {
     ui::strings[std::make_pair(_name, ind)] = _str;
 }
@@ -40,6 +40,8 @@ void ui::initStrings()
     addUIString("confirmDeleteSaveData", 0, "*WARNING*: This *will* erase the save data for #%s# *from your system*. Are you sure you want to do this?");
     addUIString("confirmResetSaveData", 0, "*WARNING*: This *will* reset the save data for this game as if it was never ran before. Are you sure you want to do this?");
     addUIString("confirmCreateAllSaveData", 0, "Are you sure you would like to create all save data on this system for #%s#? This can take a while depending on how many titles are found.");
+    addUIString("confirmDeleteBackupsTitle", 0, "Are you sure you would like to delete all save backups for #%s#?");
+    addUIString("confirmDeleteBackupsAll", 0, "Are you sure you would like to delete *all* of your save backups for all of your games?");
 
     //Save Data related strings
     addUIString("saveDataNoneFound", 0, "No saves found for #%s#!");
@@ -74,21 +76,23 @@ void ui::initStrings()
     addUIString("settingsMenu", 0, "Empty Trash Bin");
     addUIString("settingsMenu", 1, "Check for Updates");
     addUIString("settingsMenu", 2, "Set JKSV Save Output Folder");
-    addUIString("settingsMenu", 3, "Include Device Saves With Users: ");
-    addUIString("settingsMenu", 4, "Auto Backup On Restore: ");
-    addUIString("settingsMenu", 5, "Overclock/CPU Boost: ");
-    addUIString("settingsMenu", 6, "Hold To Delete: ");
-    addUIString("settingsMenu", 7, "Hold To Restore: ");
-    addUIString("settingsMenu", 8, "Hold To Overwrite: ");
-    addUIString("settingsMenu", 9, "Force Mount: ");
-    addUIString("settingsMenu", 10, "Account System Saves: ");
-    addUIString("settingsMenu", 11, "Enable Writing to System Saves: ");
-    addUIString("settingsMenu", 12, "Use FS Commands Directly: ");
-    addUIString("settingsMenu", 13, "Export Saves to ZIP: ");
-    addUIString("settingsMenu", 14, "Force English To Be Used: ");
-    addUIString("settingsMenu", 15, "Enable Trash Bin: ");
-    addUIString("settingsMenu", 16, "Title Sorting Type: ");
-    addUIString("settingsMenu", 17, "Animation Scale: ");
+    addUIString("settingsMenu", 3, "Delete All Save Backups");
+    addUIString("settingsMenu", 4, "Include Device Saves With Users: ");
+    addUIString("settingsMenu", 5, "Auto Backup On Restore: ");
+    addUIString("settingsMenu", 6, "Auto-Name Backups: ");
+    addUIString("settingsMenu", 7, "Overclock/CPU Boost: ");
+    addUIString("settingsMenu", 8, "Hold To Delete: ");
+    addUIString("settingsMenu", 9, "Hold To Restore: ");
+    addUIString("settingsMenu", 10, "Hold To Overwrite: ");
+    addUIString("settingsMenu", 11, "Force Mount: ");
+    addUIString("settingsMenu", 12, "Account System Saves: ");
+    addUIString("settingsMenu", 13, "Enable Writing to System Saves: ");
+    addUIString("settingsMenu", 14, "Use FS Commands Directly: ");
+    addUIString("settingsMenu", 15, "Export Saves to ZIP: ");
+    addUIString("settingsMenu", 16, "Force English To Be Used: ");
+    addUIString("settingsMenu", 17, "Enable Trash Bin: ");
+    addUIString("settingsMenu", 18, "Title Sorting Type: ");
+    addUIString("settingsMenu", 19, "Animation Scale: ");
 
     //Sort Strings for ^
     addUIString("sortType", 0, "Alphabetical");
@@ -120,9 +124,10 @@ void ui::initStrings()
     addUIString("titleOptions", 1, "Blacklist");
     addUIString("titleOptions", 2, "Change Output Folder");
     addUIString("titleOptions", 3, "Open in File Mode");
-    addUIString("titleOptions", 4, "Reset Save Data");
-    addUIString("titleOptions", 5, "Delete Save Data");
-    addUIString("titleOptions", 6, "Extend Save Data");
+    addUIString("titleOptions", 4, "Delete All Save Backups");
+    addUIString("titleOptions", 5, "Reset Save Data");
+    addUIString("titleOptions", 6, "Delete Save Data");
+    addUIString("titleOptions", 7, "Extend Save Data");
 
     //Thread Status Strings
     addUIString("threadStatusCreatingSaveData", 0, "Creating save data for #%s#...");
@@ -140,6 +145,7 @@ void ui::initStrings()
     addUIString("threadStatusCheckingForUpdate", 0, "Checking for updates...");
     addUIString("threadStatusDownloadingUpdate", 0, "Downloading update...");
     addUIString("threadStatusGetDirProps", 0, "Getting Folder Properties...");
+    addUIString("threadStatusPackingJKSV", 0, "Writing JKSV folder contents to ZIP...");
 
     //Random leftover pop-ups
     addUIString("popCPUBoostEnabled", 0, "CPU Boost Enabled for ZIP.");

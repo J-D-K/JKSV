@@ -144,7 +144,8 @@ namespace fs
         std::string to, from, dev;
         zipFile z;
         unzFile unz;
-        bool cleanup = false;
+        bool cleanup = false, trimZipPath = false;
+        uint8_t trimZipPlaces = 0;
         uint64_t offset = 0;
         ui::progBar *prog;
         threadStatus *thrdStatus;
@@ -170,7 +171,7 @@ namespace fs
         uint64_t totalSize = 0;
     } dirCountArgs;
 
-    copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup);
+    copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces);
     void copyArgsDestroy(copyArgs *c);
 
     //Take a pointer to backupArgs^

@@ -380,11 +380,11 @@ SDL_Texture *data::getTitleIconByTID(const uint64_t& tid)
     return titles[tid].icon;
 }
 
-int data::getTitleIndexInUser(const data::user *u, const uint64_t& tid)
+int data::getTitleIndexInUser(const data::user& u, const uint64_t& tid)
 {
-    for(unsigned i = 0; i < u->titleInfo.size(); i++)
+    for(unsigned i = 0; i < u.titleInfo.size(); i++)
     {
-        if(u->titleInfo[i].tid == tid)
+        if(u.titleInfo[i].tid == tid)
             return i;
     }
     return -1;

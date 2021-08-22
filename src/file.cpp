@@ -22,7 +22,7 @@ static FSFILE *debLog;
 
 static FsFileSystem sv;
 
-fs::copyArgs *fs::copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup)
+fs::copyArgs *fs::copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces)
 {
     copyArgs *ret = new copyArgs;
     ret->to = to;
@@ -35,6 +35,8 @@ fs::copyArgs *fs::copyArgsCreate(const std::string& from, const std::string& to,
     ret->prog->setMax(0);
     ret->prog->update(0);
     ret->offset = 0;
+    ret->trimZipPath = _trimZipPath;
+    ret->trimZipPlaces = _trimPlaces;
     return ret;
 }
 
@@ -101,6 +103,8 @@ void fs::createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _userID)
     uint16_t index = 0;
     if(_type == FsSaveDataType_Cache && !(indexStr = util::getStringInput(SwkbdType_NumPad, "0", ui::getUIString("swkbdSaveIndex", 0), 2, 0, NULL)).empty())
         index = strtoul(indexStr.c_str(), NULL, 10);
+    else if(_type == FsSaveDataType_Cache && indexStr.empty())
+        return;
 
     svCreateArgs *send = new svCreateArgs;
     send->type = _type;
@@ -339,19 +343,19 @@ int fs::dataFile::getNextValueInt()
 //Wrapper functions to use functions from `fsthrd.cpp`
 void fs::copyFile(const std::string& from, const std::string& to)
 {
-    copyArgs *send = copyArgsCreate(from, to, "", NULL, NULL, false);
+    copyArgs *send = copyArgsCreate(from, to, "", NULL, NULL, false, false, 0);
     ui::newThread(copyFile_t, send, _fileDrawFunc);
 }
 
 void fs::copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
-    copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, false);
+    copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, false, false, 0);
     ui::newThread(copyFileCommit_t, send, _fileDrawFunc);
 }
 
 void fs::copyDirToDir(const std::string& from, const std::string& to)
 {
-    fs::copyArgs *send = fs::copyArgsCreate(from, to, "", NULL, NULL, true);
+    fs::copyArgs *send = fs::copyArgsCreate(from, to, "", NULL, NULL, true, false, 0);
     ui::newThread(fs::copyDirToDir_t, send, _fileDrawFunc);
 }
 
@@ -362,7 +366,7 @@ void fs::copyDirToZip(const std::string& from, zipFile to)
         util::setCPU(util::CPU_SPEED_1785MHz);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
-    copyArgs *send = copyArgsCreate(from, "", "", to, NULL, true);
+    copyArgs *send = copyArgsCreate(from, "", "", to, NULL, true, false, 0);
     ui::newThread(copyDirToZip_t, send, _fileDrawFunc);
 }
 
@@ -373,7 +377,7 @@ void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev
         util::setCPU(util::CPU_SPEED_1785MHz);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
-    copyArgs *send = copyArgsCreate("", to, dev, NULL, unz, true);
+    copyArgs *send = copyArgsCreate("", to, dev, NULL, unz, true, false, 0);
     ui::newThread(copyZipToDir_t, send, _fileDrawFunc);
 }
 
@@ -390,7 +394,7 @@ bool fs::zipNotEmpty(unzFile unzip)
 
 void fs::copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
-    fs::copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, true);
+    fs::copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, true, false, 0);
     ui::newThread(copyDirToDirCommit_t, send, _fileDrawFunc);
 }
 
@@ -466,7 +470,7 @@ void fs::wipeSave()
 void fs::dumpAllUserSaves()
 {
     //This is only really used for the progress bar
-    fs::copyArgs *send = fs::copyArgsCreate("", "", "", NULL, NULL, true);
+    fs::copyArgs *send = fs::copyArgsCreate("", "", "", NULL, NULL, true, false, 0);
     ui::newThread(fs::backupUserSaves_t, send, _fileDrawFunc);
 }
 
@@ -533,7 +537,7 @@ void fs::createNewBackup(void *a)
 
     std::string out;
 
-    if(held & HidNpadButton_R)
+    if(held & HidNpadButton_R || cfg::config["autoName"])
         out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
     else if(held & HidNpadButton_L)
         out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);

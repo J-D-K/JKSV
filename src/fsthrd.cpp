@@ -104,7 +104,7 @@ void fs::createSaveData_t(void *a)
     svCreate.save_data_size = saveSize;
     svCreate.journal_size = journalSize;
     svCreate.available_size = 0x4000;
-    svCreate.owner_id = create->nacp.save_data_owner_id;
+    svCreate.owner_id = s->type == FsSaveDataType_Bcat ? 0x010000000000000C : create->nacp.save_data_owner_id;
     svCreate.flags = 0;
     svCreate.save_data_space_id = FsSaveDataSpaceId_User;
 
@@ -303,30 +303,34 @@ void fs::copyDirToDir_t(void *a)
             std::string newDst = args->to   + list->getItem(i) + "/";
             fs::mkDir(newDst.substr(0, newDst.length() - 1));
 
-            threadInfo fakeThread;
-            fs::copyArgs tmpArgs;
-            fakeThread.status = t->status;
-            fakeThread.argPtr = &tmpArgs;
-            tmpArgs.from = newSrc;
-            tmpArgs.to   = newDst;
-            tmpArgs.prog = args->prog;
-            tmpArgs.cleanup = false;
-            fs::copyDirToDir_t(&fakeThread);
+            threadInfo *fakeThread = new threadInfo;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = tmpArgs;
+            tmpArgs->from = newSrc;
+            tmpArgs->to   = newDst;
+            tmpArgs->prog = args->prog;
+            tmpArgs->cleanup = false;
+            fs::copyDirToDir_t(fakeThread);
+            delete fakeThread;
+            delete tmpArgs;
         }
         else
         {
             std::string fullSrc = args->from + list->getItem(i);
             std::string fullDst = args->to   + list->getItem(i);
 
-            threadInfo fakeThread;
-            fs::copyArgs tmpArgs;
-            fakeThread.status = t->status;
-            fakeThread.argPtr = &tmpArgs;
-            tmpArgs.from = fullSrc;
-            tmpArgs.to   = fullDst;
-            tmpArgs.prog = args->prog;
-            tmpArgs.cleanup = false;
-            fs::copyFile_t(&fakeThread);
+            threadInfo *fakeThread = new threadInfo;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = tmpArgs;
+            tmpArgs->from = fullSrc;
+            tmpArgs->to   = fullDst;
+            tmpArgs->prog = args->prog;
+            tmpArgs->cleanup = false;
+            fs::copyFile_t(fakeThread);
+            delete fakeThread;
+            delete tmpArgs;
         }
     }
 
@@ -355,32 +359,36 @@ void fs::copyDirToDirCommit_t(void *a)
             std::string newDst = args->to   + list->getItem(i) + "/";
             fs::mkDir(newDst.substr(0, newDst.length() - 1));
 
-            threadInfo fakeThread;
-            fs::copyArgs tmpArgs;
-            fakeThread.status = t->status;
-            fakeThread.argPtr = &tmpArgs;
-            tmpArgs.from = newSrc;
-            tmpArgs.to   = newDst;
-            tmpArgs.dev = args->dev;
-            tmpArgs.prog = args->prog;
-            tmpArgs.cleanup = false;
-            fs::copyDirToDirCommit_t(&fakeThread);
+            threadInfo *fakeThread = new threadInfo;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = tmpArgs;
+            tmpArgs->from = newSrc;
+            tmpArgs->to   = newDst;
+            tmpArgs->dev = args->dev;
+            tmpArgs->prog = args->prog;
+            tmpArgs->cleanup = false;
+            fs::copyDirToDirCommit_t(fakeThread);
+            delete fakeThread;
+            delete tmpArgs;
         }
         else
         {
             std::string fullSrc = args->from + list->getItem(i);
             std::string fullDst = args->to   + list->getItem(i);
 
-            threadInfo fakeThread;
-            fs::copyArgs tmpArgs;
-            fakeThread.status = t->status;
-            fakeThread.argPtr = &tmpArgs;
-            tmpArgs.from = fullSrc;
-            tmpArgs.to   = fullDst;
-            tmpArgs.dev = args->dev;
-            tmpArgs.prog = args->prog;
-            tmpArgs.cleanup = false;
-            fs::copyFileCommit_t(&fakeThread);
+            threadInfo *fakeThread = new threadInfo;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = tmpArgs;
+            tmpArgs->from = fullSrc;
+            tmpArgs->to   = fullDst;
+            tmpArgs->dev = args->dev;
+            tmpArgs->prog = args->prog;
+            tmpArgs->cleanup = false;
+            fs::copyFileCommit_t(fakeThread);
+            delete fakeThread;
+            delete tmpArgs;
         }
     }
 
@@ -396,6 +404,8 @@ void fs::copyDirToZip_t(void *a)
 {
     threadInfo *t  = (threadInfo *)a;
     copyArgs *args = (copyArgs *)t->argPtr;
+    bool trimPath = args->trimZipPath;
+    uint8_t trimPlaces = args->trimZipPlaces;
 
     t->status->setStatus(ui::getUICString("threadStatusOpeningFolder", 0), args->from.c_str());
     fs::dirList *list = new fs::dirList(args->from);
@@ -412,15 +422,19 @@ void fs::copyDirToZip_t(void *a)
             std::string newFrom = args->from + itm + "/";
             //Fake thread and new args to point to src thread stuff
             //This wouldn't work spawning a new thread.
-            threadInfo tmpThread;
-            tmpThread.status = t->status;
-            copyArgs tmpArgs;
-            tmpArgs.from = newFrom;
-            tmpArgs.prog = args->prog;
-            tmpArgs.z = args->z;
-            tmpArgs.cleanup = false;
-            tmpThread.argPtr = &tmpArgs;
-            copyDirToZip_t(&tmpThread);
+            threadInfo *tmpThread = new threadInfo;
+            tmpThread->status = t->status;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            tmpArgs->from = newFrom;
+            tmpArgs->prog = args->prog;
+            tmpArgs->z = args->z;
+            tmpArgs->cleanup = false;
+            tmpArgs->trimZipPath = args->trimZipPath;
+            tmpArgs->trimZipPlaces = args->trimZipPlaces;
+            tmpThread->argPtr = tmpArgs;
+            copyDirToZip_t(tmpThread);
+            delete tmpThread;
+            delete tmpArgs;
         }
         else
         {
@@ -432,9 +446,13 @@ void fs::copyDirToZip_t(void *a)
                 (unsigned)locTime->tm_mday, (unsigned)locTime->tm_mon, (unsigned)(1900 + locTime->tm_year), 0, 0, 0 };
 
             std::string filename = args->from + itm;
-            size_t devPos = filename.find_first_of('/') + 1;
+            size_t zipFileNameStart = 0;
+            if(trimPath)
+                util::trimPath(filename, trimPlaces);
+            else
+                zipFileNameStart = filename.find_first_of('/') + 1;
             t->status->setStatus(ui::getUICString("threadStatusAddingFileToZip", 0), itm.c_str());
-            int zOpenFile = zipOpenNewFileInZip64(args->z, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0);
+            int zOpenFile = zipOpenNewFileInZip64(args->z, filename.substr(zipFileNameStart, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0);
             if(zOpenFile == ZIP_OK)
             {
                 std::string fullFrom = args->from + itm;
@@ -602,33 +620,39 @@ void fs::backupUserSaves_t(void *a)
             fs::loadPathFilters(u->titleInfo[i].tid);
             std::string outPath = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
             zipFile zip = zipOpen64(outPath.c_str(), 0);
-            threadInfo fakeThread;
-            fs::copyArgs tmpArgs;
-            tmpArgs.from = "sv:/";
-            tmpArgs.z = zip;
-            tmpArgs.cleanup = false;
-            tmpArgs.prog = c->prog;
-            fakeThread.status = t->status;
-            fakeThread.argPtr = &tmpArgs;
-            copyDirToZip_t(&fakeThread);
+
+            threadInfo *fakeThread = new threadInfo;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            tmpArgs->from = "sv:/";
+            tmpArgs->z = zip;
+            tmpArgs->cleanup = false;
+            tmpArgs->prog = c->prog;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = &tmpArgs;
+            copyDirToZip_t(fakeThread);
             zipClose(zip, NULL);
             fs::freePathFilters();
+            delete fakeThread;
+            delete tmpArgs;
         }
         else if(saveMounted && fs::dirNotEmpty("sv:/"))
         {
             fs::loadPathFilters(u->titleInfo[i].tid);
             std::string outPath = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
             fs::mkDir(outPath.substr(0, outPath.length() - 1));
-            threadInfo fakeThread;
-            fs::copyArgs tmpArgs;
-            tmpArgs.from = "sv:/";
-            tmpArgs.to = outPath;
-            tmpArgs.cleanup = false;
-            tmpArgs.prog = c->prog;
-            fakeThread.status = t->status;
-            fakeThread.argPtr = &tmpArgs;
-            copyDirToDir_t(&fakeThread);
+
+            threadInfo *fakeThread = new threadInfo;
+            fs::copyArgs *tmpArgs = new fs::copyArgs;
+            tmpArgs->from = "sv:/";
+            tmpArgs->to = outPath;
+            tmpArgs->cleanup = false;
+            tmpArgs->prog = c->prog;
+            fakeThread->status = t->status;
+            fakeThread->argPtr = tmpArgs;
+            copyDirToDir_t(fakeThread);
             fs::freePathFilters();
+            delete fakeThread;
+            delete tmpArgs;
         }
         fs::unmountSave();
     }
