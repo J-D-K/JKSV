@@ -9,6 +9,7 @@
 #define VA_SIZE 1024
 
 #include "gfx.h"
+#include "file.h"
 
 static SDL_Window *wind;
 SDL_Renderer *gfx::render;
@@ -28,6 +29,9 @@ static const uint32_t redMask   = 0xFF000000;
 static const uint32_t greenMask = 0x00FF0000;
 static const uint32_t blueMask  = 0x0000FF00;
 static const uint32_t alphaMask = 0x000000FF;
+static const uint32_t breakPoints[7] = {' ', L'　', '/', '_', '-', L'。', L'、'};
+
+static uint8_t *alphaMod;
 
 static inline bool compClr(const SDL_Color *c1, const SDL_Color *c2)
 {
@@ -97,6 +101,15 @@ void gfx::init()
 
     wind = SDL_CreateWindow("JKSV", 0, 0, 1280, 720, SDL_WINDOW_SHOWN);
     render = SDL_CreateRenderer(wind, -1, SDL_RENDERER_ACCELERATED);
+
+    SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
+
+    //Load the alpha mod to round icon corners
+    alphaMod = (uint8_t *)malloc(256 * 256);
+    FILE *modLoad = fopen("romfs:/img/icn/icon.msk", "rb");
+    fread(alphaMod, 1, 256 * 256, modLoad);
+    fclose(modLoad);
+
     loadSystemFont();
 }
 
@@ -106,14 +119,10 @@ void gfx::exit()
     SDL_Quit();
     freeSystemFont();
 
+    free(alphaMod);
+
     for(auto c : glyphCache)
         SDL_DestroyTexture(c.second.tex);
-}
-
-void gfx::clear(const SDL_Color *c)
-{
-    SDL_SetRenderDrawColor(render, c->r, c->g, c->b, c->a);
-    SDL_RenderClear(render);
 }
 
 void gfx::present()
@@ -127,10 +136,14 @@ SDL_Texture *gfx::loadJPEGMem(const void *jpegData, size_t jpegsize)
     SDL_RWops *jpeg = SDL_RWFromConstMem(jpegData, jpegsize);
     SDL_Surface *tmpSurf = IMG_LoadJPG_RW(jpeg);
     if(tmpSurf)
+    {
         ret = SDL_CreateTextureFromSurface(render, tmpSurf);
-
-    SDL_FreeSurface(tmpSurf);
+        SDL_FreeSurface(tmpSurf);
+    }
     SDL_RWclose(jpeg);
+
+    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
+
     return ret;
 }
 
@@ -139,9 +152,12 @@ SDL_Texture *gfx::loadImageFile(const char *file)
     SDL_Texture *ret = NULL;
     SDL_Surface *tmpSurf = IMG_Load(file);
     if(tmpSurf)
+    {
         ret = SDL_CreateTextureFromSurface(render, tmpSurf);
+        SDL_FreeSurface(tmpSurf);
+    }
+    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
 
-    SDL_FreeSurface(tmpSurf);
     return ret;
 }
 
@@ -245,8 +261,9 @@ static inline bool specialChar(const uint32_t *p, const int *fontSize, const SDL
     return ret;
 }
 
-void gfx::drawTextf(int fontSize, int x, int y, const SDL_Color *c, const char *fmt, ...)
+void gfx::drawTextf(SDL_Texture *target, int fontSize, int x, int y, const SDL_Color *c, const char *fmt, ...)
 {
+    SDL_SetRenderTarget(gfx::render, target);
     char tmp[VA_SIZE];
     va_list args;
     va_start(args, fmt);
@@ -283,10 +300,39 @@ void gfx::drawTextf(int fontSize, int x, int y, const SDL_Color *c, const char *
             tmpX += g->advX;
         }
     }
+    SDL_SetRenderTarget(gfx::render, NULL);
 }
 
-void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Color *c, const char *fmt, ...)
+inline bool isBreakChar(uint32_t point)
 {
+    for(int i = 0; i < 7; i++)
+    {
+        if(breakPoints[i] == point)
+            return true;
+    }
+    return false;
+}
+
+inline size_t findNextBreak(const char *str)
+{
+    size_t length = strlen(str);
+    for(size_t i = 0; i < length; )
+    {
+        uint32_t nextPoint = 0;
+        ssize_t unitCnt = decode_utf8(&nextPoint, (const uint8_t *)&str[i]);
+        i += unitCnt;
+        if(unitCnt <= 0)
+            return length;
+
+        if(isBreakChar(nextPoint))
+            return i;
+    }
+    return length;
+}
+
+void gfx::drawTextfWrap(SDL_Texture *target, int fontSize, int x, int y, int maxWidth, const SDL_Color *c, const char *fmt, ...)
+{
+    SDL_SetRenderTarget(gfx::render, target);
     char tmp[VA_SIZE], wordBuff[128];
     va_list args;
     va_start(args, fmt);
@@ -301,13 +347,13 @@ void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Colo
 
     for(unsigned i = 0; i < strlength; )
     {
-        nextBreak = strcspn(&tmp[i], " /_-");
+        nextBreak = findNextBreak(&tmp[i]);
         memset(wordBuff, 0, 128);
-        memcpy(wordBuff, &tmp[i], nextBreak + 1);
+        memcpy(wordBuff, &tmp[i], nextBreak);
 
         size_t width = gfx::getTextWidth(wordBuff, fontSize);
 
-        if(tmpX + width >= x + maxWidth)
+        if((int)(tmpX + width) >= (int)(x + maxWidth))
         {
             tmpX = x;
             y += fontSize + 8;
@@ -339,6 +385,7 @@ void gfx::drawTextfWrap(int fontSize, int x, int y, int maxWidth, const SDL_Colo
         }
         i += wordLength;
     }
+    SDL_SetRenderTarget(gfx::render, NULL);
 }
 
 size_t gfx::getTextWidth(const char *str, int fontSize)
@@ -356,7 +403,7 @@ size_t gfx::getTextWidth(const char *str, int fontSize)
         i += unitCnt;
 
         //Ignore these
-        if(point == '\n')
+        if(point == '\n' || point == '#' || point == '*' || point == '<' || point == '>')
             continue;
 
         glyphData *g = getGlyph(point, fontSize);
@@ -364,4 +411,58 @@ size_t gfx::getTextWidth(const char *str, int fontSize)
             width += g->advX;
     }
     return width;
+}
+
+void gfx::texDraw(SDL_Texture *target, SDL_Texture *tex, int x, int y)
+{
+    int tW = 0, tH = 0;
+    if(SDL_QueryTexture(tex, NULL, NULL, &tW, &tH) == 0)
+    {
+        SDL_SetRenderTarget(gfx::render, target);
+        SDL_Rect src = {0, 0, tW, tH};
+        SDL_Rect pos = {x, y, tW, tH};
+        SDL_RenderCopy(gfx::render, tex, &src, &pos);
+    }
+}
+
+void gfx::texDrawStretch(SDL_Texture *target, SDL_Texture *tex, int x, int y, int w, int h)
+{
+    int tW = 0, tH = 0;
+    if(SDL_QueryTexture(tex, NULL, NULL, &tW, &tH) == 0)
+    {
+        SDL_SetRenderTarget(gfx::render, target);
+        SDL_Rect src = {0, 0, tW, tH};
+        SDL_Rect pos = {x, y, w, h};
+        SDL_RenderCopy(gfx::render, tex, &src, &pos);
+    }
+}
+
+void gfx::texDrawPart(SDL_Texture *target, SDL_Texture *tex, int srcX, int srcY, int srcW, int srcH, int dstX, int dstY)
+{
+    SDL_Rect src = {srcX, srcY, srcW, srcH};
+    SDL_Rect dst = {dstX, dstY, srcW, srcH};
+    SDL_SetRenderTarget(gfx::render, target);
+    SDL_RenderCopy(gfx::render, tex, &src, &dst);
+}
+
+void gfx::drawLine(SDL_Texture *target, const SDL_Color *c, int x1, int y1, int x2, int y2)
+{
+    SDL_SetRenderTarget(gfx::render, target);
+    SDL_SetRenderDrawColor(gfx::render, c->r, c->g, c->b, c->a);
+    SDL_RenderDrawLine(gfx::render, x1, y1, x2, y2);
+}
+
+void gfx::drawRect(SDL_Texture *target, const SDL_Color *c, int x, int y, int w, int h)
+{
+    SDL_SetRenderTarget(gfx::render, target);
+    SDL_SetRenderDrawColor(gfx::render, c->r, c->g, c->b, c->a);
+    SDL_Rect rect = {x, y, w, h};
+    SDL_RenderFillRect(gfx::render, &rect);
+}
+
+void gfx::clearTarget(SDL_Texture *target, const SDL_Color *clear)
+{
+    SDL_SetRenderTarget(gfx::render, target);
+    SDL_SetRenderDrawColor(gfx::render, clear->r, clear->g, clear->b, clear->a);
+    SDL_RenderClear(gfx::render);
 }

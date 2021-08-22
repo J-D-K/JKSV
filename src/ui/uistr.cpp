@@ -1,91 +1,214 @@
 #include <string>
+#include <map>
 
+#include "file.h"
+#include "cfg.h"
+#include "type.h"
 #include "uistr.h"
 
-//8
-const std::string ui::loadGlyphArray[8] =
-{
-    "\ue020", "\ue021", "\ue022", "\ue023",
-    "\ue024", "\ue025", "\ue026", "\ue027"
-};
+std::map<std::pair<std::string, int>, std::string> ui::strings;
 
-std::string ui::author = "NULL";
-std::string ui::userHelp = "[A] Select   [Y] Dump All   [X] UI Mode   [R] Update   [-] Options   [ZR] Extras";
-std::string ui::titleHelp = "[A] Select   [L][R] Change User   [Y] Dump All   [X] Favorite   [-] BlackList   [ZR] Erase   [B] Back";
-std::string ui::folderHelp = "[-] File Mode  [L]/[R]+[A] Auto  [A] Backup  [Y] Restore  [X] Delete Selected  [ZR] Erase  [B] Back";
-std::string ui::optHelp = "[A] Toggle   [X] Defaults   [B] Back";
-std::string ui::yt = "Yes [A]", ui::nt = "No  [B]";
-std::string ui::on = ">On>", ui::off = "Off";
-std::string ui::confBlacklist = "Are you sure you want to add #%s# to your blacklist?";
-std::string ui::confOverwrite = "Are you sure you want to overwrite #%s#?";
-std::string ui::confRestore = "Are you sure you want to restore #%s#?";
-std::string ui::confDel = "Are you sure you want to delete #%s#? *This is permanent*!";
-std::string ui::confCopy = "Are you sure you want to copy #%s# to #%s#?";
-std::string ui::confirmHead = "Confirm";
-std::string ui::copyHead = "Copying File...";
-std::string ui::confEraseNand = "*WARNING*: This *will* erase the save data for #%s# *from your system*. This is the same as deleting it from #Data Management#! Are you sure you want to continue?";
-std::string ui::confEraseFolder = "*WARNING*: This *will* delete the current save data for #%s# *from your system*! Are you sure you want to continue?";
-std::string ui::noSavesFound = "No saves found for #%s#!";
-std::string ui::errorConnecting = "Error Connecting!";
-std::string ui::noUpdate = "No updates available!";
-std::string ui::advMenuStr[6] =
+static void addUIString(const std::string& _name, int ind, const std::string& _str)
 {
-    "Copy to ",
-    "Delete",
-    "Rename",
-    "Make Dir",
-    "Properties",
-    "Close"
-};
-std::string ui::exMenuStr[11] =
+    ui::strings[std::make_pair(_name, ind)] = _str;
+}
+
+void ui::initStrings()
 {
-    "SD to SD Browser",
-    "BIS: PRODINFOF",
-    "BIS: SAFE",
-    "BIS: SYSTEM",
-    "BIS: USER",
-    "Remove Update",
-    "Terminate Process",
-    "Mount System Save",
-    "Rescan Titles",
-    "Mount Process RomFS",
-    "Backup JKSV Folder"
-};
-std::string ui::optMenuStr[15] =
+    addUIString("author", 0, "NULL");
+    addUIString("helpUser", 0, "[A] Select   [X] User Options");
+    addUIString("helpTitle", 0, "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back");
+    addUIString("helpFolder", 0, "[A] Select  [Y] Restore  [X] Delete  [B] Close");
+    addUIString("helpSettings", 0, "[A] Toggle   [X] Defaults   [B] Back");
+
+    //Y/N On/Off
+    addUIString("dialogYes", 0, "Yes [A]");
+    addUIString("dialogNo", 0, "No [B]");
+    addUIString("dialogOK", 0, "OK [A]");
+    addUIString("settingsOn", 0, ">On>");
+    addUIString("settingsOff", 0, "Off");
+    addUIString("holdingText", 0, "(Hold) ");
+    addUIString("holdingText", 1, "(Keep Holding) ");
+    addUIString("holdingText", 2, "(Almost There!) ");
+
+    //Confirmation Strings
+    addUIString("confirmBlacklist", 0, "Are you sure you want to add #%s# to your blacklist?");
+    addUIString("confirmOverwrite", 0, "Are you sure you want to overwrite #%s#?");
+    addUIString("confirmRestore", 0, "Are you sure you want to restore #%s#?");
+    addUIString("confirmDelete", 0, "Are you sure you want to delete #%s#? *This is permanent*!");
+    addUIString("confirmCopy", 0, "Are you sure you want to copy #%s# to #%s#?");
+    addUIString("confirmDeleteSaveData", 0, "*WARNING*: This *will* erase the save data for #%s# *from your system*. Are you sure you want to do this?");
+    addUIString("confirmResetSaveData", 0, "*WARNING*: This *will* reset the save data for this game as if it was never ran before. Are you sure you want to do this?");
+    addUIString("confirmCreateAllSaveData", 0, "Are you sure you would like to create all save data on this system for #%s#? This can take a while depending on how many titles are found.");
+    addUIString("confirmDeleteBackupsTitle", 0, "Are you sure you would like to delete all save backups for #%s#?");
+    addUIString("confirmDeleteBackupsAll", 0, "Are you sure you would like to delete *all* of your save backups for all of your games?");
+
+    //Save Data related strings
+    addUIString("saveDataNoneFound", 0, "No saves found for #%s#!");
+    addUIString("saveDataCreatedForUser", 0, "Save data created for %s!");
+    addUIString("saveDataCreationFailed", 0, "Save data creation failed!");
+    addUIString("saveDataResetSuccess", 0, "Save for #%s# reset!");
+    addUIString("saveDataDeleteSuccess", 0, "Save data for #%s# deleted!");
+    addUIString("saveDataExtendSuccess", 0, "Save data for #%s# extended!");
+    addUIString("saveDataExtendFailed", 0, "Failed to extend save data.");
+    addUIString("saveDataDeleteAllUser", 0, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*");
+    addUIString("saveDataBackupDeleted", 0, "#%s# has been deleted.");
+    addUIString("saveDataBackupMovedToTrash", 0, "#%s# has been moved to trash.");
+
+    //Internet Related
+    addUIString("onlineErrorConnecting", 0, "Error Connecting!");
+    addUIString("onlineNoUpdates", 0, "No Updates Available.");
+
+    //File mode menu strings
+    addUIString("fileModeMenu", 0, "Copy To ");
+    addUIString("fileModeMenu", 1, "Delete");
+    addUIString("fileModeMenu", 2, "Rename");
+    addUIString("fileModeMenu", 3, "Make Dir");
+    addUIString("fileModeMenu", 4, "Properties");
+    addUIString("fileModeMenu", 5, "Close");
+    addUIString("fileModeMenu", 6, "Add to Path Filters");
+
+    //File mode properties string
+    addUIString("fileModeFileProperties", 0, "Path: %s\nSize: %s");
+    addUIString("fileModeFolderProperties", 0, "Path: %s\nSub Folders: %u\nFile Count: %u\nTotal Size: %s");
+
+    //Settings menu
+    addUIString("settingsMenu", 0, "Empty Trash Bin");
+    addUIString("settingsMenu", 1, "Check for Updates");
+    addUIString("settingsMenu", 2, "Set JKSV Save Output Folder");
+    addUIString("settingsMenu", 3, "Delete All Save Backups");
+    addUIString("settingsMenu", 4, "Include Device Saves With Users: ");
+    addUIString("settingsMenu", 5, "Auto Backup On Restore: ");
+    addUIString("settingsMenu", 6, "Auto-Name Backups: ");
+    addUIString("settingsMenu", 7, "Overclock/CPU Boost: ");
+    addUIString("settingsMenu", 8, "Hold To Delete: ");
+    addUIString("settingsMenu", 9, "Hold To Restore: ");
+    addUIString("settingsMenu", 10, "Hold To Overwrite: ");
+    addUIString("settingsMenu", 11, "Force Mount: ");
+    addUIString("settingsMenu", 12, "Account System Saves: ");
+    addUIString("settingsMenu", 13, "Enable Writing to System Saves: ");
+    addUIString("settingsMenu", 14, "Use FS Commands Directly: ");
+    addUIString("settingsMenu", 15, "Export Saves to ZIP: ");
+    addUIString("settingsMenu", 16, "Force English To Be Used: ");
+    addUIString("settingsMenu", 17, "Enable Trash Bin: ");
+    addUIString("settingsMenu", 18, "Title Sorting Type: ");
+    addUIString("settingsMenu", 19, "Animation Scale: ");
+
+    //Sort Strings for ^
+    addUIString("sortType", 0, "Alphabetical");
+    addUIString("sortType", 1, "Time Played");
+    addUIString("sortType", 2, "Last Played");
+
+    //Extras
+    addUIString("extrasMenu", 0, "SD to SD Browser");
+    addUIString("extrasMenu", 1, "BIS: ProdInfoF");
+    addUIString("extrasMenu", 2, "BIS: Safe");
+    addUIString("extrasMenu", 3, "BIS: System");
+    addUIString("extrasMenu", 4, "BIS: User");
+    addUIString("extrasMenu", 5, "Remove Pending Update");
+    addUIString("extrasMenu", 6, "Terminate Process");
+    addUIString("extrasMenu", 7, "Mount System Save");
+    addUIString("extrasMenu", 8, "Rescan Titles");
+    addUIString("extrasMenu", 9, "Mount Process RomFS");
+    addUIString("extrasMenu", 10, "Backup JKSV Folder");
+    addUIString("extrasMenu", 11, "*[DEV]* Output en-US");
+
+    //User Options
+    addUIString("userOptions", 0, "Dump All For ");
+    addUIString("userOptions", 1, "Create Save Data");
+    addUIString("userOptions", 2, "Create All Save Data");
+    addUIString("userOptions", 3, "Delete All User Saves");
+
+    //Title Options
+    addUIString("titleOptions", 0, "Information");
+    addUIString("titleOptions", 1, "Blacklist");
+    addUIString("titleOptions", 2, "Change Output Folder");
+    addUIString("titleOptions", 3, "Open in File Mode");
+    addUIString("titleOptions", 4, "Delete All Save Backups");
+    addUIString("titleOptions", 5, "Reset Save Data");
+    addUIString("titleOptions", 6, "Delete Save Data");
+    addUIString("titleOptions", 7, "Extend Save Data");
+
+    //Thread Status Strings
+    addUIString("threadStatusCreatingSaveData", 0, "Creating save data for #%s#...");
+    addUIString("threadStatusCopyingFile", 0, "Copying '#%s#'...");
+    addUIString("threadStatusDeletingFile", 0, "Deleting...");
+    addUIString("threadStatusOpeningFolder", 0, "Opening '#%s#'...");
+    addUIString("threadStatusAddingFileToZip", 0, "Adding '#%s#' to ZIP...");
+    addUIString("threadStatusDecompressingFile", 0, "Decompressing '#%s#'...");
+    addUIString("threadStatusResettingSaveData", 0, "Resetting Save Data for #%s#...");
+    addUIString("threadStatusDeletingSaveData", 0, "Deleting Save Data for #%s#...");
+    addUIString("threadStatusExtendingSaveData", 0, "Extending Save Data for #%s#...");
+    addUIString("threadStatusCreatingSaveData", 0, "Creating Save Data for #%s#...");
+    addUIString("threadStatusResettingSaveData", 0, "Resetting save data...");
+    addUIString("threadStatusDeletingUpdate", 0, "Deleting pending update...");
+    addUIString("threadStatusCheckingForUpdate", 0, "Checking for updates...");
+    addUIString("threadStatusDownloadingUpdate", 0, "Downloading update...");
+    addUIString("threadStatusGetDirProps", 0, "Getting Folder Properties...");
+    addUIString("threadStatusPackingJKSV", 0, "Writing JKSV folder contents to ZIP...");
+
+    //Random leftover pop-ups
+    addUIString("popCPUBoostEnabled", 0, "CPU Boost Enabled for ZIP.");
+    addUIString("popErrorCommittingFile", 0, "Error committing file to save!");
+    addUIString("popZipIsEmpty", 0, "ZIP file is empty!");
+    addUIString("popFolderIsEmpty", 0, "Folder is empty!");
+    addUIString("popSaveIsEmpty", 0, "Save data is empty!");
+    addUIString("popProcessShutdown", 0, "#%s# successfully shutdown.");
+    addUIString("popAddedToPathFilter", 0, "'#%s#' added to path filters.");
+
+    //Keyboard hints
+    addUIString("swkbdEnterName", 0, "Enter a new name");
+    addUIString("swkbdSaveIndex", 0, "Enter Cache Index");
+    addUIString("swkbdSetWorkDir", 0, "Enter a new Output Path");
+    addUIString("swkbdProcessID", 0, "Enter Process ID");
+    addUIString("swkbdSysSavID", 0, "Enter System Save ID");
+    addUIString("swkbdRename", 0, "Enter a new name for item");
+    addUIString("swkbdMkDir", 0, "Enter a folder name");
+}
+
+void ui::loadTrans()
 {
-    "Include Dev Sv: ",
-    "AutoBackup: ",
-    "Overclock: ",
-    "Hold to Delete: ",
-    "Hold to Restore: ",
-    "Hold to Overwrite: ",
-    "Force Mount: ",
-    "Account Sys. Saves: ",
-    "Write to Sys. Saves: ",
-    "Text UI Mode: ",
-    "Direct FS Cmd: ",
-    "Skip User Select: ",
-    "Export to ZIP: ",
-    "Sort: ",
-    "Language Override: "
-};
-std::string ui::optMenuExp[15] =
+    bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
+    if(!transFile && (data::sysLang == SetLanguage_ENUS || cfg::config["langOverride"]))
+        ui::initStrings();
+    else
+    {
+        std::string file;
+        if(transFile)
+            file = fs::getWorkDir() + "trans.txt";
+        else
+        {
+            file = "romfs:/lang/";
+            switch(data::sysLang)
+            {
+                //I removed these for now. Old translation files are incompatible and will cause crashes.
+                default:
+                    ui::initStrings();
+                    return;
+                    break;
+            }
+        }
+
+        fs::dataFile lang(file);
+        while(lang.readNextLine(true))
+        {
+            std::string name = lang.getName();
+            int ind = lang.getNextValueInt();
+            std::string str = lang.getNextValueStr();
+            addUIString(name, ind, str);
+        }
+    }
+}
+
+void ui::saveTranslationFile(void *a)
 {
-    "Includes Device Save data in user accounts.",
-    "Automatically creates a save backup before restoring a save.",
-    "Applies a small CPU over clock to 1224Mhz at boot. This is the same speed developer units run at.",
-    "Whether or not holding [A] is required when deleting folders and files.",
-    "Whether or not holding [A] is required when restoring save data.",
-    "Whether or not holding [A] is required when overwriting saves on SD.",
-    "When enabled, JKSV will only load and show save data that can be opened. When disabled, everything found will be shown.",
-    "When enabled, system save data tied to accounts will be shown.",
-    "Controls whether system save data and partitions can have files and data written and deleted from them. *This can be extremely dangerous if you don't know what you're doing!*",
-    "Changes the UI to be text menu based like the original JKSM for 3DS.",
-    "Directly uses the Switch's FS commands to copy files instead of stdio.",
-    "Skips the user selection screen and jumps directly to the first user account found.",
-    "Exports saves to ZIP files.",
-    "Changes the way titles are sorted and listed.",
-    "Forces English to be used regardless of system language."
-};
-std::string ui::holdingText[3] = { "(Hold) ", "(Keep Holding) ", "(Almost there!) " };
-std::string ui::sortString[3] = { "Alphabetical", "Time Played", "Last Played" };
+    threadInfo *t = (threadInfo *)a;
+    t->status->setStatus("Saving the file master...");
+
+    std::string out = fs::getWorkDir() + "en-US.txt";
+    FILE *enUS = fopen(out.c_str(), "w");
+    for(auto& s : ui::strings)
+        fprintf(enUS, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, s.second.c_str());
+    fclose(enUS);
+    t->finished = true;
+}

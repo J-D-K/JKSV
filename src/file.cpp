@@ -3,11 +3,8 @@
 #include <cstring>
 #include <vector>
 #include <switch.h>
-#include <dirent.h>
 #include <unistd.h>
 #include <cstdarg>
-#include <minizip/zip.h>
-#include <minizip/unzip.h>
 #include <sys/stat.h>
 
 #include "file.h"
@@ -15,10 +12,9 @@
 #include "ui.h"
 #include "gfx.h"
 #include "data.h"
+#include "cfg.h"
 
-#define BUFF_SIZE 0x80000
-
-static std::string wd;
+static std::string wd = "sdmc:/JKSV/";
 
 static std::vector<std::string> pathFilter;
 
@@ -26,29 +22,29 @@ static FSFILE *debLog;
 
 static FsFileSystem sv;
 
-typedef struct
-{
-    std::string to, from, dev;
-    uint64_t *offset;
-    zipFile *z;
-    bool fin;
-} copyArgs;
-
-static copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile *z, uint64_t *offset)
+fs::copyArgs *fs::copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces)
 {
     copyArgs *ret = new copyArgs;
     ret->to = to;
     ret->from = from;
     ret->dev = dev;
     ret->z = z;
-    ret->offset = offset;
-    ret->fin = false;
+    ret->unz = unz;
+    ret->cleanup = _cleanup;
+    ret->prog = new ui::progBar;
+    ret->prog->setMax(0);
+    ret->prog->update(0);
+    ret->offset = 0;
+    ret->trimZipPath = _trimZipPath;
+    ret->trimZipPlaces = _trimPlaces;
     return ret;
 }
 
-static inline void copyArgsDestroy(copyArgs *args)
+void fs::copyArgsDestroy(copyArgs *c)
 {
-    delete args;
+    delete c->prog;
+    delete c;
+    c = NULL;
 }
 
 static struct
@@ -69,105 +65,134 @@ static struct
     }
 } sortDirList;
 
-static void mkdirRec(const std::string& _p)
+void fs::mkDir(const std::string& _p)
+{
+     if(cfg::config["directFsCmd"])
+        fsMkDir(_p.c_str());
+    else
+        mkdir(_p.c_str(), 777);
+}
+
+void fs::mkDirRec(const std::string& _p)
 {
     //skip first slash
     size_t pos = _p.find('/', 0) + 1;
     while((pos = _p.find('/', pos)) != _p.npos)
     {
-        mkdir(_p.substr(0, pos).c_str(), 777);
+        fs::mkDir(_p.substr(0, pos).c_str());
         ++pos;
     }
 }
 
-//This is mostly for Pokemon snap, but it also seems to work better? Stops commit errors from journal space
-static bool fwriteCommit(const std::string& _path, const void *buf, size_t _size, const std::string& _dev)
+bool fs::commitToDevice(const std::string& dev)
 {
-    size_t written = 0;
-    if(data::directFsCmd)
+    bool ret = true;
+    Result res = fsdevCommitDevice(dev.c_str());
+    if(R_FAILED(res))
     {
-        FSFILE *out = fsfopen(_path.c_str(), FsOpenMode_Write | FsOpenMode_Append);
-        written = fsfwrite(buf, 1, _size, out);
-        fsfclose(out);
+        fs::logWrite("Error committing file to device -> 0x%X\n", res);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popErrorCommittingFile", 0));
+        ret = false;
     }
-    else
-    {
-        FILE *out = fopen(_path.c_str(), "ab");
-        written = fwrite(buf, 1, _size, out);
-        fclose(out);
-    }
+    return ret;
+}
 
-    Result commit = fsdevCommitDevice(_dev.c_str());
+void fs::createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _userID)
+{
+    std::string indexStr;
+    uint16_t index = 0;
+    if(_type == FsSaveDataType_Cache && !(indexStr = util::getStringInput(SwkbdType_NumPad, "0", ui::getUIString("swkbdSaveIndex", 0), 2, 0, NULL)).empty())
+        index = strtoul(indexStr.c_str(), NULL, 10);
+    else if(_type == FsSaveDataType_Cache && indexStr.empty())
+        return;
 
-    if(R_FAILED(commit) || written == 0)
-        fs::logWrite("Error writing/committing to file \"%s\"\n", _path.c_str());
-
-    return written > 0 && R_SUCCEEDED(commit);
+    svCreateArgs *send = new svCreateArgs;
+    send->type = _type;
+    send->account = _userID;
+    send->tid = _tid;
+    send->index = index;
+    ui::newThread(fs::createSaveData_t, send, NULL);
 }
 
 void fs::init()
 {
-    if(fs::fileExists("sdmc:/switch/jksv_dir.txt"))
-    {
-        char tmp[256];
-        FILE *getDir = fopen("sdmc:/switch/jksv_dir.txt", "r");
-        fgets(tmp, 256, getDir);
-        fclose(getDir);
-        wd = tmp;
-        util::stripChar('\n', wd);
-        util::stripChar('\r', wd);
-        mkdirRec(wd);
-    }
-    else
-    {
-        mkdir("sdmc:/JKSV", 777);
-        wd = "sdmc:/JKSV/";
-    }
+    mkDirRec("sdmc:/config/JKSV/");
+    mkDirRec(wd);
+    mkdir(std::string(wd + "_TRASH_").c_str(), 777);
+
     fs::logOpen();
 }
 
 void fs::exit()
 {
-    fs::logClose();
+
 }
 
-bool fs::mountSave(const data::user& usr, const data::titledata& open)
+bool fs::mountSave(const FsSaveDataInfo& _m)
 {
     Result svOpen;
-    switch(open.getType())
+    FsSaveDataAttribute attr = {0};
+    switch(_m.save_data_type)
     {
         case FsSaveDataType_System:
-            svOpen = fsOpen_SystemSaveData(&sv, FsSaveDataSpaceId_System, open.getID(), usr.getUID());
+        case FsSaveDataType_SystemBcat:
+            {
+                attr.uid = _m.uid;
+                attr.system_save_data_id = _m.system_save_data_id;
+                attr.save_data_type = _m.save_data_type;
+                svOpen = fsOpenSaveDataFileSystemBySystemSaveDataId(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+            }
             break;
 
         case FsSaveDataType_Account:
-            svOpen = fsOpen_SaveData(&sv, open.getID(), usr.getUID());
-            break;
-
-        case FsSaveDataType_Bcat:
-            svOpen = fsOpen_BcatSaveData(&sv, open.getID());
+            {
+                attr.uid = _m.uid;
+                attr.application_id = _m.application_id;
+                attr.save_data_type = _m.save_data_type;
+                attr.save_data_rank = _m.save_data_rank;
+                attr.save_data_index = _m.save_data_index;
+                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+            }
             break;
 
         case FsSaveDataType_Device:
-            svOpen = fsOpen_DeviceSaveData(&sv, open.getID());
+            {
+                attr.application_id = _m.application_id;
+                attr.save_data_type = FsSaveDataType_Device;
+                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+            }
             break;
 
-        case FsSaveDataType_Temporary:
-            svOpen = fsOpen_TemporaryStorage(&sv);
+        case FsSaveDataType_Bcat:
+            {
+                attr.application_id = _m.application_id;
+                attr.save_data_type = FsSaveDataType_Bcat;
+                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+            }
             break;
 
         case FsSaveDataType_Cache:
-            svOpen = fsOpen_CacheStorage(&sv, open.getID(), open.getSaveIndex());
+            {
+                attr.application_id = _m.application_id;
+                attr.save_data_type = FsSaveDataType_Cache;
+                attr.save_data_index = _m.save_data_index;
+                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+            }
             break;
 
-        case FsSaveDataType_SystemBcat:
-            svOpen = fsOpen_SystemBcatSaveData(&sv, open.getID());
+        case FsSaveDataType_Temporary:
+            {
+                attr.application_id = _m.application_id;
+                attr.save_data_type = _m.save_data_type;
+                svOpen = fsOpenSaveDataFileSystem(&sv, (FsSaveDataSpaceId)_m.save_data_space_id, &attr);
+            }
             break;
 
         default:
             svOpen = 1;
             break;
     }
+
     return R_SUCCEEDED(svOpen) && fsdevMountDevice("sv", sv) != -1;
 }
 
@@ -192,10 +217,7 @@ std::string fs::dirItem::getName() const
 
 std::string fs::dirItem::getExt() const
 {
-    size_t extPos = itm.find_last_of('.');
-    if(extPos == itm.npos)
-        return "";//Folder or no extension
-    return itm.substr(extPos + 1, itm.npos);
+    return util::getExtensionFromString(itm);
 }
 
 fs::dirList::dirList(const std::string& _path)
@@ -275,14 +297,15 @@ bool fs::dataFile::readNextLine(bool proc)
 
 void fs::dataFile::procLine()
 {
-    size_t pPos = line.find_first_of('('), ePos = line.find_first_of('=');
-    if(pPos != line.npos || ePos != line.npos)
+    size_t pPos = line.find_first_of("(=,");
+    if(pPos != line.npos)
     {
-        lPos = ePos < pPos ? ePos : pPos;
+        lPos = pPos;
         name.assign(line.begin(), line.begin() + lPos);
     }
     else
-        name = "NULL";
+        name = line;
+
     util::stripChar(' ', name);
     ++lPos;
 }
@@ -298,7 +321,11 @@ std::string fs::dataFile::getNextValueStr()
     else
         lPos = line.find_first_of(",;\n", pos1);//Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
 
-    return line.substr(pos1, lPos++ - pos1);
+    ret = line.substr(pos1, lPos++ - pos1);
+
+    util::replaceStr(ret, "\\n", "\n");
+
+    return ret;
 }
 
 int fs::dataFile::getNextValueInt()
@@ -313,329 +340,67 @@ int fs::dataFile::getNextValueInt()
     return ret;
 }
 
-static void copyfile_t(void *a)
-{
-    copyArgs *args = (copyArgs *)a;
-
-    uint8_t *buff = new uint8_t[BUFF_SIZE];
-    if(data::directFsCmd)
-    {
-        FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
-        FSFILE *out = fsfopen(args->to.c_str(), FsOpenMode_Write);
-
-        if(!in || !out)
-        {
-            fsfclose(in);
-            fsfclose(out);
-            args->fin = true;
-            return;
-        }
-
-        size_t readIn = 0;
-        while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
-        {
-            fsfwrite(buff, 1, readIn, out);
-            *args->offset = in->offset;
-        }
-        fsfclose(in);
-        fsfclose(out);
-    }
-    else
-    {
-        FILE *in = fopen(args->from.c_str(), "rb");
-        FILE *out = fopen(args->to.c_str(), "wb");
-        if(!in || !out)
-        {
-            fclose(in);
-            fclose(out);
-            args->fin = true;
-            return;
-        }
-
-        size_t readIn = 0;
-        while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
-        {
-            fwrite(buff, 1, readIn, out);
-            *args->offset = ftell(in);
-        }
-        fclose(in);
-        fclose(out);
-    }
-    delete[] buff;
-    args->fin = true;
-}
-
+//Wrapper functions to use functions from `fsthrd.cpp`
 void fs::copyFile(const std::string& from, const std::string& to)
 {
-    uint64_t progress = 0;
-    copyArgs *send = copyArgsCreate(from, to, "", NULL, &progress);
-
-    //Setup progress bar. This thread updates screen, other handles copying
-    ui::progBar prog(fsize(from), PROG_MAX_WIDTH_DEFAULT);
-
-    Thread cpyThread;
-    threadCreate(&cpyThread, copyfile_t, send, NULL, 0x4000, 0x2B, 1);
-    threadStart(&cpyThread);
-    while(!send->fin)
-    {
-        prog.update(progress);
-        prog.draw(from, ui::copyHead);
-        gfx::present();
-    }
-    threadClose(&cpyThread);
-    copyArgsDestroy(send);
-}
-
-void copyFileCommit_t(void *a)
-{
-    copyArgs *args = (copyArgs *)a;
-
-    uint8_t *buff = new uint8_t[BUFF_SIZE];
-
-    //Create empty destination file using fs
-    fsfcreate(args->to.c_str(), 0);
-
-    if(data::directFsCmd)
-    {
-        FSFILE *in = fsfopen(args->from.c_str(), FsOpenMode_Read);
-
-        if(!in)
-        {
-            fsfclose(in);
-            args->fin = true;
-            return;
-        }
-
-        size_t readIn = 0;
-        while((readIn = fsfread(buff, 1, BUFF_SIZE, in)) > 0)
-        {
-            if(!fwriteCommit(args->to, buff, readIn, args->dev))
-                break;
-            *args->offset = in->offset;
-        }
-        fsfclose(in);
-    }
-    else
-    {
-        FILE *in = fopen(args->from.c_str(), "rb");
-
-        if(!in)
-        {
-            fclose(in);
-            args->fin = true;
-            return;
-        }
-
-        size_t readIn = 0;
-        while((readIn = fread(buff, 1, BUFF_SIZE, in)) > 0)
-        {
-            if(!fwriteCommit(args->to, buff, readIn, args->dev))
-                break;
-
-            *args->offset = ftell(in);
-        }
-        fclose(in);
-    }
-    delete[] buff;
-
-    Result res = 0;
-    if(R_FAILED(res = fsdevCommitDevice(args->dev.c_str())))
-        fs::logWrite("Error committing file \"%s\"\n", args->to.c_str());
-
-    args->fin = true;
+    copyArgs *send = copyArgsCreate(from, to, "", NULL, NULL, false, false, 0);
+    ui::newThread(copyFile_t, send, _fileDrawFunc);
 }
 
 void fs::copyFileCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
-    uint64_t offset = 0;
-    ui::progBar prog(fsize(from), PROG_MAX_WIDTH_DEFAULT);
-    copyArgs *send = copyArgsCreate(from, to, dev, NULL, &offset);
-
-    Thread cpyThread;
-    threadCreate(&cpyThread, copyFileCommit_t, send, NULL, 0x4000, 0x2B, 1);
-    threadStart(&cpyThread);
-    while(!send->fin)
-    {
-        prog.update(offset);
-        prog.draw(from, ui::copyHead);
-        gfx::present();
-    }
-    threadClose(&cpyThread);
-    copyArgsDestroy(send);
+    copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, false, false, 0);
+    ui::newThread(copyFileCommit_t, send, _fileDrawFunc);
 }
 
 void fs::copyDirToDir(const std::string& from, const std::string& to)
 {
-    dirList list(from);
-
-    for(unsigned i = 0; i < list.getCount(); i++)
-    {
-        if(pathIsFiltered(from + list.getItem(i)))
-            continue;
-
-        if(list.isDir(i))
-        {
-            std::string newFrom = from + list.getItem(i) + "/";
-            std::string newTo   = to + list.getItem(i) + "/";
-            mkdir(newTo.substr(0, newTo.length() - 1).c_str(), 0777);
-
-            copyDirToDir(newFrom, newTo);
-        }
-        else
-        {
-            std::string fullFrom = from + list.getItem(i);
-            std::string fullTo   = to   + list.getItem(i);
-            copyFile(fullFrom, fullTo);
-        }
-    }
+    fs::copyArgs *send = fs::copyArgsCreate(from, to, "", NULL, NULL, true, false, 0);
+    ui::newThread(fs::copyDirToDir_t, send, _fileDrawFunc);
 }
 
-void copyFileToZip_t(void *a)
+void fs::copyDirToZip(const std::string& from, zipFile to)
 {
-    copyArgs *args = (copyArgs *)a;
-    FILE *cpy = fopen(args->from.c_str(), "rb");
-
-    size_t readIn = 0;
-    uint8_t *inBuff= new uint8_t[BUFF_SIZE];
-    while((readIn = fread(inBuff, 1, BUFF_SIZE, cpy)) > 0)
+    if(cfg::config["ovrClk"])
     {
-        if(zipWriteInFileInZip(*args->z, inBuff, readIn) != 0)
-        {
-            fs::logWrite("zipWriteInFileInZip failed -> \"%s\"\n", args->from.c_str());
-            break;
-        }
-
-        *args->offset = ftell(cpy);
+        util::setCPU(util::CPU_SPEED_1785MHz);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
-
-    delete[] inBuff;
-    fclose(cpy);
-    args->fin = true;
+    copyArgs *send = copyArgsCreate(from, "", "", to, NULL, true, false, 0);
+    ui::newThread(copyDirToZip_t, send, _fileDrawFunc);
 }
 
-void copyFileToZip(const std::string& from, zipFile *z)
+void fs::copyZipToDir(unzFile unz, const std::string& to, const std::string& dev)
 {
-    ui::progBar prog(fs::fsize(from), PROG_MAX_WIDTH_DEFAULT);
-    uint64_t progress = 0;
-    copyArgs *send = copyArgsCreate(from, "", "", z, &progress);
-
-    Thread cpyThread;
-    threadCreate(&cpyThread, copyFileToZip_t, send, NULL, 0x4000, 0x2B, 1);
-    threadStart(&cpyThread);
-    while(!send->fin)
+    if(cfg::config["ovrClk"])
     {
-        prog.update(progress);
-        prog.draw(from, ui::copyHead);
-        gfx::present();
+        util::setCPU(util::CPU_SPEED_1785MHz);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
-    threadClose(&cpyThread);
-    copyArgsDestroy(send);
+    copyArgs *send = copyArgsCreate("", to, dev, NULL, unz, true, false, 0);
+    ui::newThread(copyZipToDir_t, send, _fileDrawFunc);
 }
 
-void fs::copyDirToZip(const std::string& from, zipFile *to)
+bool fs::dirNotEmpty(const std::string& _dir)
 {
-    fs::dirList list(from);
-
-    for(unsigned i = 0; i < list.getCount(); i++)
-    {
-        if(pathIsFiltered(from + list.getItem(i)))
-            continue;
-
-        if(list.isDir(i))
-        {
-            std::string newFrom = from + list.getItem(i) + "/";
-            fs::copyDirToZip(newFrom, to);
-        }
-        else
-        {
-            zip_fileinfo inf = { 0 };
-            std::string filename = from + list.getItem(i);
-            size_t devPos = filename.find_first_of('/') + 1;
-            if(zipOpenNewFileInZip(*to, filename.substr(devPos, filename.length()).c_str(), &inf, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION) == ZIP_OK)
-                copyFileToZip(std::string(from) + list.getItem(i).c_str(), to);
-            zipCloseFileInZip(*to);
-        }
-    }
+    fs::dirList tmp(_dir);
+    return tmp.getCount() > 0;
 }
 
-void fs::copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev)
+bool fs::zipNotEmpty(unzFile unzip)
 {
-    char filename[FS_MAX_PATH];
-    uint8_t *buff = new uint8_t[BUFF_SIZE];
-    int readIn = 0;
-    unz_file_info info;
-    do
-    {
-        unzGetCurrentFileInfo(*unz, &info, filename, FS_MAX_PATH, NULL, 0, NULL, 0);
-        if(unzOpenCurrentFile(*unz) == UNZ_OK)
-        {
-            std::string path = to + filename;
-            mkdirRec(path.substr(0, path.find_last_of('/') + 1));
-            ui::progBar prog(info.uncompressed_size, PROG_MAX_WIDTH_DEFAULT);
-            size_t done = 0;
-
-            //Create new empty file using FS
-            fsfcreate(path.c_str(), 0);
-
-            if(data::directFsCmd)
-            {
-                while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
-                {
-                    done += readIn;
-                    fwriteCommit(path, buff, readIn, dev);
-                    prog.update(done);
-                    prog.draw(filename, ui::copyHead);
-                    gfx::present();
-                }
-            }
-            else
-            {
-                while((readIn = unzReadCurrentFile(*unz, buff, BUFF_SIZE)) > 0)
-                {
-                    done += readIn;
-                    fwriteCommit(path, buff, readIn, dev);
-                    prog.update(done);
-                    prog.draw(filename, ui::copyHead);
-                    gfx::present();
-                }
-            }
-            unzCloseCurrentFile(*unz);
-            if(R_FAILED(fsdevCommitDevice(dev.c_str())))
-                ui::showMessage("*Error*", "Error committing file to device.");
-        }
-    }
-    while(unzGoToNextFile(*unz) != UNZ_END_OF_LIST_OF_FILE);
-
-    delete[] buff;
+    return unzGoToFirstFile(unzip) == UNZ_OK;
 }
 
 void fs::copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev)
 {
-    dirList list(from);
-
-    for(unsigned i = 0; i < list.getCount(); i++)
-    {
-        if(list.isDir(i))
-        {
-            std::string newFrom = from + list.getItem(i) + "/";
-            std::string newTo   = to + list.getItem(i);
-            mkdir(newTo.c_str(), 0777);
-            newTo += "/";
-
-            copyDirToDirCommit(newFrom, newTo, dev);
-        }
-        else
-        {
-            std::string fullFrom = from + list.getItem(i);
-            std::string fullTo   = to   + list.getItem(i);
-            copyFileCommit(fullFrom, fullTo, dev);
-        }
-    }
+    fs::copyArgs *send = copyArgsCreate(from, to, dev, NULL, NULL, true, false, 0);
+    ui::newThread(copyDirToDirCommit_t, send, _fileDrawFunc);
 }
 
 void fs::delfile(const std::string& path)
 {
-    if(data::directFsCmd)
+    if(cfg::config["directFsCmd"])
         fsremove(path.c_str());
     else
         remove(path.c_str());
@@ -666,11 +431,13 @@ void fs::delDir(const std::string& path)
     rmdir(path.c_str());
 }
 
-void fs::loadPathFilters(const std::string& _file)
+void fs::loadPathFilters(const uint64_t& tid)
 {
-    if(fs::fileExists(_file))
+    char path[256];
+    sprintf(path, "sdmc:/config/JKSV/0x%016lX_filter.txt", tid);
+    if(fs::fileExists(path))
     {
-        fs::dataFile filter(_file);
+        fs::dataFile filter(path);
         while(filter.readNextLine(false))
             pathFilter.push_back(filter.getLine());
     }
@@ -695,113 +462,40 @@ void fs::freePathFilters()
     pathFilter.clear();
 }
 
-bool fs::dumpAllUserSaves(const data::user& u)
+void fs::wipeSave()
 {
-    for(unsigned i = 0; i < u.titles.size(); i++)
-    {
-        ui::updatePad();
-
-        if(ui::padKeysDown() & HidNpadButton_B)
-            return false;
-
-        if(fs::mountSave(u, u.titles[i]))
-        {
-            u.titles[i].createDir();
-            std::string filtersPath = u.titles[i].getPath() + "pathFilters.txt";
-            fs::loadPathFilters(filtersPath);
-            switch(data::zip)
-            {
-                case true:
-                    {
-                        std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
-                        zipFile zip = zipOpen(outPath.c_str(), 0);
-                        fs::copyDirToZip("sv:/", &zip);
-                        zipClose(zip, NULL);
-                    }
-                    break;
-
-                case false:
-                    {
-                        std::string outPath = u.titles[i].getPath() + u.getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
-                        mkdir(outPath.substr(0, outPath.length() - 1).c_str(), 777);
-                        fs::copyDirToDir("sv:/", outPath);
-                    }
-                    break;
-            }
-            fsdevUnmountDevice("sv");
-            fs::freePathFilters();
-        }
-    }
-    return true;//?
+    ui::newThread(fs::wipesave_t, NULL, NULL);
 }
 
-std::string fs::getFileProps(const std::string& _path)
+void fs::dumpAllUserSaves()
 {
-    std::string ret = "";
-
-    FILE *get = fopen(_path.c_str(), "rb");
-    if(get != NULL)
-    {
-        //Size
-        fseek(get, 0, SEEK_END);
-        unsigned fileSize = ftell(get);
-        fseek(get, 0, SEEK_SET);
-
-        fclose(get);
-
-        //Probably add more later
-
-        char tmp[256];
-        std::sprintf(tmp, "Path: #%s#\nSize: %u", _path.c_str(), fileSize);
-
-        ret = tmp;
-    }
-    return ret;
+    //This is only really used for the progress bar
+    fs::copyArgs *send = fs::copyArgsCreate("", "", "", NULL, NULL, true, false, 0);
+    ui::newThread(fs::backupUserSaves_t, send, _fileDrawFunc);
 }
 
-void fs::getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize)
+void fs::getShowFileProps(const std::string& _path)
 {
-    fs::dirList list(_path);
+    size_t size = fs::fsize(_path);
+    ui::showMessage(ui::getUICString("fileModeFileProperties", 0), _path.c_str(), util::getSizeString(size).c_str());
+}
 
-    for(unsigned i = 0; i < list.getCount(); i++)
-    {
-        if(list.isDir(i))
-        {
-            ++dirCount;
-            std::string newPath = _path + list.getItem(i) + "/";
-            uint32_t dirAdd = 0, fileAdd = 0;
-            uint64_t sizeAdd = 0;
-
-            getDirProps(newPath, dirAdd, fileAdd, sizeAdd);
-            dirCount += dirAdd;
-            fileCount += fileAdd;
-            totalSize += sizeAdd;
-        }
-        else
-        {
-            ++fileCount;
-            std::string filePath = _path + list.getItem(i);
-
-            FILE *gSize = fopen(filePath.c_str(), "rb");
-            fseek(gSize, 0, SEEK_END);
-            size_t fSize = ftell(gSize);
-            fclose(gSize);
-
-            totalSize += fSize;
-        }
-    }
+void fs::getShowDirProps(const std::string& _path)
+{
+    fs::dirCountArgs *send = new fs::dirCountArgs;
+    send->path = _path;
+    send->origin = true;
+    ui::newThread(fs::getShowDirProps_t, send, NULL);
 }
 
 bool fs::fileExists(const std::string& path)
 {
+    bool ret = false;
     FILE *test = fopen(path.c_str(), "rb");
     if(test != NULL)
-    {
-        fclose(test);
-        return true;
-    }
-
-    return false;
+        ret = true;
+    fclose(test);
+    return ret;
 }
 
 size_t fs::fsize(const std::string& _f)
@@ -819,31 +513,226 @@ size_t fs::fsize(const std::string& _f)
 
 std::string fs::getWorkDir() { return wd; }
 
+void fs::setWorkDir(const std::string& _w){ wd = _w; }
+
 bool fs::isDir(const std::string& _path)
 {
     struct stat s;
     return stat(_path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
 }
 
+void fs::createNewBackup(void *a)
+{
+    if(!fs::dirNotEmpty("sv:/"))
+    {
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popSaveIsEmpty", 0));
+        return;
+    }
+
+    uint64_t held = ui::padKeysHeld();
+
+    data::user *u = data::getCurrentUser();
+    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
+    data::titleInfo *t = data::getTitleInfoByTID(d->tid);
+
+    std::string out;
+
+    if(held & HidNpadButton_R || cfg::config["autoName"])
+        out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+    else if(held & HidNpadButton_L)
+        out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YDM);
+    else if(held & HidNpadButton_ZL)
+        out = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_HOYSTE);
+    else
+    {
+        const std::string dict[] =
+        {
+            util::getDateTime(util::DATE_FMT_YMD),
+            util::getDateTime(util::DATE_FMT_YDM),
+            util::getDateTime(util::DATE_FMT_HOYSTE),
+            util::getDateTime(util::DATE_FMT_JHK),
+            util::getDateTime(util::DATE_FMT_ASC),
+            u->getUsernameSafe(),
+            t->safeTitle,
+            util::generateAbbrev(d->tid),
+            ".zip"
+        };
+        std::string defaultText = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
+        out = util::getStringInput(SwkbdType_QWERTY, defaultText, ui::getUIString("swkbdEnterName", 0), 64, 9, dict);
+    }
+
+    if(!out.empty())
+    {
+        std::string ext = util::getExtensionFromString(out);
+        std::string path = util::generatePathByTID(d->tid) + out;
+        if(cfg::config["zip"] || ext == "zip")
+        {
+            if(ext != "zip")//data::zip is on but extension is not zip
+                path += ".zip";
+
+            zipFile zip = zipOpen64(path.c_str(), 0);
+            fs::copyDirToZip("sv:/", zip);
+
+        }
+        else
+        {
+            fs::mkDir(path);
+            path += "/";
+            fs::copyDirToDir("sv:/", path);
+        }
+        ui::populateFldMenu();
+    }
+}
+
+void fs::overwriteBackup(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::backupArgs *in = (fs::backupArgs *)t->argPtr;
+    ui::menu *m = in->m;
+    fs::dirList *d = in->d;
+
+    data::userTitleInfo *cd = data::getCurrentUserTitleInfo();
+
+    unsigned ind = m->getSelected() - 1;;//Skip new
+
+    std::string itemName = d->getItem(ind);
+    bool saveHasFiles = fs::dirNotEmpty("sv:/");
+    if(d->isDir(ind) && saveHasFiles)
+    {
+        std::string toPath = util::generatePathByTID(cd->tid) + itemName + "/";
+        //Delete and recreate
+        fs::delDir(toPath);
+        fs::mkDir(toPath);
+        fs::copyDirToDir("sv:/", toPath);
+    }
+    else if(!d->isDir(ind) && d->getItemExt(ind) == "zip" && saveHasFiles)
+    {
+        std::string toPath = util::generatePathByTID(cd->tid) + itemName;
+        fs::delfile(toPath);
+        zipFile zip = zipOpen64(toPath.c_str(), 0);
+        fs::copyDirToZip("sv:/", zip);
+    }
+    t->finished = true;
+}
+
+void fs::restoreBackup(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::backupArgs *in = (fs::backupArgs *)t->argPtr;
+    ui::menu *m = in->m;
+    fs::dirList *d = in->d;
+
+    data::user *u = data::getCurrentUser();
+    data::userTitleInfo *cd = data::getCurrentUserTitleInfo();
+    unsigned ind = m->getSelected() - 1;
+
+    std::string itemName = d->getItem(ind);
+    if((cd->saveInfo.save_data_type != FsSaveDataType_System || cfg::config["sysSaveWrite"]) && m->getSelected() > 0)
+    {
+        bool saveHasFiles = fs::dirNotEmpty("sv:/");
+        if(cfg::config["autoBack"] && cfg::config["zip"] && saveHasFiles)
+        {
+            std::string autoZip = util::generatePathByTID(cd->tid) + "/AUTO " + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+            zipFile zip = zipOpen64(autoZip.c_str(), 0);
+            fs::copyDirToZip("sv:/", zip);
+        }
+        else if(cfg::config["autoBack"] && saveHasFiles)
+        {
+            std::string autoFolder = util::generatePathByTID(cd->tid) + "/AUTO - " + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+            fs::mkDir(autoFolder.substr(0, autoFolder.length() - 1));
+            fs::copyDirToDir("sv:/", autoFolder);
+        }
+
+        if(d->isDir(ind))
+        {
+            std::string fromPath = util::generatePathByTID(cd->tid) + itemName + "/";
+            if(fs::dirNotEmpty(fromPath))
+            {
+                fs::wipeSave();
+                fs::copyDirToDirCommit(fromPath, "sv:/", "sv");
+            }
+            else
+                ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popFolderIsEmpty", 0));
+        }
+        else if(!d->isDir(ind) && d->getItemExt(ind) == "zip")
+        {
+            std::string path = util::generatePathByTID(cd->tid) + itemName;
+            unzFile unz = unzOpen64(path.c_str());
+            if(unz && fs::zipNotEmpty(unz))
+            {
+                fs::wipeSave();
+                fs::copyZipToDir(unz, "sv:/", "sv");
+            }
+            else
+                ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popZipIsEmpty", 0));
+        }
+        else
+        {
+            //Just copy file over
+            std::string fromPath = util::generatePathByTID(cd->tid) + itemName;
+            std::string toPath = "sv:/" + itemName;
+            fs::copyFileCommit(fromPath, toPath, "sv");
+        }
+    }
+
+    if(cfg::config["autoBack"])
+        ui::populateFldMenu();
+
+    t->finished = true;
+}
+
+void fs::deleteBackup(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::backupArgs *in = (fs::backupArgs *)t->argPtr;
+    ui::menu *m = in->m;
+    fs::dirList *d = in->d;
+
+    data::userTitleInfo *cd = data::getCurrentUserTitleInfo();
+    unsigned ind = m->getSelected() - 1;
+
+    std::string itemName = d->getItem(ind);
+    t->status->setStatus("Deleting...");
+    if(cfg::config["trashBin"])
+    {
+        std::string oldPath = util::generatePathByTID(cd->tid) + itemName;
+        std::string trashPath = wd + "_TRASH_/" + itemName;
+        rename(oldPath.c_str(), trashPath.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupMovedToTrash", 0), itemName.c_str());
+    }
+    else if(d->isDir(ind))
+    {
+        std::string delPath = util::generatePathByTID(cd->tid) + itemName + "/";
+        fs::delDir(delPath);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupDeleted", 0), itemName.c_str());
+    }
+    else
+    {
+        std::string delPath = util::generatePathByTID(cd->tid) + itemName;
+        fs::delfile(delPath);
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupDeleted", 0), itemName.c_str());
+    }
+    ui::populateFldMenu();
+    t->finished = true;
+}
+
 void fs::logOpen()
 {
     std::string logPath = wd + "log.txt";
-    remove(logPath.c_str());
     debLog = fsfopen(logPath.c_str(), FsOpenMode_Write);
+    fsfclose(debLog);
 }
 
 void fs::logWrite(const char *fmt, ...)
 {
+    std::string logPath = wd + "log.txt";
+    debLog = fsfopen(logPath.c_str(), FsOpenMode_Append | FsOpenMode_Write);
     char tmp[256];
     va_list args;
     va_start(args, fmt);
     vsprintf(tmp, fmt, args);
     va_end(args);
     fsfwrite(tmp, 1, strlen(tmp), debLog);
-}
-
-void fs::logClose()
-{
     fsfclose(debLog);
 }
 

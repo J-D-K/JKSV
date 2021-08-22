@@ -1,5 +1,4 @@
-#ifndef FILE_H
-#define FILE_H
+#pragma once
 
 #include <string>
 #include <cstdio>
@@ -10,7 +9,11 @@
 #include <minizip/unzip.h>
 
 #include "fsfile.h"
+#include "fsthrd.h"
 #include "data.h"
+#include "miscui.h"
+
+#define BUFF_SIZE 0xC0000
 
 namespace fs
 {
@@ -18,8 +21,10 @@ namespace fs
     void exit();
 
     //Mounts usr's save data for open. Returns false it fails
-    bool mountSave(const data::user& usr, const data::titledata& open);
+    bool mountSave(const FsSaveDataInfo& _m);
     inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
+    bool commitToDevice(const std::string& dev);
+    void createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _userID);
 
     void copyFile(const std::string& from, const std::string& to);
     void copyFileCommit(const std::string& from, const std::string& to, const std::string& dev);
@@ -28,38 +33,36 @@ namespace fs
     void copyDirToDir(const std::string& from, const std::string& to);
 
     //Copies from to zipFile to
-    void copyDirToZip(const std::string& from, zipFile *to);
+    void copyDirToZip(const std::string& from, zipFile to);
 
     //Same as above, but commits data to 'dev' after every file is closed
     void copyDirToDirCommit(const std::string& from, const std::string& to, const std::string& dev);
 
     //Copies unzfile to 'to'
-    void copyZipToDir(unzFile *unz, const std::string& to, const std::string& dev);
+    void copyZipToDir(unzFile unz, const std::string& to, const std::string& dev);
 
+    bool dirNotEmpty(const std::string& _dir);
+    bool zipNotEmpty(unzFile unzip);
+
+    void mkDir(const std::string& _p);
+    void mkDirRec(const std::string& _p);
     //deletes file
     void delfile(const std::string& path);
     //Recursively deletes 'path'
     void delDir(const std::string& path);
 
     //Loads paths to filter from backup/deletion
-    void loadPathFilters(const std::string& _file);
+    void loadPathFilters(const uint64_t& tid);
     bool pathIsFiltered(const std::string& _path);
     void freePathFilters();
 
-    inline void wipeSave()
-    {
-        fs::delDir("sv:/");
-        fsdevCommitDevice("sv");
-    }
+    void wipeSave();
 
-    //Dumps all titles for 'user'. returns false to bail
-    bool dumpAllUserSaves(const data::user& u);
+    //Dumps all titles for current user
+    void dumpAllUserSaves();
 
-    //returns file properties as C++ string
-    std::string getFileProps(const std::string& _path);
-
-    //Recursively retrieves info about dir _path
-    void getDirProps(const std::string& _path, uint32_t& dirCount, uint32_t& fileCount, uint64_t& totalSize);
+    void getShowFileProps(const std::string& _path);
+    void getShowDirProps(const std::string& _path);
 
     bool fileExists(const std::string& _path);
     //Returns file size
@@ -67,6 +70,7 @@ namespace fs
     bool isDir(const std::string& _path);
 
     std::string getWorkDir();
+    void setWorkDir(const std::string& _w);
 
     class dirItem
     {
@@ -108,6 +112,7 @@ namespace fs
         public:
             dataFile(const std::string& _path);
             ~dataFile();
+            void close(){ fclose(f); }
 
             bool isOpen() const { return opened; }
 
@@ -127,9 +132,55 @@ namespace fs
             bool opened = false;
     };
 
+    //Structs to send data to threads
+    typedef struct
+    {
+        ui::menu *m;
+        fs::dirList *d;
+    } backupArgs;
+
+    typedef struct
+    {
+        std::string to, from, dev;
+        zipFile z;
+        unzFile unz;
+        bool cleanup = false, trimZipPath = false;
+        uint8_t trimZipPlaces = 0;
+        uint64_t offset = 0;
+        ui::progBar *prog;
+        threadStatus *thrdStatus;
+        Mutex arglck = 0;
+        void argLock() { mutexLock(&arglck); }
+        void argUnlock() { mutexUnlock(&arglck); }
+    } copyArgs;
+
+    typedef struct
+    {
+        FsSaveDataType type;
+        uint64_t tid;
+        AccountUid account;
+        uint16_t index;
+    } svCreateArgs;
+
+    typedef struct
+    {
+        std::string path;
+        bool origin = false;
+        unsigned dirCount = 0;
+        unsigned fileCount = 0;
+        uint64_t totalSize = 0;
+    } dirCountArgs;
+
+    copyArgs *copyArgsCreate(const std::string& from, const std::string& to, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces);
+    void copyArgsDestroy(copyArgs *c);
+
+    //Take a pointer to backupArgs^
+    void createNewBackup(void *a);
+    void overwriteBackup(void *a);
+    void restoreBackup(void *a);
+    void deleteBackup(void *a);
+
     void logOpen();
     void logWrite(const char *fmt, ...);
     void logClose();
 }
-
-#endif // FILE_H

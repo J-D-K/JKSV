@@ -1,14 +1,11 @@
-#include <string>
-#include <cstring>
-#include <vector>
-#include <fstream>
 #include <switch.h>
 
 #include "gfx.h"
+#include "file.h"
 #include "data.h"
 #include "ui.h"
-#include "file.h"
 #include "util.h"
+#include "cfg.h"
 
 extern "C"
 {
@@ -19,7 +16,7 @@ extern "C"
         nsInitialize();
         setsysInitialize();
         setInitialize();
-        accountInitialize(AccountServiceType_System);
+        accountInitialize(AccountServiceType_Administrator);
         pmshellInitialize();
         socketInitializeDefault();
         pdmqryInitialize();
@@ -39,11 +36,11 @@ extern "C"
     }
 }
 
-bool debDataStats = false;
-
 int main(int argc, const char *argv[])
 {
     romfsInit();
+    cfg::resetConfig();
+    cfg::loadConfig();
     fs::init();
     gfx::init();
     ui::initTheme();
@@ -52,24 +49,9 @@ int main(int argc, const char *argv[])
     ui::init();
     romfsExit();
 
-    while(appletMainLoop())
-    {
-        ui::updatePad();
+    while(ui::runApp()){ }
 
-        uint64_t down = ui::padKeysDown(), held = ui::padKeysHeld();
-
-        if(held & HidNpadButton_StickL && held & HidNpadButton_StickR)
-            debDataStats = true;
-        else if(down & HidNpadButton_Plus)
-            break;
-
-        ui::runApp(down, held);
-
-        if(debDataStats)
-            data::dispStats();
-        gfx::present();
-    }
-
+    cfg::saveConfig();
     ui::exit();
     data::exit();
     gfx::exit();

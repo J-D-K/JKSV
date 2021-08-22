@@ -34,11 +34,11 @@ TARGET		:=	JKSV
 BUILD		:=	build
 SOURCES		:=	src src/ui
 DATA		:=	data
-INCLUDES	:=	inc
+INCLUDES	:=	inc inc/ui
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  06.14.2021
+APP_VERSION :=  08.19.2021
 ROMFS	    :=	romfs
 ICON		:=	icon.jpg
 
@@ -57,7 +57,7 @@ CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lsdl2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -lnx
+LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
