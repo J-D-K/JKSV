@@ -1,7 +1,5 @@
 # JKSV
 
-# NOTICE NEW UI BRANCH IS EXTREMELY WIP AND WILL HAVE ISSUES
-
 Data Dump/Restore tool for Switch.
 
 <img src="https://i.imgur.com/yLcTPzt.jpg"/>
