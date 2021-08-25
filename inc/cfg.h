@@ -1,6 +1,7 @@
 #pragma once
 
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 namespace cfg
@@ -18,6 +19,7 @@ namespace cfg
 
     bool isBlacklisted(const uint64_t& tid);
     void addTitleToBlacklist(void *a);
+    void removeTitleFromBlacklist(const uint64_t& tid);
 
     bool isFavorite(const uint64_t& tid);
     void addTitleToFavorites(const uint64_t& tid);
@@ -29,5 +31,7 @@ namespace cfg
     void addPathToFilter(const uint64_t& tid, const std::string& _p);
 
     extern std::unordered_map<std::string, bool> config;
+    extern std::vector<uint64_t> blacklist;
+    extern std::vector<uint64_t> favorites;
     extern uint8_t sortType;
 }

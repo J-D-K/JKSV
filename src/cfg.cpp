@@ -10,8 +10,8 @@
 #include "type.h"
 
 std::unordered_map<std::string, bool> cfg::config;
-static std::vector<uint64_t> blacklist;
-static std::vector<uint64_t> favorites;
+std::vector<uint64_t> cfg::blacklist;
+std::vector<uint64_t> cfg::favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 uint8_t cfg::sortType;
 const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt", *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
@@ -27,7 +27,7 @@ const std::string _true_ = "true", _false_ = "false";
 
 bool cfg::isBlacklisted(const uint64_t& tid)
 {
-    for(uint64_t& bid : blacklist)
+    for(uint64_t& bid : cfg::blacklist)
         if(tid == bid) return true;
 
     return false;
@@ -39,7 +39,7 @@ void cfg::addTitleToBlacklist(void *a)
     threadInfo *t = (threadInfo *)a;
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     uint64_t tid = d->tid;
-    blacklist.push_back(tid);
+    cfg::blacklist.push_back(tid);
     for(data::user& u : data::users)
     {
         for(unsigned i = 0; i < u.titleInfo.size(); i++)
@@ -49,9 +49,20 @@ void cfg::addTitleToBlacklist(void *a)
     t->finished = true;
 }
 
+void cfg::removeTitleFromBlacklist(const uint64_t& tid)
+{
+    for(unsigned i = 0; i < cfg::blacklist.size(); i++)
+    {
+        if(cfg::blacklist[i] == tid)
+            cfg::blacklist.erase(cfg::blacklist.begin() + i);
+    }
+    data::loadUsersTitles(false);
+    ui::ttlRefresh();
+}
+
 bool cfg::isFavorite(const uint64_t& tid)
 {
-    for(uint64_t& fid : favorites)
+    for(uint64_t& fid : cfg::favorites)
         if(tid == fid) return true;
 
     return false;
@@ -59,9 +70,9 @@ bool cfg::isFavorite(const uint64_t& tid)
 
 static int getFavoriteIndex(const uint64_t& tid)
 {
-    for(unsigned i = 0; i < favorites.size(); i++)
+    for(unsigned i = 0; i < cfg::favorites.size(); i++)
     {
-        if(tid == favorites[i])
+        if(tid == cfg::favorites[i])
             return i;
     }
     return -1;
@@ -72,10 +83,10 @@ void cfg::addTitleToFavorites(const uint64_t& tid)
     if(cfg::isFavorite(tid))
     {
         int rem = getFavoriteIndex(tid);
-        favorites.erase(favorites.begin() + rem);
+        cfg::favorites.erase(cfg::favorites.begin() + rem);
     }
     else
-        favorites.push_back(tid);
+        cfg::favorites.push_back(tid);
 
     data::sortUserTitles();
     ui::ttlRefresh();
@@ -222,12 +233,12 @@ static void loadConfigLegacy()
 
 static void loadFavoritesLegacy()
 {
-    std::string legacyFavPath = fs::getWorkDir() + "favorites.txt";
+    std::string legacyFavPath = fs::getWorkDir() + "cfg::favorites.txt";
     if(fs::fileExists(legacyFavPath))
     {
         fs::dataFile fav(legacyFavPath);
         while(fav.readNextLine(false))
-            favorites.push_back(strtoul(fav.getLine().c_str(), NULL, 16));
+            cfg::favorites.push_back(strtoul(fav.getLine().c_str(), NULL, 16));
         fav.close();
         fs::delfile(legacyFavPath);
     }
@@ -235,12 +246,12 @@ static void loadFavoritesLegacy()
 
 static void loadBlacklistLegacy()
 {
-    std::string legacyBlPath = fs::getWorkDir() + "blacklist.txt";
+    std::string legacyBlPath = fs::getWorkDir() + "cfg::blacklist.txt";
     if(fs::fileExists(legacyBlPath))
     {
         fs::dataFile bl(legacyBlPath);
         while(bl.readNextLine(false))
-            blacklist.push_back(strtoul(bl.getLine().c_str(), NULL, 16));
+            cfg::blacklist.push_back(strtoul(bl.getLine().c_str(), NULL, 16));
         bl.close();
         fs::delfile(legacyBlPath);
     }
@@ -355,14 +366,14 @@ void cfg::loadConfig()
                 case 16:
                     {
                         std::string tid = cfgRead.getNextValueStr();
-                        favorites.push_back(strtoul(tid.c_str(), NULL, 16));
+                        cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
                     }
                     break;
 
                 case 17:
                     {
                         std::string tid = cfgRead.getNextValueStr();
-                        blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
+                        cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
                     }
                     break;
 
@@ -404,17 +415,17 @@ void cfg::saveConfig()
     fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
     fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
 
-    if(!favorites.empty())
+    if(!cfg::favorites.empty())
     {
         fprintf(cfgOut, "\n#favorites\n");
-        for(uint64_t& f : favorites)
+        for(uint64_t& f : cfg::favorites)
             fprintf(cfgOut, "favorite = 0x%016lX\n", f);
     }
 
-    if(!blacklist.empty())
+    if(!cfg::blacklist.empty())
     {
         fprintf(cfgOut, "\n#blacklist\n");
-        for(uint64_t& b : blacklist)
+        for(uint64_t& b : cfg::blacklist)
             fprintf(cfgOut, "blacklist = 0x%016lX\n", b);
     }
     fclose(cfgOut);

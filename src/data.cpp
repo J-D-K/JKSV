@@ -219,6 +219,9 @@ bool data::loadUsersTitles(bool clearUsers)
             else
                 tid = info.application_id;
 
+            if(!titleIsLoaded(tid))
+                addTitleToList(tid);
+
             //Don't bother with this stuff
             if(cfg::isBlacklisted(tid) || !accountSystemSaveCheck(info) || !testMount(info))
                 continue;
@@ -258,9 +261,6 @@ bool data::loadUsersTitles(bool clearUsers)
                     break;
             }
 
-            if(!titleIsLoaded(tid))
-                addTitleToList(tid);
-
             int u = getUserIndex(info.uid);
             if(u == -1)
             {
@@ -273,7 +273,6 @@ bool data::loadUsersTitles(bool clearUsers)
                 pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(info.application_id, info.uid, false, &playStats);
             else
                 memset(&playStats, 0, sizeof(PdmPlayStatistics));
-
             users[u].addUserTitleInfo(tid, &info, &playStats);
         }
         fsSaveDataInfoReaderClose(&it);
