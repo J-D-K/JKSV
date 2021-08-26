@@ -628,7 +628,7 @@ void fs::backupUserSaves_t(void *a)
             tmpArgs->cleanup = false;
             tmpArgs->prog = c->prog;
             fakeThread->status = t->status;
-            fakeThread->argPtr = &tmpArgs;
+            fakeThread->argPtr = tmpArgs;
             copyDirToZip_t(fakeThread);
             zipClose(zip, NULL);
             fs::freePathFilters();
