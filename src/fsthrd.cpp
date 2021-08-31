@@ -110,8 +110,11 @@ void fs::createSaveData_t(void *a)
 
     FsSaveDataMetaInfo meta;
     memset(&meta, 0, sizeof(FsSaveDataMetaInfo));
-    meta.size = 0x40060;
-    meta.type = FsSaveDataMetaType_Thumbnail;
+    if(s->type != FsSaveDataType_Bcat)
+    {
+        meta.size = 0x40060;
+        meta.type = FsSaveDataMetaType_Thumbnail;
+    }
 
     Result res = 0;
     if(R_SUCCEEDED(res = fsCreateSaveDataFileSystem(&attr, &svCreate, &meta)))

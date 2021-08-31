@@ -8,7 +8,7 @@
 #include "gfx.h"
 
 #define BLD_MON 8
-#define BLD_DAY 24
+#define BLD_DAY 31
 #define BLD_YEAR 2021
 
 namespace data

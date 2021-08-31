@@ -190,7 +190,7 @@ static void loadWorkDirLegacy()
         memset(tmp, 0, 256);
 
         FILE *getDir = fopen(workDirLegacy, "r");
-        fgets(tmp, FS_MAX_PATH, getDir);
+        fgets(tmp, 256, getDir);
         fclose(getDir);
         std::string tmpStr = tmp;
         util::stripChar('\n', tmpStr);
@@ -227,13 +227,13 @@ static void loadConfigLegacy()
         cfg::config["zip"] = cfgIn >> 51 & 1;
         cfg::config["langOverride"] = cfgIn >> 50 & 1;
         cfg::config["trashBin"] = cfgIn >> 49 & 1;
-        fs::delfile(cfgPath);
+        fs::delfile(legacyCfgPath.c_str());
     }
 }
 
 static void loadFavoritesLegacy()
 {
-    std::string legacyFavPath = fs::getWorkDir() + "cfg::favorites.txt";
+    std::string legacyFavPath = fs::getWorkDir() + "favorites.txt";
     if(fs::fileExists(legacyFavPath))
     {
         fs::dataFile fav(legacyFavPath);
@@ -246,7 +246,7 @@ static void loadFavoritesLegacy()
 
 static void loadBlacklistLegacy()
 {
-    std::string legacyBlPath = fs::getWorkDir() + "cfg::blacklist.txt";
+    std::string legacyBlPath = fs::getWorkDir() + "blacklist.txt";
     if(fs::fileExists(legacyBlPath))
     {
         fs::dataFile bl(legacyBlPath);
@@ -257,20 +257,19 @@ static void loadBlacklistLegacy()
     }
 }
 
-static void loadTitleDefs()
+static void loadTitleDefsLegacy()
 {
     std::string titleDefLegacy = fs::getWorkDir() + "titleDefs.txt";
     if(fs::fileExists(titleDefLegacy))
-        rename(titleDefLegacy.c_str(), titleDefPath);
-
-    if(fs::fileExists(titleDefPath))
     {
-        fs::dataFile getPaths(titleDefPath);
+        fs::dataFile getPaths(titleDefLegacy);
         while(getPaths.readNextLine(true))
         {
             uint64_t tid = strtoul(getPaths.getName().c_str(), NULL, 16);
             pathDefs[tid] = getPaths.getNextValueStr();
         }
+        getPaths.close();
+        fs::delfile(titleDefLegacy);
     }
 }
 
@@ -280,6 +279,7 @@ void cfg::loadConfig()
     loadConfigLegacy();
     loadFavoritesLegacy();
     loadBlacklistLegacy();
+    loadTitleDefsLegacy();
 
     if(fs::fileExists(cfgPath))
     {
@@ -380,10 +380,12 @@ void cfg::loadConfig()
                 case 18:
                     cfg::config["autoName"] = textToBool(cfgRead.getNextValueStr());
                     break;
+
+                default:
+                    break;
             }
         }
     }
-    loadTitleDefs();
 }
 
 static void savePathDefs()
