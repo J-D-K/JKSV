@@ -695,8 +695,13 @@ void fs::deleteBackup(void *a)
     t->status->setStatus("Deleting...");
     if(cfg::config["trashBin"])
     {
+        data::userTitleInfo *getTID = data::getCurrentUserTitleInfo();
+
         std::string oldPath = util::generatePathByTID(cd->tid) + itemName;
-        std::string trashPath = wd + "_TRASH_/" + itemName;
+        std::string trashPath = wd + "_TRASH_/" + data::getTitleSafeNameByTID(getTID->tid);
+        fs::mkDir(trashPath);
+        trashPath += "/" + itemName;
+
         rename(oldPath.c_str(), trashPath.c_str());
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupMovedToTrash", 0), itemName.c_str());
     }
