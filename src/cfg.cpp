@@ -273,6 +273,20 @@ static void loadTitleDefsLegacy()
     }
 }
 
+//Oops
+static void loadTitleDefs()
+{
+    if(fs::fileExists(titleDefPath))
+    {
+        fs::dataFile getPaths(titleDefPath);
+        while(getPaths.readNextLine(true))
+        {
+            uint64_t tid = strtoul(getPaths.getName().c_str(), NULL, 16);
+            pathDefs[tid] = getPaths.getNextValueStr();
+        }
+    }
+}
+
 void cfg::loadConfig()
 {
     loadWorkDirLegacy();
@@ -280,6 +294,7 @@ void cfg::loadConfig()
     loadFavoritesLegacy();
     loadBlacklistLegacy();
     loadTitleDefsLegacy();
+    loadTitleDefs();
 
     if(fs::fileExists(cfgPath))
     {

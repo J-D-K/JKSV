@@ -182,7 +182,11 @@ void ui::loadTrans()
             file = "romfs:/lang/";
             switch(data::sysLang)
             {
-                //I removed these for now. Old translation files are incompatible and will cause crashes.
+                case SetLanguage_ZHTW:
+                case SetLanguage_ZHHANT:
+                    file += "zh-TW.txt";
+                    break;
+
                 default:
                     ui::initStrings();
                     return;
