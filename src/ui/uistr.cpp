@@ -182,6 +182,14 @@ void ui::loadTrans()
             file = "romfs:/lang/";
             switch(data::sysLang)
             {
+                case SetLanguage_JA:
+                    file += "ja.txt";
+                    break;
+
+                case SetLanguage_FR:
+                    file += "fr.txt";
+                    break;
+
                 case SetLanguage_ZHTW:
                 case SetLanguage_ZHHANT:
                     file += "zh-TW.txt";
