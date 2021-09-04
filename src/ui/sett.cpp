@@ -123,7 +123,7 @@ static void toggleOpt(void *a)
         case 0:
             fs::delDir(fs::getWorkDir() + "_TRASH_/");
             mkdir(std::string(fs::getWorkDir() + "_TRASH_").c_str(), 777);
-            ui::showPopMessage(POP_FRAME_DEFAULT, "Trash emptied.");
+            ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("infoStatus", 14));
             break;
 
         case 1:

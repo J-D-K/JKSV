@@ -7,6 +7,50 @@
 #如果添加了新字符串，它还可以导出已经生成的翻译，从而减少每个人的工作量。
 #如果存在空格、换行或无法翻译的英文文本等问题，请在git问题或您的pull请求中告诉我。
 
+usersSaveType = 0, "设备存档"
+usersSaveType = 1, "BCAT存档"
+usersSaveType = 2, "缓存存档"
+usersSaveType = 3, "系统存档"
+usersSaveType = 4, "系统BCAT存档"
+usersSaveType = 5, "临时存档"
+settingsMainMenu = 0, "系统设置"
+extrasMainMenu = 0, "附加设置"
+translationMainPage = 0, "翻译："
+loadingStartPage = 0, "加载中..."
+
+saveDataType = 0, "系统存档\n"
+saveDataType = 1, "用户存档\n"
+saveDataType = 2, "BCAT存档\n"
+saveDataType = 3, "设备存档\n"
+saveDataType = 4, "临时存档\n"
+saveDataType = 5, "缓存存档\n"
+saveDataType = 6, "系统BCAT存档\n"
+saveDataType = 7, "存档索引号："
+
+infoStatus = 0, "TID: "
+infoStatus = 1, "SID: "
+infoStatus = 2, "游戏时间："
+infoStatus = 3, "总启动次数："
+infoStatus = 4, "用户数目："
+infoStatus = 5, "当前用户："
+infoStatus = 6, "当前Title："
+infoStatus = 7, "安全Title："
+infoStatus = 8, "排序类型："
+infoStatus = 9, "正在文件管理器里保存..."
+infoStatus = 10, "提交文件到设备错误 -> 0x%X\n"
+infoStatus = 11, "正在删除"
+infoStatus = 12, "存档创建失败 -> "
+infoStatus = 14, "回收站已清空。"
+
+newSafeTitle = 0, "输入新的导出目录名称"
+expandSize = 0, "输入新的大小（单位MB）"
+expandSizeFailed = 0, "大小扩展失败：%uMB到%uMB -> %X\n"
+newFolderPopFldMenu = 0, "新建目录"
+newFolderCopyMenu = 0, "新建"
+
+changeToPopStatus = 0, "更改到"
+tmpEmptyPopStatus = 0, "包含非法或者非ASCII字符。"
+
 #如果author不是“NULL”，您的姓名将显示在UI中
 author = 0, "zdm65477730"
 confirmBlacklist = 0, "您确定要将#%s#添加到您的黑名单中吗？"

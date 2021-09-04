@@ -126,7 +126,9 @@ void fs::createSaveData_t(void *a)
     else
     {
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataCreationFailed", 0));
-        fs::logWrite("SaveCreate Failed -> %X\n", res);
+        std::string logstr(ui::getUICString("infoStatus", 12));
+        logstr += "%X\n";
+        fs::logWrite(logstr.c_str(), res);
     }
     delete s;
     t->finished = true;

@@ -200,10 +200,10 @@ bool data::loadUsersTitles(bool clearUsers)
         loadUserAccounts();
         sysBCATPushed = false;
         tempPushed = false;
-        users.emplace_back(util::u128ToAccountUID(3), "Device");
-        users.emplace_back(util::u128ToAccountUID(2), "BCAT");
-        users.emplace_back(util::u128ToAccountUID(5), "Cache");
-        users.emplace_back(util::u128ToAccountUID(0), "System");
+        users.emplace_back(util::u128ToAccountUID(3), ui::getUICString("usersSaveType", 0));
+        users.emplace_back(util::u128ToAccountUID(2), ui::getUICString("usersSaveType", 1));
+        users.emplace_back(util::u128ToAccountUID(5), ui::getUICString("usersSaveType", 2));
+        users.emplace_back(util::u128ToAccountUID(0), ui::getUICString("usersSaveType", 3));
     }
 
     for(unsigned i = 0; i < 7; i++)
@@ -242,7 +242,7 @@ bool data::loadUsersTitles(bool clearUsers)
                     {
                         ++systemUserCount;
                         sysBCATPushed = true;
-                        users.emplace_back(util::u128ToAccountUID(4), "Sys. BCAT");
+                        users.emplace_back(util::u128ToAccountUID(4), ui::getUICString("usersSaveType", 4));
                     }
                     break;
 
@@ -256,7 +256,7 @@ bool data::loadUsersTitles(bool clearUsers)
                     {
                         ++systemUserCount;
                         tempPushed = true;
-                        users.emplace_back(util::u128ToAccountUID(6), "Temp");
+                        users.emplace_back(util::u128ToAccountUID(6), ui::getUICString("usersSaveType", 5));
                     }
                     break;
             }
@@ -456,12 +456,12 @@ void data::dispStats()
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
 
     //Easiest/laziest way to do this
-    std::string stats = "User Count: " + std::to_string(users.size()) + "\n";
+    std::string stats = ui::getUICString("infoStatus", 4) + std::to_string(users.size()) + "\n";
     for(data::user& u : data::users)
         stats += u.getUsername() + ": " + std::to_string(u.titleInfo.size()) + "\n";
-    stats += "Current User: " + cu->getUsername() + "\n";
-    stats += "Current Title: " + data::getTitleNameByTID(d->tid) + "\n";
-    stats += "Safe Title: " + data::getTitleSafeNameByTID(d->tid) + "\n";
-    stats += "Sort Type: " + std::to_string(cfg::sortType) + "\n";
+    stats += ui::getUICString("infoStatus", 5) + cu->getUsername() + "\n";
+    stats += ui::getUICString("infoStatus", 6) + data::getTitleNameByTID(d->tid) + "\n";
+    stats += ui::getUICString("infoStatus", 7) + data::getTitleSafeNameByTID(d->tid) + "\n";
+    stats += ui::getUICString("infoStatus", 8) + std::to_string(cfg::sortType) + "\n";
     gfx::drawTextf(NULL, 16, 2, 2, &green, stats.c_str());
 }

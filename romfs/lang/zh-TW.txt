@@ -7,6 +7,50 @@
 #It can also export already made translations with new strings if added, cutting down work for everyone.
 #If there are issues with spacing, line breaking, untranslatable English text, etc let me know in a git issue or your pull request.
 
+usersSaveType = 0, "設備存檔"
+usersSaveType = 1, "BCAT存檔"
+usersSaveType = 2, "緩存存檔"
+usersSaveType = 3, "系統存檔"
+usersSaveType = 4, "系統BCAT存檔"
+usersSaveType = 5, "臨時存檔"
+settingsMainMenu = 0, "系統設置"
+extrasMainMenu = 0, "附加設定"
+translationMainPage = 0, "翻譯："
+loadingStartPage = 0, "加載中…"
+
+saveDataType = 0, "系統存檔\n"
+saveDataType = 1, "用戶存檔\n"
+saveDataType = 2, "BCAT存檔\n"
+saveDataType = 3, "設備存檔\n"
+saveDataType = 4, "臨時存檔\n"
+saveDataType = 5, "緩存存檔\n"
+saveDataType = 6, "系統BCAT存檔\n"
+saveDataType = 7, "存檔索引號："
+
+infoStatus = 0, "TID:"
+infoStatus = 1, "SID:"
+infoStatus = 2, "遊戲時間："
+infoStatus = 3, "總啟動次數："
+infoStatus = 4, "用戶數目："
+infoStatus = 5, "當前用戶："
+infoStatus = 6, "當前Title:"
+infoStatus = 7, "安全Title:"
+infoStatus = 8, "排序類型："
+infoStatus = 9, "正在檔案管理器裏保存…"
+infoStatus = 10, "提交檔案到設備錯誤-> 0x%X\n"
+infoStatus = 11, "正在删除"
+infoStatus = 12, "存檔創建失敗->"
+infoStatus = 14, "回收站已清空。"
+
+newSafeTitle = 0, "輸入新的匯出目錄名稱"
+expandSize = 0, "輸入新的大小（組織MB）"
+expandSizeFailed = 0, "大小擴展失敗：%uMB到%uMB -> %X\n"
+newFolderPopFldMenu = 0, "新建目錄"
+newFolderCopyMenu = 0, "新建"
+
+changeToPopStatus = 0, "更改到"
+tmpEmptyPopStatus = 0, "包含非法或者非ASCII字元。"
+
 #If author is not "NULL", your name will be displayed in the UI 
 author = 0, "Leo"
 confirmBlacklist = 0, "是否確定要將#%s#加入黑名單?"

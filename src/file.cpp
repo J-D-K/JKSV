@@ -90,7 +90,7 @@ bool fs::commitToDevice(const std::string& dev)
     Result res = fsdevCommitDevice(dev.c_str());
     if(R_FAILED(res))
     {
-        fs::logWrite("Error committing file to device -> 0x%X\n", res);
+        fs::logWrite(ui::getUICString("infoStatus", 10), res);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popErrorCommittingFile", 0));
         ret = false;
     }
@@ -692,7 +692,7 @@ void fs::deleteBackup(void *a)
     unsigned ind = m->getSelected() - 1;
 
     std::string itemName = d->getItem(ind);
-    t->status->setStatus("Deleting...");
+    t->status->setStatus(ui::getUICString("infoStatus", 11));
     if(cfg::config["trashBin"])
     {
         data::userTitleInfo *getTID = data::getCurrentUserTitleInfo();

@@ -220,7 +220,7 @@ void ui::loadTrans()
 void ui::saveTranslationFile(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    t->status->setStatus("Saving the file master...");
+    t->status->setStatus(ui::getUICString("infoStatus", 9));
 
     std::string out = fs::getWorkDir() + "en-US.txt";
     FILE *enUS = fopen(out.c_str(), "w");
