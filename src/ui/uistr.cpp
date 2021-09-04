@@ -195,6 +195,10 @@ void ui::loadTrans()
                     file += "zh-TW.txt";
                     break;
 
+                case SetLanguage_ZHCN:
+                    file += "zh-CN.txt";
+                    break;
+
                 default:
                     ui::initStrings();
                     return;

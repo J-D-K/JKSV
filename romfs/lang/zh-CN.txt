@@ -1,126 +1,130 @@
-#Chinese translation file
-#JKSV Switch translation guide
-#Button strings [X] are replaced by JKSV at boot.
-#string = set string to this.
-#Translation author. Displayed in UI. NULL is ignored and not displayed.
-author = "JamePeng"
+#JKSV 中文简体翻译文件
+#文件可以放置并命名为“/JKSV/trans.txt”，用于测试而无需编译
+#格式为: 字符串名称 = 字符串索引号, "字符串文本"
+#您只需翻译“字符串文本”，无需触摸其他两个参数。
+#'%s'将被替换为游戏titles和路径。'#'，'*'，'>'等用于改变文字颜色。[x]将被替换为按钮图标。'\n'可以用来换行。
+#这是从JKSV本身导出的，以便更容易向其中添加字符串。
+#如果添加了新字符串，它还可以导出已经生成的翻译，从而减少每个人的工作量。
+#如果存在空格、换行或无法翻译的英文文本等问题，请在git问题或您的pull请求中告诉我。
 
-#Help/Guide strings on bottom
-#User Select
-userHelp = "[A] 选择   [Y] 导出全部   [X] 模式切换   [-] 选项   [ZR] 附加选项"
-
-#Title Select
-titleHelp = "[A] 选择   [L][R] 更换用户   [Y] 导出全部   [X] 收藏   [-] 黑名单   [ZR] 擦除   [B] 返回"
-
-#Folder Select
-folderHelp = "[-] 文件模式  [L]/[R]+[A] 自动命名  [A] 备份  [Y] 还原  [X] 删除文件夹  [ZR] 擦除  [B] 返回"
-
-#Options Menu
-optHelp = "[A] 切换   [X] 恢复默认值   [B] 返回"
-
-#Button prompts.
-yt = "是 [A]"
-nt = "否 [B]"
-
-#On/Off for options. '>' is used to change color to green.
-on = ">开>"
-off = "关"
-
-#Strings for messages/confirmation. '*' and '#' are used in strings to change color. %s is replaced with titles and names with sprintf.
-#Text shown at the top of confirmation boxes
-confirmHead = "确认窗口"
-
-#Text shown at top of progress dialog when copying files
-copyHead = "正在复制文件..."
-
-#Confirm blacklist.
-confirmBlacklist = "您是否确认添加 #%s# 到黑名单?"
-
-#Confirm overwriting folder
-confirmOverwrite = "您是否确认覆写 #%s#?"
-
-#Confirm restoring save
-confirmRestore = "您是否确认恢复 #%s#?"
-
-#Confirm deleting.
-confirmDelete = "您是否确认删除 #%s#? *该操作为永久性操作*"
-
-#Confirm file copy in file mode
-confirmCopy = "您是否确认拷贝 #%s# 到 #%s#?"
-
-#Warning for erasing save data from system in title menu
-confirmEraseNand = "*警告*: *这将会从主机系统擦除* #%s# *的存档数据*. *该操作与系统*#数据管理#*操作相同*! 您是否确认继续擦除操作?"
-
-#Warning for deleting save data in folder menu
-confirmEraseFolder = "*警告*: *这将会从主机系统删除* #%s# *的当前存档数据*! 您是否确认继续删除操作?"
-
-#Error displayed in pop-up if no titles are found for user. Rarely happens, but can for Device and BCAT
-noSavesFound = "沒有找到 #%s# 的存档数据!"
-
-#Text displayed when holding is required. Should have a trailing space
-holdingText = 0, "(需要按住) "
-holdingText = 1, "(保持按住) "
-holdingText = 2, "(差不多了!) "
-
-#Menu options are held in arrays of strings.
-#The number is the option to set, string is what to set to.
-#Only the string after the comma needs to be edited.
-#Adv/file mode menu
-#'Copy to ' NEEDS a trailing space
-advMenu = 0, "复制到"
-advMenu = 1, "删除"
-advMenu = 2, "重命名"
-advMenu = 3, "新建文件夹"
-advMenu = 4, "属性"
-advMenu = 5, "关闭"
-
-#Extras Menu
-extMenu = 0, "存储文件管理器"
-extMenu = 1, "查看BIS: PRODINFOF"
-extMenu = 2, "查看BIS: SAFE"
-extMenu = 3, "查看BIS: SYSTEM"
-extMenu = 4, "查看BIS: USER"
-extMenu = 5, "移除固件更新文件"
-extMenu = 6, "终止指定ID进程"
-extMenu = 7, "挂载系统存档"
-extMenu = 8, "重新扫描Titles"
-extMenu = 9, "挂载RomFS进程"
-extMenu = 10, "备份JKSV目录"
-
-#Options menu
-#All options need a trailing space. It is the most likely to have things added to it.
-optMenu = 0, "全部存档数据: "
-optMenu = 1, "自动备份: "
-optMenu = 2, "系统超频: "
-optMenu = 3, "长按确认删除: "
-optMenu = 4, "长按确认恢复: "
-optMenu = 5, "长按确认覆写: "
-optMenu = 6, "强制挂载: "
-optMenu = 7, "关联用户的系统存档: "
-optMenu = 8, "是否开启系统存档覆写: "
-optMenu = 9, "默认使用文字列表模式: "
-optMenu = 10, "使用系统FS复制指令: "
-optMenu = 11, "跳过用户选择: "
-optMenu = 12, "导出ZIP压缩包: "
-optMenu = 13, "排序: "
-
-#Explanations of what options do.
-optMenuExp = 0, "包括设备关联账户中的所有存档数据"
-optMenuExp = 1, "还原存档前，自动创建原存档的备份."
-optMenuExp = 2, "在启动时对CPU进行小幅度超频至1224Mhz. 这与开发人员单元的运行速度相同."
-optMenuExp = 3, "执行删除文件和文件夹的时候，是否提示长按[A]确认操作"
-optMenuExp = 4, "执行恢复存档操作的时候，是否提示长按[A]确认操作"
-optMenuExp = 5, "执行覆写存档数据操作的时候，是否提示长按[A]确认操作"
-optMenuExp = 6, "开启后，JKSV仅显示具有开放权限的存档数据. 关闭后将显示所有存档数据."
-optMenuExp = 7, "开启后，JKSV将显示与账户关联的系统存档数据."
-optMenuExp = 8, "控制系统存档数据和分区是否可以写入和删除文件和数据. *如果您在不熟悉功能的情况下操作，可能会非常危险！*"
-optMenuExp = 9, "切换浏览界面至文字列表模式，类似3DS主机上JKSM的界面"
-optMenuExp = 10, "直接使用Switch系统FS指令取代原有的标准输入输出方式"
-optMenuExp = 11, "跳过用户选择界面直接使用首位用户的资料数据"
-optMenuExp = 12, "导出存档到zip文件"
-optMenuExp = 13, "更改标题排列排序方式"
-
-#Sort Types
-sortType = 0, "字母顺序"
-sortType = 1, "游戏时间"
-sortType = 2, "最后游戏"
+#如果author不是“NULL”，您的姓名将显示在UI中
+author = 0, "zdm65477730"
+confirmBlacklist = 0, "您确定要将#%s#添加到您的黑名单中吗？"
+confirmCopy = 0, "是否确定要将#%s#复制到#%s#？"
+confirmCreateAllSaveData = 0, "是否确定要在此系统上为#%s#创建所有存档数据？这可能需要一些时间，具体取决于找到的游戏title数量。"
+confirmDelete = 0, "是否确定要删除#%s#？*这是永久的*！"
+confirmDeleteBackupsAll = 0, "是否确定要删除您所有游戏的*所有*存档备份？"
+confirmDeleteBackupsTitle = 0, "是否确定要删除#%s#的所有存档备份？"
+confirmDeleteSaveData = 0, "*警告*：这*将从系统*中删除#%s#*的存档数据。您确定要这样做吗？"
+confirmOverwrite = 0, "是否确定要覆盖#%s#?"
+confirmResetSaveData = 0, "*警告*：此*将*重置此游戏的存档数据，就像以前从未运行过一样。您确定要这样做吗？"
+confirmRestore = 0, "您确定要还原#%s#吗？"
+dialogNo = 0, "否 [B]"
+dialogOK = 0, "好 [A]"
+dialogYes = 0, "是 [A]"
+extrasMenu = 0, "SD到SD浏览器"
+extrasMenu = 1, "BIS: ProdInfoF"
+extrasMenu = 2, "BIS: Safe"
+extrasMenu = 3, "BIS: System"
+extrasMenu = 4, "BIS: User"
+extrasMenu = 5, "删除挂起的更新"
+extrasMenu = 6, "终止进程"
+extrasMenu = 7, "挂载系统存档"
+extrasMenu = 8, "重新扫描Titles"
+extrasMenu = 9, "挂在进程RomFS"
+extrasMenu = 10, "备份JKSV文件夹"
+extrasMenu = 11, "*[开发中]* 输出en-US"
+fileModeFileProperties = 0, "路径：%s\n大小：%s"
+fileModeFolderProperties = 0, "路径：%s\n子目录：%u\n文件数量：%u\n总大小：%s"
+fileModeMenu = 0, "复制到"
+fileModeMenu = 1, "删除"
+fileModeMenu = 2, "重命令"
+fileModeMenu = 3, "创建文件夹"
+fileModeMenu = 4, "属性"
+fileModeMenu = 5, "关闭"
+fileModeMenu = 6, "添加到路径过滤器"
+helpFolder = 0, "[A] 选择  [Y] 恢复  [X] 删除  [B] 关闭"
+helpSettings = 0, "[A] 切换   [X] 恢复默认   [B] 返回"
+helpTitle = 0, "[A] 选择   [L][R] 翻页   [Y] 收藏   [X] Title选项  [B] 返回"
+helpUser = 0, "[A] 选择   [X] 用户选项"
+holdingText = 0, "（按住）"
+holdingText = 1, "（持续按住）"
+holdingText = 2, "（快好了！）"
+onlineErrorConnecting = 0, "连接错误！"
+onlineNoUpdates = 0, "没有可用的更新。"
+popAddedToPathFilter = 0, "'#%s#'添加到路径过滤器。"
+popCPUBoostEnabled = 0, "为ZIP压缩启用CPU超频。"
+popErrorCommittingFile = 0, "提交要保存的文件时出错！"
+popFolderIsEmpty = 0, "文件夹为空！"
+popProcessShutdown = 0, "#%s#已成功关闭。"
+popSaveIsEmpty = 0, "存档数据为空！"
+popZipIsEmpty = 0, "ZIP文件为空！"
+saveDataBackupDeleted = 0, "#%s#已被删除。"
+saveDataBackupMovedToTrash = 0, "#%s#已被移到回收站。"
+saveDataCreatedForUser = 0, "%s的存档数据已创建！"
+saveDataCreationFailed = 0, "存档数据创建失败！"
+saveDataDeleteAllUser = 0, "*确定要删除%s的所有存档数据吗？*"
+saveDataDeleteSuccess = 0, "#%s#的存档数据已删除！"
+saveDataExtendFailed = 0, "扩展存档数据失败。"
+saveDataExtendSuccess = 0, "#%s#的存档数据已扩展！"
+saveDataNoneFound = 0, "没有找到#%s#的存档！"
+saveDataResetSuccess = 0, "#%s#的存档已重置！"
+settingsMenu = 0, "清空回收站"
+settingsMenu = 1, "检查更新"
+settingsMenu = 2, "设置JKSV的存档输出文件夹"
+settingsMenu = 3, "编辑Titles黑名单"
+settingsMenu = 4, "删除所有存档备份"
+settingsMenu = 5, "包含绑定用户的存档："
+settingsMenu = 6, "恢复时自动备份："
+settingsMenu = 7, "自动命名备份："
+settingsMenu = 8, "CPU超频："
+settingsMenu = 9, "按住以删除："
+settingsMenu = 10, "按住以恢复："
+settingsMenu = 11, "按住以覆盖："
+settingsMenu = 12, "强制挂载："
+settingsMenu = 13, "绑定用户的系统存档："
+settingsMenu = 14, "允许写入系统存档："
+settingsMenu = 15, "直接使用FS命令："
+settingsMenu = 16, "导出存档到ZIP："
+settingsMenu = 17, "强制使用英语："
+settingsMenu = 18, "启用回收站："
+settingsMenu = 19, "Title排序类型："
+settingsMenu = 20, "动画比例："
+settingsOff = 0, "关"
+settingsOn = 0, ">开>"
+sortType = 0, "按名称排序"
+sortType = 1, "按游戏时间长短排序"
+sortType = 2, "按最近打开游戏的时间排序"
+swkbdEnterName = 0, "请输入新的名称"
+swkbdMkDir = 0, "请输入目录名"
+swkbdProcessID = 0, "请输入进程ID"
+swkbdRename = 0, "请输入项目的新名称"
+swkbdSaveIndex = 0, "请输入缓存索引号"
+swkbdSetWorkDir = 0, "请输入新的输出目录"
+swkbdSysSavID = 0, "请输入系统存档ID"
+threadStatusAddingFileToZip = 0, "正在添加'#%s#'到ZIP文件..."
+threadStatusCheckingForUpdate = 0, "正在检查更新..."
+threadStatusCopyingFile = 0, "正在拷贝'#%s#'..."
+threadStatusCreatingSaveData = 0, "正在创建#%s#的存档..."
+threadStatusDecompressingFile = 0, "正在解压'#%s#'..."
+threadStatusDeletingFile = 0, "正在删除..."
+threadStatusDeletingSaveData = 0, "正在删除#%s#的存档..."
+threadStatusDeletingUpdate = 0, "正在删除挂起的更新..."
+threadStatusDownloadingUpdate = 0, "正在下载更新..."
+threadStatusExtendingSaveData = 0, "正在扩展#%s#的存档..."
+threadStatusGetDirProps = 0, "正在获取文件夹属性..."
+threadStatusOpeningFolder = 0, "正在打开'#%s#'..."
+threadStatusPackingJKSV = 0, "正在写入JKSV文件夹内容到ZIP压缩包..."
+threadStatusResettingSaveData = 0, "正在重置存档数据..."
+titleOptions = 0, "信息"
+titleOptions = 1, "黑名单"
+titleOptions = 2, "更改输出目录"
+titleOptions = 3, "在文件模式下打开"
+titleOptions = 4, "删除所有存储备份"
+titleOptions = 5, "重置存档数据"
+titleOptions = 6, "删除存档数据"
+titleOptions = 7, "扩展存档数据"
+userOptions = 0, "转储该游戏的所有存档："
+userOptions = 1, "创建存档数据"
+userOptions = 2, "创建所有游戏的存档数据"
+userOptions = 3, "删除所有用户存档"
