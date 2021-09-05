@@ -216,35 +216,35 @@ std::string util::getInfoString(data::user& u, const uint64_t& tid)
     switch(userTinfo->saveInfo.save_data_type)
     {
         case FsSaveDataType_System:
-            ret += ui::getUICString("saveDataType", 0);
+            ret += ui::getUICString("saveDataTypeText", 0);
             break;
 
         case FsSaveDataType_Account:
-            ret += ui::getUICString("saveDataType", 1);
+            ret += ui::getUICString("saveDataTypeText", 1);
             break;
 
         case FsSaveDataType_Bcat:
-            ret += ui::getUICString("saveDataType", 2);
+            ret += ui::getUICString("saveDataTypeText", 2);
             break;
 
         case FsSaveDataType_Device:
-            ret += ui::getUICString("saveDataType", 3);
+            ret += ui::getUICString("saveDataTypeText", 3);
             break;
 
         case FsSaveDataType_Temporary:
-            ret += ui::getUICString("saveDataType", 4);
+            ret += ui::getUICString("saveDataTypeText", 4);
             break;
 
         case FsSaveDataType_Cache:
             {
                 data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-                ret += ui::getUICString("saveDataType", 5);
-                ret += ui::getUICString("saveDataType", 7) + std::to_string(d->saveInfo.save_data_index) + "\n";
+                ret += ui::getUICString("saveDataTypeText", 5);
+                ret += ui::getUICString("saveDataIndexText", 0) + std::to_string(d->saveInfo.save_data_index) + "\n";
             }
             break;
 
         case FsSaveDataType_SystemBcat:
-            ret += ui::getUICString("saveDataType", 6);
+            ret += ui::getUICString("saveDataTypeText", 6);
             break;
     }
 

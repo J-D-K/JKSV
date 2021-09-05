@@ -1,4 +1,4 @@
-#JKSV 中文简体翻译文件
+#JKSV 简体中文翻译文件
 #文件可以放置并命名为“/JKSV/trans.txt”，用于测试而无需编译
 #格式为: 字符串名称 = 字符串索引号, "字符串文本"
 #您只需翻译“字符串文本”，无需触摸其他两个参数。
@@ -7,25 +7,25 @@
 #如果添加了新字符串，它还可以导出已经生成的翻译，从而减少每个人的工作量。
 #如果存在空格、换行或无法翻译的英文文本等问题，请在git问题或您的pull请求中告诉我。
 
-usersSaveType = 0, "设备存档"
-usersSaveType = 1, "BCAT存档"
-usersSaveType = 2, "缓存存档"
-usersSaveType = 3, "系统存档"
-usersSaveType = 4, "系统BCAT存档"
-usersSaveType = 5, "临时存档"
+saveTypeMainMenu = 0, "设备"
+saveTypeMainMenu = 1, "BCAT"
+saveTypeMainMenu = 2, "缓存"
+saveTypeMainMenu = 3, "系统"
+saveTypeMainMenu = 4, "系统BCAT"
+saveTypeMainMenu = 5, "临时"
 settingsMainMenu = 0, "系统设置"
 extrasMainMenu = 0, "附加设置"
 translationMainPage = 0, "翻译："
 loadingStartPage = 0, "加载中..."
 
-saveDataType = 0, "系统存档\n"
-saveDataType = 1, "用户存档\n"
-saveDataType = 2, "BCAT存档\n"
-saveDataType = 3, "设备存档\n"
-saveDataType = 4, "临时存档\n"
-saveDataType = 5, "缓存存档\n"
-saveDataType = 6, "系统BCAT存档\n"
-saveDataType = 7, "存档索引号："
+saveDataTypeText = 0, "系统存档\n"
+saveDataTypeText = 1, "用户存档\n"
+saveDataTypeText = 2, "BCAT存档\n"
+saveDataTypeText = 3, "设备存档\n"
+saveDataTypeText = 4, "临时存档\n"
+saveDataTypeText = 5, "缓存存档\n"
+saveDataTypeText = 6, "系统BCAT存档\n"
+saveDataIndexText = 0, "存档索引号："
 
 infoStatus = 0, "TID: "
 infoStatus = 1, "SID: "

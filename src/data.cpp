@@ -200,14 +200,10 @@ bool data::loadUsersTitles(bool clearUsers)
         loadUserAccounts();
         sysBCATPushed = false;
         tempPushed = false;
-        //users.emplace_back(util::u128ToAccountUID(3), ui::getUICString("usersSaveType", 0));
-        //users.emplace_back(util::u128ToAccountUID(2), ui::getUICString("usersSaveType", 1));
-        //users.emplace_back(util::u128ToAccountUID(5), ui::getUICString("usersSaveType", 2));
-        //users.emplace_back(util::u128ToAccountUID(0), ui::getUICString("usersSaveType", 3));
-        users.emplace_back(util::u128ToAccountUID(3), "设备");
-        users.emplace_back(util::u128ToAccountUID(2), "BCAT");
-        users.emplace_back(util::u128ToAccountUID(5), "缓存");
-        users.emplace_back(util::u128ToAccountUID(0), "系统");
+        users.emplace_back(util::u128ToAccountUID(3), ui::getUIString("saveTypeMainMenu", 0));
+        users.emplace_back(util::u128ToAccountUID(2), ui::getUIString("saveTypeMainMenu", 1));
+        users.emplace_back(util::u128ToAccountUID(5), ui::getUIString("saveTypeMainMenu", 2));
+        users.emplace_back(util::u128ToAccountUID(0), ui::getUIString("saveTypeMainMenu", 3));
     }
 
     for(unsigned i = 0; i < 7; i++)
@@ -246,8 +242,7 @@ bool data::loadUsersTitles(bool clearUsers)
                     {
                         ++systemUserCount;
                         sysBCATPushed = true;
-                        //users.emplace_back(util::u128ToAccountUID(4), ui::getUICString("usersSaveType", 4));
-                        users.emplace_back(util::u128ToAccountUID(4), "系统BCAT");
+                        users.emplace_back(util::u128ToAccountUID(4), ui::getUIString("saveTypeMainMenu", 4));
                     }
                     break;
 
@@ -261,8 +256,7 @@ bool data::loadUsersTitles(bool clearUsers)
                     {
                         ++systemUserCount;
                         tempPushed = true;
-                        //users.emplace_back(util::u128ToAccountUID(6), ui::getUICString("usersSaveType", 5));
-                        users.emplace_back(util::u128ToAccountUID(6), "临时");
+                        users.emplace_back(util::u128ToAccountUID(6), ui::getUIString("saveTypeMainMenu", 5));
                     }
                     break;
             }
@@ -313,10 +307,6 @@ void data::init()
 {
     if(cfg::config["ovrClk"])
         util::setCPU(util::CPU_SPEED_1224MHz);
-
-    uint64_t lang;
-    setGetSystemLanguage(&lang);
-    setMakeLanguage(lang, &sysLang);
 
     data::loadUsersTitles(true);
 }

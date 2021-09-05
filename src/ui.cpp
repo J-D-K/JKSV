@@ -63,6 +63,12 @@ const std::string ui::loadGlyphArray[] =
 
 void ui::initTheme()
 {
+    uint64_t lang;
+    setGetSystemLanguage(&lang);
+    setMakeLanguage(lang, &data::sysLang);
+
+    loadTrans();
+
     setsysGetColorSetId(&thmID);
 
     switch(thmID)
@@ -130,8 +136,6 @@ void ui::init()
             sideBar           = gfx::loadImageFile("romfs:/img/fb/lDark.png");
             break;
     }
-
-    loadTrans();
 
     //Replace the button [x] in strings that need it. Needs to be outside loadTrans so even defaults will get replaced
     util::replaceButtonsInString(ui::strings[std::make_pair("helpUser", 0)]);

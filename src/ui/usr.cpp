@@ -119,9 +119,9 @@ static void saveCreateCallback(void *a)
 static void usrOptSaveCreate(void *a)
 {
     ui::menu *m = (ui::menu *)a;
-    int devPos = m->getOptPos(ui::getUICString("usersSaveType", 0));
-    int bcatPos = m->getOptPos(ui::getUICString("usersSaveType", 1));
-    int cachePos = m->getOptPos(ui::getUICString("usersSaveType", 2));
+    int devPos = m->getOptPos(ui::getUICString("saveTypeMainMenu", 0));
+    int bcatPos = m->getOptPos(ui::getUICString("saveTypeMainMenu", 1));
+    int cachePos = m->getOptPos(ui::getUICString("saveTypeMainMenu", 2));
 
     ui::updateInput();
     int sel = m->getSelected();
@@ -164,7 +164,7 @@ static void usrOptDeleteAllUserSaves_t(void *a)
     threadInfo *t = (threadInfo *)a;
     data::user *u = data::getCurrentUser();
     int curUserIndex = data::getCurrentUserIndex();
-    int devUser = ui::usrMenu->getOptPos(ui::getUICString("usersSaveType", 0));
+    int devUser = ui::usrMenu->getOptPos(ui::getUICString("saveTypeMainMenu", 0));
 
     for(data::userTitleInfo& tinf : u->titleInfo)
     {
@@ -261,8 +261,8 @@ static void usrOptCreateAllSaves_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     data::user *u = data::getCurrentUser();
-    int devPos = ui::usrMenu->getOptPos(ui::getUICString("usersSaveType", 0));
-    int bcatPos = ui::usrMenu->getOptPos(ui::getUICString("usersSaveType", 1));
+    int devPos = ui::usrMenu->getOptPos(ui::getUICString("saveTypeMainMenu", 0));
+    int bcatPos = ui::usrMenu->getOptPos(ui::getUICString("saveTypeMainMenu", 1));
     int sel = ui::usrMenu->getSelected();
     if(sel < devPos)
     {
@@ -464,7 +464,7 @@ void ui::usrUpdate()
         {
             case HidNpadButton_X:
                 {
-                    int cachePos = usrMenu->getOptPos(ui::getUIString("usersSaveType", 2));
+                    int cachePos = usrMenu->getOptPos(ui::getUIString("saveTypeMainMenu", 2));
                     if(usrMenu->getSelected() <= cachePos)
                     {
                         data::user *u = data::getCurrentUser();
