@@ -12,7 +12,7 @@
 #include "usr.h"
 #include "ttl.h"
 
-static const char *settText = ui::getUICString("settingsMainMenu", 0), *extText = ui::getUICString("extrasMainMenu", 0);
+static const char *settText = ui::getUICString("mainMenuSettings", 0), *extText = ui::getUICString("mainMenuExtras", 0);
 
 //Main menu/Users + options, folder
 ui::menu *ui::usrMenu;

@@ -352,7 +352,7 @@ static void _copyMenuRename(void *a)
 static void _copyMenuMkDir(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    std::string getNewFolder = util::getStringInput(SwkbdType_QWERTY, ui::getUIString("newFolderCopyMenu", 0), ui::getUIString("swkbdMkDir", 0), 64, 0, NULL);
+    std::string getNewFolder = util::getStringInput(SwkbdType_QWERTY, ui::getUIString("fileModeMenuMkDir", 0), ui::getUIString("swkbdMkDir", 0), 64, 0, NULL);
     if(!getNewFolder.empty())
     {
         std::string createPath = *ma->path + getNewFolder;

@@ -77,7 +77,7 @@ void ui::populateFldMenu()
 
     *backargs = {fldMenu, fldList};
 
-    fldMenu->addOpt(NULL, ui::getUICString("newFolderPopFldMenu", 0));
+    fldMenu->addOpt(NULL, ui::getUICString("folderMenuNew", 0));
     fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, backargs);
 
     for(unsigned i = 0; i < fldList->getCount(); i++)
@@ -170,7 +170,7 @@ static void ttlOptsDefinePath(void *a)
 {
     uint64_t tid = data::getCurrentUserTitleInfo()->tid;
     std::string safeTitle = data::getTitleInfoByTID(tid)->safeTitle;
-    std::string newSafeTitle = util::getStringInput(SwkbdType_QWERTY, safeTitle, ui::getUICString("newSafeTitle", 0), 0x200, 0, NULL);
+    std::string newSafeTitle = util::getStringInput(SwkbdType_QWERTY, safeTitle, ui::getUICString("swkbdNewSafeTitle", 0), 0x200, 0, NULL);
     if(!newSafeTitle.empty())
         cfg::pathDefAdd(tid, newSafeTitle);
 }
@@ -286,7 +286,7 @@ static void ttlOptsExtendSaveData_t(void *a)
     threadInfo *t = (threadInfo *)a;
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
 
-    std::string expSizeStr = util::getStringInput(SwkbdType_NumPad, "", ui::getUICString("expandSize", 0), 4, 0, NULL);
+    std::string expSizeStr = util::getStringInput(SwkbdType_NumPad, "", ui::getUICString("swkbdExpandSize", 0), 4, 0, NULL);
     if(!expSizeStr.empty())
     {
         int64_t journ = 0, expSize;
@@ -337,7 +337,7 @@ static void ttlOptsExtendSaveData_t(void *a)
             fsFsGetTotalSpace(fsdevGetDeviceFileSystem("sv"), "/", &totalSize);
             fs::unmountSave();
 
-            fs::logWrite(ui::getUICString("expandSizeFailed", 0), totalSize / 1024 / 1024, expSize / 1024 / 1024, res);
+            fs::logWrite("Extend Failed: %uMB to %uMB -> %X\n", totalSize / 1024 / 1024, expSize / 1024 / 1024, res);
             ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataExtendFailed", 0));
         }
         else

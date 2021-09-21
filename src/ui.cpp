@@ -163,8 +163,8 @@ void ui::init()
     threadMngr  = new ui::threadProcMngr;
 
     //Need these from user/main menu
-    settPos = ui::usrMenu->getOptPos(ui::getUICString("settingsMainMenu", 0));
-    extPos  = ui::usrMenu->getOptPos(ui::getUICString("extrasMainMenu", 0));
+    settPos = ui::usrMenu->getOptPos(ui::getUICString("mainMenuSettings", 0));
+    extPos  = ui::usrMenu->getOptPos(ui::getUICString("mainMenuExtras", 0));
 }
 
 void ui::exit()

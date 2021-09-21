@@ -104,7 +104,6 @@ void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
 {
     std::string oldSafe = data::titles[tid].safeTitle;
     std::string tmp = util::safeString(newPath);
-    std::string popmsg = "'%s' ";
     if(!tmp.empty())
     {
         pathDefs[tid] = tmp;
@@ -114,14 +113,10 @@ void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
         std::string newOutput = fs::getWorkDir() + tmp;
         rename(oldOutput.c_str(), newOutput.c_str());
 
-        popmsg += ui::getUICString("changeToPopStatus", 0);
-        popmsg += " '%s'";
-        ui::showPopMessage(POP_FRAME_DEFAULT, popmsg.c_str(), oldSafe.c_str(), tmp.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popChangeOutputFolder", 0), oldSafe.c_str(), tmp.c_str());
     }
-    else {
-        popmsg += ui::getUICString("tmpEmptyPopStatus", 0);
-        ui::showPopMessage(POP_FRAME_DEFAULT, popmsg.c_str(), newPath.c_str());
-    }
+    else
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popChangeOutputError", 0), newPath.c_str());
 }
 
 std::string cfg::getPathDefinition(const uint64_t& tid)
