@@ -12,7 +12,7 @@
 #include "curlfuncs.h"
 #include "type.h"
 
-static const uint32_t verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '�', '�', '�'};
+static const uint32_t verboten[] = { L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
 
 static bool isVerboten(const uint32_t& t)
 {
@@ -70,7 +70,7 @@ uint32_t replaceChar(uint32_t c)
 {
     switch(c)
     {
-        case '�':
+        case L'é':
             return 'e';
             break;
     }

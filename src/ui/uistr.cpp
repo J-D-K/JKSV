@@ -4,6 +4,7 @@
 #include "file.h"
 #include "cfg.h"
 #include "type.h"
+#include "util.h"
 #include "uistr.h"
 
 std::map<std::pair<std::string, int>, std::string> ui::strings;
@@ -11,6 +12,95 @@ std::map<std::pair<std::string, int>, std::string> ui::strings;
 static void addUIString(const std::string& _name, int ind, const std::string& _str)
 {
     ui::strings[std::make_pair(_name, ind)] = _str;
+}
+
+static void loadTranslationFile(const std::string& path)
+{
+    if(fs::fileExists(path))
+    {
+        fs::dataFile lang(path);
+        while(lang.readNextLine(true))
+        {
+            std::string name = lang.getName();
+            int ind = lang.getNextValueInt();
+            std::string str = lang.getNextValueStr();
+            addUIString(name, ind, str);
+        }
+    }
+}
+
+static std::string getFilename(int lang)
+{
+    std::string filename;
+    switch(lang)
+    {
+        case SetLanguage_JA:
+            filename = "ja.txt";
+            break;
+
+        case SetLanguage_ENUS:
+            filename = "en-US.txt";
+            break;
+
+        case SetLanguage_FR:
+            filename = "fr.txt";
+            break;
+
+        case SetLanguage_DE:
+            filename = "de.txt";
+            break;
+
+        case SetLanguage_IT:
+            filename = "it.txt";
+            break;
+
+        case SetLanguage_ES:
+            filename = "es.txt";
+            break;
+
+        case SetLanguage_ZHCN:
+        case SetLanguage_ZHHANS:
+            filename = "zh-CN.txt";
+            break;
+
+        case SetLanguage_KO:
+            filename = "ko.txt";
+            break;
+
+        case SetLanguage_NL:
+            filename = "nl.txt";
+            break;
+
+        case SetLanguage_PT:
+            filename = "pt.txt";
+            break;
+
+        case SetLanguage_RU:
+            filename = "ru.txt";
+            break;
+
+        case SetLanguage_ZHTW:
+        case SetLanguage_ZHHANT:
+            filename += "zh-TW.txt";
+            break;
+
+        case SetLanguage_ENGB:
+            filename = "en-GB.txt";
+            break;
+
+        case SetLanguage_FRCA:
+            filename = "fr-CA.txt";
+            break;
+
+        case SetLanguage_ES419:
+            filename = "es-419.txt";
+            break;
+
+        case SetLanguage_PTBR:
+            filename = "pt-BR.txt";
+            break;
+    }
+    return filename;
 }
 
 void ui::initStrings()
@@ -76,7 +166,7 @@ void ui::initStrings()
     addUIString("fileModeMenuMkDir", 0, "New");
 
     //New folder pop menu strings
-    addUIString("folderMenuNew", 0, "New Folder");
+    addUIString("folderMenuNew", 0, "New Backup");
 
     //File mode properties string
     addUIString("fileModeFileProperties", 0, "Path: %s\nSize: %s");
@@ -207,64 +297,53 @@ void ui::initStrings()
 
 void ui::loadTrans()
 {
-    bool transFile = fs::fileExists(fs::getWorkDir() + "trans.txt");
+    std::string transTestFile = fs::getWorkDir() + "trans.txt";
+    std::string translationFile = "romfs:/lang/" + getFilename(data::sysLang);
+    bool transFile = fs::fileExists(transTestFile);
     if(!transFile && (data::sysLang == SetLanguage_ENUS || cfg::config["langOverride"]))
         ui::initStrings();
+    else if(transFile)
+        loadTranslationFile(transTestFile);
     else
-    {
-        std::string file;
-        if(transFile)
-            file = fs::getWorkDir() + "trans.txt";
-        else
-        {
-            file = "romfs:/lang/";
-            switch(data::sysLang)
-            {
-                case SetLanguage_JA:
-                    file += "ja.txt";
-                    break;
+        loadTranslationFile(translationFile);
 
-                case SetLanguage_FR:
-                    file += "fr.txt";
-                    break;
-
-                case SetLanguage_ZHTW:
-                case SetLanguage_ZHHANT:
-                    file += "zh-TW.txt";
-                    break;
-
-                case SetLanguage_ZHCN:
-                case SetLanguage_ZHHANS:
-                    file += "zh-CN.txt";
-                    break;
-
-                default:
-                    ui::initStrings();
-                    return;
-                    break;
-            }
-        }
-
-        fs::dataFile lang(file);
-        while(lang.readNextLine(true))
-        {
-            std::string name = lang.getName();
-            int ind = lang.getNextValueInt();
-            std::string str = lang.getNextValueStr();
-            addUIString(name, ind, str);
-        }
-    }
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpUser", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpTitle", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpFolder", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("helpSettings", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("dialogYes", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("dialogNo", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("dialogOK", 0)]);
 }
 
-void ui::saveTranslationFile(void *a)
+void ui::saveTranslationFiles(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     t->status->setStatus(ui::getUICString("infoStatus", 9));
 
-    std::string out = fs::getWorkDir() + "en-US.txt";
-    FILE *enUS = fopen(out.c_str(), "w");
-    for(auto& s : ui::strings)
-        fprintf(enUS, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, s.second.c_str());
-    fclose(enUS);
+    std::string outputFolder = fs::getWorkDir() + "lang", outputPath, romfsPath;
+    fs::mkDir(outputFolder);
+
+    romfsInit();
+    for(int i = 0; i < SetLanguage_Total; i++)
+    {
+        outputPath = fs::getWorkDir() + "lang/" + getFilename(i);
+        romfsPath = "romfs:/lang/" + getFilename(i);
+
+        //Init original US English strings, then load translation over it. Result will be mixed file.
+        ui::initStrings();
+        loadTranslationFile(romfsPath);
+
+        FILE *out = fopen(outputPath.c_str(), "w");
+        for(auto& s : ui::strings)
+        {
+            std::string stringOut = s.second;
+            util::replaceStr(stringOut, "\n", "\\n");
+            fprintf(out, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, stringOut.c_str());
+        }
+        fclose(out);
+    }
+    loadTrans();
+    romfsExit();
     t->finished = true;
 }

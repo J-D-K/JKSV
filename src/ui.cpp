@@ -137,15 +137,6 @@ void ui::init()
             break;
     }
 
-    //Replace the button [x] in strings that need it. Needs to be outside loadTrans so even defaults will get replaced
-    util::replaceButtonsInString(ui::strings[std::make_pair("helpUser", 0)]);
-    util::replaceButtonsInString(ui::strings[std::make_pair("helpTitle", 0)]);
-    util::replaceButtonsInString(ui::strings[std::make_pair("helpFolder", 0)]);
-    util::replaceButtonsInString(ui::strings[std::make_pair("helpSettings", 0)]);
-    util::replaceButtonsInString(ui::strings[std::make_pair("dialogYes", 0)]);
-    util::replaceButtonsInString(ui::strings[std::make_pair("dialogNo", 0)]);
-    util::replaceButtonsInString(ui::strings[std::make_pair("dialogOK", 0)]);
-
     //setup pad
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&ui::pad);

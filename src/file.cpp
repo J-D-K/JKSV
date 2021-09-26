@@ -559,6 +559,7 @@ void fs::createNewBackup(void *a)
         };
         std::string defaultText = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
         out = util::getStringInput(SwkbdType_QWERTY, defaultText, ui::getUIString("swkbdEnterName", 0), 64, 9, dict);
+        out = util::safeString(out);
     }
 
     if(!out.empty())

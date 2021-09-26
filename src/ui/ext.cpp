@@ -192,7 +192,7 @@ static void extMenuPackJKSV(void *a)
 
 static void extMenuOutputEnUs(void *a)
 {
-    ui::newThread(ui::saveTranslationFile, NULL, NULL);
+    ui::newThread(ui::saveTranslationFiles, NULL, NULL);
 }
 
 void ui::extInit()
