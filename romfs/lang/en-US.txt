@@ -7,6 +7,47 @@
 #It can also export already made translations with new strings if added, cutting down work for everyone.
 #If there are issues with spacing, line breaking, untranslatable English text, etc let me know in a git issue or your pull request.
 
+saveTypeMainMenu = 0, "Device"
+saveTypeMainMenu = 1, "BCAT"
+saveTypeMainMenu = 2, "Cache"
+saveTypeMainMenu = 3, "System"
+saveTypeMainMenu = 4, "System BCAT"
+saveTypeMainMenu = 5, "SysTemp Storagetem"
+mainMenuSettings = 0, "Settings"
+mainMenuExtras = 0, "Extras"
+translationMainPage = 0, "Translation: "
+loadingStartPage = 0, "Loading..."
+
+saveDataTypeText = 0, "System Save\n"
+saveDataTypeText = 1, "Save Data\n"
+saveDataTypeText = 2, "BCAT\n"
+saveDataTypeText = 3, "Device Save\n"
+saveDataTypeText = 4, "Temp Storage\n"
+saveDataTypeText = 5, "Cache Storage\n"
+saveDataTypeText = 6, "System BCAT\n"
+saveDataIndexText = 0, "Save Index: "
+
+infoStatus = 0, "TID: "
+infoStatus = 1, "SID: "
+infoStatus = 2, "Play Time: "
+infoStatus = 3, "Total Launches: "
+infoStatus = 4, "User Count: "
+infoStatus = 5, "Current User: "
+infoStatus = 6, "Current Title: "
+infoStatus = 7, "Safe Title: "
+infoStatus = 8, "Sort Type: "
+infoStatus = 9, "Saving the file master..."
+infoStatus = 10, "Deleting..."
+infoStatus = 11, "Trash emptied."
+
+swkbdNewSafeTitle = 0, "Input New Output Folder"
+swkbdExpandSize = 0, "Enter New Size in MB"
+folderMenuNew = 0, "New Folder"
+fileModeMenuMkDir = 0, "New"
+
+popChangeOutputFolder = 0, "#%s# changed to #%s#"
+popChangeOutputError = 0, "#%s# contains illegal or non-ASCII characters."
+
 #If author is not "NULL", your name will be displayed in the UI 
 author = 0, "NULL"
 confirmBlacklist = 0, "Are you sure you want to add #%s# to your blacklist?"

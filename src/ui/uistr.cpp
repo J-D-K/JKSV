@@ -54,6 +54,12 @@ void ui::initStrings()
     addUIString("saveDataDeleteAllUser", 0, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*");
     addUIString("saveDataBackupDeleted", 0, "#%s# has been deleted.");
     addUIString("saveDataBackupMovedToTrash", 0, "#%s# has been moved to trash.");
+    addUIString("saveTypeMainMenu", 0, "Device");
+    addUIString("saveTypeMainMenu", 1, "BCAT");
+    addUIString("saveTypeMainMenu", 2, "Cache");
+    addUIString("saveTypeMainMenu", 3, "System");
+    addUIString("saveTypeMainMenu", 4, "System BCAT");
+    addUIString("saveTypeMainMenu", 5, "SysTemp Storagetem");
 
     //Internet Related
     addUIString("onlineErrorConnecting", 0, "Error Connecting!");
@@ -67,6 +73,10 @@ void ui::initStrings()
     addUIString("fileModeMenu", 4, "Properties");
     addUIString("fileModeMenu", 5, "Close");
     addUIString("fileModeMenu", 6, "Add to Path Filters");
+    addUIString("fileModeMenuMkDir", 0, "New");
+
+    //New folder pop menu strings
+    addUIString("folderMenuNew", 0, "New Folder");
 
     //File mode properties string
     addUIString("fileModeFileProperties", 0, "Path: %s\nSize: %s");
@@ -94,6 +104,16 @@ void ui::initStrings()
     addUIString("settingsMenu", 18, "Enable Trash Bin: ");
     addUIString("settingsMenu", 19, "Title Sorting Type: ");
     addUIString("settingsMenu", 20, "Animation Scale: ");
+
+    //Main menu
+    addUIString("mainMenuSettings", 0, "Settings");
+    addUIString("mainMenuExtras", 0, "Extras");
+
+    // Translator in main page
+    addUIString("translationMainPage", 0, "Translation: ");
+
+    //Loading page
+    addUIString("loadingStartPage", 0, "Loading...");
 
     //Sort Strings for ^
     addUIString("sortType", 0, "Alphabetical");
@@ -156,6 +176,8 @@ void ui::initStrings()
     addUIString("popSaveIsEmpty", 0, "Save data is empty!");
     addUIString("popProcessShutdown", 0, "#%s# successfully shutdown.");
     addUIString("popAddedToPathFilter", 0, "'#%s#' added to path filters.");
+    addUIString("popChangeOutputFolder", 0, "#%s# changed to #%s#");
+    addUIString("popChangeOutputError", 0, "#%s# contains illegal or non-ASCII characters.");
 
     //Keyboard hints
     addUIString("swkbdEnterName", 0, "Enter a new name");
@@ -165,6 +187,22 @@ void ui::initStrings()
     addUIString("swkbdSysSavID", 0, "Enter System Save ID");
     addUIString("swkbdRename", 0, "Enter a new name for item");
     addUIString("swkbdMkDir", 0, "Enter a folder name");
+    addUIString("swkbdNewSafeTitle", 0, "Input New Output Folder");
+    addUIString("swkbdExpandSize", 0, "Enter New Size in MB");
+
+    //Status informations
+    addUIString("infoStatus", 0, "TID: ");
+    addUIString("infoStatus", 1, "SID: ");
+    addUIString("infoStatus", 2, "Play Time: ");
+    addUIString("infoStatus", 3, "Total Launches: ");
+    addUIString("infoStatus", 4, "User Count: ");
+    addUIString("infoStatus", 5, "Current User: ");
+    addUIString("infoStatus", 6, "Current Title: ");
+    addUIString("infoStatus", 7, "Safe Title: ");
+    addUIString("infoStatus", 8, "Sort Type: ");
+    addUIString("infoStatus", 9, "Saving the file master...");
+    addUIString("infoStatus", 10, "Deleting...");
+    addUIString("infoStatus", 11, "Trash emptied.");
 }
 
 void ui::loadTrans()
@@ -195,6 +233,11 @@ void ui::loadTrans()
                     file += "zh-TW.txt";
                     break;
 
+                case SetLanguage_ZHCN:
+                case SetLanguage_ZHHANS:
+                    file += "zh-CN.txt";
+                    break;
+
                 default:
                     ui::initStrings();
                     return;
@@ -216,7 +259,7 @@ void ui::loadTrans()
 void ui::saveTranslationFile(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    t->status->setStatus("Saving the file master...");
+    t->status->setStatus(ui::getUICString("infoStatus", 9));
 
     std::string out = fs::getWorkDir() + "en-US.txt";
     FILE *enUS = fopen(out.c_str(), "w");

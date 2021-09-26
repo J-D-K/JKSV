@@ -7,6 +7,47 @@
 #It can also export already made translations with new strings if added, cutting down work for everyone.
 #If there are issues with spacing, line breaking, untranslatable English text, etc let me know in a git issue or your pull request.
 
+saveTypeMainMenu = 0, "設備"
+saveTypeMainMenu = 1, "BCAT"
+saveTypeMainMenu = 2, "緩存"
+saveTypeMainMenu = 3, "系統"
+saveTypeMainMenu = 4, "系統BCAT"
+saveTypeMainMenu = 5, "臨時"
+mainMenuSettings = 0, "系統設置"
+mainMenuExtras = 0, "附加設定"
+translationMainPage = 0, "翻譯："
+loadingStartPage = 0, "加載中…"
+
+saveDataTypeText = 0, "系統存檔\n"
+saveDataTypeText = 1, "用戶存檔\n"
+saveDataTypeText = 2, "BCAT存檔\n"
+saveDataTypeText = 3, "設備存檔\n"
+saveDataTypeText = 4, "臨時存檔\n"
+saveDataTypeText = 5, "緩存存檔\n"
+saveDataTypeText = 6, "系統BCAT存檔\n"
+saveDataIndexText = 0, "存檔索引號："
+
+infoStatus = 0, "TID:"
+infoStatus = 1, "SID:"
+infoStatus = 2, "遊戲時間："
+infoStatus = 3, "總啟動次數："
+infoStatus = 4, "用戶數目："
+infoStatus = 5, "當前用戶："
+infoStatus = 6, "當前Title:"
+infoStatus = 7, "安全Title:"
+infoStatus = 8, "排序類型："
+infoStatus = 9, "正在檔案管理器裏保存…"
+infoStatus = 10, "正在删除"
+infoStatus = 11, "回收站已清空。"
+
+swkbdNewSafeTitle = 0, "輸入新的匯出目錄名稱"
+swkbdExpandSize = 0, "輸入新的大小（組織MB）"
+folderMenuNew = 0, "新建目錄"
+fileModeMenuMkDir = 0, "新建"
+
+popChangeOutputFolder = 0, "#%s# 更改到 #%s#"
+popChangeOutputError = 0, "#%s# 包含非法或者非ASCII字元。"
+
 #If author is not "NULL", your name will be displayed in the UI 
 author = 0, "Leo"
 confirmBlacklist = 0, "是否確定要將#%s#加入黑名單?"

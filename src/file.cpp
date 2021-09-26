@@ -692,7 +692,7 @@ void fs::deleteBackup(void *a)
     unsigned ind = m->getSelected() - 1;
 
     std::string itemName = d->getItem(ind);
-    t->status->setStatus("Deleting...");
+    t->status->setStatus(ui::getUICString("infoStatus", 10));
     if(cfg::config["trashBin"])
     {
         data::userTitleInfo *getTID = data::getCurrentUserTitleInfo();

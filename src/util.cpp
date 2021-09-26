@@ -12,7 +12,7 @@
 #include "curlfuncs.h"
 #include "type.h"
 
-static const char verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', '™', '©', '®'};
+static const uint32_t verboten[] = { ',', '/', '\\', '<', '>', ':', '"', '|', '?', '*', 'ï¿½', 'ï¿½', 'ï¿½'};
 
 static bool isVerboten(const uint32_t& t)
 {
@@ -70,7 +70,7 @@ uint32_t replaceChar(uint32_t c)
 {
     switch(c)
     {
-        case 'é':
+        case 'ï¿½':
             return 'e';
             break;
     }
@@ -202,49 +202,49 @@ std::string util::getInfoString(data::user& u, const uint64_t& tid)
 
     std::string ret = tinfo->title + "\n";
 
-    ret += "TID: " + util::getIDStr(tid) + "\n";
-    ret += "SID: " + util::getIDStr(userTinfo->saveInfo.save_data_id) + "\n";
+    ret += ui::getUICString("infoStatus", 0) + util::getIDStr(tid) + "\n";
+    ret += ui::getUICString("infoStatus", 1) + util::getIDStr(userTinfo->saveInfo.save_data_id) + "\n";
 
     uint32_t hours, mins;
     hours = userTinfo->playStats.playtimeMinutes / 60;
     mins = userTinfo->playStats.playtimeMinutes - (hours * 60);
 
-    ret += "Play Time: " + getTimeString(hours, mins) + "\n";
-    ret += "Total Launches: " + std::to_string(userTinfo->playStats.totalLaunches) + "\n";
+    ret += ui::getUICString("infoStatus", 2) + getTimeString(hours, mins) + "\n";
+    ret += ui::getUICString("infoStatus", 3) + std::to_string(userTinfo->playStats.totalLaunches) + "\n";
 
 
     switch(userTinfo->saveInfo.save_data_type)
     {
         case FsSaveDataType_System:
-            ret += "System Save\n";
+            ret += ui::getUICString("saveDataTypeText", 0);
             break;
 
         case FsSaveDataType_Account:
-            ret += "Save Data\n";
+            ret += ui::getUICString("saveDataTypeText", 1);
             break;
 
         case FsSaveDataType_Bcat:
-            ret += "BCAT\n";
+            ret += ui::getUICString("saveDataTypeText", 2);
             break;
 
         case FsSaveDataType_Device:
-            ret += "Device Save\n";
+            ret += ui::getUICString("saveDataTypeText", 3);
             break;
 
         case FsSaveDataType_Temporary:
-            ret += "Temp Storage\n";
+            ret += ui::getUICString("saveDataTypeText", 4);
             break;
 
         case FsSaveDataType_Cache:
             {
                 data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-                ret += "Cache Storage\n";
-                ret += "Save Index: " + std::to_string(d->saveInfo.save_data_index) + "\n";
+                ret += ui::getUICString("saveDataTypeText", 5);
+                ret += ui::getUICString("saveDataIndexText", 0) + std::to_string(d->saveInfo.save_data_index) + "\n";
             }
             break;
 
         case FsSaveDataType_SystemBcat:
-            ret += "System BCAT\n";
+            ret += ui::getUICString("saveDataTypeText", 6);
             break;
     }
 

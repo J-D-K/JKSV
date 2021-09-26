@@ -63,6 +63,12 @@ const std::string ui::loadGlyphArray[] =
 
 void ui::initTheme()
 {
+    uint64_t lang;
+    setGetSystemLanguage(&lang);
+    setMakeLanguage(lang, &data::sysLang);
+
+    loadTrans();
+
     setsysGetColorSetId(&thmID);
 
     switch(thmID)
@@ -131,8 +137,6 @@ void ui::init()
             break;
     }
 
-    loadTrans();
-
     //Replace the button [x] in strings that need it. Needs to be outside loadTrans so even defaults will get replaced
     util::replaceButtonsInString(ui::strings[std::make_pair("helpUser", 0)]);
     util::replaceButtonsInString(ui::strings[std::make_pair("helpTitle", 0)]);
@@ -159,8 +163,8 @@ void ui::init()
     threadMngr  = new ui::threadProcMngr;
 
     //Need these from user/main menu
-    settPos = ui::usrMenu->getOptPos("Settings");
-    extPos  = ui::usrMenu->getOptPos("Extras");
+    settPos = ui::usrMenu->getOptPos(ui::getUICString("mainMenuSettings", 0));
+    extPos  = ui::usrMenu->getOptPos(ui::getUICString("mainMenuExtras", 0));
 }
 
 void ui::exit()
@@ -207,7 +211,7 @@ void ui::showLoadScreen()
     SDL_Texture *icon = gfx::loadImageFile("romfs:/icon.png");
     gfx::clearTarget(NULL, &ui::clearClr);
     gfx::texDraw(NULL, icon, 512, 232);
-    gfx::drawTextf(NULL, 16, 1100, 673, &ui::txtCont, "Loading...");
+    gfx::drawTextf(NULL, 16, 1100, 673, &ui::txtCont, ui::getUICString("loadingStartPage", 0));
     gfx::present();
     SDL_DestroyTexture(icon);
 }
@@ -225,7 +229,7 @@ void ui::drawUI()
     //Version / translation author
     gfx::drawTextf(NULL, 12, 8, 700, &ui::txtCont, "v. %02d.%02d.%04d", BLD_MON, BLD_DAY, BLD_YEAR);
     if(ui::getUIString("author", 0) != "NULL")
-        gfx::drawTextf(NULL, 12, 8, 682, &ui::txtCont, "Translation: %s", ui::getUICString("author", 0));
+        gfx::drawTextf(NULL, 12, 8, 682, &ui::txtCont, "%s%s", ui::getUICString("translationMainPage", 0), ui::getUICString("author", 0));
 
     //This only draws the help text now and only does when user select is open
     ui::usrDraw(NULL);
