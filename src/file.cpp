@@ -559,6 +559,7 @@ void fs::createNewBackup(void *a)
         };
         std::string defaultText = u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD);
         out = util::getStringInput(SwkbdType_QWERTY, defaultText, ui::getUIString("swkbdEnterName", 0), 64, 9, dict);
+        out = util::safeString(out);
     }
 
     if(!out.empty())
@@ -692,11 +693,16 @@ void fs::deleteBackup(void *a)
     unsigned ind = m->getSelected() - 1;
 
     std::string itemName = d->getItem(ind);
-    t->status->setStatus("Deleting...");
+    t->status->setStatus(ui::getUICString("infoStatus", 10));
     if(cfg::config["trashBin"])
     {
+        data::userTitleInfo *getTID = data::getCurrentUserTitleInfo();
+
         std::string oldPath = util::generatePathByTID(cd->tid) + itemName;
-        std::string trashPath = wd + "_TRASH_/" + itemName;
+        std::string trashPath = wd + "_TRASH_/" + data::getTitleSafeNameByTID(getTID->tid);
+        fs::mkDir(trashPath);
+        trashPath += "/" + itemName;
+
         rename(oldPath.c_str(), trashPath.c_str());
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupMovedToTrash", 0), itemName.c_str());
     }

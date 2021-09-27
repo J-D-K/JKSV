@@ -113,10 +113,10 @@ void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
         std::string newOutput = fs::getWorkDir() + tmp;
         rename(oldOutput.c_str(), newOutput.c_str());
 
-        ui::showPopMessage(POP_FRAME_DEFAULT, "'%s' changed to '%s'", oldSafe.c_str(), tmp.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popChangeOutputFolder", 0), oldSafe.c_str(), tmp.c_str());
     }
     else
-        ui::showPopMessage(POP_FRAME_DEFAULT, "'%s' contains illegal or non-ASCII characters.", newPath.c_str());
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popChangeOutputError", 0), newPath.c_str());
 }
 
 std::string cfg::getPathDefinition(const uint64_t& tid)
@@ -273,6 +273,20 @@ static void loadTitleDefsLegacy()
     }
 }
 
+//Oops
+static void loadTitleDefs()
+{
+    if(fs::fileExists(titleDefPath))
+    {
+        fs::dataFile getPaths(titleDefPath);
+        while(getPaths.readNextLine(true))
+        {
+            uint64_t tid = strtoul(getPaths.getName().c_str(), NULL, 16);
+            pathDefs[tid] = getPaths.getNextValueStr();
+        }
+    }
+}
+
 void cfg::loadConfig()
 {
     loadWorkDirLegacy();
@@ -280,6 +294,7 @@ void cfg::loadConfig()
     loadFavoritesLegacy();
     loadBlacklistLegacy();
     loadTitleDefsLegacy();
+    loadTitleDefs();
 
     if(fs::fileExists(cfgPath))
     {

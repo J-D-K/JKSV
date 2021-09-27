@@ -88,6 +88,7 @@ void ui::menu::editOpt(int ind, SDL_Texture *_icn, const std::string& ch)
         opt[ind].icn = _icn;
 
     opt[ind].txt = ch;
+    opt[ind].txtWidth = gfx::getTextWidth(ch.c_str(), fSize);
 }
 
 void ui::menu::optAddButtonEvent(unsigned _ind, HidNpadButton _button, funcPtr _func, void *args)
