@@ -185,7 +185,7 @@ static void copyFileThreaded_t(void *a)
     threadInfo *t = (threadInfo *)a;
     fs::copyArgs *in = (fs::copyArgs *)t->argPtr;
 
-    t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), in->src);
+    t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), in->src.c_str());
 
     fs::copyFile(in->src, in->dst, t);
     if(in->cleanup)
@@ -291,7 +291,7 @@ static void copyFileCommit_t(void *a)
     threadInfo *t = (threadInfo *)a;
     fs::copyArgs *in = (fs::copyArgs *)t->argPtr;
 
-    t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), in->src);
+    t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), in->src.c_str());
     in->prog->setMax(fs::fsize(in->src));
     in->prog->update(0);
 

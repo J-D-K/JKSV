@@ -607,7 +607,7 @@ void fs::dumpAllUserSaves(void *a)
         }
         fs::unmountSave();
     }
-    delete c;
+    fs::copyArgsDestroy(c);
     t->finished = true;
 }
 
@@ -644,7 +644,7 @@ void fs::dumpAllUsersAllSaves(void *a)
             fs::unmountSave();
         }
     }
-    delete c;
+    fs::copyArgsDestroy(c);
     t->finished = true;
 }
 

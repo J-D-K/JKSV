@@ -318,7 +318,7 @@ static void infoPanelDraw(void *a)
     rectWidth = width - 20;
 
     iconX = (width / 2) - 128;
-    gfx::texDraw(panel, data::getTitleIconByTID(d->tid), iconX, 32);
+    gfx::texDraw(panel, data::getTitleIconByTID(d->tid), iconX, 24);
 
     gfx::drawRect(panel, &ui::rectLt, 10, drawY, rectWidth, 38);
     gfx::drawTextf(panel, 18, 20, drawY + 10, &ui::txtCont, data::getTitleNameByTID(d->tid).c_str());
