@@ -28,14 +28,9 @@ namespace ui
     {
         std::string text;
         bool hold;
-        bool cleanup;
-        funcPtr func;
+        funcPtr confFunc, cancelFunc;
         void *args;
-
-        //Stuff needed to keep track
-        bool sel = 1;//1 = YES
         unsigned lgFrame = 0, frameCount = 0;//To count frames cause I don't have time and am lazy
-
     } confirmArgs;
 
     typedef struct
@@ -160,7 +155,7 @@ namespace ui
     };
 
     //General use
-    ui::confirmArgs *confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArgs, bool _cleanup, const char *fmt, ...);
+    ui::confirmArgs *confirmArgsCreate(bool _hold, funcPtr _confFunc, funcPtr _cancelFunc, void *_funcArgs, const char *fmt, ...);
     void confirm(void *a);
     void showMessage(const char *fmt, ...);
     bool confirmTransfer(const std::string& f, const std::string& t);

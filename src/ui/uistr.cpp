@@ -150,6 +150,13 @@ void ui::initStrings()
     addUIString("saveTypeMainMenu", 3, "System");
     addUIString("saveTypeMainMenu", 4, "System BCAT");
     addUIString("saveTypeMainMenu", 5, "SysTemp Storagetem");
+    addUIString("saveDataTypeText", 0, "System");
+    addUIString("saveDataTypeText", 1, "Account");
+    addUIString("saveDataTypeText", 2, "BCAT");
+    addUIString("saveDataTypeText", 3, "Device");
+    addUIString("saveDataTypeText", 4, "Temporary");
+    addUIString("saveDataTypeText", 5, "Cache");
+    addUIString("saveDataTypeText", 6, "System BCAT");
 
     //Internet Related
     addUIString("onlineErrorConnecting", 0, "Error Connecting!");
@@ -247,7 +254,6 @@ void ui::initStrings()
     addUIString("threadStatusOpeningFolder", 0, "Opening '#%s#'...");
     addUIString("threadStatusAddingFileToZip", 0, "Adding '#%s#' to ZIP...");
     addUIString("threadStatusDecompressingFile", 0, "Decompressing '#%s#'...");
-    addUIString("threadStatusResettingSaveData", 0, "Resetting Save Data for #%s#...");
     addUIString("threadStatusDeletingSaveData", 0, "Deleting Save Data for #%s#...");
     addUIString("threadStatusExtendingSaveData", 0, "Extending Save Data for #%s#...");
     addUIString("threadStatusCreatingSaveData", 0, "Creating Save Data for #%s#...");
@@ -257,6 +263,8 @@ void ui::initStrings()
     addUIString("threadStatusDownloadingUpdate", 0, "Downloading update...");
     addUIString("threadStatusGetDirProps", 0, "Getting Folder Properties...");
     addUIString("threadStatusPackingJKSV", 0, "Writing JKSV folder contents to ZIP...");
+    addUIString("threadStatusSavingTranslations", 0, "Saving the file master...");
+    addUIString("threadStatusCalculatingSaveSize", 0, "Calculating save data size...");
 
     //Random leftover pop-ups
     addUIString("popCPUBoostEnabled", 0, "CPU Boost Enabled for ZIP.");
@@ -268,6 +276,7 @@ void ui::initStrings()
     addUIString("popAddedToPathFilter", 0, "'#%s#' added to path filters.");
     addUIString("popChangeOutputFolder", 0, "#%s# changed to #%s#");
     addUIString("popChangeOutputError", 0, "#%s# contains illegal or non-ASCII characters.");
+    addUIString("popTrashEmptied", 0, "Trash emptied");
 
     //Keyboard hints
     addUIString("swkbdEnterName", 0, "Enter a new name");
@@ -281,18 +290,20 @@ void ui::initStrings()
     addUIString("swkbdExpandSize", 0, "Enter New Size in MB");
 
     //Status informations
-    addUIString("infoStatus", 0, "TID: ");
-    addUIString("infoStatus", 1, "SID: ");
-    addUIString("infoStatus", 2, "Play Time: ");
-    addUIString("infoStatus", 3, "Total Launches: ");
-    addUIString("infoStatus", 4, "User Count: ");
-    addUIString("infoStatus", 5, "Current User: ");
-    addUIString("infoStatus", 6, "Current Title: ");
-    addUIString("infoStatus", 7, "Safe Title: ");
-    addUIString("infoStatus", 8, "Sort Type: ");
-    addUIString("infoStatus", 9, "Saving the file master...");
-    addUIString("infoStatus", 10, "Deleting...");
-    addUIString("infoStatus", 11, "Trash emptied.");
+    addUIString("infoStatus", 0, "TID: %016lX");
+    addUIString("infoStatus", 1, "SID: %016lX");
+    addUIString("infoStatus", 2, "Play Time: %02d:%02d");
+    addUIString("infoStatus", 3, "Total Launches: %u");
+    addUIString("infoStatus", 4, "Publisher: %s");
+    addUIString("infoStatus", 5, "Save Type: %s");
+    addUIString("infoStatus", 6, "Cache Index: %u");
+    addUIString("infoStatus", 7, "User: %s");
+
+    addUIString("debugStatus", 0, "User Count: ");
+    addUIString("debugStatus", 1, "Current User: ");
+    addUIString("debugStatus", 2, "Current Title: ");
+    addUIString("debugStatus", 3, "Safe Title: ");
+    addUIString("debugStatus", 4, "Sort Type: ");
 }
 
 void ui::loadTrans()

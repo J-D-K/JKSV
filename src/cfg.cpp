@@ -289,6 +289,7 @@ static void loadTitleDefs()
 
 void cfg::loadConfig()
 {
+    cfg::resetConfig();
     loadWorkDirLegacy();
     loadConfigLegacy();
     loadFavoritesLegacy();

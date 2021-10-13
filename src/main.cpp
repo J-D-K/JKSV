@@ -55,5 +55,4 @@ int main(int argc, const char *argv[])
     ui::exit();
     data::exit();
     gfx::exit();
-    fs::exit();
 }

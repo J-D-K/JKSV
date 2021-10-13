@@ -284,6 +284,24 @@ std::string util::getStringInput(SwkbdType _type, const std::string& def, const 
     return std::string(out);
 }
 
+std::string util::getExtensionFromString(const std::string& get)
+{
+    size_t ext = get.find_last_of('.');
+    if(ext != get.npos)
+        return get.substr(ext + 1, get.npos);
+    else
+        return "";
+}
+
+std::string util::getFilenameFromPath(const std::string& get)
+{
+    size_t nameStart = get.find_last_of('/');
+    if(nameStart != get.npos)
+        return get.substr(nameStart + 1, get.npos);
+    else
+        return "";
+}
+
 std::string util::generateAbbrev(const uint64_t& tid)
 {
     data::titleInfo *tmp = data::getTitleInfoByTID(tid);

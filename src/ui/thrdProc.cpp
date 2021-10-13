@@ -43,7 +43,7 @@ void ui::threadProcMngr::update()
     {
         Result res = 0;
         threadInfo *t = threads[0];
-        if(!t->running && R_SUCCEEDED((res = threadCreate(&t->thrd, t->thrdFunc, t, NULL, 0x20000, 0x2B, 1))))
+        if(!t->running && R_SUCCEEDED((res = threadCreate(&t->thrd, t->thrdFunc, t, NULL, 0x80000, 0x2B, 1))))
         {
             threadStart(&t->thrd);
             t->running = true;

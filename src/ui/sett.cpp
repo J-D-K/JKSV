@@ -68,7 +68,7 @@ static void settMenuDeleteAllBackups_t(void *a)
 
 static void settMenuDeleteAllBackups(void *a)
 {
-    ui::confirmArgs *send = ui::confirmArgsCreate(true, settMenuDeleteAllBackups_t, NULL, true, ui::getUICString("confirmDeleteBackupsAll", 0));
+    ui::confirmArgs *send = ui::confirmArgsCreate(true, settMenuDeleteAllBackups_t, NULL, NULL, ui::getUICString("confirmDeleteBackupsAll", 0));
     ui::confirm(send);
 }
 
@@ -123,7 +123,7 @@ static void toggleOpt(void *a)
         case 0:
             fs::delDir(fs::getWorkDir() + "_TRASH_/");
             mkdir(std::string(fs::getWorkDir() + "_TRASH_").c_str(), 777);
-            ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("infoStatus", 11));
+            ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popTrashEmptied", 0));
             break;
 
         case 1:

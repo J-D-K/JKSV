@@ -182,7 +182,7 @@ static void usrOptDeleteAllUserSaves_t(void *a)
 static void usrOptDeleteAllUserSaves(void *a)
 {
     data::user *u = data::getCurrentUser();
-    ui::confirmArgs *conf = ui::confirmArgsCreate(true, usrOptDeleteAllUserSaves_t, NULL, true, ui::getUICString("saveDataDeleteAllUser", 0), u->getUsername().c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(true, usrOptDeleteAllUserSaves_t, NULL, NULL, ui::getUICString("saveDataDeleteAllUser", 0), u->getUsername().c_str());
     ui::confirm(conf);
 }
 
@@ -237,22 +237,22 @@ static void createSaveData(void *a)
 
         case 2:
             tid = bcatSids[bcatSaveMenu->getSelected()];
-            fs::createSaveData(FsSaveDataType_Bcat, tid, util::u128ToAccountUID(0));
+            fs::createSaveDataThreaded(FsSaveDataType_Bcat, tid, util::u128ToAccountUID(0));
             break;
 
         case 3:
             tid = devSids[deviceSaveMenu->getSelected()];
-            fs::createSaveData(FsSaveDataType_Device, tid, util::u128ToAccountUID(0));
+            fs::createSaveDataThreaded(FsSaveDataType_Device, tid, util::u128ToAccountUID(0));
             break;
 
         case 5:
             tid = cacheSids[cacheSaveMenu->getSelected()];
-            fs::createSaveData(FsSaveDataType_Cache, tid, util::u128ToAccountUID(0));
+            fs::createSaveDataThreaded(FsSaveDataType_Cache, tid, util::u128ToAccountUID(0));
             break;
 
         default:
             tid = accSids[saveCreateMenu->getSelected()];
-            fs::createSaveData(FsSaveDataType_Account, tid, u->getUID());
+            fs::createSaveDataThreaded(FsSaveDataType_Account, tid, u->getUID());
             break;
     }
 }
@@ -268,17 +268,17 @@ static void usrOptCreateAllSaves_t(void *a)
     {
         AccountUid uid = u->getUID();
         for(unsigned i = 0; i < accSids.size(); i++)
-            fs::createSaveData(FsSaveDataType_Account, accSids[i], uid);
+            fs::createSaveDataThreaded(FsSaveDataType_Account, accSids[i], uid);
     }
     else if(sel == devPos)
     {
         for(unsigned i = 0; i < devSids.size(); i++)
-            fs::createSaveData(FsSaveDataType_Device, devSids[i], util::u128ToAccountUID(0));
+            fs::createSaveDataThreaded(FsSaveDataType_Device, devSids[i], util::u128ToAccountUID(0));
     }
     else if(sel == bcatPos)
     {
         for(unsigned i = 0; i < bcatSids.size(); i++)
-            fs::createSaveData(FsSaveDataType_Bcat, bcatSids[i], util::u128ToAccountUID(0));
+            fs::createSaveDataThreaded(FsSaveDataType_Bcat, bcatSids[i], util::u128ToAccountUID(0));
     }
     t->finished = true;
 }
@@ -286,8 +286,8 @@ static void usrOptCreateAllSaves_t(void *a)
 static void usrOptCreateAllSaves(void *a)
 {
     data::user *u = data::getCurrentUser();
-    ui::confirmArgs *send = ui::confirmArgsCreate(true, usrOptCreateAllSaves_t, NULL, true, ui::getUICString("confirmCreateAllSaveData", 0), u->getUsername().c_str());
-    ui::confirm(send);
+    ui::confirmArgs *conf = ui::confirmArgsCreate(true, usrOptCreateAllSaves_t, NULL, NULL, ui::getUICString("confirmCreateAllSaveData", 0), u->getUsername().c_str());
+    ui::confirm(conf);
 }
 
 //Sets up save create menus

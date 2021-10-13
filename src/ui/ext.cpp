@@ -148,7 +148,6 @@ static void extMenuPackJKSVZip_t(void *a)
 
     fs::dirList *jksv = new fs::dirList(fs::getWorkDir());
     uint8_t pathTrimPlaces = util::getTotalPlacesInPath(fs::getWorkDir());
-    fs::logWrite("pathTrimPlaces = %u\n", pathTrimPlaces);
     size_t dirCount = jksv->getCount();
     if(dirCount > 0)
     {
@@ -159,18 +158,7 @@ static void extMenuPackJKSVZip_t(void *a)
             if(jksv->isDir(i) && jksv->getItem(i) != "_TRASH_")
             {
                 std::string srcPath = fs::getWorkDir() + jksv->getItem(i) + "/";
-                threadInfo *fakeThread = new threadInfo;
-                fs::copyArgs *tmpArgs = new fs::copyArgs;
-                tmpArgs->from = srcPath;
-                tmpArgs->z = zip;
-                tmpArgs->prog = c->prog;
-                tmpArgs->trimZipPath = true;
-                tmpArgs->trimZipPlaces = pathTrimPlaces;
-                fakeThread->argPtr = tmpArgs;
-                fakeThread->status = t->status;
-                fs::copyDirToZip_t(fakeThread);
-                delete tmpArgs;
-                delete fakeThread;
+                fs::copyDirToZip(srcPath, zip, true, pathTrimPlaces, t);
             }
         }
         zipClose(zip, NULL);
@@ -187,7 +175,7 @@ static void extMenuPackJKSV(void *a)
 {
     //Only for progress bar
     fs::copyArgs *send = fs::copyArgsCreate("", "", "", NULL, NULL, true, false, 0);
-    ui::newThread(extMenuPackJKSVZip_t, send, fs::_fileDrawFunc);
+    ui::newThread(extMenuPackJKSVZip_t, send, fs::fileDrawFunc);
 }
 
 static void extMenuOutputEnUs(void *a)

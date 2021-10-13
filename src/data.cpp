@@ -452,12 +452,12 @@ void data::dispStats()
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
 
     //Easiest/laziest way to do this
-    std::string stats = ui::getUICString("infoStatus", 4) + std::to_string(users.size()) + "\n";
+    std::string stats = ui::getUICString("debugStatus", 0) + std::to_string(users.size()) + "\n";
     for(data::user& u : data::users)
         stats += u.getUsername() + ": " + std::to_string(u.titleInfo.size()) + "\n";
-    stats += ui::getUICString("infoStatus", 5) + cu->getUsername() + "\n";
-    stats += ui::getUICString("infoStatus", 6) + data::getTitleNameByTID(d->tid) + "\n";
-    stats += ui::getUICString("infoStatus", 7) + data::getTitleSafeNameByTID(d->tid) + "\n";
-    stats += ui::getUICString("infoStatus", 8) + std::to_string(cfg::sortType) + "\n";
+    stats += ui::getUICString("debugStatus", 1) + cu->getUsername() + "\n";
+    stats += ui::getUICString("debugStatus", 2) + data::getTitleNameByTID(d->tid) + "\n";
+    stats += ui::getUICString("debugStatus", 3) + data::getTitleSafeNameByTID(d->tid) + "\n";
+    stats += ui::getUICString("debugStatus", 4) + std::to_string(cfg::sortType) + "\n";
     gfx::drawTextf(NULL, 16, 2, 2, &green, stats.c_str());
 }

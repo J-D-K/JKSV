@@ -135,15 +135,15 @@ void ui::menu::update()
     bool change = false;
     if( (down & HidNpadButton_AnyUp) || ((held & HidNpadButton_AnyUp) && fc == 10) )
     {
-        if(selected > 0)
-            --selected;
+        if(--selected < 0)
+            selected = mSize;
 
         change = true;
     }
     else if( (down & HidNpadButton_AnyDown) || ((held & HidNpadButton_AnyDown) && fc == 10))
     {
-        if(selected < mSize)
-            ++selected;
+        if(++selected > mSize)
+            selected = 0;
 
         change = true;
     }
@@ -379,7 +379,7 @@ void ui::popMessageMngr::draw()
     }
 }
 
-ui::confirmArgs *ui::confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArgs, bool _cleanup, const char *fmt, ...)
+ui::confirmArgs *ui::confirmArgsCreate(bool _hold, funcPtr _confFunc, funcPtr _cancelFunc, void *_funcArgs, const char *fmt, ...)
 {
     char tmp[1024];
     va_list args;
@@ -389,9 +389,9 @@ ui::confirmArgs *ui::confirmArgsCreate(bool _hold, funcPtr _func, void *_funcArg
 
     ui::confirmArgs *ret = new confirmArgs;
     ret->hold = _hold;
-    ret->func = _func;
+    ret->confFunc = _confFunc;
+    ret->cancelFunc = _cancelFunc;
     ret->args = _funcArgs;
-    ret->cleanup = _cleanup;
     ret->text = tmp;
 
     return ret;
@@ -410,7 +410,7 @@ void confirm_t(void *a)
 
         if((down & HidNpadButton_A) && !c->hold)
         {
-            ui::newThread(c->func, c->args, NULL);
+            ui::newThread(c->confFunc, c->args, NULL);
             break;
         }
         else if((held & HidNpadButton_A) && c->hold)
@@ -420,18 +420,20 @@ void confirm_t(void *a)
 
             if(c->frameCount >= 120)
             {
-                ui::newThread(c->func, c->args, NULL);
+                ui::newThread(c->confFunc, c->args, NULL);
                 break;
             }
         }
         else if(down & HidNpadButton_B)
+        {
+            if(c->cancelFunc)
+                (*c->cancelFunc)(c->args);
             break;
+        }
 
         svcSleepThread(10000000);//Close enough
     }
-    if(c->cleanup)
-        delete c;
-
+    delete c;
     t->finished = true;
 }
 

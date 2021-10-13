@@ -17,8 +17,8 @@
 typedef struct
 {
     std::string *path;
-    //These can hold the same info needed for the listing menus so might as well use em
-    fs::backupArgs *b;
+    ui::menu *m;
+    fs::dirList *d;
 } menuFuncArgs;
 
 static ui::slideOutPanel *devPanel, *sdPanel;
@@ -37,13 +37,14 @@ static void refreshMenu(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    b->d->reassign(*ma->path);
-    util::copyDirListToMenu(*b->d, *b->m);
-    for(int i = 1; i < b->m->getCount(); i++)
+    d->reassign(*ma->path);
+    util::copyDirListToMenu(*d, *m);
+    for(int i = 1; i < m->getCount(); i++)
     {
-        b->m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
+        m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
     }
     t->finished = true;
 }
@@ -135,53 +136,53 @@ static void _sdCopyPanelDraw(void *a)
 static void _listFunctionA(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    int sel = b->m->getSelected();
-    bool isDir = b->d->isDir(sel - 2);
+    int sel = m->getSelected();
+    bool isDir = d->isDir(sel - 2);
     if(sel == 1 && (*ma->path != dev && *ma->path != "sdmc:/"))
     {
         util::removeLastFolderFromString(*ma->path);
-        b->d->reassign(*ma->path);
-        util::copyDirListToMenu(*b->d, *b->m);
+        d->reassign(*ma->path);
+        util::copyDirListToMenu(*d, *m);
     }
     else if(sel > 1 && isDir)
     {
-        std::string addToPath = b->d->getItem(sel - 2);
+        std::string addToPath = d->getItem(sel - 2);
         *ma->path += addToPath + "/";
-        b->d->reassign(*ma->path);
-        util::copyDirListToMenu(*b->d, *b->m);
+        d->reassign(*ma->path);
+        util::copyDirListToMenu(*d, *m);
     }
 
-    for(int i = 1; i < b->m->getCount(); i++)
-    {
-        b->m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
-    }
+    for(int i = 1; i < m->getCount(); i++)
+        m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
 }
 
 static void _copyMenuCopy_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     if(ma == devArgs)
     {
         if(sel == 0)
-            fs::copyDirToDir(*ma->path, *sdmcArgs->path);
-        else if(sel > 1 && b->d->isDir(sel - 2))
+            fs::copyDirToDirThreaded(*ma->path, *sdmcArgs->path);
+        else if(sel > 1 && d->isDir(sel - 2))
         {
-            std::string srcPath = *ma->path + b->d->getItem(sel - 2) + "/";
-            std::string dstPath = *sdmcArgs->path + b->d->getItem(sel - 2) + "/";
+            std::string srcPath = *ma->path + d->getItem(sel - 2) + "/";
+            std::string dstPath = *sdmcArgs->path + d->getItem(sel - 2) + "/";
             mkdir(dstPath.substr(0, dstPath.length() - 1).c_str(), 777);
-            fs::copyDirToDir(srcPath, dstPath);
+            fs::copyDirToDirThreaded(srcPath, dstPath);
         }
         else if(sel > 1)
         {
-            std::string srcPath = *ma->path + b->d->getItem(sel - 2);
-            std::string dstPath = *sdmcArgs->path + b->d->getItem(sel - 2);
-            fs::copyFile(srcPath, dstPath);
+            std::string srcPath = *ma->path + d->getItem(sel - 2);
+            std::string dstPath = *sdmcArgs->path + d->getItem(sel - 2);
+            fs::copyFileThreaded(srcPath, dstPath);
         }
     }
     else if(ma == sdmcArgs)
@@ -190,28 +191,28 @@ static void _copyMenuCopy_t(void *a)
         if(sel == 0)
         {
             if(commit)
-                fs::copyDirToDirCommit(*ma->path, *devArgs->path, dev);
+                fs::copyDirToDirCommitThreaded(*ma->path, *devArgs->path, dev);
             else
-                fs::copyDirToDir(*ma->path, *devArgs->path);
+                fs::copyDirToDirThreaded(*ma->path, *devArgs->path);
         }
-        else if(sel > 1 && b->d->isDir(sel - 2))
+        else if(sel > 1 && d->isDir(sel - 2))
         {
-            std::string srcPath = *ma->path + b->d->getItem(sel - 2) + "/";
-            std::string dstPath = *devArgs->path + b->d->getItem(sel - 2) + "/";
+            std::string srcPath = *ma->path + d->getItem(sel - 2) + "/";
+            std::string dstPath = *devArgs->path + d->getItem(sel - 2) + "/";
             mkdir(dstPath.substr(0, dstPath.length() - 1).c_str(), 777);
             if(commit)
-                fs::copyDirToDirCommit(srcPath, dstPath, dev);
+                fs::copyDirToDirCommitThreaded(srcPath, dstPath, dev);
             else
-                fs::copyDirToDir(srcPath, dstPath);
+                fs::copyDirToDirThreaded(srcPath, dstPath);
         }
         else if(sel > 1)
         {
-            std::string srcPath = *ma->path + b->d->getItem(sel - 2);
-            std::string dstPath = *devArgs->path + b->d->getItem(sel - 2);
+            std::string srcPath = *ma->path + d->getItem(sel - 2);
+            std::string dstPath = *devArgs->path + d->getItem(sel - 2);
             if(commit)
-                fs::copyFileCommit(srcPath, dstPath, dev);
+                fs::copyFileCommitThreaded(srcPath, dstPath, dev);
             else
-                fs::copyFile(srcPath, dstPath);
+                fs::copyFileThreaded(srcPath, dstPath);
         }
     }
     ui::newThread(refreshMenu, devArgs, NULL);
@@ -223,9 +224,11 @@ static void _copyMenuCopy_t(void *a)
 static void _copyMenuCopy(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
+
     std::string srcPath, dstPath;
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     if(sel == 0 && ma == devArgs)
     {
         srcPath = *ma->path;
@@ -233,8 +236,8 @@ static void _copyMenuCopy(void *a)
     }
     else if(sel > 1 && ma == devArgs)
     {
-        srcPath = *ma->path + b->d->getItem(sel - 2);
-        dstPath = *sdmcArgs->path + b->d->getItem(sel - 2);
+        srcPath = *ma->path + d->getItem(sel - 2);
+        dstPath = *sdmcArgs->path + d->getItem(sel - 2);
     }
     else if(sel == 0 && ma == sdmcArgs)
     {
@@ -243,13 +246,13 @@ static void _copyMenuCopy(void *a)
     }
     else if(sel > 1 && ma == sdmcArgs)
     {
-        srcPath = *ma->path + b->d->getItem(b->m->getSelected() - 2);
-        dstPath = *devArgs->path + b->d->getItem(b->m->getSelected() - 2);
+        srcPath = *ma->path + d->getItem(m->getSelected() - 2);
+        dstPath = *devArgs->path + d->getItem(m->getSelected() - 2);
     }
 
     if(ma == devArgs ||  (ma == sdmcArgs && (type != FsSaveDataType_System || cfg::config["sysSaveWrite"])))
     {
-        ui::confirmArgs *send = ui::confirmArgsCreate(false, _copyMenuCopy_t, ma, true, ui::getUICString("confirmCopy", 0), srcPath.c_str(), dstPath.c_str());
+        ui::confirmArgs *send = ui::confirmArgsCreate(false, _copyMenuCopy_t, NULL, ma, ui::getUICString("confirmCopy", 0), srcPath.c_str(), dstPath.c_str());
         ui::confirm(send);
     }
 }
@@ -258,11 +261,12 @@ static void _copyMenuDelete_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     menuFuncArgs *ma = (menuFuncArgs *)t->argPtr;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
     t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
 
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     if(ma == devArgs)
     {
         if(sel == 0 && *ma->path != "sdmc:/")
@@ -271,16 +275,16 @@ static void _copyMenuDelete_t(void *a)
             if(commit)
                 fs::commitToDevice(dev);
         }
-        else if(sel > 1 && b->d->isDir(sel - 2))
+        else if(sel > 1 && d->isDir(sel - 2))
         {
-            std::string delPath = *ma->path + b->d->getItem(sel - 2) + "/";
+            std::string delPath = *ma->path + d->getItem(sel - 2) + "/";
             fs::delDir(delPath);
             if(commit)
                 fs::commitToDevice(dev);
         }
         else if(sel > 1)
         {
-            std::string delPath = *ma->path + b->d->getItem(sel - 2);
+            std::string delPath = *ma->path + d->getItem(sel - 2);
             fs::delfile(delPath);
             if(commit)
                 fs::commitToDevice(dev);
@@ -290,14 +294,14 @@ static void _copyMenuDelete_t(void *a)
     {
         if(sel == 0 && *ma->path != "sdmc:/")
             fs::delDir(*ma->path);
-        else if(sel > 1 && b->d->isDir(sel - 2))
+        else if(sel > 1 && d->isDir(sel - 2))
         {
-            std::string delPath = *ma->path + b->d->getItem(sel - 2) + "/";
+            std::string delPath = *ma->path + d->getItem(sel - 2) + "/";
             fs::delDir(delPath);
         }
         else if(sel > 1)
         {
-            std::string delPath = *ma->path + b->d->getItem(sel - 2);
+            std::string delPath = *ma->path + d->getItem(sel - 2);
             fs::delfile(delPath);
         }
     }
@@ -310,18 +314,19 @@ static void _copyMenuDelete_t(void *a)
 static void _copyMenuDelete(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     std::string itmPath;
     if(sel == 0)
         itmPath = *ma->path;
     else if(sel > 1)
-        itmPath = *ma->path + b->d->getItem(sel - 2);
+        itmPath = *ma->path + d->getItem(sel - 2);
 
     if(ma == sdmcArgs || (ma == devArgs && (sel == 0 || sel > 1) && (type != FsSaveDataType_System || cfg::config["sysSaveWrite"])))
     {
-        ui::confirmArgs *send = ui::confirmArgsCreate(cfg::config["holdDel"], _copyMenuDelete_t, a, true, ui::getUICString("confirmDelete", 0), itmPath.c_str());
+        ui::confirmArgs *send = ui::confirmArgsCreate(cfg::config["holdDel"], _copyMenuDelete_t, NULL, a, ui::getUICString("confirmDelete", 0), itmPath.c_str());
         ui::confirm(send);
     }
 }
@@ -329,15 +334,16 @@ static void _copyMenuDelete(void *a)
 static void _copyMenuRename(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     if(sel > 1)
     {
-        std::string getNewName = util::getStringInput(SwkbdType_QWERTY, b->d->getItem(sel - 2), ui::getUIString("swkbdRename", 0), 64, 0, NULL);
+        std::string getNewName = util::getStringInput(SwkbdType_QWERTY, d->getItem(sel - 2), ui::getUIString("swkbdRename", 0), 64, 0, NULL);
         if(!getNewName.empty())
         {
-            std::string prevPath = *ma->path + b->d->getItem(sel - 2);
+            std::string prevPath = *ma->path + d->getItem(sel - 2);
             std::string newPath  = *ma->path + getNewName;
             rename(prevPath.c_str(), newPath.c_str());
         }
@@ -365,22 +371,37 @@ static void _copyMenuMkDir(void *a)
     refreshMenu(&fake);
 }
 
+static void _copyMenuGetShowDirProps_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    std::string *p = (std::string *)t->argPtr;
+    unsigned dirCount = 0, fileCount = 0;
+    uint64_t totalSize = 0;
+    t->status->setStatus(ui::getUICString("threadStatusGetDirProps", 0));
+    fs::getDirProps(*p, dirCount, fileCount, totalSize);
+    ui::showMessage(ui::getUICString("fileModeFolderProperties", 0), p->c_str(), dirCount, fileCount, util::getSizeString(totalSize).c_str());
+    delete p;
+    t->finished = true;
+}
+
 static void _copyMenuGetProps(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = (fs::backupArgs *)ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     if(sel == 0)
         fs::getShowDirProps(*ma->path);
-    else if(sel > 1 && b->d->isDir(sel - 2))
+    else if(sel > 1 && d->isDir(sel - 2))
     {
-        std::string folderPath = *ma->path + b->d->getItem(sel - 2) + "/";
-        fs::getShowDirProps(folderPath);
+        std::string *folderPath = new std::string;
+        folderPath->assign(*ma->path + d->getItem(sel - 2) + "/");
+        ui::newThread(_copyMenuGetShowDirProps_t, folderPath, NULL);
     }
     else if(sel > 1)
     {
-        std::string filePath = *ma->path + b->d->getItem(sel - 2);
+        std::string filePath = *ma->path + d->getItem(sel - 2);
         fs::getShowFileProps(filePath);
     }
 }
@@ -405,14 +426,15 @@ static void _copyMenuClose(void *a)
 static void _devMenuAddToPathFilter(void *a)
 {
     menuFuncArgs *ma = (menuFuncArgs *)a;
-    fs::backupArgs *b = ma->b;
+    ui::menu *m = ma->m;
+    fs::dirList *d = ma->d;
 
-    int sel = b->m->getSelected();
+    int sel = m->getSelected();
     if(sel > 1)
     {
-        data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-        std::string filterPath = *ma->path + b->d->getItem(sel - 2);
-        cfg::addPathToFilter(d->tid, filterPath);
+        data::userTitleInfo *tinfo = data::getCurrentUserTitleInfo();
+        std::string filterPath = *ma->path + d->getItem(sel - 2);
+        cfg::addPathToFilter(tinfo->tid, filterPath);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popAddedToPathFilter", 0), filterPath.c_str());
     }
 }
@@ -421,17 +443,15 @@ void ui::fmInit()
 {
     //This needs to be done in a strange order so everything works
     devArgs = new menuFuncArgs;
-    devArgs->b = new fs::backupArgs;
     devArgs->path = &devPath;
 
     sdmcArgs = new menuFuncArgs;
-    sdmcArgs->b = new fs::backupArgs;
     sdmcArgs->path = &sdPath;
 
     devMenu = new ui::menu(10, 8, 590, 18, 5);
     devMenu->setCallback(_devMenuCallback, devArgs);
     devMenu->setActive(true);
-    devArgs->b->m = devMenu;
+    devArgs->m = devMenu;
 
     devPanel = new ui::slideOutPanel(288, 720, 0, ui::SLD_LEFT, _devCopyPanelDraw);
     devCopyMenu = new ui::menu(10, 185, 268, 20, 5);
@@ -457,7 +477,7 @@ void ui::fmInit()
     sdMenu = new ui::menu(620, 8, 590, 18, 5);
     sdMenu->setCallback(_sdMenuCallback, sdmcArgs);
     sdMenu->setActive(false);
-    sdmcArgs->b->m = sdMenu;
+    sdmcArgs->m = sdMenu;
 
     sdPanel = new ui::slideOutPanel(288, 720, 0, ui::SLD_RIGHT, _sdCopyPanelDraw);
     sdCopyMenu = new ui::menu(10, 210, 268, 20, 5);
@@ -475,8 +495,8 @@ void ui::fmInit()
 
     devList = new fs::dirList;
     sdList  = new fs::dirList;
-    devArgs->b->d = devList;
-    sdmcArgs->b->d = sdList;
+    devArgs->d = devList;
+    sdmcArgs->d = sdList;
 }
 
 void ui::fmExit()
@@ -487,9 +507,7 @@ void ui::fmExit()
     delete sdCopyMenu;
     delete devList;
     delete sdList;
-    delete devArgs->b;
     delete devArgs;
-    delete sdmcArgs->b;
     delete sdmcArgs;
 }
 

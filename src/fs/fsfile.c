@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <malloc.h>
 
-#include "fsfile.h"
+#include "fs/fsfile.h"
 
 char *getDeviceFromPath(char *dev, size_t _max, const char *path)
 {
