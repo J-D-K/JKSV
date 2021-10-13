@@ -106,7 +106,7 @@ static std::string getFilename(int lang)
 void ui::initStrings()
 {
     addUIString("author", 0, "NULL");
-    addUIString("helpUser", 0, "[A] Select   [X] User Options");
+    addUIString("helpUser", 0, "[A] Select   [Y] Dump All Saves   [X] User Options");
     addUIString("helpTitle", 0, "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back");
     addUIString("helpFolder", 0, "[A] Select  [Y] Restore  [X] Delete  [B] Close");
     addUIString("helpSettings", 0, "[A] Toggle   [X] Defaults   [B] Back");

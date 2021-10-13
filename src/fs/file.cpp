@@ -16,8 +16,6 @@
 
 static std::string wd = "sdmc:/JKSV/";
 
-static std::vector<std::string> pathFilter;
-
 fs::copyArgs *fs::copyArgsCreate(const std::string& src, const std::string& dst, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces)
 {
     copyArgs *ret = new copyArgs;
@@ -313,7 +311,7 @@ void fs::copyFileCommitThreaded(const std::string& src, const std::string& dst, 
 void fs::fileDrawFunc(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    if(!t->finished)
+    if(!t->finished && t->argPtr)
     {
         copyArgs *c = (copyArgs *)t->argPtr;
         std::string tmp;
@@ -333,56 +331,10 @@ void fs::delfile(const std::string& path)
         remove(path.c_str());
 }
 
-void fs::loadPathFilters(const uint64_t& tid)
-{
-    char path[256];
-    sprintf(path, "sdmc:/config/JKSV/0x%016lX_filter.txt", tid);
-    if(fs::fileExists(path))
-    {
-        fs::dataFile filter(path);
-        while(filter.readNextLine(false))
-            pathFilter.push_back(filter.getLine());
-    }
-}
-
-bool fs::pathIsFiltered(const std::string& _path)
-{
-    if(pathFilter.empty())
-        return false;
-
-    for(std::string& _p : pathFilter)
-    {
-        if(_path == _p)
-            return true;
-    }
-
-    return false;
-}
-
-void fs::freePathFilters()
-{
-    pathFilter.clear();
-}
-
-void fs::dumpAllUserSaves()
-{
-    //This is only really used for the progress bar
-    /*fs::copyArgs *send = fs::copyArgsCreate("", "", "", NULL, NULL, true, false, 0);
-    ui::newThread(fs::backupUserSaves_t, send, _fileDrawFunc);*/
-}
-
 void fs::getShowFileProps(const std::string& _path)
 {
     size_t size = fs::fsize(_path);
     ui::showMessage(ui::getUICString("fileModeFileProperties", 0), _path.c_str(), util::getSizeString(size).c_str());
-}
-
-void fs::getShowDirProps(const std::string& _path)
-{
-    fs::dirCountArgs *send = new fs::dirCountArgs;
-    send->path = _path;
-    send->origin = true;
-//    ui::newThread(fs::getShowDirProps_t, send, NULL);
 }
 
 bool fs::fileExists(const std::string& path)

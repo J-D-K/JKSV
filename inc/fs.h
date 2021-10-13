@@ -24,6 +24,11 @@ namespace fs
     std::string getWorkDir();
     void setWorkDir(const std::string& _w);
 
+    //Loads paths to filter from backup/deletion
+    void loadPathFilters(const uint64_t& tid);
+    bool pathIsFiltered(const std::string& _path);
+    void freePathFilters();
+
     void createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _uid, threadInfo *t);
     void createSaveDataThreaded(FsSaveDataType _type, uint64_t _tid, AccountUid _uid);
     bool extendSaveData(const data::userTitleInfo *tinfo, uint64_t extSize, threadInfo *t);
@@ -38,6 +43,9 @@ namespace fs
     void overwriteBackup(void *a);
     void restoreBackup(void *a);
     void deleteBackup(void *a);
+
+    void dumpAllUserSaves(void *a);
+    void dumpAllUsersAllSaves(void *a);
 
     void logOpen();
     void logWrite(const char *fmt, ...);

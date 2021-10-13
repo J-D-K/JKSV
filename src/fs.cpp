@@ -11,6 +11,8 @@ static FSFILE *debLog;
 
 static FsFileSystem sv;
 
+static std::vector<std::string> pathFilter;
+
 void fs::init()
 {
     mkDirRec("sdmc:/config/JKSV/");
@@ -104,6 +106,38 @@ bool fs::commitToDevice(const std::string& dev)
 std::string fs::getWorkDir() { return wd; }
 
 void fs::setWorkDir(const std::string& _w) { wd = _w; }
+
+
+void fs::loadPathFilters(const uint64_t& tid)
+{
+    char path[256];
+    sprintf(path, "sdmc:/config/JKSV/0x%016lX_filter.txt", tid);
+    if(fs::fileExists(path))
+    {
+        fs::dataFile filter(path);
+        while(filter.readNextLine(false))
+            pathFilter.push_back(filter.getLine());
+    }
+}
+
+bool fs::pathIsFiltered(const std::string& _path)
+{
+    if(pathFilter.empty())
+        return false;
+
+    for(std::string& _p : pathFilter)
+    {
+        if(_path == _p)
+            return true;
+    }
+
+    return false;
+}
+
+void fs::freePathFilters()
+{
+    pathFilter.clear();
+}
 
 void fs::createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _uid, threadInfo *t)
 {
@@ -540,6 +574,77 @@ void fs::deleteBackup(void *a)
     }
     ui::populateFldMenu();
     delete deletePath;
+    t->finished = true;
+}
+
+void fs::dumpAllUserSaves(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *c = fs::copyArgsCreate("", "", "", NULL, NULL, false, false, 0);
+    t->argPtr = c;
+    data::user *u = data::getCurrentUser();
+
+    for(unsigned i = 0; i < u->titleInfo.size(); i++)
+    {
+        bool saveMounted = fs::mountSave(u->titleInfo[i].saveInfo);
+        util::createTitleDirectoryByTID(u->titleInfo[i].tid);
+        if(saveMounted && fs::dirNotEmpty("sv:/") && cfg::config["zip"])
+        {
+            fs::loadPathFilters(u->titleInfo[i].tid);
+            std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+            zipFile zip = zipOpen64(dst.c_str(), 0);
+            fs::copyDirToZip("sv:/", zip, false, 0, t);
+            zipClose(zip, NULL);
+            fs::freePathFilters();
+        }
+        else if(saveMounted && fs::dirNotEmpty("sv:/"))
+        {
+            fs::loadPathFilters(u->titleInfo[i].tid);
+            std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+            fs::mkDir(dst.substr(0, dst.length() - 1));
+            fs::copyDirToDir("sv:/", dst, t);
+            fs::freePathFilters();
+        }
+        fs::unmountSave();
+    }
+    delete c;
+    t->finished = true;
+}
+
+void fs::dumpAllUsersAllSaves(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *c = fs::copyArgsCreate("", "", "", NULL, NULL, false, false, 0);
+    t->argPtr = c;
+    unsigned curUser = 0;
+    while(data::users[curUser].getUID128() != 2)
+    {
+        data::user *u = &data::users[curUser++];
+        for(unsigned i = 0; i < u->titleInfo.size(); i++)
+        {
+            bool saveMounted = fs::mountSave(u->titleInfo[i].saveInfo);
+            util::createTitleDirectoryByTID(u->titleInfo[i].tid);
+            if(saveMounted && fs::dirNotEmpty("sv:/") && cfg::config["zip"])
+            {
+                fs::loadPathFilters(u->titleInfo[i].tid);
+                std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + ".zip";
+                zipFile zip = zipOpen64(dst.c_str(), 0);
+                fs::copyDirToZip("sv:/", zip, false, 0, t);
+                zipClose(zip, NULL);
+                fs::freePathFilters();
+            }
+            else if(saveMounted && fs::dirNotEmpty("sv:/"))
+            {
+                fs::loadPathFilters(u->titleInfo[i].tid);
+                std::string dst = util::generatePathByTID(u->titleInfo[i].tid) + u->getUsernameSafe() + " - " + util::getDateTime(util::DATE_FMT_YMD) + "/";
+                fs::mkDir(dst.substr(0, dst.length() - 1));
+                fs::copyDirToDir("sv:/", dst, t);
+                fs::freePathFilters();
+            }
+            fs::unmountSave();
+        }
+    }
+    delete c;
     t->finished = true;
 }
 

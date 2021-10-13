@@ -218,9 +218,7 @@ static void cacheSavePanelDraw(void *a)
 
 static void usrOptDumpAllUserSaves(void *a)
 {
-    data::user *u = data::getCurrentUser();
-    if(u->titleInfo.size() > 0)
-        fs::dumpAllUserSaves();
+    ui::newThread(fs::dumpAllUserSaves, NULL, fs::fileDrawFunc);
 }
 
 static void createSaveData(void *a)
@@ -462,6 +460,10 @@ void ui::usrUpdate()
     {
         switch(ui::padKeysDown())
         {
+            case HidNpadButton_Y:
+                ui::newThread(fs::dumpAllUsersAllSaves, NULL, fs::fileDrawFunc);
+                break;
+
             case HidNpadButton_X:
                 {
                     int cachePos = usrMenu->getOptPos(ui::getUIString("saveTypeMainMenu", 2));

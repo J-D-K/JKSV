@@ -24,13 +24,6 @@ namespace fs
     //deletes file
     void delfile(const std::string& _p);
 
-    //Loads paths to filter from backup/deletion
-    void loadPathFilters(const uint64_t& tid);
-    bool pathIsFiltered(const std::string& _path);
-    void freePathFilters();
-
-    void wipeSave();
-
     //Dumps all titles for current user
     void dumpAllUserSaves();
 
@@ -65,12 +58,6 @@ namespace fs
             size_t lPos = 0;
             bool opened = false;
     };
-
-    //Take a pointer to backupArgs^
-    void createNewBackup(void *a);
-    void overwriteBackup(void *a);
-    void restoreBackup(void *a);
-    void deleteBackup(void *a);
 
     void logOpen();
     void logWrite(const char *fmt, ...);

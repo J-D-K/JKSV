@@ -392,7 +392,10 @@ static void _copyMenuGetProps(void *a)
 
     int sel = m->getSelected();
     if(sel == 0)
-        fs::getShowDirProps(*ma->path);
+    {
+        std::string *folderPath = new std::string(*ma->path);
+        ui::newThread(_copyMenuGetShowDirProps_t, folderPath, NULL);
+    }
     else if(sel > 1 && d->isDir(sel - 2))
     {
         std::string *folderPath = new std::string;
