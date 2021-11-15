@@ -266,17 +266,17 @@ static void usrOptCreateAllSaves_t(void *a)
     {
         AccountUid uid = u->getUID();
         for(unsigned i = 0; i < accSids.size(); i++)
-            fs::createSaveDataThreaded(FsSaveDataType_Account, accSids[i], uid);
+            fs::createSaveData(FsSaveDataType_Account, accSids[i], uid, t);
     }
     else if(sel == devPos)
     {
         for(unsigned i = 0; i < devSids.size(); i++)
-            fs::createSaveDataThreaded(FsSaveDataType_Device, devSids[i], util::u128ToAccountUID(0));
+            fs::createSaveData(FsSaveDataType_Device, devSids[i], util::u128ToAccountUID(0), t);
     }
     else if(sel == bcatPos)
     {
         for(unsigned i = 0; i < bcatSids.size(); i++)
-            fs::createSaveDataThreaded(FsSaveDataType_Bcat, bcatSids[i], util::u128ToAccountUID(0));
+            fs::createSaveData(FsSaveDataType_Bcat, bcatSids[i], util::u128ToAccountUID(0), t);
     }
     t->finished = true;
 }

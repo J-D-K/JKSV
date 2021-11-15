@@ -118,7 +118,10 @@ static inline void addTitleToList(const uint64_t& tid)
         //Setup 'shortcuts' to strings
         NacpLanguageEntry *ent;
         nacpGetLanguageEntry(&data::titles[tid].nacp, &ent);
-        data::titles[tid].title = ent->name;
+        if(strlen(ent->name) == 0)
+            data::titles[tid].title = ctrlData->nacp.lang[SetLanguage_ENUS].name;
+        else
+            data::titles[tid].title = ent->name;
         data::titles[tid].author = ent->author;
         if(cfg::isDefined(tid))
             data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
@@ -127,7 +130,7 @@ static inline void addTitleToList(const uint64_t& tid)
 
         if(cfg::isFavorite(tid))
             data::titles[tid].fav = true;
-
+        
         data::titles[tid].icon = gfx::loadJPEGMem(ctrlData->icon, iconSize);
         if(!data::titles[tid].icon)
             data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
@@ -178,6 +181,52 @@ static void loadTitlesFromRecords()
     }
 }
 
+static void importSVIs()
+{
+    std::string sviDir = fs::getWorkDir() + "svi/";
+    fs::dirList sviList(sviDir);
+    if(sviList.getCount() > 0)
+    {
+        for(unsigned i = 0; i < sviList.getCount(); i++)
+        {
+            uint64_t tid = 0;
+            NacpStruct *nacp = new NacpStruct;
+            NacpLanguageEntry *ent;
+            std::string sviPath = fs::getWorkDir() + "svi/" + sviList.getItem(i);
+
+            size_t iconSize = fs::fsize(sviPath) - (sizeof(uint64_t) + sizeof(NacpStruct));
+            uint8_t *iconBuffer = new uint8_t[iconSize];
+            FILE *sviIn = fopen(sviPath.c_str(), "rb");
+            fread(&tid, sizeof(uint64_t), 1, sviIn);
+            fread(nacp, sizeof(NacpStruct), 1, sviIn);
+            fread(iconBuffer, 1, iconSize, sviIn);
+
+            if(!titleIsLoaded(tid))
+            {
+                nacpGetLanguageEntry(nacp, &ent);
+                memcpy(&data::titles[tid].nacp, nacp, sizeof(NacpStruct));
+                data::titles[tid].title = ent->name;
+                data::titles[tid].author = ent->author;
+                if(cfg::isDefined(tid))
+                    data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
+                else if((data::titles[tid].safeTitle = util::safeString(ent->name)) == "")
+                    data::titles[tid].safeTitle = util::getIDStr(tid);
+
+                if(cfg::isFavorite(tid))
+                    data::titles[tid].fav = true;
+
+                if(!data::titles[tid].icon && iconSize > 0)
+                    data::titles[tid].icon = gfx::loadJPEGMem(iconBuffer, iconSize);
+                else if(!data::titles[tid].icon && iconSize == 0)
+                    data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
+            }
+            delete nacp;
+            delete[] iconBuffer;
+            fclose(sviIn);
+        }
+    }
+}
+
 bool data::loadUsersTitles(bool clearUsers)
 {
     static unsigned systemUserCount = 4;
@@ -186,6 +235,7 @@ bool data::loadUsersTitles(bool clearUsers)
     s64 total = 0;
 
     loadTitlesFromRecords();
+    importSVIs();
 
     //Clear titles
     for(data::user& u : data::users)

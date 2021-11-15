@@ -56,7 +56,7 @@ static void settMenuDeleteAllBackups_t(void *a)
     fs::dirList *jksvDir = new fs::dirList(fs::getWorkDir());
     for(unsigned i = 0; i < jksvDir->getCount(); i++)
     {
-        if(jksvDir->isDir(i))
+        if(jksvDir->isDir(i) && jksvDir->getItem(i) != "svi")
         {
             std::string delTarget = fs::getWorkDir() + jksvDir->getItem(i) + "/";
             fs::delDir(delTarget);

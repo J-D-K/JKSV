@@ -246,6 +246,7 @@ void ui::initStrings()
     addUIString("titleOptions", 5, "Reset Save Data");
     addUIString("titleOptions", 6, "Delete Save Data");
     addUIString("titleOptions", 7, "Extend Save Data");
+    addUIString("titleOptions", 8, "Export SVI");
 
     //Thread Status Strings
     addUIString("threadStatusCreatingSaveData", 0, "Creating save data for #%s#...");

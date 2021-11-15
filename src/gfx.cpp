@@ -31,8 +31,6 @@ static const uint32_t blueMask  = 0x0000FF00;
 static const uint32_t alphaMask = 0x000000FF;
 static const uint32_t breakPoints[7] = {' ', L'　', '/', '_', '-', L'。', L'、'};
 
-static uint8_t *alphaMod;
-
 static inline bool compClr(const SDL_Color *c1, const SDL_Color *c2)
 {
     return (c1->r == c2->r) && (c1->b == c2->b) && (c1->g == c2->g) && (c1->a == c2->a);
@@ -104,12 +102,6 @@ void gfx::init()
 
     SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
 
-    //Load the alpha mod to round icon corners
-    alphaMod = (uint8_t *)malloc(256 * 256);
-    FILE *modLoad = fopen("romfs:/img/icn/icon.msk", "rb");
-    fread(alphaMod, 1, 256 * 256, modLoad);
-    fclose(modLoad);
-
     loadSystemFont();
 }
 
@@ -118,8 +110,6 @@ void gfx::exit()
     IMG_Quit();
     SDL_Quit();
     freeSystemFont();
-
-    free(alphaMod);
 
     for(auto c : glyphCache)
         SDL_DestroyTexture(c.second.tex);

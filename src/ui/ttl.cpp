@@ -14,11 +14,14 @@ static ui::slideOutPanel *infoPanel, *fldPanel;//There's no reason to have a sep
 static fs::dirList *fldList;
 static std::string infoPanelString;
 static SDL_Texture *fldBuffer;//This is so folder menu doesn't draw over guide
+static Mutex ttlViewLock = 0;
 
 void ui::ttlRefresh()
 {
+    mutexLock(&ttlViewLock);
     for(int i = 0; i < (int)data::users.size(); i++)
         ttlViews[i]->refresh();
+    mutexUnlock(&ttlViewLock);
 }
 
 static void fldFuncCancel(void *a)
@@ -308,6 +311,30 @@ static void ttlOptsExtendSaveData(void *a)
     }
 }
 
+static void ttlOptsExportSVI(void *a)
+{
+    data::userTitleInfo *ut = data::getCurrentUserTitleInfo();
+    data::titleInfo *t = data::getTitleInfoByTID(ut->tid);
+    std::string out = fs::getWorkDir() + "svi/";
+    fs::mkDir(out.substr(0, out.length() - 1));
+    out += util::getIDStr(ut->tid) + ".svi";
+    FILE *svi = fopen(out.c_str(), "wb");
+    if(svi)
+    {
+        //Grab icon
+        NsApplicationControlData *ctrlData = new NsApplicationControlData;
+        uint64_t ctrlSize = 0;
+        nsGetApplicationControlData(NsApplicationControlSource_Storage, ut->tid, ctrlData, sizeof(NsApplicationControlData), &ctrlSize);
+        size_t jpegSize = ctrlSize - sizeof(ctrlData->nacp);
+
+        fwrite(&ut->tid, sizeof(uint64_t), 1, svi);
+        fwrite(&t->nacp, sizeof(NacpStruct), 1, svi);
+        fwrite(ctrlData->icon, 1, jpegSize, svi);
+        fclose(svi);
+        delete ctrlData;
+    }
+}
+
 static void infoPanelDraw(void *a)
 {
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
@@ -430,7 +457,7 @@ void ui::ttlInit()
     fldList = new fs::dirList;
 
     ttlOpts->setActive(false);
-    for(int i = 0; i < 8; i++)
+    for(int i = 0; i < 9; i++)
         ttlOpts->addOpt(NULL, ui::getUIString("titleOptions", i));
 
     //Information
@@ -449,6 +476,8 @@ void ui::ttlInit()
     ttlOpts->optAddButtonEvent(6, HidNpadButton_A, ttlOptsDeleteSaveData, NULL);
     //Extend
     ttlOpts->optAddButtonEvent(7, HidNpadButton_A, ttlOptsExtendSaveData, NULL);
+    //Export NACP
+    ttlOpts->optAddButtonEvent(8, HidNpadButton_A, ttlOptsExportSVI, NULL);
 }
 
 void ui::ttlExit()
@@ -484,7 +513,9 @@ void ui::ttlDraw(SDL_Texture *target)
 {
     unsigned curUserIndex = data::getCurrentUserIndex();
 
+    mutexLock(&ttlViewLock);
     ttlViews[curUserIndex]->draw(target);
+    mutexUnlock(&ttlViewLock);
     if(ui::mstate == TTL_SEL && !fldPanel->isOpen())
         gfx::drawTextf(NULL, 18, ttlHelpX, 673, &ui::txtCont, ui::getUICString("helpTitle", 0));
 }
