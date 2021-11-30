@@ -6,9 +6,23 @@ confirmDelete = 0, "是否确定要删除#%s#？*这是永久的*！"
 confirmDeleteBackupsAll = 0, "是否确定要删除您所有游戏的*所有*存档备份？"
 confirmDeleteBackupsTitle = 0, "是否确定要删除#%s#的所有存档备份？"
 confirmDeleteSaveData = 0, "*警告*：这*将从系统*中删除#%s#*的存档数据。您确定要这样做吗？"
+
+#CHANGED=============================================>
+confirmDriveOverwrite = 0, "Downloading this backup from drive will overwrite the one on your SD card. Continue?"
+#<====================================================
+
 confirmOverwrite = 0, "是否确定要覆盖#%s#?"
 confirmResetSaveData = 0, "*警告*：此*将*重置此游戏的存档数据，就像以前从未运行过一样。您确定要这样做吗？"
 confirmRestore = 0, "您确定要还原#%s#吗？"
+
+#CHANGED=============================================>
+debugStatus = 0, "User Count: "
+debugStatus = 1, "Current User: "
+debugStatus = 2, "Current Title: "
+debugStatus = 3, "Safe Title: "
+debugStatus = 4, "Sort Type: "
+#<====================================================
+
 dialogNo = 0, "否 [B]"
 dialogOK = 0, "好 [A]"
 dialogYes = 0, "是 [A]"
@@ -35,25 +49,29 @@ fileModeMenu = 5, "关闭"
 fileModeMenu = 6, "添加到路径过滤器"
 fileModeMenuMkDir = 0, "新建"
 folderMenuNew = 0, "新建目录"
-helpFolder = 0, "[A] 选择  [Y] 恢复  [X] 删除  [B] 关闭"
+
+#CHANGED=============================================>
+helpFolder = 0, "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close"
+#<====================================================
+
 helpSettings = 0, "[A] 切换   [X] 恢复默认   [B] 返回"
 helpTitle = 0, "[A] 选择   [L][R] 翻页   [Y] 收藏   [X] Title选项  [B] 返回"
 helpUser = 0, "[A] 选择   [X] 用户选项"
 holdingText = 0, "（按住）"
 holdingText = 1, "（持续按住）"
 holdingText = 2, "（快好了！）"
-infoStatus = 0, "TID: "
-infoStatus = 1, "SID: "
-infoStatus = 2, "游戏时间："
-infoStatus = 3, "总启动次数："
-infoStatus = 4, "用户数目："
-infoStatus = 5, "当前用户："
-infoStatus = 6, "当前Title："
-infoStatus = 7, "安全Title："
-infoStatus = 8, "排序类型："
-infoStatus = 9, "正在文件管理器里保存..."
-infoStatus = 10, "正在删除"
-infoStatus = 11, "回收站已清空。"
+
+#CHANGED=============================================>
+infoStatus = 0, "TID: %016lX"
+infoStatus = 1, "SID: %016lX"
+infoStatus = 2, "Play Time: %02d:%02d"
+infoStatus = 3, "Total Launches: %u"
+infoStatus = 4, "Publisher: %s"
+infoStatus = 5, "Save Type: %s"
+infoStatus = 6, "Cache Index: %u"
+infoStatus = 7, "User: %s"
+#<=====================================================
+
 loadingStartPage = 0, "加载中..."
 mainMenuExtras = 0, "附加功能"
 mainMenuSettings = 0, "系统设置"
@@ -63,10 +81,23 @@ popAddedToPathFilter = 0, "'#%s#'添加到路径过滤器。"
 popCPUBoostEnabled = 0, "为ZIP压缩启用CPU超频。"
 popChangeOutputError = 0, "#%s# 包含非法或者非ASCII的字符。"
 popChangeOutputFolder = 0, "#%s# 更改到 #%s#"
+
+#CHANGED=============================================>
+popDriveFailed = 0, "Failed to start Google Drive."
+popDriveNotActive = 0, "Google Drive is not available"
+popDriveStarted = 0, "Google Drive started successfully."
+#<====================================================
+
 popErrorCommittingFile = 0, "提交要保存的文件时出错！"
 popFolderIsEmpty = 0, "文件夹为空！"
 popProcessShutdown = 0, "#%s#已成功关闭。"
+
+#CHANGED=============================================>
+popSVIExported = 0, "SVI Exported."
+#<====================================================
+
 popSaveIsEmpty = 0, "存档数据为空！"
+popTrashEmptied = 0, "Trash emptied"
 popZipIsEmpty = 0, "ZIP文件为空！"
 saveDataBackupDeleted = 0, "#%s#已被删除。"
 saveDataBackupMovedToTrash = 0, "#%s#已被移到回收站。"
@@ -79,13 +110,13 @@ saveDataExtendSuccess = 0, "#%s#的存档数据已扩展！"
 saveDataIndexText = 0, "存档索引号："
 saveDataNoneFound = 0, "没有找到#%s#的存档！"
 saveDataResetSuccess = 0, "#%s#的存档已重置！"
-saveDataTypeText = 0, "系统存档\n"
-saveDataTypeText = 1, "用户存档\n"
-saveDataTypeText = 2, "BCAT存档\n"
-saveDataTypeText = 3, "设备存档\n"
-saveDataTypeText = 4, "临时存档\n"
-saveDataTypeText = 5, "缓存存档\n"
-saveDataTypeText = 6, "系统BCAT存档\n"
+saveDataTypeText = 0, "系统存档"
+saveDataTypeText = 1, "用户存档"
+saveDataTypeText = 2, "BCAT存档"
+saveDataTypeText = 3, "设备存档"
+saveDataTypeText = 4, "临时存档"
+saveDataTypeText = 5, "缓存存档"
+saveDataTypeText = 6, "系统BCAT存档"
 saveTypeMainMenu = 0, "设备"
 saveTypeMainMenu = 1, "BCAT"
 saveTypeMainMenu = 2, "缓存"
@@ -128,19 +159,40 @@ swkbdSaveIndex = 0, "请输入缓存索引号"
 swkbdSetWorkDir = 0, "请输入新的输出目录"
 swkbdSysSavID = 0, "请输入系统存档ID"
 threadStatusAddingFileToZip = 0, "正在添加'#%s#'到ZIP文件..."
+
+#CHANGED=============================================>
+threadStatusCalculatingSaveSize = 0, "Calculating save data size..."
+#<====================================================
+
 threadStatusCheckingForUpdate = 0, "正在检查更新..."
+
+#CHANGED=============================================>
+threadStatusCompressingSaveForUpload = 0, "Compressing #%s# for upload..."
+#<====================================================
+
 threadStatusCopyingFile = 0, "正在拷贝'#%s#'..."
 threadStatusCreatingSaveData = 0, "正在创建#%s#的存档..."
 threadStatusDecompressingFile = 0, "正在解压'#%s#'..."
 threadStatusDeletingFile = 0, "正在删除..."
 threadStatusDeletingSaveData = 0, "正在删除#%s#的存档..."
 threadStatusDeletingUpdate = 0, "正在删除挂起的更新..."
+
+#CHANGED=============================================>
+threadStatusDownloadingFile = 0, "Downloading #%s#..."
+#<====================================================
+
 threadStatusDownloadingUpdate = 0, "正在下载更新..."
 threadStatusExtendingSaveData = 0, "正在扩展#%s#的存档..."
 threadStatusGetDirProps = 0, "正在获取文件夹属性..."
 threadStatusOpeningFolder = 0, "正在打开'#%s#'..."
 threadStatusPackingJKSV = 0, "正在写入JKSV文件夹内容到ZIP压缩包..."
 threadStatusResettingSaveData = 0, "正在重置存档数据..."
+threadStatusSavingTranslations = 0, "Saving the file master..."
+
+#CHANGED=============================================>
+threadStatusUploadingFile = 0, "Uploading #%s#..."
+#<====================================================
+
 titleOptions = 0, "信息"
 titleOptions = 1, "黑名单"
 titleOptions = 2, "更改输出目录"
@@ -149,6 +201,11 @@ titleOptions = 4, "删除所有存储备份"
 titleOptions = 5, "重置存档数据"
 titleOptions = 6, "删除存档数据"
 titleOptions = 7, "扩展存档数据"
+
+#CHANGED=============================================>
+titleOptions = 8, "Export SVI"
+#<====================================================
+
 translationMainPage = 0, "翻译："
 userOptions = 0, "转储该游戏的所有存档："
 userOptions = 1, "创建存档数据"

@@ -110,7 +110,6 @@ void ui::initStrings()
     addUIString("helpTitle", 0, "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back");
     addUIString("helpFolder", 0, "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close");
     addUIString("helpSettings", 0, "[A] Toggle   [X] Defaults   [B] Back");
-    addUIString("helpDrive", 0, "[A] Download  [Y] Restore  [X] Delete  [B] Back");
 
     //Y/N On/Off
     addUIString("dialogYes", 0, "Yes [A]");
@@ -345,9 +344,24 @@ void ui::saveTranslationFiles(void *a)
     std::string outputFolder = fs::getWorkDir() + "lang", outputPath, romfsPath;
     fs::mkDir(outputFolder);
 
+    //Save en-us first
+    ui::initStrings();
+    outputPath = fs::getWorkDir() + "lang/" + getFilename(SetLanguage_ENUS);
+    FILE *out = fopen(outputPath.c_str(), "w");
+    for(auto& s : ui::strings)
+    {
+        std::string stringOut = s.second;
+            util::replaceStr(stringOut, "\n", "\\n");
+            fprintf(out, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, stringOut.c_str());
+    }
+    fclose(out);
+
     romfsInit();
     for(int i = 0; i < SetLanguage_Total; i++)
     {
+        if(i == SetLanguage_ENUS)
+            continue;
+
         outputPath = fs::getWorkDir() + "lang/" + getFilename(i);
         romfsPath = "romfs:/lang/" + getFilename(i);
 
@@ -355,7 +369,7 @@ void ui::saveTranslationFiles(void *a)
         ui::initStrings();
         loadTranslationFile(romfsPath);
 
-        FILE *out = fopen(outputPath.c_str(), "w");
+        out = fopen(outputPath.c_str(), "w");
         for(auto& s : ui::strings)
         {
             std::string stringOut = s.second;

@@ -6,9 +6,23 @@ confirmDelete = 0, "#%s#を削除してもよろしいですか? これは永続
 confirmDeleteBackupsAll = 0, "全てのゲームのセーブバックアップを全て削除してもよろしいですか?"
 confirmDeleteBackupsTitle = 0, "#%s#のすべてのセーブデータのバックアップを削除してもよろしいですか?"
 confirmDeleteSaveData = 0, "警告: これにより、#%s#のセーブデータがシステムから消去されます。 これを実行してもよろしいですか?"
+
+#CHANGED=============================================>
+confirmDriveOverwrite = 0, "Downloading this backup from drive will overwrite the one on your SD card. Continue?"
+#<====================================================
+
 confirmOverwrite = 0, "#%s#を上書きしてもよろしいですか?"
 confirmResetSaveData = 0, "警告: これにより、このゲームのセーブデータが、以前に実行されたことがないかのようにリセットされます。これを実行してもよろしいですか?"
 confirmRestore = 0, "#%s#を復元してもよろしいですか?"
+
+#CHANGED=============================================>
+debugStatus = 0, "User Count: "
+debugStatus = 1, "Current User: "
+debugStatus = 2, "Current Title: "
+debugStatus = 3, "Safe Title: "
+debugStatus = 4, "Sort Type: "
+#<====================================================
+
 dialogNo = 0, "いいえ [B]"
 dialogOK = 0, "了解 [A]"
 dialogYes = 0, "はい [A]"
@@ -35,25 +49,29 @@ fileModeMenu = 5, "閉じる"
 fileModeMenu = 6, "パスフィルターに追加"
 fileModeMenuMkDir = 0, "New"
 folderMenuNew = 0, "New Backup"
-helpFolder = 0, "[A] 選択  [Y] リストア  [X] 削除  [B] 閉じる"
+
+#CHANGED=============================================>
+helpFolder = 0, "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close"
+#<====================================================
+
 helpSettings = 0, "[A] トグル   [X] デフォルト   [B] 戻る"
 helpTitle = 0, "[A] 選択   [L][R] ジャンプ   [Y] お気に入り   [X] タイトルオプション  [B] 戻る"
 helpUser = 0, "[A] 選択   [X] ユーザー設定"
 holdingText = 0, "(所有) "
 holdingText = 1, "(保持し続けます) "
 holdingText = 2, "(もうすぐです!) "
-infoStatus = 0, "TID: "
-infoStatus = 1, "SID: "
-infoStatus = 2, "Play Time: "
-infoStatus = 3, "Total Launches: "
-infoStatus = 4, "User Count: "
-infoStatus = 5, "Current User: "
-infoStatus = 6, "Current Title: "
-infoStatus = 7, "Safe Title: "
-infoStatus = 8, "Sort Type: "
-infoStatus = 9, "Saving the file master..."
-infoStatus = 10, "Deleting..."
-infoStatus = 11, "Trash emptied."
+
+#CHANGED=============================================>
+infoStatus = 0, "TID: %016lX"
+infoStatus = 1, "SID: %016lX"
+infoStatus = 2, "Play Time: %02d:%02d"
+infoStatus = 3, "Total Launches: %u"
+infoStatus = 4, "Publisher: %s"
+infoStatus = 5, "Save Type: %s"
+infoStatus = 6, "Cache Index: %u"
+infoStatus = 7, "User: %s"
+#<=====================================================
+
 loadingStartPage = 0, "Loading..."
 mainMenuExtras = 0, "Extras"
 mainMenuSettings = 0, "Settings"
@@ -63,10 +81,23 @@ popAddedToPathFilter = 0, "'#%s#' パスフィルターに追加されました�
 popCPUBoostEnabled = 0, "ZIPでCPUブーストが有効になっています。"
 popChangeOutputError = 0, "#%s# contains illegal or non-ASCII characters."
 popChangeOutputFolder = 0, "#%s# changed to #%s#"
+
+#CHANGED=============================================>
+popDriveFailed = 0, "Failed to start Google Drive."
+popDriveNotActive = 0, "Google Drive is not available"
+popDriveStarted = 0, "Google Drive started successfully."
+#<====================================================
+
 popErrorCommittingFile = 0, "保存するファイルのコミット中にエラーが発生しました!"
 popFolderIsEmpty = 0, "フォルダは空です!"
 popProcessShutdown = 0, "#%s# 正常にシャットダウンしました。"
+
+#CHANGED=============================================>
+popSVIExported = 0, "SVI Exported."
+#<====================================================
+
 popSaveIsEmpty = 0, "セーブデータは空です!"
+popTrashEmptied = 0, "Trash emptied"
 popZipIsEmpty = 0, "ZIPファイルは空です!"
 saveDataBackupDeleted = 0, "#%s#が削除されました。"
 saveDataBackupMovedToTrash = 0, "#%s#はゴミ箱に移動されました"
@@ -128,19 +159,40 @@ swkbdSaveIndex = 0, "キャッシュインデックスを入力してくださ�
 swkbdSetWorkDir = 0, "新しい出力パスを入力してください"
 swkbdSysSavID = 0, "システムセーブIDを入力してください"
 threadStatusAddingFileToZip = 0, "#%s#をZIPに追加中..."
+
+#CHANGED=============================================>
+threadStatusCalculatingSaveSize = 0, "Calculating save data size..."
+#<====================================================
+
 threadStatusCheckingForUpdate = 0, "アップデートの確認中..."
+
+#CHANGED=============================================>
+threadStatusCompressingSaveForUpload = 0, "Compressing #%s# for upload..."
+#<====================================================
+
 threadStatusCopyingFile = 0, "#%s#をコピーしています..."
 threadStatusCreatingSaveData = 0, "#%s#のセームデータの作成中..."
 threadStatusDecompressingFile = 0, "#%s#の解凍中..."
 threadStatusDeletingFile = 0, "削除中..."
 threadStatusDeletingSaveData = 0, "#%s#のセーブデータを削除中..."
 threadStatusDeletingUpdate = 0, "保留中のアップデータを削除中..."
+
+#CHANGED=============================================>
+threadStatusDownloadingFile = 0, "Downloading #%s#..."
+#<====================================================
+
 threadStatusDownloadingUpdate = 0, "アップデータをダウンロード中..."
 threadStatusExtendingSaveData = 0, "#%s#のセーブデータを拡張中..."
 threadStatusGetDirProps = 0, "フォルダプロパティの取得中..."
 threadStatusOpeningFolder = 0, "#%s#を開き中..."
 threadStatusPackingJKSV = 0, "JKSVフォルダの内容をZIPに書き込み中..."
 threadStatusResettingSaveData = 0, "セーブデータをリストアしています..."
+threadStatusSavingTranslations = 0, "Saving the file master..."
+
+#CHANGED=============================================>
+threadStatusUploadingFile = 0, "Uploading #%s#..."
+#<====================================================
+
 titleOptions = 0, "インフォメーション"
 titleOptions = 1, "ブラックリスト"
 titleOptions = 2, "出力フォルダを変更する"
@@ -149,6 +201,11 @@ titleOptions = 4, "すべてのセーブデータバックアップを削除す�
 titleOptions = 5, "セーブデータをリセット"
 titleOptions = 6, "セーブデータを削除"
 titleOptions = 7, "セーブデータを拡張"
+
+#CHANGED=============================================>
+titleOptions = 8, "Export SVI"
+#<====================================================
+
 translationMainPage = 0, "Translation: "
 userOptions = 0, "すべてをダンプする "
 userOptions = 1, "セーブデータを作成"

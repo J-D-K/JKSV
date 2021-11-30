@@ -6,9 +6,23 @@ confirmDelete = 0, "¿Seguro que desea borrar #%s#? *¡Es permanente!*"
 confirmDeleteBackupsAll = 0, "¿Seguro que desea borrar *TODOS* los respaldos de partidas guardadas para todos sus juegos?"
 confirmDeleteBackupsTitle = 0, "¿Seguro que desea borrar todos los respaldos de partidas guardadas para #%s#?"
 confirmDeleteSaveData = 0, "*ADVERTENCIA*:  Ésto eliminará la partida guardada para #%s# *DE SU SISTEMA*. ¿Está seguro que así lo desea?"
+
+#CHANGED=============================================>
+confirmDriveOverwrite = 0, "Downloading this backup from drive will overwrite the one on your SD card. Continue?"
+#<====================================================
+
 confirmOverwrite = 0, "¿Sobre escribir #%s#?"
 confirmResetSaveData = 0, "*ADVERTENCIA*:  Ésto restablecerá la partida guardada para este juego, como si nunca se hubiera ejecutado. ¿Está seguro que es lo que desea?"
 confirmRestore = 0, "¿Seguro que desea restaurar #%s#?"
+
+#CHANGED=============================================>
+debugStatus = 0, "User Count: "
+debugStatus = 1, "Current User: "
+debugStatus = 2, "Current Title: "
+debugStatus = 3, "Safe Title: "
+debugStatus = 4, "Sort Type: "
+#<====================================================
+
 dialogNo = 0, "No [B]"
 dialogOK = 0, "OK [A]"
 dialogYes = 0, "Si [A]"
@@ -35,25 +49,29 @@ fileModeMenu = 5, "Cerrar"
 fileModeMenu = 6, "Adicionar a filtros de Carpetas"
 fileModeMenuMkDir = 0, "Nuevo"
 folderMenuNew = 0, "Nuevo Respaldo"
-helpFolder = 0, "[A] Selecionar  [Y] Restaurar  [X] Borrar  [B] Cerrar"
+
+#CHANGED=============================================>
+helpFolder = 0, "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close"
+#<====================================================
+
 helpSettings = 0, "[A] Alternar    [X] Predeterminados   [B] Atrás"
 helpTitle = 0, "[A] Seleccionar [L][R] Saltar   [Y] Favoritos   [X] Opciones de Títulos  [B] Atrás"
 helpUser = 0, "[A] Seleccionar [X] Opciones de Usuario"
 holdingText = 0, "(Sostenga) "
 holdingText = 1, "(Siga Sosteniendo) "
 holdingText = 2, "(¡Ya Casi!) "
-infoStatus = 0, "TID: "
-infoStatus = 1, "SID: "
-infoStatus = 2, "Tiempo de Juego: "
-infoStatus = 3, "Veces Ejecutado: "
-infoStatus = 4, "Conteo de Usuario: "
-infoStatus = 5, "Usuario Actual: "
-infoStatus = 6, "Título Actual: "
-infoStatus = 7, "Título Seguro: "
-infoStatus = 8, "Organizar por : "
-infoStatus = 9, "Guardando archivo maestro..."
-infoStatus = 10, "Borrando..."
-infoStatus = 11, "Papelera vacía."
+
+#CHANGED=============================================>
+infoStatus = 0, "TID: %016lX"
+infoStatus = 1, "SID: %016lX"
+infoStatus = 2, "Play Time: %02d:%02d"
+infoStatus = 3, "Total Launches: %u"
+infoStatus = 4, "Publisher: %s"
+infoStatus = 5, "Save Type: %s"
+infoStatus = 6, "Cache Index: %u"
+infoStatus = 7, "User: %s"
+#<=====================================================
+
 loadingStartPage = 0, "Cargando..."
 mainMenuExtras = 0, "Extras"
 mainMenuSettings = 0, "Configuraciones"
@@ -63,10 +81,23 @@ popAddedToPathFilter = 0, "se adicionó '#%s#' a filtros de carpeta."
 popCPUBoostEnabled = 0, "Aumento de CPU para ZIP."
 popChangeOutputError = 0, "#%s# contiene carácteres ilegales o no-ASCII."
 popChangeOutputFolder = 0, "Se cambia #%s# por #%s#"
+
+#CHANGED=============================================>
+popDriveFailed = 0, "Failed to start Google Drive."
+popDriveNotActive = 0, "Google Drive is not available"
+popDriveStarted = 0, "Google Drive started successfully."
+#<====================================================
+
 popErrorCommittingFile = 0, "¡Error guardando archivo!"
 popFolderIsEmpty = 0, "¡La carpeta está vacía!"
 popProcessShutdown = 0, "#%s# Apagado satisfactorio."
+
+#CHANGED=============================================>
+popSVIExported = 0, "SVI Exported."
+#<====================================================
+
 popSaveIsEmpty = 0, "¡Partida Guardada está vacía!"
+popTrashEmptied = 0, "Trash emptied"
 popZipIsEmpty = 0, "¡Archivo ZIP está vacío!"
 saveDataBackupDeleted = 0, "#%s# ha sido borrado."
 saveDataBackupMovedToTrash = 0, "#%s# ha sido movido a papelera."
@@ -79,13 +110,13 @@ saveDataExtendSuccess = 0, "¡Partida Guardada para #%s# epandida con éxito!"
 saveDataIndexText = 0, "Guardar Índice: "
 saveDataNoneFound = 0, "¡No se encontraron partidas guardadas para #%s#!"
 saveDataResetSuccess = 0, "¡Partida Guardada para  #%s# restablecida!"
-saveDataTypeText = 0, "Datos de Sistema\n"
-saveDataTypeText = 1, "Partida Guardada\n"
-saveDataTypeText = 2, "BCAT\n"
-saveDataTypeText = 3, "Datos de Dispositivo\n"
-saveDataTypeText = 4, "Almacenamiento Temporal\n"
-saveDataTypeText = 5, "Almacenamiento de Caché\n"
-saveDataTypeText = 6, "System BCAT\n"
+saveDataTypeText = 0, "Datos de Sistema"
+saveDataTypeText = 1, "Partida Guardada"
+saveDataTypeText = 2, "BCAT"
+saveDataTypeText = 3, "Datos de Dispositivo"
+saveDataTypeText = 4, "Almacenamiento Temporal"
+saveDataTypeText = 5, "Almacenamiento de Caché"
+saveDataTypeText = 6, "System BCAT"
 saveTypeMainMenu = 0, "Dispositivo"
 saveTypeMainMenu = 1, "BCAT"
 saveTypeMainMenu = 2, "Caché"
@@ -128,19 +159,40 @@ swkbdSaveIndex = 0, "Ingrese Índice de Caché"
 swkbdSetWorkDir = 0, "Ingrese Nueva Carpeta de Salida"
 swkbdSysSavID = 0, "Ingrese ID de Datos de Sistema"
 threadStatusAddingFileToZip = 0, "Agregando  '#%s#' a archivo ZIP..."
+
+#CHANGED=============================================>
+threadStatusCalculatingSaveSize = 0, "Calculating save data size..."
+#<====================================================
+
 threadStatusCheckingForUpdate = 0, "Verificando actualizaciones..."
+
+#CHANGED=============================================>
+threadStatusCompressingSaveForUpload = 0, "Compressing #%s# for upload..."
+#<====================================================
+
 threadStatusCopyingFile = 0, "Copiando '#%s#'..."
 threadStatusCreatingSaveData = 0, "Creando Partida Guardada para #%s#..."
 threadStatusDecompressingFile = 0, "Descomprimiendo '#%s#'..."
 threadStatusDeletingFile = 0, "Borrando..."
 threadStatusDeletingSaveData = 0, "Borrando Partida Guardada para #%s#..."
 threadStatusDeletingUpdate = 0, "Borrando Actualización Pendiente..."
+
+#CHANGED=============================================>
+threadStatusDownloadingFile = 0, "Downloading #%s#..."
+#<====================================================
+
 threadStatusDownloadingUpdate = 0, "Borrando Actualización..."
 threadStatusExtendingSaveData = 0, "Expandiendo Datos Guardados para #%s#..."
 threadStatusGetDirProps = 0, "Obteniendo propiedades de Carpeta..."
 threadStatusOpeningFolder = 0, "Abriendo '#%s#'..."
 threadStatusPackingJKSV = 0, "Guardando contenidos de carpeta de JKSV en archivo ZIP..."
 threadStatusResettingSaveData = 0, "Restableciendo datos de partida..."
+threadStatusSavingTranslations = 0, "Saving the file master..."
+
+#CHANGED=============================================>
+threadStatusUploadingFile = 0, "Uploading #%s#..."
+#<====================================================
+
 titleOptions = 0, "Información"
 titleOptions = 1, "Lista Negra"
 titleOptions = 2, "Cambiar Carpeta de Salida"
@@ -149,6 +201,11 @@ titleOptions = 4, "Borrar todos los respaldos"
 titleOptions = 5, "Restablecer Datos de Partida"
 titleOptions = 6, "Borrar Datos de Partida"
 titleOptions = 7, "Expandir Datos de Partida"
+
+#CHANGED=============================================>
+titleOptions = 8, "Export SVI"
+#<====================================================
+
 translationMainPage = 0, "Traducción: "
 userOptions = 0, "Extrar Todo para  "
 userOptions = 1, "Crear Datos de Partida"
