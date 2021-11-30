@@ -1,5 +1,4 @@
-#ifndef UTIL_H
-#define UTIL_H
+#pragma once
 
 #include "data.h"
 #include "ui.h"
@@ -36,6 +35,37 @@ namespace util
         CPU_SPEED_1683MHz = 1683000000,
         CPU_SPEED_1785MHz = 1785000000
     } cpuSpds;
+
+    typedef enum
+    {
+        GPU_SPEED_0MHz = 0,
+        GPU_SPEED_76MHz = 76800000,
+        GPU_SPEED_153MHz = 153600000,
+        GPU_SPEED_203MHz = 230400000,
+        GPU_SPEED_307MHz = 307200000, //Handheld 1
+        GPU_SPEED_384MHz = 384000000, //Handheld 2
+        GPU_SPEED_460MHz = 460800000,
+        GPU_SPEED_537MHz = 537600000,
+        GPU_SPEED_614MHz = 614400000,
+        GPU_SPEED_768MHz = 768000000, //Docked
+        GPU_SPEED_844MHz = 844800000,
+        GPU_SPEED_921MHZ = 921600000
+    } gpuSpds;
+
+    typedef enum
+    {
+        RAM_SPEED_0MHz = 0,
+        RAM_SPEED_40MHz = 40800000,
+        RAM_SPEED_68MHz = 68000000,
+        RAM_SPEED_102MHz = 102000000,
+        RAM_SPEED_204MHz = 204000000,
+        RAM_SPEED_408MHz = 408000000,
+        RAM_SPEED_665MHz = 665600000,
+        RAM_SPEED_800MHz = 800000000,
+        RAM_SPEED_1065MHz = 1065600000,
+        RAM_SPEED_1331MHz = 1331200000,
+        RAM_SPEED_1600MHz = 1600000000
+    } ramSpds;
 
     //Returns string with date S+ time
     std::string getDateTime(int fmt);
@@ -112,7 +142,8 @@ namespace util
 
     Result accountDeleteUser(AccountUid *uid);
 
-    void setCPU(uint32_t hz);
+    void sysBoost();
+    void sysNormal();
+
     void checkForUpdate(void *a);
 }
-#endif // UTIL_H

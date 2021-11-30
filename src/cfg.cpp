@@ -14,13 +14,16 @@ std::vector<uint64_t> cfg::blacklist;
 std::vector<uint64_t> cfg::favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 uint8_t cfg::sortType;
+std::string cfg::driveClientID, cfg::driveClientSecret, cfg::driveRefreshToken, cfg::driveAuthCode;
+
 const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt", *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
 static std::unordered_map<std::string, unsigned> cfgStrings =
 {
     {"workDir", 0}, {"includeDeviceSaves", 1}, {"autoBackup", 2}, {"overclock", 3}, {"holdToDelete", 4}, {"holdToRestore", 5},
     {"holdToOverwrite", 6}, {"forceMount", 7}, {"accountSystemSaves", 8}, {"allowSystemSaveWrite", 9}, {"directFSCommands", 10},
     {"exportToZIP", 11}, {"languageOverride", 12}, {"enableTrashBin", 13}, {"titleSortType", 14}, {"animationScale", 15},
-    {"favorite", 16}, {"blacklist", 17}, {"autoName", 18}
+    {"favorite", 16}, {"blacklist", 17}, {"autoName", 18}, {"driveClientID", 19}, {"driveClientSecret", 20}, {"driveRefreshToken", 21},
+    {"driveAuthCode", 22}
 };
 
 const std::string _true_ = "true", _false_ = "false";
@@ -102,12 +105,13 @@ bool cfg::isDefined(const uint64_t& tid)
 
 void cfg::pathDefAdd(const uint64_t& tid, const std::string& newPath)
 {
-    std::string oldSafe = data::titles[tid].safeTitle;
+    data::titleInfo *t = data::getTitleInfoByTID(tid);
+    std::string oldSafe = t->safeTitle;
     std::string tmp = util::safeString(newPath);
     if(!tmp.empty())
     {
         pathDefs[tid] = tmp;
-        data::titles[tid].safeTitle = tmp;
+        t->safeTitle = tmp;
 
         std::string oldOutput = fs::getWorkDir() + oldSafe;
         std::string newOutput = fs::getWorkDir() + tmp;
@@ -302,103 +306,123 @@ void cfg::loadConfig()
         fs::dataFile cfgRead(cfgPath);
         while(cfgRead.readNextLine(true))
         {
-            switch(cfgStrings[cfgRead.getName()])
+            std::string varName = cfgRead.getName();
+            if(cfgStrings.find(varName) != cfgStrings.end())
             {
-                case 0:
-                    fs::setWorkDir(cfgRead.getNextValueStr());
-                    break;
+                switch(cfgStrings[varName])
+                {
+                    case 0:
+                        fs::setWorkDir(cfgRead.getNextValueStr());
+                        break;
 
-                case 1:
-                    cfg::config["incDev"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 1:
+                        cfg::config["incDev"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 2:
-                    cfg::config["autoBack"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 2:
+                        cfg::config["autoBack"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 3:
-                    cfg::config["ovrClk"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 3:
+                        cfg::config["ovrClk"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 4:
-                    cfg::config["holdDel"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 4:
+                        cfg::config["holdDel"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 5:
-                    cfg::config["holdRest"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 5:
+                        cfg::config["holdRest"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 6:
-                    cfg::config["holdOver"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 6:
+                        cfg::config["holdOver"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 7:
-                    cfg::config["forceMount"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 7:
+                        cfg::config["forceMount"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 8:
-                    cfg::config["accSysSave"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 8:
+                        cfg::config["accSysSave"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 9:
-                    cfg::config["sysSaveWrite"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 9:
+                        cfg::config["sysSaveWrite"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 10:
-                    cfg::config["directFsCmd"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 10:
+                        cfg::config["directFsCmd"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 11:
-                    cfg::config["zip"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 11:
+                        cfg::config["zip"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 12:
-                    cfg::config["langOverride"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 12:
+                        cfg::config["langOverride"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 13:
-                    cfg::config["trashBin"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 13:
+                        cfg::config["trashBin"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                case 14:
-                    {
-                        std::string getSort = cfgRead.getNextValueStr();
-                        if(getSort == "ALPHA")
-                            cfg::sortType = cfg::ALPHA;
-                        else if(getSort == "MOST_PLAYED")
-                            cfg::sortType = cfg::MOST_PLAYED;
-                        else
-                            cfg::sortType = cfg::LAST_PLAYED;
-                    }
-                    break;
+                    case 14:
+                        {
+                            std::string getSort = cfgRead.getNextValueStr();
+                            if(getSort == "ALPHA")
+                                cfg::sortType = cfg::ALPHA;
+                            else if(getSort == "MOST_PLAYED")
+                                cfg::sortType = cfg::MOST_PLAYED;
+                            else
+                                cfg::sortType = cfg::LAST_PLAYED;
+                        }
+                        break;
 
-                case 15:
-                    {
-                        std::string animFloat = cfgRead.getNextValueStr();
-                        ui::animScale = strtof(animFloat.c_str(), NULL);
-                    }
-                    break;
+                    case 15:
+                        {
+                            std::string animFloat = cfgRead.getNextValueStr();
+                            ui::animScale = strtof(animFloat.c_str(), NULL);
+                        }
+                        break;
 
-                case 16:
-                    {
-                        std::string tid = cfgRead.getNextValueStr();
-                        cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
-                    }
-                    break;
+                    case 16:
+                        {
+                            std::string tid = cfgRead.getNextValueStr();
+                            cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
+                        }
+                        break;
 
-                case 17:
-                    {
-                        std::string tid = cfgRead.getNextValueStr();
-                        cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
-                    }
-                    break;
+                    case 17:
+                        {
+                            std::string tid = cfgRead.getNextValueStr();
+                            cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
+                        }
+                        break;
 
-                case 18:
-                    cfg::config["autoName"] = textToBool(cfgRead.getNextValueStr());
-                    break;
+                    case 18:
+                        cfg::config["autoName"] = textToBool(cfgRead.getNextValueStr());
+                        break;
 
-                default:
-                    break;
+                    case 19:
+                        cfg::driveClientID = cfgRead.getNextValueStr();
+                        break;
+
+                    case 20:
+                        cfg::driveClientSecret = cfgRead.getNextValueStr();
+                        break;
+
+                    case 21:
+                        cfg::driveRefreshToken = cfgRead.getNextValueStr();
+                        break;
+
+                    case 22:
+                        cfg::driveAuthCode = cfgRead.getNextValueStr();
+                        break;
+
+                    default:
+                        break;
+                }
             }
         }
     }
@@ -432,6 +456,15 @@ void cfg::saveConfig()
     fprintf(cfgOut, "enableTrashBin = %s\n", boolToText(cfg::config["trashBin"]).c_str());
     fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
     fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
+
+    if(!cfg::driveClientID.empty())
+        fprintf(cfgOut, "driveClientID = %s\n", cfg::driveClientID.c_str());
+
+    if(!cfg::driveClientSecret.empty())
+        fprintf(cfgOut, "driveClientSecret = %s\n", cfg::driveClientSecret.c_str());
+
+    if(!cfg::driveRefreshToken.empty())
+        fprintf(cfgOut, "driveRefreshToken = %s\n", cfg::driveRefreshToken.c_str());
 
     if(!cfg::favorites.empty())
     {

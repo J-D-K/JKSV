@@ -15,6 +15,7 @@
 #include "ui/sldpanel.h"
 #include "ui/usr.h"
 #include "ui/ttl.h"
+#include "ui/fld.h"
 #include "ui/sett.h"
 #include "ui/ext.h"
 #include "ui/fm.h"

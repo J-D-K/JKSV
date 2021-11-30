@@ -27,7 +27,6 @@ SetLanguage data::sysLang;
 //For other save types
 static bool sysBCATPushed = false, tempPushed = false;
 std::unordered_map<uint64_t, data::titleInfo> data::titles;
-static SDL_Texture *iconMask;
 
 //Sorts titles by sortType
 static struct
@@ -355,9 +354,6 @@ void data::sortUserTitles()
 
 void data::init()
 {
-    if(cfg::config["ovrClk"])
-        util::setCPU(util::CPU_SPEED_1224MHz);
-
     data::loadUsersTitles(true);
 }
 
@@ -366,11 +362,6 @@ void data::exit()
     for(data::user& u : data::users) u.delIcon();
     for(auto& tinfo : titles)
         SDL_DestroyTexture(tinfo.second.icon);
-
-    SDL_DestroyTexture(iconMask);
-
-    if(cfg::config["ovrClk"])
-        util::setCPU(util::CPU_SPEED_1020MHz);
 }
 
 void data::setUserIndex(unsigned _sUser)

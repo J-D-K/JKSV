@@ -6,14 +6,11 @@
 #include "util.h"
 #include "cfg.h"
 
-static int ttlHelpX = 0, fldHelpWidth = 0;
+static int ttlHelpX = 0;
 static std::vector<ui::titleview *> ttlViews;
-static ui::menu *ttlOpts, *fldMenu;
+static ui::menu *ttlOpts;
 ui::slideOutPanel *ui::ttlOptsPanel;
-static ui::slideOutPanel *infoPanel, *fldPanel;//There's no reason to have a separate folder section
-static fs::dirList *fldList;
-static std::string infoPanelString;
-static SDL_Texture *fldBuffer;//This is so folder menu doesn't draw over guide
+static ui::slideOutPanel *infoPanel;
 static Mutex ttlViewLock = 0;
 
 void ui::ttlRefresh()
@@ -22,77 +19,6 @@ void ui::ttlRefresh()
     for(int i = 0; i < (int)data::users.size(); i++)
         ttlViews[i]->refresh();
     mutexUnlock(&ttlViewLock);
-}
-
-static void fldFuncCancel(void *a)
-{
-    std::string *del = (std::string *)a;
-    delete del;
-}
-
-static void fldFuncOverwrite(void *a)
-{
-    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    int sel = fldMenu->getSelected() - 1;//Skip 'New'
-    std::string itm = fldList->getItem(sel);
-    std::string *send = new std::string;
-    send->assign(util::generatePathByTID(utinfo->tid) + itm);
-
-    ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdOver"], fs::overwriteBackup, fldFuncCancel, send, ui::getUICString("confirmOverwrite", 0), itm.c_str());
-    ui::confirm(conf);
-}
-
-static void fldFuncDelete(void *a)
-{
-    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    int sel = fldMenu->getSelected() - 1;//Skip 'New'
-    std::string itm = fldList->getItem(sel);
-    std::string *send = new std::string;
-    send->assign(util::generatePathByTID(utinfo->tid) + itm);
-
-    ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdDel"], fs::deleteBackup, fldFuncCancel, send, ui::getUICString("confirmDelete", 0), itm.c_str());
-    ui::confirm(conf);
-}
-
-static void fldFuncRestore(void *a)
-{
-    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    int sel = fldMenu->getSelected() - 1;//Skip 'New'
-    std::string itm = fldList->getItem(sel);
-    std::string *send = new std::string;
-    send->assign(util::generatePathByTID(utinfo->tid) + itm);
-
-    ui::confirmArgs *conf = ui::confirmArgsCreate(cfg::config["holdRest"], fs::restoreBackup, fldFuncCancel, send, ui::getUICString("confirmRestore", 0), itm.c_str());
-    ui::confirm(conf);
-}
-
-void ui::populateFldMenu()
-{
-    fldMenu->reset();
-
-    data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-    util::createTitleDirectoryByTID(d->tid);
-    std::string targetDir = util::generatePathByTID(d->tid);
-
-    fldList->reassign(targetDir);
-
-    char filterPath[128];
-    sprintf(filterPath, "sdmc:/config/JKSV/0x%016lX_filter.txt", d->tid);
-    fs::loadPathFilters(d->tid);
-
-    fldMenu->addOpt(NULL, ui::getUICString("folderMenuNew", 0));
-    fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, NULL);
-
-    for(unsigned i = 0; i < fldList->getCount(); i++)
-    {
-        fldMenu->addOpt(NULL, fldList->getItem(i));
-
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_A, fldFuncOverwrite, NULL);
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_X, fldFuncDelete, NULL);
-        fldMenu->optAddButtonEvent(i + 1, HidNpadButton_Y, fldFuncRestore, NULL);
-    }
-    fldMenu->setActive(true);
-    fldPanel->openPanel();
 }
 
 static void ttlViewCallback(void *a)
@@ -107,7 +33,10 @@ static void ttlViewCallback(void *a)
     {
         case HidNpadButton_A:
             if(fs::mountSave(d->saveInfo))
-                ui::populateFldMenu();
+            {
+                ttlViews[curUserIndex]->setActive(false, true);   
+                ui::fldPopulateMenu();
+            }
             break;
 
         case HidNpadButton_B:
@@ -332,6 +261,7 @@ static void ttlOptsExportSVI(void *a)
         fwrite(ctrlData->icon, 1, jpegSize, svi);
         fclose(svi);
         delete ctrlData;
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popSVIExported", 0));
     }
 }
 
@@ -403,34 +333,9 @@ static void infoPanelCallback(void *a)
     }
 }
 
-static void fldMenuCallback(void *a)
-{
-    switch(ui::padKeysDown())
-    {
-        case HidNpadButton_B:
-            fs::unmountSave();
-            fs::freePathFilters();
-            fldMenu->setActive(false);
-            fldPanel->closePanel();
-            break;
-    }
-    ui::updateInput();
-}
-
-static void fldPanelDraw(void *a)
-{
-    SDL_Texture *target = (SDL_Texture *)a;
-    gfx::clearTarget(fldBuffer, &ui::slidePanelColor);
-    fldMenu->draw(fldBuffer, &ui::txtCont, true);
-    gfx::texDraw(target, fldBuffer, 0, 0);
-    gfx::drawLine(target, &ui::divClr, 10, 648, fldHelpWidth + 54, 648);
-    gfx::drawTextf(target, 18, 32, 673, &ui::txtCont, ui::getUICString("helpFolder", 0));
-}
-
 void ui::ttlInit()
 {
     ttlHelpX = 1220 - gfx::getTextWidth(ui::getUICString("helpTitle", 0), 18);
-    fldHelpWidth = gfx::getTextWidth(ui::getUICString("helpFolder", 0), 18);
 
     for(data::user& u : data::users)
         ttlViews.emplace_back(new ui::titleview(u, 128, 128, 16, 16, 7, ttlViewCallback));
@@ -439,22 +344,12 @@ void ui::ttlInit()
     ttlOpts->setCallback(ttlOptsCallback, NULL);
     ttlOpts->setActive(false);
 
-    fldMenu = new ui::menu(10, 8, fldHelpWidth + 44, 20, 6);
-    fldMenu->setCallback(fldMenuCallback, NULL);
-    fldMenu->setActive(false);
-
     ttlOptsPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, ttlOptsPanelDraw);
     ui::registerPanel(ttlOptsPanel);
 
     infoPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, infoPanelDraw);
     ui::registerPanel(infoPanel);
     infoPanel->setCallback(infoPanelCallback, NULL);
-
-    fldPanel = new ui::slideOutPanel(fldHelpWidth + 64, 720, 0, ui::SLD_RIGHT, fldPanelDraw);
-    fldBuffer = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, fldHelpWidth + 64, 647);
-    ui::registerPanel(fldPanel);
-
-    fldList = new fs::dirList;
 
     ttlOpts->setActive(false);
     for(int i = 0; i < 9; i++)
@@ -484,19 +379,15 @@ void ui::ttlExit()
 {
     for(ui::titleview *t : ttlViews)
         delete t;
-
-    SDL_DestroyTexture(fldBuffer);
+        
     delete ttlOptsPanel;
     delete ttlOpts;
     delete infoPanel;
-    delete fldPanel;
-    delete fldMenu;
-    delete fldList;
 }
 
-void ui::ttlSetActive(int usr)
+void ui::ttlSetActive(int usr, bool _set, bool _showSel)
 {
-    ttlViews[usr]->setActive(true, true);
+    ttlViews[usr]->setActive(_set, _showSel);
 }
 
 void ui::ttlUpdate()
@@ -505,7 +396,7 @@ void ui::ttlUpdate()
 
     ttlOpts->update();
     infoPanel->update();
-    fldMenu->update();
+    ui::fldUpdate();
     ttlViews[curUserIndex]->update();
 }
 

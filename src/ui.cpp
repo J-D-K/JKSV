@@ -149,6 +149,7 @@ void ui::init()
     ui::settInit();
     ui::extInit();
     ui::fmInit();
+    ui::fldInit();
 
     popMessages = new ui::popMessageMngr;
     threadMngr  = new ui::threadProcMngr;
@@ -165,6 +166,7 @@ void ui::exit()
     ui::settExit();
     ui::extExit();
     ui::fmExit();
+    ui::fldExit();
 
     delete popMessages;
     delete threadMngr;
@@ -312,7 +314,7 @@ void ui::toTTL(void *a)
     if(u->titleInfo.size() > 0)
     {
         ui::changeState(TTL_SEL);
-        ui::ttlSetActive(curUserIndex);
+        ui::ttlSetActive(curUserIndex, true, true);
         ui::usrMenu->setActive(false);
     }
     else

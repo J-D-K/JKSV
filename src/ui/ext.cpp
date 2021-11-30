@@ -142,7 +142,7 @@ static void extMenuPackJKSVZip_t(void *a)
     t->status->setStatus(ui::getUICString("threadStatusPackingJKSV", 0));
     if(cfg::config["ovrClk"])
     {
-        util::setCPU(util::CPU_SPEED_1785MHz);
+        util::sysBoost();
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
     }
 
@@ -164,7 +164,7 @@ static void extMenuPackJKSVZip_t(void *a)
         zipClose(zip, NULL);
     }
     if(cfg::config["ovrClk"])
-        util::setCPU(util::CPU_SPEED_1224MHz);
+        util::sysNormal();
 
     delete jksv;
     delete c;

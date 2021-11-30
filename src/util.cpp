@@ -11,6 +11,7 @@
 #include "ui.h"
 #include "curlfuncs.h"
 #include "type.h"
+#include "cfg.h"
 
 static const uint32_t verboten[] = { L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
 
@@ -370,23 +371,55 @@ SDL_Texture *util::createIconGeneric(const char *txt, int fontSize, bool clearBa
     return ret;
 }
 
-void util::setCPU(uint32_t hz)
+void util::sysBoost()
 {
     if(R_FAILED(clkrstInitialize()))
         return;
 
-    ClkrstSession cpu;
+    ClkrstSession cpu, gpu, ram;
     clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
-    clkrstSetClockRate(&cpu, hz);
+    clkrstOpenSession(&gpu, PcvModuleId_GPU, 3);
+    clkrstOpenSession(&ram, PcvModuleId_EMC, 3);
+
+    clkrstSetClockRate(&cpu, util::CPU_SPEED_1785MHz);
+    clkrstSetClockRate(&gpu, util::GPU_SPEED_76MHz);
+    clkrstSetClockRate(&ram, util::RAM_SPEED_1600MHz);
+
     clkrstCloseSession(&cpu);
+    clkrstCloseSession(&gpu);
+    clkrstCloseSession(&ram);
     clkrstExit();
+}
+
+void util::sysNormal()
+{
+    if(R_FAILED(clkrstInitialize()))
+        return;
+
+    ClkrstSession cpu, gpu, ram;
+    clkrstOpenSession(&cpu, PcvModuleId_CpuBus, 3);
+    clkrstOpenSession(&gpu, PcvModuleId_GPU, 3);
+    clkrstOpenSession(&ram, PcvModuleId_EMC, 3);
+
+    if(cfg::config["ovrClk"])
+        clkrstSetClockRate(&cpu, util::CPU_SPEED_1224MHz);
+    else
+        clkrstSetClockRate(&cpu, util::CPU_SPEED_1020MHz);
+    clkrstSetClockRate(&gpu, util::GPU_SPEED_76MHz);
+    clkrstSetClockRate(&ram, util::RAM_SPEED_1331MHz);
+
+    clkrstCloseSession(&cpu);
+    clkrstCloseSession(&gpu);
+    clkrstCloseSession(&ram);
+    clkrstExit();
+
 }
 
 void util::checkForUpdate(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     t->status->setStatus(ui::getUICString("threadStatusCheckingForUpdate", 0));
-    std::string gitJson = getJSONURL(NULL, "https://api.github.com/repos/J-D-K/JKSV/releases/latest");
+    std::string gitJson = curlFuncs::getJSONURL(NULL, "https://api.github.com/repos/J-D-K/JKSV/releases/latest");
     if(gitJson.empty())
     {
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("onlineErrorConnecting", 0));
@@ -412,7 +445,7 @@ void util::checkForUpdate(void *a)
 
         std::vector<uint8_t> jksvBuff;
         std::string url = json_object_get_string(dlUrl);
-        getBinURL(&jksvBuff, url);
+        curlFuncs::getBinURL(&jksvBuff, url);
         FILE *jksvOut = fopen("sdmc:/switch/JKSV.nro", "wb");
         fwrite(jksvBuff.data(), 1, jksvBuff.size(), jksvOut);
         fclose(jksvOut);

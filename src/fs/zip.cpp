@@ -1,8 +1,57 @@
 #include <switch.h>
 #include <time.h>
+#include <mutex>
+#include <vector>
+#include <condition_variable>
 
 #include "fs.h"
 #include "util.h"
+#include "cfg.h"
+
+typedef struct
+{
+    std::mutex buffLock;
+    std::condition_variable cond;
+    std::vector<uint8_t> sharedBuffer;
+    std::string dst, dev;
+    bool bufferIsFull = false;
+    unzFile unz;
+    unsigned int fileSize, writeLimit = 0;
+} unzThrdArgs;
+
+static void writeFileFromZip_t(void *a)
+{
+    unzThrdArgs *in = (unzThrdArgs *)a;
+    std::vector<uint8_t> localBuffer;
+    unsigned int written = 0, journalCount = 0;
+
+    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
+    uint64_t journalSpace = fs::getJournalSize(utinfo);
+
+    FILE *out = fopen(in->dst.c_str(), "wb");
+    while(written < in->fileSize)
+    {
+        std::unique_lock<std::mutex> buffLock(in->buffLock);
+        in->cond.wait(buffLock, [in]{ return in->bufferIsFull; });
+        localBuffer.clear();
+        localBuffer.assign(in->sharedBuffer.begin(), in->sharedBuffer.end());
+        in->sharedBuffer.clear();
+        in->bufferIsFull = false;
+        buffLock.unlock();
+        in->cond.notify_one();
+
+        written += fwrite(localBuffer.data(), 1, localBuffer.size(), out);
+        journalCount += written;
+        if(journalCount >= in->writeLimit)
+        {
+            journalCount = 0;
+            fclose(out);
+            fs::commitToDevice(in->dev);
+            out = fopen(in->dst.c_str(), "ab");
+        }
+    }
+    fclose(out);
+}
 
 void fs::copyDirToZip(const std::string& src, zipFile dst, bool trimPath, int trimPlaces, threadInfo *t)
 {
@@ -56,8 +105,8 @@ void fs::copyDirToZip(const std::string& src, zipFile dst, bool trimPath, int tr
 
                 FILE *fsrc = fopen(fullSrc.c_str(), "rb");
                 size_t readIn = 0;
-                uint8_t *buff = new uint8_t[BUFF_SIZE];
-                while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
+                uint8_t *buff = new uint8_t[ZIP_BUFF_SIZE];
+                while((readIn = fread(buff, 1, ZIP_BUFF_SIZE, fsrc)) > 0)
                 {
                     zipWriteInFileInZip(dst, buff, readIn);
                     if(c)
@@ -74,7 +123,17 @@ void copyDirToZip_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
     fs::copyArgs *c = (fs::copyArgs *)t->argPtr;
+    if(cfg::config["ovrClk"])
+    {
+        util::sysBoost();
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
+    }
+
     fs::copyDirToZip(c->src, c->z, c->trimZipPath, c->trimZipPlaces, t);
+
+    if(cfg::config["ovrClk"])
+        util::sysNormal();
+
     if(c->cleanup)
     {
         zipClose(c->z, NULL);
@@ -119,23 +178,36 @@ void fs::copyZipToDir(unzFile src, const std::string& dst, const std::string& de
             std::string fullDst = dst + filename;
             fs::mkDirRec(fullDst.substr(0, fullDst.find_last_of('/') + 1));
 
-            FILE *fdst = fopen(fullDst.c_str(), "wb");
+            unzThrdArgs unzThrd;
+            unzThrd.dst = fullDst;
+            unzThrd.fileSize = info.uncompressed_size;
+            unzThrd.dev = dev;
+            unzThrd.writeLimit = (journalSize - 0x100000) < TRANSFER_BUFFER_LIMIT ? (journalSize - 0x100000) : TRANSFER_BUFFER_LIMIT;
+
+            Thread writeThread;
+            threadCreate(&writeThread, writeFileFromZip_t, &unzThrd, NULL, 0x8000, 0x2B, 2);
+            threadStart(&writeThread);
+
+            std::vector<uint8_t> transferBuffer;
             while((readIn = unzReadCurrentFile(src, buff, BUFF_SIZE)) > 0)
             {
-                c->offset += readIn;
-                writeCount += readIn;
-                fwrite(buff, 1, readIn, fdst);
-                if(writeCount >= journalSize - 0x100000)
-                {
-                    writeCount = 0;
-                    fclose(fdst);
-                    if(!fs::commitToDevice(dev))
-                        break;
+                transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
 
-                    fdst = fopen(fullDst.c_str(), "ab");
+                if(c)
+                    c->offset += readIn;
+
+                if(transferBuffer.size() >= unzThrd.writeLimit || readIn < BUFF_SIZE)
+                {
+                    std::unique_lock<std::mutex> buffLock(unzThrd.buffLock);
+                    unzThrd.cond.wait(buffLock, [&unzThrd]{ return unzThrd.bufferIsFull == false; });
+                    unzThrd.sharedBuffer.assign(transferBuffer.begin(), transferBuffer.end());
+                    transferBuffer.clear();
+                    unzThrd.bufferIsFull = true;
+                    unzThrd.cond.notify_one();
                 }
             }
-            fclose(fdst);
+            threadWaitForExit(&writeThread);
+            threadClose(&writeThread);
             fs::commitToDevice(dev);
         }
     }

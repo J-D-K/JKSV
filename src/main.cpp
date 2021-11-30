@@ -1,4 +1,5 @@
 #include <switch.h>
+#include <curl/curl.h>
 
 #include "gfx.h"
 #include "file.h"
@@ -49,8 +50,14 @@ int main(int argc, const char *argv[])
     ui::init();
     romfsExit();
 
+    curl_global_init(CURL_GLOBAL_ALL);
+    //Drive needs config read
+    fs::driveInit();
+
     while(ui::runApp()){ }
 
+    fs::driveExit();
+    curl_global_cleanup();
     cfg::saveConfig();
     ui::exit();
     data::exit();

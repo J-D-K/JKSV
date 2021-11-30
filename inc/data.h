@@ -8,13 +8,11 @@
 #include "gfx.h"
 
 #define BLD_MON 11
-#define BLD_DAY 15
+#define BLD_DAY 28
 #define BLD_YEAR 2021
 
 namespace data
 {
-    extern bool forceMount;
-
     //Loads user + title info
     void init();
     void exit();

@@ -4,9 +4,8 @@ namespace ui
 {
     void ttlInit();
     void ttlExit();
-    void ttlSetActive(int usr);
+    void ttlSetActive(int usr, bool _set, bool _showSel);
     void ttlRefresh();
-    void populateFldMenu();
 
     //JIC for func ptr
     void ttlReset();
