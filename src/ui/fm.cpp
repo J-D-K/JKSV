@@ -159,11 +159,6 @@ static void _listFunctionA(void *a)
         m->optAddButtonEvent(i, HidNpadButton_A, _listFunctionA, ma);
 }
 
-static void _copyMenuUpload(void *a)
-{
-
-}
-
 static void _copyMenuCopy_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
