@@ -4,7 +4,7 @@
 
 
 1. Go to https://console.cloud.google.com/, if this is your first time, accept the terms and you should now have the dashboard in front of you.
-2. Click `CREATE PROJECT` on the next screen.<center><img src="https://i.imgur.com/42Wruo4.png" /></center>
+2. Click `CREATE PROJECT` on the next screen.<br><center><img src="https://i.imgur.com/42Wruo4.png" /></center>
 3. On the next screen name your project JKSV. Organization is not required. Click create.
 4. Give it a few seconds and the project should be created. Select JKSV if it hasn't been selected already.<center><img src="https://i.imgur.com/P1lXGea.png" /></center>
 5. On the left side, find APIs and Services and click Dashboard.<br><center><img src="https://i.imgur.com/Ve8NRVr.png" /></center>
