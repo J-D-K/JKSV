@@ -116,7 +116,6 @@ void drive::gd::exhangeAuthCode(const std::string& _authCode)
     postHeader = curl_slist_append(postHeader, HEADER_CONTENT_TYPE_APP_JSON);
 
     // Post json
-    std::string *postJson = new std::string;
     json_object *post = json_object_new_object();
     json_object *clientIDString = json_object_new_string(clientID.c_str());
     json_object *secretIDString = json_object_new_string(secretID.c_str());
@@ -128,7 +127,6 @@ void drive::gd::exhangeAuthCode(const std::string& _authCode)
     json_object_object_add(post, "code", authCodeString);
     json_object_object_add(post, "redirect_uri", redirectUriString);
     json_object_object_add(post, "grant_type", grantTypeString);
-    postJson->assign(json_object_to_json_string_ext(post, JSON_C_TO_STRING_NOSLASHESCAPE));
 
     // Curl Request
     std::string *jsonResp = new std::string;
@@ -139,8 +137,7 @@ void drive::gd::exhangeAuthCode(const std::string& _authCode)
     curl_easy_setopt(curl, CURLOPT_URL, tokenURL);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, jsonResp);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, postJson->c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, postJson->length());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_object_get_string(post));
     
     int error = curl_easy_perform(curl);
 
@@ -161,7 +158,6 @@ void drive::gd::exhangeAuthCode(const std::string& _authCode)
     else
         writeCurlError("exchangeAuthCode", error);
 
-    delete postJson;
     delete jsonResp;
     json_object_put(post);
     json_object_put(respParse);
@@ -176,7 +172,6 @@ void drive::gd::refreshToken()
     header = curl_slist_append(header, HEADER_CONTENT_TYPE_APP_JSON);
 
     // Post Json
-    std::string *jsonPost = new std::string;
     json_object *post = json_object_new_object();
     json_object *clientIDString = json_object_new_string(clientID.c_str());
     json_object *secretIDString = json_object_new_string(secretID.c_str());
@@ -186,7 +181,6 @@ void drive::gd::refreshToken()
     json_object_object_add(post, "client_secret", secretIDString);
     json_object_object_add(post, "refresh_token", refreshTokenString);
     json_object_object_add(post, "grant_type", grantTypeString);
-    jsonPost->assign(json_object_to_json_string(post));
 
     // Curl
     std::string *jsonResp = new std::string;
@@ -197,8 +191,7 @@ void drive::gd::refreshToken()
     curl_easy_setopt(curl, CURLOPT_URL, tokenURL);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, jsonResp);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonPost->c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, jsonPost->length());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_object_get_string(post));
     int error = curl_easy_perform(curl);
 
     json_object *parse = json_tokener_parse(jsonResp->c_str());
@@ -212,7 +205,6 @@ void drive::gd::refreshToken()
             writeDriveError("refreshToken", "Error refreshing token.");
     }
 
-    delete jsonPost;
     delete jsonResp;
     json_object_put(post);
     json_object_put(parse);
@@ -362,7 +354,6 @@ bool drive::gd::createDir(const std::string& _dirName)
     postHeaders = curl_slist_append(postHeaders, HEADER_CONTENT_TYPE_APP_JSON);
 
     // JSON To Post
-    std::string *jsonPost = new std::string;
     json_object *post = json_object_new_object();
     json_object *nameString = json_object_new_string(_dirName.c_str());
     json_object *mimeTypeString = json_object_new_string(MIMETYPE_FOLDER);
@@ -375,7 +366,6 @@ bool drive::gd::createDir(const std::string& _dirName)
         json_object_array_add(parentsArray, parentString);
         json_object_object_add(post, "parents", parentsArray);
     }
-    jsonPost->assign(json_object_to_json_string_ext(post, JSON_C_TO_STRING_NOSLASHESCAPE));
 
     // Curl Request
     std::string *jsonResp = new std::string;
@@ -386,8 +376,7 @@ bool drive::gd::createDir(const std::string& _dirName)
     curl_easy_setopt(curl, CURLOPT_URL, driveURL);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, jsonResp);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonPost->c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, jsonPost->length());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_object_get_string(post));
     int error = curl_easy_perform(curl);
     
     json_object *respParse = json_tokener_parse(jsonResp->c_str()), *checkError;
@@ -408,7 +397,6 @@ bool drive::gd::createDir(const std::string& _dirName)
     else
         ret = false;
 
-    delete jsonPost;
     delete jsonResp;
     json_object_put(post);
     json_object_put(respParse);
@@ -463,7 +451,6 @@ void drive::gd::uploadFile(const std::string& _filename, curlFuncs::curlUpArgs *
     postHeaders = curl_slist_append(postHeaders, HEADER_CONTENT_TYPE_APP_JSON);
 
     // Post JSON
-    std::string *jsonPost = new std::string;
     json_object *post = json_object_new_object();
     json_object *nameString = json_object_new_string(_filename.c_str());
     json_object_object_add(post, "name", nameString);
@@ -474,7 +461,6 @@ void drive::gd::uploadFile(const std::string& _filename, curlFuncs::curlUpArgs *
         json_object_array_add(parentArray, parentString);
         json_object_object_add(post, "parents", parentArray);
     }
-    jsonPost->assign(json_object_to_json_string_ext(post, JSON_C_TO_STRING_NOSLASHESCAPE));
 
     // Curl upload request
     std::string *jsonResp = new std::string;
@@ -486,8 +472,7 @@ void drive::gd::uploadFile(const std::string& _filename, curlFuncs::curlUpArgs *
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curlFuncs::writeHeaders);
     curl_easy_setopt(curl, CURLOPT_HEADERDATA, headers);
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, jsonPost->c_str());
-    curl_easy_setopt(curl, CURLOPT_POSTFIELDSIZE, jsonPost->length());
+    curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_object_get_string(post));
     
     int error = curl_easy_perform(curl);
     std::string location = curlFuncs::getHeader("Location", headers);
@@ -524,7 +509,6 @@ void drive::gd::uploadFile(const std::string& _filename, curlFuncs::curlUpArgs *
     else
         writeCurlError("uploadFile", error);
 
-    delete jsonPost;
     delete jsonResp;
     delete headers;
     json_object_put(post);

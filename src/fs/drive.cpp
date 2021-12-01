@@ -17,6 +17,12 @@ void fs::driveInit()
         }
         else
         {
+            if(!cfg::driveAuthCode.empty() && fs::gDrive->hasToken())
+            {
+                cfg::driveRefreshToken = fs::gDrive->getRefreshToken();
+                cfg::saveConfig();
+            }
+
             fs::gDrive->loadDriveList("name = 'JKSV'");
 
             if(!fs::gDrive->dirExists("JKSV"))

@@ -127,7 +127,9 @@ static void ttlOptsToFileMode(void *a)
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     if(fs::mountSave(d->saveInfo))
     {
-        ui::fmPrep((FsSaveDataType)d->saveInfo.save_data_type, "sv:/", true);
+        data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
+        std::string sdmcPath = util::generatePathByTID(utinfo->tid);
+        ui::fmPrep((FsSaveDataType)d->saveInfo.save_data_type, "sv:/", sdmcPath, true);
         ui::usrSelPanel->closePanel();
         ui::ttlOptsPanel->closePanel();
         ui::changeState(FIL_MDE);

@@ -28,7 +28,7 @@ static inline void closeUserPanel()
 
 static void toFMSDtoSD(void *a)
 {
-    ui::fmPrep(FsSaveDataType_Account, "sdmc:/", false);
+    ui::fmPrep(FsSaveDataType_Account, "sdmc:/", "sdmc:/", false);
     closeUserPanel();
     ui::changeState(FIL_MDE);
 }
@@ -39,7 +39,7 @@ static void toFMProdInfoF(void *a)
     fsOpenBisFileSystem(&prodf, FsBisPartitionId_CalibrationFile, "");
     fsdevMountDevice("prod-f", prodf);
     closeUserPanel();
-    ui::fmPrep(FsSaveDataType_System, "prod-f:/", false);
+    ui::fmPrep(FsSaveDataType_System, "prod-f:/", "sdmc:/", false);
     ui::changeState(FIL_MDE);
 }
 
@@ -49,7 +49,7 @@ static void toFMSafe(void *a)
     fsOpenBisFileSystem(&safe, FsBisPartitionId_SafeMode, "");
     fsdevMountDevice("safe", safe);
     closeUserPanel();
-    ui::fmPrep(FsSaveDataType_System, "safe:/", false);
+    ui::fmPrep(FsSaveDataType_System, "safe:/", "sdmc:/", false);
     ui::changeState(FIL_MDE);
 }
 
@@ -59,7 +59,7 @@ static void toFMSystem(void *a)
     fsOpenBisFileSystem(&sys, FsBisPartitionId_System, "");
     fsdevMountDevice("sys", sys);
     closeUserPanel();
-    ui::fmPrep(FsSaveDataType_System, "sys:/", false);
+    ui::fmPrep(FsSaveDataType_System, "sys:/", "sdmc:/", false);
     ui::changeState(FIL_MDE);
 }
 
@@ -69,7 +69,7 @@ static void toFMUser(void *a)
     fsOpenBisFileSystem(&user, FsBisPartitionId_User, "");
     fsdevMountDevice("user", user);
     closeUserPanel();
-    ui::fmPrep(FsSaveDataType_System, "user:/", false);
+    ui::fmPrep(FsSaveDataType_System, "user:/", "sdmc:/", false);
     ui::changeState(FIL_MDE);
 }
 
@@ -109,7 +109,7 @@ static void extMenuMountSysSave(void *a)
     if(R_SUCCEEDED(fsOpen_SystemSaveData(&sys, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
     {
         fsdevMountDevice("sv", sys);
-        ui::fmPrep(FsSaveDataType_System, "sv:/", true);
+        ui::fmPrep(FsSaveDataType_System, "sv:/", "sdmc:/", true);
         ui::usrSelPanel->closePanel();
         ui::changeState(FIL_MDE);
     }
@@ -129,8 +129,8 @@ static void extMenuMountRomFS(void *a)
     if(R_SUCCEEDED(fsOpenDataFileSystemByCurrentProcess(&tromfs)))
     {
         fsdevMountDevice("tromfs", tromfs);
-        ui::fmPrep(FsSaveDataType_System, "tromfs:/", false);
-        ui::usrSelPanel->closePanel();
+        ui::fmPrep(FsSaveDataType_System, "tromfs:/", "sdmc:/", false);
+        ui::usrSelPanel->closePanel(); 
         ui::changeState(FIL_MDE);
     }
 }
