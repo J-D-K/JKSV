@@ -514,13 +514,13 @@ void ui::fmExit()
     delete sdmcArgs;
 }
 
-void ui::fmPrep(const FsSaveDataType& _type, const std::string& _dev, bool _commit)
+void ui::fmPrep(const FsSaveDataType& _type, const std::string& _dev, const std::string& _baseSDMC, bool _commit)
 {
     type = _type;
     dev  = _dev;
     commit = _commit;
     devPath = _dev;
-    sdPath = "sdmc:/";
+    sdPath = _baseSDMC;
 
     sdCopyMenu->editOpt(0, NULL, ui::getUIString("fileModeMenu", 0) + _dev);
 

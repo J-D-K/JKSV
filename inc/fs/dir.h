@@ -45,6 +45,7 @@ namespace fs
             std::string getItemExt(int index) const { return item[index].getExt(); }
             bool isDir(int index) const { return item[index].isDir(); }
             unsigned getCount() const { return item.size(); }
+            fs::dirItem *getDirItemAt(unsigned int _ind) { return &item[_ind]; }
 
         private:
             std::string path;

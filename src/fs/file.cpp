@@ -5,6 +5,8 @@
 #include <switch.h>
 #include <unistd.h>
 #include <cstdarg>
+#include <mutex>
+#include <condition_variable>
 #include <sys/stat.h>
 
 #include "fs.h"
@@ -15,6 +17,69 @@
 #include "cfg.h"
 
 static std::string wd = "sdmc:/JKSV/";
+
+typedef struct
+{
+    std::mutex bufferLock;
+    std::condition_variable cond;
+    std::vector<uint8_t> sharedBuffer;
+    std::string dst, dev;
+    bool bufferIsFull = false;
+    unsigned int filesize = 0, writeLimit = 0;
+} fileCpyThreadArgs;
+
+static void writeFile_t(void *a)
+{
+    fileCpyThreadArgs *in = (fileCpyThreadArgs *)a;
+    size_t written = 0;
+    std::vector<uint8_t> localBuffer;
+    FILE *out = fopen(in->dst.c_str(), "wb");
+    while(written < in->filesize)
+    {
+        std::unique_lock<std::mutex> buffLock(in->bufferLock);
+        in->cond.wait(buffLock, [in]{ return in->bufferIsFull;});
+        localBuffer.clear();
+        localBuffer.assign(in->sharedBuffer.begin(), in->sharedBuffer.end());
+        in->sharedBuffer.clear();
+        in->bufferIsFull = false;
+        buffLock.unlock();
+        in->cond.notify_one();
+
+        written += fwrite(localBuffer.data(), 1, localBuffer.size(), out);
+    }
+    fclose(out);
+}
+
+static void writeFileCommit_t(void *a)
+{
+    fileCpyThreadArgs *in = (fileCpyThreadArgs *)a;
+    size_t written = 0, journalCount = 0;
+    std::vector<uint8_t> localBuffer;
+    FILE *out = fopen(in->dst.c_str(), "wb");
+
+    while(written < in->filesize)
+    {
+        std::unique_lock<std::mutex> buffLock(in->bufferLock);
+        in->cond.wait(buffLock, [in]{ return in->bufferIsFull; });
+        localBuffer.clear();
+        localBuffer.assign(in->sharedBuffer.begin(), in->sharedBuffer.end());
+        in->sharedBuffer.clear();
+        in->bufferIsFull = false;
+        buffLock.unlock();
+        in->cond.notify_one();
+
+        written += fwrite(localBuffer.data(), 1, localBuffer.size(), out);
+        journalCount += written;
+        if(journalCount >= in->writeLimit)
+        {
+            journalCount = 0;
+            fclose(out);
+            fs::commitToDevice(in->dev.c_str());
+            out = fopen(in->dst.c_str(), "ab");
+        }
+    }
+    fclose(out);
+}
 
 fs::copyArgs *fs::copyArgsCreate(const std::string& src, const std::string& dst, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces)
 {
@@ -122,62 +187,53 @@ int fs::dataFile::getNextValueInt()
 void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
 {
     fs::copyArgs *c = NULL;
+    size_t filesize = fs::fsize(src);
     if(t)
     {
         c = (fs::copyArgs *)t->argPtr;
         c->offset = 0;
-        c->prog->setMax(fs::fsize(src));
+        c->prog->setMax(filesize);
         c->prog->update(0);
     }
 
-    if(cfg::config["directFsCmd"])
+    FILE *fsrc = fopen(src.c_str(), "rb");
+    if(!fsrc)
     {
-        FSFILE *fsrc = fsfopen(src.c_str(), FsOpenMode_Read);
-        FSFILE *fdst = fsfopen(dst.c_str(), FsOpenMode_Write);
-
-        if(!fsrc || !fdst)
-        {
-            fsfclose(fsrc);
-            fsfclose(fdst);
-            return;
-        }
-
-        uint8_t *buff = new uint8_t[BUFF_SIZE];
-        size_t readIn = 0;
-        while((readIn = fsfread(buff, 1, BUFF_SIZE, fsrc)) > 0)
-        {
-            fsfwrite(buff, 1, readIn, fdst);
-            if(c)
-                c->offset += readIn;
-        }
-        fsfclose(fsrc);
-        fsfclose(fdst);
-        delete[] buff;
-    }
-    else
-    {
-        FILE *fsrc = fopen(src.c_str(), "rb");
-        FILE *fdst = fopen(dst.c_str(), "wb");
-
-        if(!fsrc || !fdst)
-        {
-            fclose(fsrc);
-            fclose(fdst);
-            return;
-        }
-
-        uint8_t *buff = new uint8_t[BUFF_SIZE];
-        size_t readIn = 0;
-        while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
-        {
-            fwrite(buff, 1, readIn, fdst);
-            if(c)
-                c->offset += readIn;
-        }
         fclose(fsrc);
-        fclose(fdst);
-        delete[] buff;
+        return;
     }
+
+    fileCpyThreadArgs thrdArgs;
+    thrdArgs.dst = dst;
+    thrdArgs.filesize = filesize;
+
+    uint8_t *buff = new uint8_t[BUFF_SIZE];
+    std::vector<uint8_t> transferBuffer;
+    Thread writeThread;
+    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x8000, 0x2B, 2);
+    threadStart(&writeThread);
+    size_t readIn = 0;
+    while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
+    {
+        transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
+        if(c)
+            c->offset += readIn;
+
+        if(transferBuffer.size() > TRANSFER_BUFFER_LIMIT || readIn < BUFF_SIZE)
+        {
+            std::unique_lock<std::mutex> buffLock(thrdArgs.bufferLock);
+            thrdArgs.cond.wait(buffLock, [&thrdArgs]{ return thrdArgs.bufferIsFull == false; });
+            thrdArgs.sharedBuffer.assign(transferBuffer.begin(), transferBuffer.end());
+            transferBuffer.clear();
+            thrdArgs.bufferIsFull = true;
+            buffLock.unlock();
+            thrdArgs.cond.notify_one();
+        }
+    }
+    threadWaitForExit(&writeThread);
+    threadClose(&writeThread);
+    fclose(fsrc);
+    delete[] buff;
 }
 
 static void copyFileThreaded_t(void *a)
@@ -202,88 +258,59 @@ void fs::copyFileThreaded(const std::string& src, const std::string& dst)
 void fs::copyFileCommit(const std::string& src, const std::string& dst, const std::string& dev, threadInfo *t)
 {
     fs::copyArgs *c = NULL;
+    size_t filesize = fs::fsize(src);
     if(t)
     {
         c = (fs::copyArgs *)t->argPtr;
         c->offset = 0;
-        c->prog->setMax(fs::fsize(src));
+        c->prog->setMax(filesize);
         c->prog->update(0);
     }
 
-    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    uint64_t journ = fs::getJournalSize(utinfo);
-    if(cfg::config["directFsCmd"])
+    FILE *fsrc = fopen(src.c_str(), "rb");
+    if(!fsrc)
     {
-        FSFILE *fsrc = fsfopen(src.c_str(), FsOpenMode_Read);
-        FSFILE *fdst = fsfopen(dst.c_str(), FsOpenMode_Write);
-
-        if(!fsrc || !fdst)
-        {
-            fsfclose(fsrc);
-            fsfclose(fdst);
-            return;
-        }
-
-        uint8_t *buff = new uint8_t[BUFF_SIZE];
-        size_t readIn = 0, writeCount = 0;
-        while((readIn = fsfread(buff, 1, BUFF_SIZE, fsrc)) > 0)
-        {
-            fsfwrite(buff, 1, readIn, fdst);
-            writeCount += readIn;
-            if(c)
-                c->offset += readIn;
-
-            if(writeCount >= (journ - 0x100000))
-            {
-                writeCount = 0;
-                fsfclose(fdst);
-                if(!fs::commitToDevice(dev.c_str()))
-                    break;
-
-                fdst = fsfopen(dst.c_str(), FsOpenMode_Write | FsOpenMode_Append);
-            }
-        }
-        fsfclose(fsrc);
-        fsfclose(fdst);
-        fs::commitToDevice(dev);
-        delete[] buff;
-    }
-    else
-    {
-        FILE *fsrc = fopen(src.c_str(), "rb");
-        FILE *fdst = fopen(dst.c_str(), "wb");
-
-        if(!fsrc || !fdst)
-        {
-            fclose(fsrc);
-            fclose(fdst);
-            return;
-        }
-
-        uint8_t *buff = new uint8_t[BUFF_SIZE];
-        size_t readIn = 0, writeCount = 0;
-        while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
-        {
-            fwrite(buff, 1, readIn, fdst);
-            writeCount += readIn;
-            if(c)
-                c->offset += readIn;
-
-            if(writeCount >= (journ - 0x100000))
-            {
-                writeCount = 0;
-                fclose(fdst);
-                if(!fs::commitToDevice(dev))
-                    break;
-
-                fdst = fopen(dst.c_str(), "ab");
-            }
-        }
         fclose(fsrc);
-        fclose(fdst);
-        fs::commitToDevice(dev);
-        delete[] buff;
+        return;
     }
+
+    fileCpyThreadArgs thrdArgs;
+    thrdArgs.dst = dst;
+    thrdArgs.dev = dev;
+    thrdArgs.filesize = filesize;
+    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
+    uint64_t journalSpace = fs::getJournalSize(utinfo);
+    thrdArgs.writeLimit = (journalSpace - 0x100000) < TRANSFER_BUFFER_LIMIT ? journalSpace - 0x100000 : TRANSFER_BUFFER_LIMIT;
+
+    Thread writeThread;
+    threadCreate(&writeThread, writeFileCommit_t, &thrdArgs, NULL, 0x8000, 0x2B, 2);
+
+    uint8_t *buff = new uint8_t[BUFF_SIZE];
+    size_t readIn = 0;
+    std::vector<uint8_t> transferBuffer;
+    threadStart(&writeThread);
+    while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
+    {
+        transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
+        if(c)
+            c->offset += readIn;
+        if(transferBuffer.size() >= thrdArgs.writeLimit || readIn < BUFF_SIZE)
+        {
+            std::unique_lock<std::mutex> buffLock(thrdArgs.bufferLock);
+            thrdArgs.cond.wait(buffLock, [&thrdArgs]{ return thrdArgs.bufferIsFull == false; });
+            thrdArgs.sharedBuffer.assign(transferBuffer.begin(), transferBuffer.end());
+            transferBuffer.clear();
+            thrdArgs.bufferIsFull = true;
+            buffLock.unlock();
+            thrdArgs.cond.notify_one();
+        }
+    }
+    threadWaitForExit(&writeThread);
+    threadClose(&writeThread);
+
+    fclose(fsrc);
+    fs::commitToDevice(dev);
+    delete[] buff;
 }
 
 static void copyFileCommit_t(void *a)

@@ -108,7 +108,7 @@ void ui::initStrings()
     addUIString("author", 0, "NULL");
     addUIString("helpUser", 0, "[A] Select   [Y] Dump All Saves   [X] User Options");
     addUIString("helpTitle", 0, "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back");
-    addUIString("helpFolder", 0, "[A] Select  [Y] Restore  [X] Delete  [B] Close");
+    addUIString("helpFolder", 0, "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close");
     addUIString("helpSettings", 0, "[A] Toggle   [X] Defaults   [B] Back");
 
     //Y/N On/Off
@@ -132,6 +132,7 @@ void ui::initStrings()
     addUIString("confirmCreateAllSaveData", 0, "Are you sure you would like to create all save data on this system for #%s#? This can take a while depending on how many titles are found.");
     addUIString("confirmDeleteBackupsTitle", 0, "Are you sure you would like to delete all save backups for #%s#?");
     addUIString("confirmDeleteBackupsAll", 0, "Are you sure you would like to delete *all* of your save backups for all of your games?");
+    addUIString("confirmDriveOverwrite", 0, "Downloading this backup from drive will overwrite the one on your SD card. Continue?");
 
     //Save Data related strings
     addUIString("saveDataNoneFound", 0, "No saves found for #%s#!");
@@ -246,6 +247,7 @@ void ui::initStrings()
     addUIString("titleOptions", 5, "Reset Save Data");
     addUIString("titleOptions", 6, "Delete Save Data");
     addUIString("titleOptions", 7, "Extend Save Data");
+    addUIString("titleOptions", 8, "Export SVI");
 
     //Thread Status Strings
     addUIString("threadStatusCreatingSaveData", 0, "Creating save data for #%s#...");
@@ -265,6 +267,9 @@ void ui::initStrings()
     addUIString("threadStatusPackingJKSV", 0, "Writing JKSV folder contents to ZIP...");
     addUIString("threadStatusSavingTranslations", 0, "Saving the file master...");
     addUIString("threadStatusCalculatingSaveSize", 0, "Calculating save data size...");
+    addUIString("threadStatusUploadingFile", 0, "Uploading #%s#...");
+    addUIString("threadStatusDownloadingFile", 0, "Downloading #%s#...");
+    addUIString("threadStatusCompressingSaveForUpload", 0, "Compressing #%s# for upload...");
 
     //Random leftover pop-ups
     addUIString("popCPUBoostEnabled", 0, "CPU Boost Enabled for ZIP.");
@@ -277,6 +282,10 @@ void ui::initStrings()
     addUIString("popChangeOutputFolder", 0, "#%s# changed to #%s#");
     addUIString("popChangeOutputError", 0, "#%s# contains illegal or non-ASCII characters.");
     addUIString("popTrashEmptied", 0, "Trash emptied");
+    addUIString("popSVIExported", 0, "SVI Exported.");
+    addUIString("popDriveStarted", 0, "Google Drive started successfully.");
+    addUIString("popDriveFailed", 0, "Failed to start Google Drive.");
+    addUIString("popDriveNotActive", 0, "Google Drive is not available");
 
     //Keyboard hints
     addUIString("swkbdEnterName", 0, "Enter a new name");
@@ -311,7 +320,7 @@ void ui::loadTrans()
     std::string transTestFile = fs::getWorkDir() + "trans.txt";
     std::string translationFile = "romfs:/lang/" + getFilename(data::sysLang);
     bool transFile = fs::fileExists(transTestFile);
-    if(!transFile && (data::sysLang == SetLanguage_ENUS || cfg::config["langOverride"]))
+    if(!transFile && (data::sysLang == SetLanguage_ENUS || data::sysLang == SetLanguage_ENGB || cfg::config["langOverride"]))
         ui::initStrings();
     else if(transFile)
         loadTranslationFile(transTestFile);
@@ -335,9 +344,24 @@ void ui::saveTranslationFiles(void *a)
     std::string outputFolder = fs::getWorkDir() + "lang", outputPath, romfsPath;
     fs::mkDir(outputFolder);
 
+    //Save en-us first
+    ui::initStrings();
+    outputPath = fs::getWorkDir() + "lang/" + getFilename(SetLanguage_ENUS);
+    FILE *out = fopen(outputPath.c_str(), "w");
+    for(auto& s : ui::strings)
+    {
+        std::string stringOut = s.second;
+            util::replaceStr(stringOut, "\n", "\\n");
+            fprintf(out, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, stringOut.c_str());
+    }
+    fclose(out);
+
     romfsInit();
     for(int i = 0; i < SetLanguage_Total; i++)
     {
+        if(i == SetLanguage_ENUS)
+            continue;
+
         outputPath = fs::getWorkDir() + "lang/" + getFilename(i);
         romfsPath = "romfs:/lang/" + getFilename(i);
 
@@ -345,7 +369,7 @@ void ui::saveTranslationFiles(void *a)
         ui::initStrings();
         loadTranslationFile(romfsPath);
 
-        FILE *out = fopen(outputPath.c_str(), "w");
+        out = fopen(outputPath.c_str(), "w");
         for(auto& s : ui::strings)
         {
             std::string stringOut = s.second;

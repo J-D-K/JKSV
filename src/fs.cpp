@@ -431,7 +431,7 @@ void fs::createNewBackup(void *a)
             path += "/";
             fs::copyDirToDirThreaded("sv:/", path);
         }
-        ui::populateFldMenu();
+        ui::fldRefreshMenu(false);
     }
 }
 
@@ -537,7 +537,7 @@ void fs::restoreBackup(void *a)
         }
     }
     if(cfg::config["autoBack"])
-        ui::populateFldMenu();
+        ui::fldRefreshMenu(false);
 
     delete restore;
     t->finished = true;
@@ -572,7 +572,7 @@ void fs::deleteBackup(void *a)
         fs::delfile(*deletePath);
         ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("saveDataBackupDeleted", 0), backupName.c_str());
     }
-    ui::populateFldMenu();
+    ui::fldRefreshMenu(false);
     delete deletePath;
     t->finished = true;
 }

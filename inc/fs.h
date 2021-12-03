@@ -8,9 +8,12 @@
 #include "fs/dir.h"
 #include "fs/zip.h"
 #include "fs/fsfile.h"
+#include "fs/drive.h"
 #include "ui/miscui.h"
 
-#define BUFF_SIZE 0xC0000
+#define BUFF_SIZE 0x8000
+#define ZIP_BUFF_SIZE 0x10000
+#define TRANSFER_BUFFER_LIMIT 0xA00000
 
 namespace fs
 {

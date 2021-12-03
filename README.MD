@@ -1,54 +1,66 @@
 # JKSV
 
-Data Dump/Restore tool for Switch.
+JK's Save Manager Switch Edition.
 
 <img src="https://i.imgur.com/yLcTPzt.jpg"/>
 
 ## Info
-JKSV on Switch started as a small project/port to test some things and get familiar with libnx. A list of what it currently can do:
-1. Dump and restore save data.
-    * This includes the ability to dump and restore to/from any location on SD by pressing minus and using the Advanced Mode.
-	* Save Data can be dumped and restored directly to and from ZIP archives by enabling `Export To ZIP` in the options menus. Folders will still be detected and usable even with this enabled.
-2. Dump system save data
+This started as a simple, straight port of my 3DS save manager I publicly released in 2016. Despite not originally wanting to take it too far, I continued working on it for fun when I can. Currently it can:
+1. Dump and restore account save data.
+2. Dump and restore device saves shared by all users (Games such as Animal Crossing).
+3. Dump and restore BCAT Data.
+4. Dump and restore cache Saves.
+5. Dump system save data.
     * Dumping this data is always enabled, but writing back needs to be enabled from the options menu. Writing to this can be very dangerous.
-3. Open and explore bis storage partitions via the Extras menu
+	* Processes can be terminated from the Extras menu allowing you to open even more of these and explore more.
+6. Export save data to folders like the orignal or compressed zip files to save space.
+7. Create save data so the user no longer needs to boot games to import saves.
+	* Titles can be rescanned from the Extras menu. For example, if you insert a game card while JKSV is open, rescanning will load and add it to the save creation menu(s).
+8. Export and use SVI files to create save data for titles not installed on your system. For games that detect other game saves to unlock content.
+	* SVI files are simply the title ID, NACP, and icon packed into a file. Placing them in `JKSV/svi` will load them as if they are any other game on your switch. They will appear in the save creation menus with the rest.
+9. Extend save data containers to any size the user wants or automatically if the save cannot fit into the current one.
+10. Delete save data from the system.
+11. Reset save data as if the game was never launched.
+12. Display stats and information about the game/save: Play time, launch count, title ID (TID), save ID(SID)/name of save file on user nand partition, etc.
+13. Open and explore bis storage partitions via the Extras menu
     * BIS Storage is opened inside a basic filebrowser. The partition's listing is on the left. Your SD is on the right.
     * Only copying to SD and file properties work on BIS partitions. Writing to and deleting are disabled unless enabled like system save data.
-4. Misc Extras:
-    * Ability to remove downloaded firmware updates from NAND. This is located in the extras menu (ZR on User selection)
+14. Misc Extras:
+    * Ability to remove downloaded firmware updates from NAND. This is located under Extras.
     * Terminating processes by [ID](https://switchbrew.org/wiki/Title_list#System_Modules). Allowing you to dump normally unopenable system archives.
     * Mount by System Save [ID](https://switchbrew.org/wiki/Flash_Filesystem#System_Savegames). Normally used when the terminated process makes JKSV unable to rescan titles without the Switch crashing.
 	* Mount and open RomFS of process the homebrew menu takes over (if launched as NRO).
 		* Hold R while opening a game or applet with Atmosphere so the homebrew menu loads. Open JKSV and press minus and select **Mount Process RomFS**. The romfs of the app should appear in the browser along with your SD on the right.
 
 ## Quick Guide
-**A custom path can be defined by creating "sdmc:/switch/jksv_dir.txt" and typing the path you want to use. For example, `sdmc:/switch/JKSV/` will force JKSV to create its folder in the switch homebrew folder.**
+1. Main/User Menu
+	* A Selects the currently highlighted user and allows you to browse their titles.
+	* Y Dumps the save data for all users.
+	* X opens the sub menu of options for the currently highlighted user:
+		* Dump All for [X] dumps all of the saves for the highlighted user.
+		* Create save data opens a list of games found on your switch and will allow to create save data for them without needing to start the games.
+			* SVI files located in `JKSV/svi` will also be loaded and added to this list. These are to create save data for games not currently on the system. This is for games that search for other saves to unlock extra content.
+			* Cache saves require a cache index number to be created. This information can be found under information for a cache save when being exported.
+		* Create All Save Data creates save data for every title on your system for the selected user.
+		* Delete All Save Data deletes all save data for the selected user. This is permanant.
+	* Settings and Extras below.
 
-**Custom "safe titles" can be set by creating a file named `titleDefs.txt` in your JKSV directory. These are the folders on SD in which game saves are stored. For example, creating this file and adding the line `0100BFE00E9CA000 = "The Witcher 3 CE"` will set The Witcher 3 to use `[pathto]/JKSV/The Witcher 3 CE/` directory instead of its title id. These need to be ASCII or they will fail to work.**
-
-1. User Select
-	* A opens the selected user's save files. 
-	* Y Dumps __all__ save data from __all users__, device save data, and BCAT save data. System save data is not included in this.
-	* X Changes the UI mode to a text menu based one for people that prefer 3DS JKSM style text menus instead.
-	* Minus Opens the Options menu.
-	* ZR opens a small menu of extras.
-	
-2. Title Select
-	* A Opens the title for backup and restore.
-	* L and R change the current user.
-	* Y Dumps all saves for the currently selected user.
-	* X adds the selected title to a list of favorites that are pushed to the top of the title list/icons.
-	* Minus adds the selected title to a list of ignored titles.
-	* ZR __ERASES__ The selected title's save from the system. This is the same as going into settings and deleting via data management. __THIS DOES NOT DELETE JKSV's SAVE FOLDERS__.
-	
-3. Backup/Folder Menu
-	* Minus opens file mode. File mode is a basic file browser for moving individual files and folders. This also adds the ability to restore saves from any location on your SD card.
-	* Holding L or R while selecting new with A will automatically name the backup for you without opening the keyboard.
-	* A creates a new backup
-	    * JKSV adds some suggestions to the keyboard's dictionary such as: date strings, the current user's name **if it's safe**, and the current title or a generated abbreviation.
-	* Y Restores save data from the selected folder.
-	* X Deletes the selected folder.
-	* ZR __ERASES__ the current save data for the title from __your system__, but leaves the archive on NAND.
+2. Title/Game Select
+	* A selects and opens the backup menu.
+		* Adding `.zip` to the end of your file name will force zip regardless of whether it's enabled or not.
+	* Y Favorites a title and pushes it to the top of your games.
+	* L and R jump forward down your games.
+	* X opens the title options menu:
+		* Information displays stats about the game for the current user.
+		* Blacklist adds the title to a list that is not displayed.
+		* Change Output Folder changes the folder to which the game's saves are written.
+		* Open in File Mode opens the save in a basic file browser.
+		* Delete All Save Backups deletes all of the backups for the current title.
+		* Reset Save Data wipes the save clean as if it was never run.
+		* Delete Save Data deletes the save data for the title from the system. This is the same as doing it from the Switch's data management setting.
+		* Extend Save Data extends the container for the current title. This is also done automatically if the save being imported is too large for the container.
+			* Different games have different limits. Most games do not need this at all. A few will take advantage of a larger container, others extend theirs at times and will need larger containers than created by default.
+		* Export SVI exports the data needed to create save data for the current title to `JKSV/ncap/[TID].svi`. This is just the title ID, NACP, and icon of the title. These can be used to create save data for games not installed on your system.
 
 4. File Mode
 	* A opens directories. 
@@ -60,6 +72,13 @@ JKSV on Switch started as a small project/port to test some things and get famil
 		* Make Dir creates a folder.
 		* Properties gets file size and directory size.
 	* ZL or ZR Change the controlled menu.
+
+5. Settings
+	* Empty Trash Bin deletes all backups inside the `_TRASH_` folder. The trash bin feature can be disabled further down.
+	* Check For Updates checks github for updates to JKSV. This currently only updates the NRO release. Maybe NSP later.
+	* Set JKSV Save Output Folder allows you to set where JKSV's working directory is. Files and folders should be relocated for you.
+	* Edit Blacklisted Titles allows you to removed titles blacklisted from being shown.
+	* Delete All Save Backups wipes JKSV's folder of all save backups.
 	
 5. Extras
 	* SD To SD Browser opens the filebrowser with your SD open in both panels
@@ -75,7 +94,7 @@ JKSV on Switch started as a small project/port to test some things and get famil
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)
-2. Requires switch-freetype, libpng, zlib, libjpeg-turbo, lib-curl, and lib-json-c
+2. `dkp-pacman -S switch-curl switch-freetype switch-libjpeg-turbo switch-libjson-c switch-libpng switch-libwebp switch-sdl2 switch-sdl2_gfx switch-sdl2_image switch-zlib`
 
 ## Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8 for loading system font with Freetype. All other font handling code (converting to SDL2, resizing on the fly, checking for glyphs, cache, etc) is my own.

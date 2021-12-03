@@ -1,7 +1,7 @@
 #pragma once
 
 #include "data.h"
-#include "ui.h"
+#include "miscui.h"
 #include "type.h"
 
 namespace fs
