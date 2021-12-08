@@ -13,7 +13,7 @@
 
 #define BUFF_SIZE 0x8000
 #define ZIP_BUFF_SIZE 0x10000
-#define TRANSFER_BUFFER_LIMIT 0xA00000
+#define TRANSFER_BUFFER_LIMIT 0x600000
 
 namespace fs
 {

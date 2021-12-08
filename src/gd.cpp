@@ -197,12 +197,14 @@ void drive::gd::refreshToken()
     json_object *parse = json_tokener_parse(jsonResp->c_str());
     if (error == CURLE_OK)
     {
-        json_object *accessToken;
+        json_object *accessToken, *error;
         json_object_object_get_ex(parse, "access_token", &accessToken);
+        json_object_object_get_ex(parse, "error", &error);
+
         if(accessToken)
             token = json_object_get_string(accessToken);
-        else
-            writeDriveError("refreshToken", "Error refreshing token.");
+        else if(error)
+            writeDriveError("refreshToken", json_object_get_string(error));
     }
 
     delete jsonResp;

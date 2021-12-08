@@ -6,23 +6,15 @@ confirmDelete = 0, "Souhaitez-vous vraiment  supprimer #%s# ? *Ceci sera permane
 confirmDeleteBackupsAll = 0, "Êtes-vous sûr de vouloir supprimer *toutes* vos sauvegardes pour tous vos jeux ?"
 confirmDeleteBackupsTitle = 0, "Souhaitez-vous vraiment supprimer toutes les sauvegardes sauvegardées pour #%s#?"
 confirmDeleteSaveData = 0, "*ATTENTION* : Ceci *effacera* les données sauvegardées pour #%s# *de votre système*. Êtes-vous sûr de vouloir faire cela ?"
-
-#CHANGED=============================================>
-confirmDriveOverwrite = 0, "Downloading this backup from drive will overwrite the one on your SD card. Continue?"
-#<====================================================
-
+confirmDriveOverwrite = 0, "Le téléchargement de cette sauvegarde depuis le disque dur écrasera celle qui se trouve sur votre carte SD. Continuer?"
 confirmOverwrite = 0, "Souhaitez-vous vraiment écraser #%s#?"
 confirmResetSaveData = 0, "*ATTENTION* : Cela *réinitialisera* les données de sauvegarde de ce jeu comme s'il n'avait jamais été exécuté auparavant. Êtes-vous sûr de vouloir faire cela ?"
 confirmRestore = 0, "Souhaitez-vous vraiment restaurer #%s#?"
-
-#CHANGED=============================================>
-debugStatus = 0, "User Count: "
-debugStatus = 1, "Current User: "
-debugStatus = 2, "Current Title: "
-debugStatus = 3, "Safe Title: "
-debugStatus = 4, "Sort Type: "
-#<====================================================
-
+debugStatus = 0, "Nombre d'utilisateurs: "
+debugStatus = 1, "Utilisateur actuel: "
+debugStatus = 2, "Titre actuel: "
+debugStatus = 3, "Titre sauvegardé: "
+debugStatus = 4, "Type de tri: "
 dialogNo = 0, "Non [B]"
 dialogOK = 0, "OK [A]"
 dialogYes = 0, "Oui [A]"
@@ -49,29 +41,21 @@ fileModeMenu = 5, "Fermer"
 fileModeMenu = 6, "Ajouter aux filtres de chemins"
 fileModeMenuMkDir = 0, "Nouveau"
 folderMenuNew = 0, "Nouvelle sauvegarde"
-
-#CHANGED=============================================>
-helpFolder = 0, "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close"
-#<====================================================
-
+helpFolder = 0, "[A] Sélectionner  [Y] Restorer  [X] Suprimer   [ZR] Upload  [B] Fermer"
 helpSettings = 0, "[A] Basculer  [X] Défauts  [B] Retour"
 helpTitle = 0, "[A] Sélectionner  [L][R] Saut de page  [Y] Favorie  [X] Options du titre  [B] Retour"
 helpUser = 0, "[A] Sélectionner  [X] Options pour l'utilisateur"
 holdingText = 0, "(Maintenir) "
 holdingText = 1, "(Garder maintenu) "
 holdingText = 2, "(Presque fini!) "
-
-#CHANGED=============================================>
 infoStatus = 0, "TID: %016lX"
 infoStatus = 1, "SID: %016lX"
-infoStatus = 2, "Play Time: %02d:%02d"
-infoStatus = 3, "Total Launches: %u"
-infoStatus = 4, "Publisher: %s"
-infoStatus = 5, "Save Type: %s"
-infoStatus = 6, "Cache Index: %u"
-infoStatus = 7, "User: %s"
-#<=====================================================
-
+infoStatus = 2, "Temps de jeu: %02d:%02d"
+infoStatus = 3, "Nombre de fois lancé: %u"
+infoStatus = 4, "Auteur: %s"
+infoStatus = 5, "Type de sauvegarde: %s"
+infoStatus = 6, "Index du Cache: %u"
+infoStatus = 7, "Utilisateur: %s"
 loadingStartPage = 0, "Chargement..."
 mainMenuExtras = 0, "Extras"
 mainMenuSettings = 0, "Paramètres"
@@ -81,21 +65,13 @@ popAddedToPathFilter = 0, "'#%s#' ajouté aux filtres de chemins."
 popCPUBoostEnabled = 0, "CPU Boost activé pour les  ZIP."
 popChangeOutputError = 0, "#%s# contient des caractères incorrects ou non-ASCII."
 popChangeOutputFolder = 0, "#%s# modifié en #%s#"
-
-#CHANGED=============================================>
-popDriveFailed = 0, "Failed to start Google Drive."
-popDriveNotActive = 0, "Google Drive is not available"
-popDriveStarted = 0, "Google Drive started successfully."
-#<====================================================
-
+popDriveFailed = 0, "Echec du démarrage de Google Drive."
+popDriveNotActive = 0, "Google Drive n'est pas utilisable"
+popDriveStarted = 0, "Google Drive lancé avec succès."
 popErrorCommittingFile = 0, "Erreur d'ajout du fichier à la sauvegarde!"
 popFolderIsEmpty = 0, "Le dossier est vide!"
 popProcessShutdown = 0, "#%s# terminé avec succès."
-
-#CHANGED=============================================>
-popSVIExported = 0, "SVI Exported."
-#<====================================================
-
+popSVIExported = 0, "SVI Exporté."
 popSaveIsEmpty = 0, "Les données de la sauvegarde sont vides!"
 popTrashEmptied = 0, "Trash emptied"
 popZipIsEmpty = 0, "Le fichier ZIP est vide!"
@@ -159,28 +135,16 @@ swkbdSaveIndex = 0, "Entrez l'index du cache"
 swkbdSetWorkDir = 0, "Entrez un nouveau chemin de sortie"
 swkbdSysSavID = 0, "Entrez l'ID de la sauvegarde système"
 threadStatusAddingFileToZip = 0, "Ajout de '#%s#' au ZIP..."
-
-#CHANGED=============================================>
-threadStatusCalculatingSaveSize = 0, "Calculating save data size..."
-#<====================================================
-
+threadStatusCalculatingSaveSize = 0, "Calcul de la taille de la sauvegarde..."
 threadStatusCheckingForUpdate = 0, "Vérification de mises à jour..."
-
-#CHANGED=============================================>
-threadStatusCompressingSaveForUpload = 0, "Compressing #%s# for upload..."
-#<====================================================
-
+threadStatusCompressingSaveForUpload = 0, "Compression de #%s# pour l'upload..."
 threadStatusCopyingFile = 0, "Copie de '#%s#'..."
 threadStatusCreatingSaveData = 0, "Création de la sauvegarde pour #%s#..."
 threadStatusDecompressingFile = 0, "Décompression de '#%s#'..."
 threadStatusDeletingFile = 0, "Suppression..."
 threadStatusDeletingSaveData = 0, "Supression de la sauvegarde pour #%s#..."
 threadStatusDeletingUpdate = 0, "Suppression de la mise à jour en attente..."
-
-#CHANGED=============================================>
-threadStatusDownloadingFile = 0, "Downloading #%s#..."
-#<====================================================
-
+threadStatusDownloadingFile = 0, "Téléchargement de #%s#..."
 threadStatusDownloadingUpdate = 0, "Téléchargement de la mise à jour..."
 threadStatusExtendingSaveData = 0, "Extention de la sauvegarde pour #%s#..."
 threadStatusGetDirProps = 0, "Obtention des propriétés du dossier..."
@@ -188,11 +152,7 @@ threadStatusOpeningFolder = 0, "Ouverture de '#%s#'..."
 threadStatusPackingJKSV = 0, "Ecriture du contenu du répertoire JKSV dans le ZIP..."
 threadStatusResettingSaveData = 0, "Réinitialisation de la sauvegarde..."
 threadStatusSavingTranslations = 0, "Saving the file master..."
-
-#CHANGED=============================================>
-threadStatusUploadingFile = 0, "Uploading #%s#..."
-#<====================================================
-
+threadStatusUploadingFile = 0, "Upload de #%s#..."
 titleOptions = 0, "Information"
 titleOptions = 1, "Liste noir"
 titleOptions = 2, "Changer le dossier de sortie"
@@ -201,11 +161,7 @@ titleOptions = 4, "Supprimer toutes les sauvegardes de la sauvegarde"
 titleOptions = 5, "Réinitialiser la sauvegarde"
 titleOptions = 6, "Supprimer la sauvegarde"
 titleOptions = 7, "Etendre la sauvegarde"
-
-#CHANGED=============================================>
-titleOptions = 8, "Export SVI"
-#<====================================================
-
+titleOptions = 8, "Exporter SVI"
 translationMainPage = 0, "Traduction: "
 userOptions = 0, "Dumper tout pour"
 userOptions = 1, "Sauvegarder la sauvegarde"

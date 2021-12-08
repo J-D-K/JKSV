@@ -30,10 +30,12 @@ typedef struct
 
 static void writeFile_t(void *a)
 {
+    fsSetPriority(FsPriority_Realtime);
     fileCpyThreadArgs *in = (fileCpyThreadArgs *)a;
     size_t written = 0;
     std::vector<uint8_t> localBuffer;
     FILE *out = fopen(in->dst.c_str(), "wb");
+
     while(written < in->filesize)
     {
         std::unique_lock<std::mutex> buffLock(in->bufferLock);
@@ -44,7 +46,6 @@ static void writeFile_t(void *a)
         in->bufferIsFull = false;
         buffLock.unlock();
         in->cond.notify_one();
-
         written += fwrite(localBuffer.data(), 1, localBuffer.size(), out);
     }
     fclose(out);
@@ -52,6 +53,7 @@ static void writeFile_t(void *a)
 
 static void writeFileCommit_t(void *a)
 {
+    fsSetPriority(FsPriority_Realtime);
     fileCpyThreadArgs *in = (fileCpyThreadArgs *)a;
     size_t written = 0, journalCount = 0;
     std::vector<uint8_t> localBuffer;
@@ -69,6 +71,7 @@ static void writeFileCommit_t(void *a)
         in->cond.notify_one();
 
         written += fwrite(localBuffer.data(), 1, localBuffer.size(), out);
+
         journalCount += written;
         if(journalCount >= in->writeLimit)
         {
@@ -210,7 +213,7 @@ void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     std::vector<uint8_t> transferBuffer;
     Thread writeThread;
-    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x8000, 0x2B, 2);
+    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x40000, 0x2C, 1);
     threadStart(&writeThread);
     size_t readIn = 0;
     while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
@@ -283,7 +286,7 @@ void fs::copyFileCommit(const std::string& src, const std::string& dst, const st
     thrdArgs.writeLimit = (journalSpace - 0x100000) < TRANSFER_BUFFER_LIMIT ? journalSpace - 0x100000 : TRANSFER_BUFFER_LIMIT;
 
     Thread writeThread;
-    threadCreate(&writeThread, writeFileCommit_t, &thrdArgs, NULL, 0x8000, 0x2B, 2);
+    threadCreate(&writeThread, writeFileCommit_t, &thrdArgs, NULL, 0x040000, 0x2C, 1);
 
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     size_t readIn = 0;
