@@ -34,5 +34,5 @@ namespace cfg
     extern std::vector<uint64_t> blacklist;
     extern std::vector<uint64_t> favorites;
     extern uint8_t sortType;
-    extern std::string driveClientID, driveClientSecret, driveRefreshToken, driveAuthCode;
+    extern std::string driveClientID, driveClientSecret, driveRefreshToken;
 }

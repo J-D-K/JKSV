@@ -18,38 +18,36 @@ namespace drive
 {
     typedef struct 
     {
-        std::string name, id, mimeType;
+        std::string name, id, parent;
+        bool isDir = false;
         unsigned int size;
-        std::vector<std::string> parents;
-    } gdDirItem;
+    } gdItem;
 
     class gd
     {
         public:
-            gd(const std::string& _clientID, const std::string& _secretID, const std::string& _authCode, const std::string& _rToken);
+            void setClientID(const std::string& _clientID) { clientID = _clientID; }
+            void setClientSecret(const std::string& _clientSecret) { secretID = _clientSecret; }
+            void setRefreshToken(const std::string& _refreshToken) { rToken = _refreshToken; }
 
-            void exhangeAuthCode(const std::string& _authCode);
+            bool exhangeAuthCode(const std::string& _authCode);
             bool hasToken() { return token.empty() == false; }
-            void refreshToken();
+            bool refreshToken();
             bool tokenIsValid();
-            //Drive query parameters are appened to the default
-            void loadDriveList(const std::string& _qParams);
-
+            
+            void clearDriveList() { driveList.clear(); }
+            void driveListInit(const std::string& _q);
+            void driveListAppend(const std::string& _q);
+            void getListWithParent(const std::string& _parent, std::vector<drive::gdItem *>& _out);
             void debugWriteList();
             
-            bool createDir(const std::string& _dirName);
+            bool createDir(const std::string& _dirName, const std::string& _parent);
             bool dirExists(const std::string& _dirName);
-            void setRootDir(const std::string& _dirID)
-            { 
-                rootDir = _dirID; 
-                parentDir = _dirID; 
-                loadDriveList(""); 
-            }
-            void returnToRoot(){ parentDir = rootDir; loadDriveList(""); }
-            void chDir(const std::string& _dirID) { parentDir = _dirID; loadDriveList(""); }
+            bool dirExists(const std::string& _dirName, const std::string& _parent);
             
             bool fileExists(const std::string& _filename);
-            void uploadFile(const std::string& _filename, curlFuncs::curlUpArgs *_upload);
+            bool fileExists(const std::string& _filename, const std::string& _parent);
+            void uploadFile(const std::string& _filename, const std::string& _parent, curlFuncs::curlUpArgs *_upload);
             void updateFile(const std::string& _fileID, curlFuncs::curlUpArgs *_upload);
             void downloadFile(const std::string& _fileID, curlFuncs::curlDlArgs *_download);
             void deleteFile(const std::string& _fileID);
@@ -57,14 +55,16 @@ namespace drive
             std::string getClientID() const { return clientID; }
             std::string getClientSecret() const { return secretID; }
             std::string getRefreshToken() const { return rToken; }
-            std::string getFileID(const std::string& name);
+            std::string getFileID(const std::string& _name);
+            std::string getFileID(const std::string& _name, const std::string& _parent);
+            std::string getDirID(const std::string& _name);
+            std::string getDirID(const std::string& _name, const std::string& _parent);
 
             size_t getDriveListCount() const { return driveList.size(); }
-            drive::gdDirItem *getDirItemAt(unsigned int _ind) { return &driveList[_ind]; }
+            drive::gdItem *getItemAt(unsigned int _ind) { return &driveList[_ind]; }
 
         private:
-            std::vector<gdDirItem> driveList;
+            std::vector<gdItem> driveList;
             std::string clientID, secretID, token, rToken;
-            std::string rootDir = "", parentDir = "";
     };
 }

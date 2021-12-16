@@ -15,5 +15,5 @@ namespace ui
 
     //Populate to open menu, refresh for updating after actions
     void fldPopulateMenu();
-    void fldRefreshMenu(bool _updateDrive);
+    void fldRefreshMenu();
 }

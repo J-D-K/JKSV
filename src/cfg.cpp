@@ -14,7 +14,7 @@ std::vector<uint64_t> cfg::blacklist;
 std::vector<uint64_t> cfg::favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 uint8_t cfg::sortType;
-std::string cfg::driveClientID, cfg::driveClientSecret, cfg::driveRefreshToken, cfg::driveAuthCode;
+std::string cfg::driveClientID, cfg::driveClientSecret, cfg::driveRefreshToken;
 
 const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt", *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
 static std::unordered_map<std::string, unsigned> cfgStrings =
@@ -417,7 +417,7 @@ void cfg::loadConfig()
                         break;
 
                     case 22:
-                        cfg::driveAuthCode = cfgRead.getNextValueStr();
+                        //cfg::driveAuthCode = cfgRead.getNextValueStr();
                         break;
 
                     default:
