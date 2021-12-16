@@ -2,6 +2,8 @@
 
 **Google only allows unverified apps to have up to 100 test users. Not only would this limit be filled within minutes, but each user has to manually added. People have been asking for some kind of cloud support since I wrote JKSM on 3DS and this is my way to support it while getting around Google's restrictions.**
 
+**Note: Due to Google's restrictions on unverified apps, you will be required to login once every seven days. There is nothing I can do about this at the moment.**
+
 
 1. Go to https://console.cloud.google.com/, if this is your first time, accept the terms and you should now have the dashboard in front of you.
 2. Click `CREATE PROJECT` on the next screen.<br><center><img src="https://i.imgur.com/42Wruo4.png" /></center>
@@ -22,13 +24,10 @@
 17. On the left under APIs and Services, click Credentials.<br><center><img src="https://i.imgur.com/iWD1GTk.png" /></center>
 18. On the next screen, click `+ CREATE_CREDENTIALS`. Select `OAuth Client ID`.<br><center><img src="https://i.imgur.com/ri3tuB7.png" /></center>
 19. On the next screen, under `Application Type`, select `Desktop App`. Click `Create`.
-20. You now have your Client ID and Client Secret. Copy and paste these somewhere for later. Almost done!
-21. You're going to need to login and get an authentication code for JKSV to exchange. This is only needed once. Afterwards, JKSV will use a refresh token so you do not have to log in every time you want to upload or download something. Replace `YOUR_CLIENT_ID_HERE` with your client ID obtained in the previous step: `https://accounts.google.com/o/oauth2/v2/auth?client_id=YOUR_CLIENT_ID_HERE&redirect_uri=urn:ietf:wg:oauth:2.0:oob&response_type=code&scope=https://www.googleapis.com/auth/drive`.
-22. At the end, you will be presented with a code. You will need this for the final step.
+20. You now have your Client ID and Client Secret. Almost done!
 23. On your Switch's SD card, go to JKSV's config file and open it. `SDMC:/config/JKSV/JKSV.cfg`.
-24. Add these lines and save. You should be good to go now:
+24. Add these lines and save. The next time you open JKSV, you will need to login to Google on your Switch:
 ```
 driveClientID = YOUR_CLIENT_ID_HERE
 driveClientSecret = YOU_CLIENT_SECRET_HERE
-driveAuthCode = YOU_CODE_FROM_STEP_22_HERE
 ```
