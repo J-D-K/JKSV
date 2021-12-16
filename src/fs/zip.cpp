@@ -189,14 +189,16 @@ void fs::copyZipToDir(unzFile src, const std::string& dst, const std::string& de
             threadStart(&writeThread);
 
             std::vector<uint8_t> transferBuffer;
+            uint64_t readCount = 0;
             while((readIn = unzReadCurrentFile(src, buff, BUFF_SIZE)) > 0)
             {
                 transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
+                readCount += readIn;
 
                 if(c)
                     c->offset += readIn;
 
-                if(transferBuffer.size() >= unzThrd.writeLimit || readIn < BUFF_SIZE)
+                if(transferBuffer.size() >= unzThrd.writeLimit || readCount == info.uncompressed_size)
                 {
                     std::unique_lock<std::mutex> buffLock(unzThrd.buffLock);
                     unzThrd.cond.wait(buffLock, [&unzThrd]{ return unzThrd.bufferIsFull == false; });

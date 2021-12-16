@@ -30,7 +30,6 @@ typedef struct
 
 static void writeFile_t(void *a)
 {
-    fsSetPriority(FsPriority_Realtime);
     fileCpyThreadArgs *in = (fileCpyThreadArgs *)a;
     size_t written = 0;
     std::vector<uint8_t> localBuffer;
@@ -53,7 +52,6 @@ static void writeFile_t(void *a)
 
 static void writeFileCommit_t(void *a)
 {
-    fsSetPriority(FsPriority_Realtime);
     fileCpyThreadArgs *in = (fileCpyThreadArgs *)a;
     size_t written = 0, journalCount = 0;
     std::vector<uint8_t> localBuffer;
@@ -213,16 +211,19 @@ void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     std::vector<uint8_t> transferBuffer;
     Thread writeThread;
-    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x40000, 0x2C, 1);
+    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x40000, 0x2E, 1);
     threadStart(&writeThread);
     size_t readIn = 0;
+    uint64_t readCount = 0;
     while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
     {
         transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
-        if(c)
-            c->offset += readIn;
+        readCount += readIn;
 
-        if(transferBuffer.size() > TRANSFER_BUFFER_LIMIT || readIn < BUFF_SIZE)
+        if(c)
+            c->offset = readCount;
+
+        if(transferBuffer.size() >= TRANSFER_BUFFER_LIMIT || readCount == filesize)
         {
             std::unique_lock<std::mutex> buffLock(thrdArgs.bufferLock);
             thrdArgs.cond.wait(buffLock, [&thrdArgs]{ return thrdArgs.bufferIsFull == false; });
@@ -290,14 +291,17 @@ void fs::copyFileCommit(const std::string& src, const std::string& dst, const st
 
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     size_t readIn = 0;
+    uint64_t readCount = 0;
     std::vector<uint8_t> transferBuffer;
     threadStart(&writeThread);
     while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
     {
         transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
+        readCount += readIn;
         if(c)
-            c->offset += readIn;
-        if(transferBuffer.size() >= thrdArgs.writeLimit || readIn < BUFF_SIZE)
+            c->offset = readCount;
+
+        if(transferBuffer.size() >= thrdArgs.writeLimit || readCount == filesize)
         {
             std::unique_lock<std::mutex> buffLock(thrdArgs.bufferLock);
             thrdArgs.cond.wait(buffLock, [&thrdArgs]{ return thrdArgs.bufferIsFull == false; });

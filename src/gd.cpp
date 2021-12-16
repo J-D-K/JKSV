@@ -17,7 +17,7 @@ Still major WIP
 */
 
 #define DRIVE_UPLOAD_BUFFER_SIZE 0x8000
-#define DRIVE_DOWNLOAD_BUFFER_SIZE 0xA00000
+#define DRIVE_DOWNLOAD_BUFFER_SIZE 0xC00000
 #define DRIVE_DEFAULT_PARAMS_AND_QUERY "?fields=files(name,id,mimeType,size,parents)&pageSize=1000&q=trashed=false\%20and\%20\%27me\%27\%20in\%20owners"
 
 #define tokenURL "https://oauth2.googleapis.com/token"
@@ -79,7 +79,7 @@ static size_t writeDataBufferThreaded(uint8_t *buff, size_t sz, size_t cnt, void
     downloadBuffer.insert(downloadBuffer.end(), buff, buff + (sz * cnt));
     in->downloaded += sz * cnt;
 
-    if(in->downloaded == in->cfa->size || (downloadBuffer.size() >= DRIVE_DOWNLOAD_BUFFER_SIZE))
+    if(in->downloaded == in->cfa->size || downloadBuffer.size() == DRIVE_DOWNLOAD_BUFFER_SIZE)
     {
         std::unique_lock<std::mutex> dataLock(in->dataLock);
         in->cond.wait(dataLock, [in]{ return in->bufferFull == false; });
@@ -667,6 +667,12 @@ void drive::gd::deleteFile(const std::string& _fileID)
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, delHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     int error = curl_easy_perform(curl);
+
+    for(unsigned i = 0; i < driveList.size(); i++)
+    {
+        if(driveList[i].id == _fileID)
+            driveList.erase(driveList.begin() + i);
+    }
 
     curl_slist_free_all(delHeaders);
     curl_easy_cleanup(curl);

@@ -431,7 +431,7 @@ void confirm_t(void *a)
             break;
         }
 
-        svcSleepThread(10000000);//Close enough
+        svcSleepThread(1e+9 / 60);//Close enough
     }
     delete c;
     t->finished = true;
@@ -488,7 +488,7 @@ static void showMessage_t(void *a)
         if(ui::padKeysDown() & HidNpadButton_A)
             break;
 
-        svcSleepThread(10000000);
+        svcSleepThread(1e+9 / 60);
     }
     delete text;
     t->finished = true;
