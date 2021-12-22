@@ -277,7 +277,7 @@ void ui::fldInit()
 {
     fldGuideWidth = gfx::getTextWidth(ui::getUICString("helpFolder", 0), 18);
     
-    fldMenu = new ui::menu(10, 8, fldGuideWidth + 44, 20, 6);
+    fldMenu = new ui::menu(10, 4, fldGuideWidth + 44, 18, 6);
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
 

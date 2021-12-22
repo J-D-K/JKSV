@@ -211,7 +211,7 @@ void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     std::vector<uint8_t> transferBuffer;
     Thread writeThread;
-    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x40000, 0x2E, 1);
+    threadCreate(&writeThread, writeFile_t, &thrdArgs, NULL, 0x40000, 0x2E, 2);
     threadStart(&writeThread);
     size_t readIn = 0;
     uint64_t readCount = 0;
@@ -287,7 +287,7 @@ void fs::copyFileCommit(const std::string& src, const std::string& dst, const st
     thrdArgs.writeLimit = (journalSpace - 0x100000) < TRANSFER_BUFFER_LIMIT ? journalSpace - 0x100000 : TRANSFER_BUFFER_LIMIT;
 
     Thread writeThread;
-    threadCreate(&writeThread, writeFileCommit_t, &thrdArgs, NULL, 0x040000, 0x2C, 1);
+    threadCreate(&writeThread, writeFileCommit_t, &thrdArgs, NULL, 0x040000, 0x2E, 2);
 
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     size_t readIn = 0;

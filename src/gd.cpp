@@ -600,6 +600,15 @@ void drive::gd::updateFile(const std::string& _fileID, curlFuncs::curlUpArgs *_u
         curl_easy_setopt(curlPatch, CURLOPT_UPLOAD, 1);
         curl_easy_perform(curlPatch);
         curl_easy_cleanup(curlPatch);
+
+        for(unsigned i = 0; i < driveList.size(); i++)
+        {
+            if(driveList[i].id == _fileID)
+            {
+                driveList[i].size = *_upload->o;
+                break;
+            }
+        }
     }
 
     delete jsonResp;
@@ -671,7 +680,10 @@ void drive::gd::deleteFile(const std::string& _fileID)
     for(unsigned i = 0; i < driveList.size(); i++)
     {
         if(driveList[i].id == _fileID)
+        {
             driveList.erase(driveList.begin() + i);
+            break;
+        }
     }
 
     curl_slist_free_all(delHeaders);

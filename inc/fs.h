@@ -12,7 +12,7 @@
 #include "ui/miscui.h"
 
 #define BUFF_SIZE 0x4000
-#define ZIP_BUFF_SIZE 0x10000
+#define ZIP_BUFF_SIZE 0x20000
 #define TRANSFER_BUFFER_LIMIT 0xC00000
 
 namespace fs
