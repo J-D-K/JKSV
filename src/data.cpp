@@ -163,7 +163,7 @@ static void loadUserAccounts()
     if(R_SUCCEEDED(accountListAllUsers(uids, 8, &total)))
     {
         for(int i = 0; i < total; i++)
-            data::users.emplace_back(uids[i], "");
+            data::users.emplace_back(uids[i], "", "");
     }
     delete[] uids;
 }
@@ -249,10 +249,11 @@ bool data::loadUsersTitles(bool clearUsers)
         loadUserAccounts();
         sysBCATPushed = false;
         tempPushed = false;
-        users.emplace_back(util::u128ToAccountUID(3), ui::getUIString("saveTypeMainMenu", 0));
-        users.emplace_back(util::u128ToAccountUID(2), ui::getUIString("saveTypeMainMenu", 1));
-        users.emplace_back(util::u128ToAccountUID(5), ui::getUIString("saveTypeMainMenu", 2));
-        users.emplace_back(util::u128ToAccountUID(0), ui::getUIString("saveTypeMainMenu", 3));
+
+        users.emplace_back(util::u128ToAccountUID(3), ui::getUIString("saveTypeMainMenu", 0), "Device");
+        users.emplace_back(util::u128ToAccountUID(2), ui::getUIString("saveTypeMainMenu", 1), "BCAT");
+        users.emplace_back(util::u128ToAccountUID(5), ui::getUIString("saveTypeMainMenu", 2), "Cache");
+        users.emplace_back(util::u128ToAccountUID(0), ui::getUIString("saveTypeMainMenu", 3), "System");
     }
 
     for(unsigned i = 0; i < 7; i++)
@@ -291,7 +292,7 @@ bool data::loadUsersTitles(bool clearUsers)
                     {
                         ++systemUserCount;
                         sysBCATPushed = true;
-                        users.emplace_back(util::u128ToAccountUID(4), ui::getUIString("saveTypeMainMenu", 4));
+                        users.emplace_back(util::u128ToAccountUID(4), ui::getUIString("saveTypeMainMenu", 4), "System BCAT");
                     }
                     break;
 
@@ -305,7 +306,7 @@ bool data::loadUsersTitles(bool clearUsers)
                     {
                         ++systemUserCount;
                         tempPushed = true;
-                        users.emplace_back(util::u128ToAccountUID(6), ui::getUIString("saveTypeMainMenu", 5));
+                        users.emplace_back(util::u128ToAccountUID(6), ui::getUIString("saveTypeMainMenu", 5), "Temporary");
                     }
                     break;
             }
@@ -313,7 +314,7 @@ bool data::loadUsersTitles(bool clearUsers)
             int u = getUserIndex(info.uid);
             if(u == -1)
             {
-                users.emplace(data::users.end() - systemUserCount, info.uid, "");
+                users.emplace(data::users.end() - systemUserCount, info.uid, "", "");
                 u = getUserIndex(info.uid);
             }
 
@@ -426,7 +427,7 @@ int data::getTitleIndexInUser(const data::user& u, const uint64_t& tid)
     return -1;
 }
 
-data::user::user(const AccountUid& _id, const std::string& _backupName)
+data::user::user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName)
 {
     userID = _id;
     uID128 = util::accountUIDToU128(_id);
@@ -457,13 +458,13 @@ data::user::user(const AccountUid& _id, const std::string& _backupName)
     else
     {
         username = _backupName.empty() ? util::getIDStr((uint64_t)uID128) : _backupName;
-        userSafe = _backupName.empty() ? util::getIDStr((uint64_t)uID128) : _backupName;
+        userSafe = _safeBackupName.empty() ? util::getIDStr((uint64_t)uID128) : _safeBackupName;
         userIcon = util::createIconGeneric(_backupName.c_str(), 48, false);
     }
     titles.reserve(64);
 }
 
-data::user::user(const AccountUid& _id, const std::string& _backupName, SDL_Texture *img) : user(_id, _backupName)
+data::user::user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName, SDL_Texture *img) : user(_id, _backupName, _safeBackupName)
 {
     delIcon();
     userIcon = img;

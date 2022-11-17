@@ -71,8 +71,11 @@ std::string fs::driveSignInGetAuthCode()
     size_t rLength = 0;
     char replyURLCstr[0x1000];
     webReplyGetLastUrl(&webReply, replyURLCstr, 0x1000, &rLength);
-    replyURL.assign(replyURLCstr);
+    //Prevent crash if empty.
+    if(strlen(replyURLCstr) == 0)
+        return "";
 
+    replyURL.assign(replyURLCstr);
     int unescLength = 0;
     size_t codeBegin = replyURL.find("approvalCode") + 13, codeEnd = replyURL.find_last_of('#');
     size_t codeLength = codeEnd - codeBegin;

@@ -26,11 +26,6 @@ static bool isVerboten(const uint32_t& t)
     return false;
 }
 
-static inline bool isASCII(const uint32_t& t)
-{
-    return t > 30 && t < 127;
-}
-
 void util::replaceStr(std::string& _str, const std::string& _find, const std::string& _rep)
 {
     size_t pos = 0;

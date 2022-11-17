@@ -78,6 +78,10 @@ namespace util
     size_t getTotalPlacesInPath(const std::string& _path);
     void trimPath(std::string& _path, uint8_t _places);
 
+    inline bool isASCII(const uint32_t& t)
+    {
+        return t > 30 && t < 127;
+    }
     std::string safeString(const std::string& s);
 
     std::string getInfoString(data::user& u, const uint64_t& tid);

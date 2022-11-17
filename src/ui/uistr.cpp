@@ -150,7 +150,8 @@ void ui::initStrings()
     addUIString("saveTypeMainMenu", 2, "Cache");
     addUIString("saveTypeMainMenu", 3, "System");
     addUIString("saveTypeMainMenu", 4, "System BCAT");
-    addUIString("saveTypeMainMenu", 5, "SysTemp Storagetem");
+    addUIString("saveTypeMainMenu", 5, "Temporary");
+    //This is redundant. Need to merge and use one or the other...
     addUIString("saveDataTypeText", 0, "System");
     addUIString("saveDataTypeText", 1, "Account");
     addUIString("saveDataTypeText", 2, "BCAT");

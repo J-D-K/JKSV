@@ -7,9 +7,9 @@
 
 #include "gfx.h"
 
-#define BLD_MON 12
-#define BLD_DAY 15
-#define BLD_YEAR 2021
+#define BLD_MON 11
+#define BLD_DAY 17
+#define BLD_YEAR 2022
 
 namespace data
 {
@@ -45,8 +45,8 @@ namespace data
     {
         public:
             user() = default;
-            user(const AccountUid& _id, const std::string& _backupName);
-            user(const AccountUid& _id, const std::string& _backupName, SDL_Texture *img);
+            user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName);
+            user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName, SDL_Texture *img);
 
             //Sets ID
             void setUID(const AccountUid& _id);
