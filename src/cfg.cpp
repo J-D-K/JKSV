@@ -302,7 +302,6 @@ static void loadDriveConfig()
         if(itemName.find("client_secret") != itemName.npos)
         {
             clientSecretPath = "/config/JKSV/" + cfgList.getItem(i);
-            fs::logWrite("client_secret found: %s\n", clientSecretPath.c_str());
             break;
         }
     }
