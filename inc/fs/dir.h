@@ -11,7 +11,7 @@ namespace fs
     bool dirNotEmpty(const std::string& _dir);
     bool isDir(const std::string& _path);
 
-    //threadInfo is optional
+    //threadInfo is optional. Only for updating task status.
     void copyDirToDir(const std::string& src, const std::string& dst, threadInfo *t);
     void copyDirToDirThreaded(const std::string& src, const std::string& dst);
     void copyDirToDirCommit(const std::string& src, const std::string& dst, const std::string& dev, threadInfo *t);

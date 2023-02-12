@@ -1,33 +1,34 @@
 # <center> How to use Google Drive with JKSV </center>
+**USING GOOGLE DRIVE WITH JKSV CURRENTLY REQUIRES BUILDING IT YOURSELF. I AM VERY BUSY LATELY AND THINGS WILL ONLY GET FINISHED WHEN I HAVE TIME. Thanks, sorry for yelling.**
+
+**NOTE: As of Feb 2023, JKSV now uses the JSON downloaded from Google directly instead of editing JKSV's configuration file.**
 
 **Google only allows unverified apps to have up to 100 test users. Not only would this limit be filled within minutes, but each user has to manually added. People have been asking for some kind of cloud support since I wrote JKSM on 3DS and this is my way to support it while getting around Google's restrictions.**
 
 **Note: Due to Google's restrictions on unverified apps, you will be required to login once every seven days. There is nothing I can do about this at the moment.**
 
 
-1. Go to https://console.cloud.google.com/, if this is your first time, accept the terms and you should now have the dashboard in front of you.
-2. Click `CREATE PROJECT` on the next screen.<br><center><img src="https://i.imgur.com/42Wruo4.png" /></center>
+1. Go to https://console.cloud.google.com/cloud-resource-manager, if this is your first time, accept the terms and you should now have the dashboard in front of you.
+2. Click `CREATE PROJECT` on the next screen.<br><center><img src="https://i.imgur.com/9SDS2e0.png" /></center>
 3. On the next screen name your project JKSV. Organization is not required. Click create.
-4. Give it a few seconds and the project should be created. Select JKSV if it hasn't been selected already.<center><img src="https://i.imgur.com/P1lXGea.png" /></center>
-5. On the left side, find APIs and Services and click Dashboard.<br><center><img src="https://i.imgur.com/Ve8NRVr.png" /></center>
-6. Once the dashboard loads, click `+ENABLE APIS AND SERVICES`.<br><center><img src="https://i.imgur.com/RzB8ChU.png" /></center>
-7. Scroll down a little and find Google Drive API under Google Workspace.<br><center><img src="https://i.imgur.com/cAC7h1r.png" /></center>
-8. Click on it and Click Enable on the next screen.
-9. On the next screen, Google should be informing you that you need to create credentials in order to use Drive. Click Create Credentials.<br><center><img src="https://i.imgur.com/gMyedT4.png" /></center>
-10. Under `Which API are you using?`, find `Cloud Storage API`. Under `What data will you be accessing?`, select `User data`. Click done.
-11. On the next screen, there should be a reminder to configure your OAuth Consent screen AKA your login screen. Click `CONFIGURE CONSENT SCREEN`.<br><center><img src="https://i.imgur.com/SGmUnPp.png" /></center>
-12. Select external and then create.
-13. Fill out the next screen. Only App name, user support email, and developer contact information are required. The rest can be left blank. Save and Continue.
-14. On the next screen, click `ADD OR REMOVE SCOPES`. Find `../auth/drive` or just type `https://www.googleapis.com/auth/drive` into `Manually add scopes`. Click update at the bottom. Save and Continue.
-15. Add yourself as a test user. Save and Continue.
-16. `BACK TO DASHBOARD`
-17. On the left under APIs and Services, click Credentials.<br><center><img src="https://i.imgur.com/iWD1GTk.png" /></center>
-18. On the next screen, click `+ CREATE_CREDENTIALS`. Select `OAuth Client ID`.<br><center><img src="https://i.imgur.com/ri3tuB7.png" /></center>
-19. On the next screen, under `Application Type`, select `Desktop App`. Click `Create`.
-20. You now have your Client ID and Client Secret. Almost done!
-23. On your Switch's SD card, go to JKSV's config file and open it. `SDMC:/config/JKSV/JKSV.cfg`.
-24. Add these lines and save. The next time you open JKSV, you will need to login to Google on your Switch:
-```
-driveClientID = YOUR_CLIENT_ID_HERE
-driveClientSecret = YOU_CLIENT_SECRET_HERE
-```
+4. Give it a few seconds and the project should be created.
+5. In the top left corner of your screen, click the navigation menu to the left of where it says **Google Cloud**. Find **Enabled APIs and services**. You may need to refresh the page if it doesn't update automatically to continue. <br><center><img src="https://i.imgur.com/JhqOpgc.png" /></center>
+6. **Double check at this point to make 100% sure JKSV is the active project just in case it is not.**
+<br><center><img src="https://i.imgur.com/U49aIcb.png" /></center>
+7. Once the dashboard loads, click **+ENABLE APIS AND SERVICES**. <br><center><img src="https://i.imgur.com/qaIhjID.png" /></center>
+8. Scroll down a little and find Google Drive API under Google Workspace.<br><center><img src="https://i.imgur.com/cAC7h1r.png" /></center>
+9. Click on it and click Enable on the next screen.
+10. On the next screen, Google should be informing you that you need to create credentials in order to use Drive. Click Create Credentials.<br><center><img src="https://i.imgur.com/CRhFXQ4.png" /></center>
+11. Under **Which API are you using?**, find **Cloud Storage API**. Under **What data will you be accessing?**, select **User data**. Click **Next**.
+<br><center><img src="https://i.imgur.com/fiulRpn.png" /></center>
+12. Fill out the following the following screen. **Save and continue**.
+13. Click **Add or Remove Scopes**.
+14. Find **.../auth/drive** in the API list, select it, and click update. **Save and Continue**.
+15. At this point you should be at a section named **OAuth Client ID**. Select **Desktop app**, name it **JKSV** and click **Create**.
+16. Download the credentials saved in JSON format for later. Click **Done**.
+17. Next, open the navigation menu in the top left again. Go down to **APIs and Services** and click on **OAuth consent screen**.<br>
+<center><img src="https://i.imgur.com/OrMtG1x.png" /></center>
+18. Scroll down to the section named **Test users**. Add yourself as a test user. This concludes the Google side of things.<br>
+<center><img src="https://i.imgur.com/RTV2LMZ.png" /></center>
+19. Next, find the JSON file you downloaded earlier. Copy it or send it via FTP to the following folder on your SD Card: `SD:/config/JKSV/`
+20. The next time you start JKSV on your Switch, you should be prompted to login to Google via the Switch's web browser. Ta-da!

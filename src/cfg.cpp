@@ -1,6 +1,7 @@
 #include <switch.h>
 #include <string>
 #include <unordered_map>
+#include <json-c/json.h>
 
 #include "cfg.h"
 #include "data.h"
@@ -22,8 +23,7 @@ static std::unordered_map<std::string, unsigned> cfgStrings =
     {"workDir", 0}, {"includeDeviceSaves", 1}, {"autoBackup", 2}, {"overclock", 3}, {"holdToDelete", 4}, {"holdToRestore", 5},
     {"holdToOverwrite", 6}, {"forceMount", 7}, {"accountSystemSaves", 8}, {"allowSystemSaveWrite", 9}, {"directFSCommands", 10},
     {"exportToZIP", 11}, {"languageOverride", 12}, {"enableTrashBin", 13}, {"titleSortType", 14}, {"animationScale", 15},
-    {"favorite", 16}, {"blacklist", 17}, {"autoName", 18}, {"driveClientID", 19}, {"driveClientSecret", 20}, {"driveRefreshToken", 21},
-    {"driveAuthCode", 22}
+    {"favorite", 16}, {"blacklist", 17}, {"autoName", 18}, {"driveRefreshToken", 19},
 };
 
 const std::string _true_ = "true", _false_ = "false";
@@ -291,6 +291,36 @@ static void loadTitleDefs()
     }
 }
 
+static void loadDriveConfig()
+{
+    fs::dirList cfgList("/config/JKSV/");
+
+    std::string clientSecretPath;
+    for(unsigned i = 0; i < cfgList.getCount(); i++)
+    {
+        std::string itemName = cfgList.getItem(i);
+        if(itemName.find("client_secret") != itemName.npos)
+        {
+            clientSecretPath = "/config/JKSV/" + cfgList.getItem(i);
+            fs::logWrite("client_secret found: %s\n", clientSecretPath.c_str());
+            break;
+        }
+    }
+
+    if(!clientSecretPath.empty())
+    {
+        json_object *installed, *clientID, *clientSecret,*driveJSON = json_object_from_file(clientSecretPath.c_str());
+        json_object_object_get_ex(driveJSON, "installed", &installed);
+        json_object_object_get_ex(installed, "client_id", &clientID);
+        json_object_object_get_ex(installed, "client_secret", &clientSecret);
+
+        cfg::driveClientID = json_object_get_string(clientID);
+        cfg::driveClientSecret = json_object_get_string(clientSecret);
+
+        json_object_put(driveJSON);
+    }
+}
+
 void cfg::loadConfig()
 {
     cfg::resetConfig();
@@ -405,19 +435,7 @@ void cfg::loadConfig()
                         break;
 
                     case 19:
-                        cfg::driveClientID = cfgRead.getNextValueStr();
-                        break;
-
-                    case 20:
-                        cfg::driveClientSecret = cfgRead.getNextValueStr();
-                        break;
-
-                    case 21:
                         cfg::driveRefreshToken = cfgRead.getNextValueStr();
-                        break;
-
-                    case 22:
-                        //cfg::driveAuthCode = cfgRead.getNextValueStr();
                         break;
 
                     default:
@@ -426,6 +444,7 @@ void cfg::loadConfig()
             }
         }
     }
+    loadDriveConfig();
 }
 
 static void savePathDefs()
@@ -456,12 +475,6 @@ void cfg::saveConfig()
     fprintf(cfgOut, "enableTrashBin = %s\n", boolToText(cfg::config["trashBin"]).c_str());
     fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
     fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
-
-    if(!cfg::driveClientID.empty())
-        fprintf(cfgOut, "driveClientID = %s\n", cfg::driveClientID.c_str());
-
-    if(!cfg::driveClientSecret.empty())
-        fprintf(cfgOut, "driveClientSecret = %s\n", cfg::driveClientSecret.c_str());
 
     if(!cfg::driveRefreshToken.empty())
         fprintf(cfgOut, "driveRefreshToken = %s\n", cfg::driveRefreshToken.c_str());
