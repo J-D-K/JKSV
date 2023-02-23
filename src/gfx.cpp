@@ -52,7 +52,7 @@ static bool loadSystemFont()
     PlFontData shared[6];
     uint64_t langCode = 0;
 
-    if(R_FAILED(plInitialize(PlServiceType_System)))
+    if(R_FAILED(plInitialize(PlServiceType_User)))
         return false;
 
     if(FT_Init_FreeType(&lib))
