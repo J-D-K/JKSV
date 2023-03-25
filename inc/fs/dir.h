@@ -7,7 +7,9 @@ namespace fs
 {
     void mkDir(const std::string& _p);
     void mkDirRec(const std::string& _p);
-    void delDir(const std::string& _p);
+    void mkDirRec2(const std::string &_p);
+    void mkFileDirRec(const std::string &_p);
+    void delDir(const std::string &_p);
     bool dirNotEmpty(const std::string& _dir);
     bool isDir(const std::string& _path);
 

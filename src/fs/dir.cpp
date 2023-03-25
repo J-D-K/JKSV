@@ -4,6 +4,7 @@
 #include "fs.h"
 #include "cfg.h"
 #include "util.h"
+#include "dir.h"
 
 static struct
 {
@@ -40,6 +41,41 @@ void fs::mkDirRec(const std::string& _p)
         fs::mkDir(_p.substr(0, pos).c_str());
         ++pos;
     }
+}
+
+/**
+ * make sure _p is a directory, if it's a file
+ * will curse error
+*/
+void fs::mkDirRec2(const std::string& _p)
+{
+    if (access(_p.c_str(), F_OK) == 0) {
+        return;
+    }
+
+    size_t index;
+    if ((index = _p.rfind('/')) == std::string::npos)
+    {
+        fs::mkDir(_p.c_str());
+        return;
+    }
+
+    fs::mkDirRec2(_p.substr(0, index));
+    fs::mkDir(_p.c_str());
+}
+
+/**
+ * make sure _p is a full path of file
+ * this will make sure _p's directory
+ * exist
+*/
+void fs::mkFileDirRec(const std::string& _p)
+{
+    if (_p.back() == '/')
+        return;
+
+    size_t pos = _p.rfind('/');
+    fs::mkDirRec2(_p.substr(0, pos));
 }
 
 void fs::delDir(const std::string& path)

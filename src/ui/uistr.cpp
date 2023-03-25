@@ -314,6 +314,21 @@ void ui::initStrings()
     addUIString("debugStatus", 2, "Current Title: ");
     addUIString("debugStatus", 3, "Safe Title: ");
     addUIString("debugStatus", 4, "Sort Type: ");
+
+    //LDN informations
+    addUIString("LDNStatus", 0, "wait for client");
+    addUIString("LDNStatus", 1, "Retry to connect %d time");
+    addUIString("LDNStatus", 2, "wait user %s sure info");
+    addUIString("LDNStatus", 3, "failed to connect to client");
+    addUIString("LDNStatus", 4, "wait for server");
+    addUIString("LDNStatus", 5, "confirm to recive save data from %s");
+    addUIString("LDNStatus", 6, "failed to connect to server");
+    addUIString("LDNStatus", 7, "generate zip save data");
+    addUIString("LDNStatus", 8, "copying zip to remote");
+    addUIString("LDNStatus", 9, "reciving zip from remote");
+    addUIString("LDNStatus", 10, "unzip save to save");
+    addUIString("LDNStatus", 11, "wait for client sure recive");
+    addUIString("LDNStatus", 12, "wait for server compress save");
 }
 
 void ui::loadTrans()
