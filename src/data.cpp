@@ -58,11 +58,11 @@ static struct
                 break;
 
             case cfg::MOST_PLAYED:
-                return a.playStats.playtimeMinutes > b.playStats.playtimeMinutes;
+                return a.playStats.playtime_minutes > b.playStats.playtime_minutes;
                 break;
 
             case cfg::LAST_PLAYED:
-                return a.playStats.last_timestampUser > b.playStats.last_timestampUser;
+                return a.playStats.last_timestamp_user > b.playStats.last_timestamp_user;
                 break;
         }
         return false;
