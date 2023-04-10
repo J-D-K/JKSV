@@ -202,11 +202,11 @@ std::string util::getInfoString(data::user& u, const uint64_t& tid)
     ret += ui::getUICString("infoStatus", 1) + util::getIDStr(userTinfo->saveInfo.save_data_id) + "\n";
 
     uint32_t hours, mins;
-    hours = userTinfo->playStats.playtimeMinutes / 60;
-    mins = userTinfo->playStats.playtimeMinutes - (hours * 60);
+    hours = userTinfo->playStats.playtime_minutes / 60;
+    mins = userTinfo->playStats.playtime_minutes - (hours * 60);
 
     ret += ui::getUICString("infoStatus", 2) + getTimeString(hours, mins) + "\n";
-    ret += ui::getUICString("infoStatus", 3) + std::to_string(userTinfo->playStats.totalLaunches) + "\n";
+    ret += ui::getUICString("infoStatus", 3) + std::to_string(userTinfo->playStats.total_launches) + "\n";
 
 
     switch(userTinfo->saveInfo.save_data_type)
