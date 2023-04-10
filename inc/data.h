@@ -37,7 +37,7 @@ namespace data
         //Makes it easier to grab id
         uint64_t tid;
         FsSaveDataInfo saveInfo;
-        PdmPlayStatistics playStats;
+        PdmPlayStatisticsV1 playStats;
     } userTitleInfo;
 
     //Class to store user info + titles
