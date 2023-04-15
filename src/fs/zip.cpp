@@ -25,9 +25,6 @@ static void writeFileFromZip_t(void *a)
     std::vector<uint8_t> localBuffer;
     unsigned int written = 0, journalCount = 0;
 
-    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    uint64_t journalSpace = fs::getJournalSize(utinfo);
-
     FILE *out = fopen(in->dst.c_str(), "wb");
     while(written < in->fileSize)
     {
@@ -79,8 +76,8 @@ void fs::copyDirToZip(const std::string& src, zipFile dst, bool trimPath, int tr
             time_t raw;
             time(&raw);
             tm *locTime = localtime(&raw);
-            zip_fileinfo inf = { (unsigned)locTime->tm_sec, (unsigned)locTime->tm_min, (unsigned)locTime->tm_hour,
-                                 (unsigned)locTime->tm_mday, (unsigned)locTime->tm_mon, (unsigned)(1900 + locTime->tm_year), 0, 0, 0 };
+            zip_fileinfo inf = { locTime->tm_sec, locTime->tm_min, locTime->tm_hour,
+                                 locTime->tm_mday, locTime->tm_mon, (1900 + locTime->tm_year), 0, 0, 0 };
 
             std::string filename = src + itm;
             size_t zipNameStart = 0;
@@ -155,7 +152,7 @@ void fs::copyZipToDir(unzFile src, const std::string& dst, const std::string& de
         c = (fs::copyArgs *)t->argPtr;
 
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    uint64_t journalSize = getJournalSize(utinfo), writeCount = 0;
+    uint64_t journalSize = getJournalSize(utinfo);
     char filename[FS_MAX_PATH];
     uint8_t *buff = new uint8_t[BUFF_SIZE];
     int readIn = 0;

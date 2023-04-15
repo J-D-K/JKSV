@@ -52,7 +52,7 @@ static void writeThread_t(void *a)
 {
     dlWriteThreadStruct *in = (dlWriteThreadStruct *)a;
     std::vector<uint8_t> localBuff;
-    int written = 0;
+    unsigned written = 0;
 
     FILE *out = fopen(in->cfa->path.c_str(), "wb");
 
@@ -98,8 +98,6 @@ static size_t writeDataBufferThreaded(uint8_t *buff, size_t sz, size_t cnt, void
 
 bool drive::gd::exhangeAuthCode(const std::string& _authCode)
 {
-    bool ret = false;
-
     // Header
     curl_slist *postHeader = NULL;
     postHeader = curl_slist_append(postHeader, HEADER_CONTENT_TYPE_APP_JSON);
@@ -140,7 +138,6 @@ bool drive::gd::exhangeAuthCode(const std::string& _authCode)
         {
             token = json_object_get_string(accessToken);
             rToken = json_object_get_string(refreshToken);
-            ret = true;
         }
         else
             writeDriveError("exchangeAuthCode", jsonResp->c_str());
@@ -647,7 +644,8 @@ void drive::gd::downloadFile(const std::string& _fileID, curlFuncs::curlDlArgs *
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeDataBufferThreaded);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &dlWrite);
     threadStart(&writeThread);
-    int error = curl_easy_perform(curl);
+    
+    curl_easy_perform(curl);
 
     threadWaitForExit(&writeThread);
     threadClose(&writeThread);
@@ -675,7 +673,7 @@ void drive::gd::deleteFile(const std::string& _fileID)
     curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, delHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    int error = curl_easy_perform(curl);
+    curl_easy_perform(curl);
 
     for(unsigned i = 0; i < driveList.size(); i++)
     {

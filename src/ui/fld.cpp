@@ -88,7 +88,6 @@ static void fldFuncUpload_t(void *a)
     fsSetPriority(FsPriority_Realtime);
 
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    data::titleInfo *tinfo = data::getTitleInfoByTID(utinfo->tid);
     std::string path, tmpZip, filename;//Final path to upload from
 
     if(cfg::config["ovrClk"])
@@ -164,7 +163,6 @@ static void fldFuncDownload_t(void *a)
     threadInfo *t = (threadInfo *)a;
     drive::gdItem *in = (drive::gdItem *)t->argPtr;
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    data::titleInfo *tinfo = data::getTitleInfoByTID(utinfo->tid);
     std::string targetPath = util::generatePathByTID(utinfo->tid) + in->name;
     t->status->setStatus(ui::getUICString("threadStatusDownloadingFile", 0), in->name.c_str());
     
@@ -206,7 +204,6 @@ static void fldFuncDownload(void *a)
 {
     drive::gdItem *in = (drive::gdItem *)a;
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    data::titleInfo *tinfo = data::getTitleInfoByTID(utinfo->tid);
     std::string testPath = util::generatePathByTID(utinfo->tid) + in->name;
     if(fs::fileExists(testPath))
     {
@@ -359,7 +356,6 @@ void ui::fldRefreshMenu()
 
     fldMenu->reset();
     data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
-    data::titleInfo *tinfo = data::getTitleInfoByTID(utinfo->tid);
     std::string targetDir = util::generatePathByTID(utinfo->tid);
 
     fldList->reassign(targetDir);

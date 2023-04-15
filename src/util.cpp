@@ -191,64 +191,6 @@ static inline std::string getTimeString(const uint32_t& _h, const uint32_t& _m)
     return std::string(tmp);
 }
 
-std::string util::getInfoString(data::user& u, const uint64_t& tid)
-{
-    data::titleInfo *tinfo = data::getTitleInfoByTID(tid);
-    data::userTitleInfo *userTinfo = data::getCurrentUserTitleInfo();
-
-    std::string ret = tinfo->title + "\n";
-
-    ret += ui::getUICString("infoStatus", 0) + util::getIDStr(tid) + "\n";
-    ret += ui::getUICString("infoStatus", 1) + util::getIDStr(userTinfo->saveInfo.save_data_id) + "\n";
-
-    uint32_t hours, mins;
-    hours = userTinfo->playStats.playtimeMinutes / 60;
-    mins = userTinfo->playStats.playtimeMinutes - (hours * 60);
-
-    ret += ui::getUICString("infoStatus", 2) + getTimeString(hours, mins) + "\n";
-    ret += ui::getUICString("infoStatus", 3) + std::to_string(userTinfo->playStats.totalLaunches) + "\n";
-
-
-    switch(userTinfo->saveInfo.save_data_type)
-    {
-        case FsSaveDataType_System:
-            ret += ui::getUICString("saveDataTypeText", 0);
-            break;
-
-        case FsSaveDataType_Account:
-            ret += ui::getUICString("saveDataTypeText", 1);
-            break;
-
-        case FsSaveDataType_Bcat:
-            ret += ui::getUICString("saveDataTypeText", 2);
-            break;
-
-        case FsSaveDataType_Device:
-            ret += ui::getUICString("saveDataTypeText", 3);
-            break;
-
-        case FsSaveDataType_Temporary:
-            ret += ui::getUICString("saveDataTypeText", 4);
-            break;
-
-        case FsSaveDataType_Cache:
-            {
-                data::userTitleInfo *d = data::getCurrentUserTitleInfo();
-                ret += ui::getUICString("saveDataTypeText", 5);
-                ret += ui::getUICString("saveDataIndexText", 0) + std::to_string(d->saveInfo.save_data_index) + "\n";
-            }
-            break;
-
-        case FsSaveDataType_SystemBcat:
-            ret += ui::getUICString("saveDataTypeText", 6);
-            break;
-    }
-
-    ret += u.getUsername();
-
-    return ret;
-}
-
 std::string util::getStringInput(SwkbdType _type, const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[])
 {
     SwkbdConfig swkbd;

@@ -296,14 +296,14 @@ static void infoPanelDraw(void *a)
     drawY += 40;
 
     uint32_t hours, mins;
-    hours = d->playStats.playtimeMinutes / 60;
-    mins = d->playStats.playtimeMinutes - (hours * 60);
+    hours = ((d->playStats.playtime / 1e+9) / 60) / 60;
+    mins = ((d->playStats.playtime / 1e+9) / 60) - (hours * 60);
     gfx::drawRect(panel, &ui::rectLt, 10, drawY, rectWidth, 38);
     gfx::drawTextf(panel, 18, 20, drawY + 10, &ui::txtCont, ui::getUICString("infoStatus", 2), hours, mins);
     drawY += 40;
 
     gfx::drawRect(panel, &ui::rectSh, 10, drawY, rectWidth, 38);
-    gfx::drawTextf(panel, 18, 20, drawY + 10, &ui::txtCont, ui::getUICString("infoStatus", 3), d->playStats.totalLaunches);
+    gfx::drawTextf(panel, 18, 20, drawY + 10, &ui::txtCont, ui::getUICString("infoStatus", 3), d->playStats.total_launches);
     drawY += 40;
 
     gfx::drawRect(panel, &ui::rectLt, 10, drawY, rectWidth, 38);
