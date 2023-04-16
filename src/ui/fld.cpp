@@ -2,6 +2,7 @@
 
 #include "ui.h"
 #include "fs.h"
+#include "ldn.h"
 #include "util.h"
 #include "cfg.h"
 
@@ -215,6 +216,249 @@ static void fldFuncDownload(void *a)
 
 }
 
+static void LDNRestoreThread(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *cpy = (fs::copyArgs *)t->argPtr;
+    LDN::LDNCommunicate *comm = cpy->comm;
+
+    LDN::sendOK(comm->commFD);
+
+    LDN::copyRemoteSaveFile(t);
+
+cleanOut:
+    LDN::destroyCommunicate(comm);
+    LDN::destroyLDN();
+    if (cpy->cleanup)
+      fs::copyArgsDestroy(cpy);
+    t->finished = true;
+}
+
+static void fldFuncLDNRestoreConfirm(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *cpy = (fs::copyArgs *)t->argPtr;
+
+    ui::newThread(LDNRestoreThread, cpy, fs::fileDrawFunc);
+    t->finished = true;
+}
+
+static void fldFuncLDNCancel(void *a)
+{
+    fs::copyArgs *cpy = (fs::copyArgs *)a;
+    LDN::LDNCommunicate *comm = cpy->comm;
+
+    LDN::sendAbort(comm->commFD);
+
+    LDN::destroyCommunicate(comm);
+    LDN::destroyLDN();
+
+    if (cpy->cleanup)
+      fs::copyArgsDestroy(cpy);
+}
+
+static void fldFuncLDNRestore_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *cpy = (fs::copyArgs *)t->argPtr;
+    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
+    LDN::LDNCommunicate *comm = LDN::createCommunicate();
+    uint64_t retry = 5;
+    bool bindSuccess = false;
+    struct sockaddr_in *servaddr;
+    LdnNetworkInfo netinfo = {0};
+    ui::confirmArgs *conf;
+    Result rc;
+
+    t->status->setStatus(ui::getUICString("LDNStatus", 4));
+    cpy->offset = 0;
+    cpy->prog->setMax(retry);
+    cpy->prog->update(0);
+
+    while (cpy->offset < retry) {
+        rc = LDN::createLDNClient(comm);
+        if (R_SUCCEEDED(rc))
+        {
+            bindSuccess = true;
+            cpy->offset = 5;
+            cpy->prog->update(cpy->offset);
+            break;
+        }
+
+        cpy->offset += 1;
+        cpy->prog->update(cpy->offset);
+        t->status->setStatus(ui::getUICString("LDNStatus", 1), cpy->offset);
+        svcSleepThread(1e+9);
+    }
+
+    if (!bindSuccess) {
+        goto create_fail;
+    }
+
+    rc = ldnGetNetworkInfo(&netinfo);
+    if (R_FAILED(rc)) {
+        goto getinfo_fail;
+    }
+
+    svcSleepThread(1e+9 * 1);   //wait for 1s
+
+    servaddr = &comm->serverAddr;
+    memset(servaddr, 0, sizeof(*servaddr));
+    servaddr->sin_family      = AF_INET;
+    servaddr->sin_port        = htons(SAVE_DATA_SERVER_PORT);
+    servaddr->sin_addr.s_addr = htonl(netinfo.nodes[0].ip_addr.addr);
+
+    comm->commFD = LDN::bindServer(&comm->serverAddr);
+    if (comm->commFD < 0) {
+        goto getinfo_fail;
+    }
+
+    cpy->comm = comm;
+    conf = ui::confirmArgsCreate(cfg::config["holdOver"],
+                                 fldFuncLDNRestoreConfirm, fldFuncLDNCancel,
+                                 cpy, ui::getUICString("LDNStatus", 5),
+                                 netinfo.nodes[0].nickname);
+    ui::confirm(conf);
+    t->finished = true;
+    return;
+
+getinfo_fail:
+    LDN::destroyLDN();
+create_fail:
+    if (cpy->cleanup)
+            fs::copyArgsDestroy(cpy);
+    LDN::destroyCommunicate(comm);
+    ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("LDNStatus", 6));
+    t->finished = true;
+}
+
+static void fldFuncLDNBackup_t(void *a)
+{
+    threadInfo *t = (threadInfo *)a;
+    fs::copyArgs *cpy = (fs::copyArgs *)t->argPtr;
+    data::userTitleInfo *utinfo = data::getCurrentUserTitleInfo();
+    LDN::LDNCommunicate *comm = LDN::createCommunicate();
+    uint64_t retry = 10;
+    bool bindSuccess = false;
+    LdnNetworkInfo netinfo = {0};
+    struct sockaddr_in clientAddr;
+    struct sockaddr_in *servaddr;
+    ui::confirmArgs *conf;
+    socklen_t length = sizeof(clientAddr);
+        int flag = 1;
+    Result rc;
+
+    t->status->setStatus(ui::getUICString("LDNStatus", 0));
+    cpy->offset = 0;
+    cpy->prog->setMax(retry);
+    cpy->prog->update(0);
+
+    rc = LDN::createLDNServer(comm);
+    if (R_FAILED(rc)) {
+        goto err_out;
+    }
+
+    while (cpy->offset < retry) {
+        rc = ldnGetNetworkInfo(&netinfo);
+        if (R_FAILED(rc)) {
+            goto ldn_out;
+        }
+
+        // just allow one client
+        // it must in index 1, index 0 is ap(me)
+        if (netinfo.nodes[1].is_connected)
+        {
+            bindSuccess = true;
+            cpy->offset = 10;
+            cpy->prog->update(cpy->offset);
+            break;
+        }
+
+        cpy->offset += 1;
+        cpy->prog->update(cpy->offset);
+        t->status->setStatus(ui::getUICString("LDNStatus", 1), cpy->offset);
+        svcSleepThread(1e+9);
+    }
+
+    if (!bindSuccess) {
+        goto ldn_out;
+    }
+
+    servaddr = &comm->serverAddr;
+    memset(servaddr, 0, sizeof(*servaddr));
+    servaddr->sin_family = AF_INET;
+    servaddr->sin_port = htons(SAVE_DATA_SERVER_PORT);
+    servaddr->sin_addr.s_addr = htons(INADDR_ANY);
+
+    comm->serverFD = socket(PF_INET, SOCK_STREAM, 0);
+    if (comm->serverFD < 0) {
+        rc = -1;
+        goto ldn_out;
+    }
+
+    // Port allow reuse
+    setsockopt(comm->serverFD, SOL_SOCKET, SO_REUSEADDR, &flag, sizeof(flag));
+    if (bind(comm->serverFD, (struct sockaddr *)servaddr, sizeof(*servaddr))) {
+      rc = -1;
+      goto ldn_out;
+    }
+
+    if (listen(comm->serverFD, LENGTH_OF_LISTEN_QUEUE)) {
+        rc = -1;
+        goto ldn_out;
+    }
+
+    comm->commFD =
+        accept(comm->serverFD, (struct sockaddr *)&clientAddr, &length);
+    if (comm->commFD < 0)
+        goto ldn_out;
+
+    cpy->comm = comm;
+    t->status->setStatus(ui::getUICString("LDNStatus", 2), netinfo.nodes[1].nickname);
+    cpy->prog->update(0);
+
+    // wait client sure of send
+    rc = LDN::waitForOK(comm->commFD);
+    if (!rc)
+        goto ldn_out;
+
+    if (fs::dirNotEmpty("sv:/")) {
+        LDN::copySaveFileToRemote("sv:/", t);
+    } else {
+        LDN::sendAbort(comm->commFD);
+    }
+
+    LDN::destroyCommunicate(comm);
+    LDN::destroyLDN();
+    if (cpy->cleanup)
+        fs::copyArgsDestroy(cpy);
+    t->finished = true;
+    return;
+
+ldn_out:
+    LDN::destroyCommunicate(comm);
+    LDN::destroyLDN();
+err_out:
+    ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("LDNStatus", 3));
+    if (cpy->cleanup)
+        fs::copyArgsDestroy(cpy);
+    t->finished = true;
+}
+
+static void fldFuncLDNBackup(void *a)
+{
+  fs::copyArgs *send =
+      fs::copyArgsCreate("sv:/", "", "", NULL, NULL, true, false, 0);
+  ui::newThread(fldFuncLDNBackup_t, send, fs::fileDrawFunc);
+}
+
+static void fldFuncLDNRestore(void *a)
+{
+  fs::copyArgs *recive =
+      fs::copyArgsCreate("", "sv:/", "", NULL, NULL, true, false, 0);
+  ui::newThread(fldFuncLDNRestore_t, recive, fs::fileDrawFunc);
+}
+
 static void fldFuncDriveDelete_t(void *a)
 {
     threadInfo *t = (threadInfo *)a;
@@ -222,7 +466,6 @@ static void fldFuncDriveDelete_t(void *a)
     t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
     fs::gDrive->deleteFile(gdi->id);
     ui::fldRefreshMenu();
-    t->finished = true;    
 }
 
 static void fldFuncDriveDelete(void *a)
@@ -273,7 +516,7 @@ static void fldFuncDriveRestore(void *a)
 void ui::fldInit()
 {
     fldGuideWidth = gfx::getTextWidth(ui::getUICString("helpFolder", 0), 18);
-    
+
     fldMenu = new ui::menu(10, 4, fldGuideWidth + 44, 18, 6);
     fldMenu->setCallback(fldMenuCallback, NULL);
     fldMenu->setActive(false);
@@ -316,6 +559,13 @@ void ui::fldPopulateMenu()
     fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, NULL);
 
     unsigned fldInd = 1;
+    fldMenu->addOpt(NULL, "[LDN]");
+    fldMenu->optAddButtonEvent(fldInd, HidNpadButton_A, fldFuncLDNBackup,
+                               NULL);
+    fldMenu->optAddButtonEvent(fldInd, HidNpadButton_Y, fldFuncLDNRestore,
+                               NULL);
+    fldInd += 1;
+
     if(fs::gDrive)
     {
         if(!fs::gDrive->dirExists(t->title, fs::jksvDriveID))
@@ -363,6 +613,13 @@ void ui::fldRefreshMenu()
     fldMenu->optAddButtonEvent(0, HidNpadButton_A, fs::createNewBackup, NULL);
 
     unsigned fldInd = 1;
+    fldMenu->addOpt(NULL, "[LDN]");
+    fldMenu->optAddButtonEvent(fldInd, HidNpadButton_A, fldFuncLDNBackup,
+                               NULL);
+    fldMenu->optAddButtonEvent(fldInd, HidNpadButton_Y, fldFuncLDNRestore,
+                               NULL);
+    fldInd += 1;
+
     if(fs::gDrive)
     {
         fs::gDrive->getListWithParent(driveParent, driveFldList);

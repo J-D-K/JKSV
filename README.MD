@@ -64,6 +64,7 @@ This started as a simple, straight port of my 3DS save manager I publicly releas
 		* Extend Save Data extends the container for the current title. This is also done automatically if the save being imported is too large for the container.
 			* Different games have different limits. Most games do not need this at all. A few will take advantage of a larger container, others extend theirs at times and will need larger containers than created by default.
 		* Export SVI exports the data needed to create save data for the current title to `JKSV/ncap/[TID].svi`. This is just the title ID, NACP, and icon of the title. These can be used to create save data for games not installed on your system.
+	* In title fold, there is a \[LDN\] fold, you can transfer savedata to another switch by press button A; also, you can press button Y to restore savedata from other switch.
 
 4. File Mode
 	* A opens directories. 

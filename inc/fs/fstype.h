@@ -3,6 +3,7 @@
 #include "data.h"
 #include "miscui.h"
 #include "type.h"
+#include "ldn.h"
 
 namespace fs
 {
@@ -11,6 +12,7 @@ namespace fs
         std::string src, dst, dev;
         zipFile z;
         unzFile unz;
+        LDN::LDNCommunicate *comm;
         bool cleanup = false, trimZipPath = false;
         uint8_t trimZipPlaces = 0;
         uint64_t offset = 0;
