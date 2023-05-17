@@ -82,6 +82,7 @@ namespace util
     {
         return t > 30 && t < 127;
     }
+
     std::string safeString(const std::string& s);
 
     std::string getStringInput(SwkbdType _type, const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
@@ -146,6 +147,12 @@ namespace util
 
     void sysBoost();
     void sysNormal();
+
+    inline bool isApplet()
+    {
+        AppletType type = appletGetAppletType();
+        return type == AppletType_LibraryApplet;
+    }
 
     void checkForUpdate(void *a);
 }

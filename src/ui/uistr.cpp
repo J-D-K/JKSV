@@ -314,6 +314,8 @@ void ui::initStrings()
     addUIString("debugStatus", 2, "Current Title: ");
     addUIString("debugStatus", 3, "Safe Title: ");
     addUIString("debugStatus", 4, "Sort Type: ");
+
+    addUIString("appletModeWarning", 0, "*WARNING*: You are running JKSV in applet mode. Certain functions may not work.");
 }
 
 void ui::loadTrans()
@@ -335,6 +337,7 @@ void ui::loadTrans()
     util::replaceButtonsInString(ui::strings[std::make_pair("dialogYes", 0)]);
     util::replaceButtonsInString(ui::strings[std::make_pair("dialogNo", 0)]);
     util::replaceButtonsInString(ui::strings[std::make_pair("dialogOK", 0)]);
+    util::replaceButtonsInString(ui::strings[std::make_pair("appletModeWarning", 0)]);
 }
 
 void ui::saveTranslationFiles(void *a)

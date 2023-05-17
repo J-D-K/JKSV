@@ -137,12 +137,8 @@ void ui::init()
             break;
     }
 
-    //setup pad
     padConfigureInput(1, HidNpadStyleSet_NpadStandard);
     padInitializeDefault(&ui::pad);
-
-    //Setup touch
-    hidInitializeTouchScreen();
 
     ui::usrInit();
     ui::ttlInit();
@@ -217,7 +213,11 @@ void ui::drawUI()
     gfx::drawLine(NULL, &divClr, 30, 88, 1250, 88);
     gfx::drawLine(NULL, &divClr, 30, 648, 1250, 648);
     gfx::texDraw(NULL, icn, 66, 27);
-    gfx::drawTextf(NULL, 24, 130, 38, &ui::txtCont, "JKSV");
+
+    if(util::isApplet())
+        gfx::drawTextf(NULL, 24, 130, 38, &ui::txtCont, "JKSV *APPLET MODE*");
+    else
+        gfx::drawTextf(NULL, 24, 130, 38, &ui::txtCont, "JKSV");
 
     //Version / translation author
     gfx::drawTextf(NULL, 12, 8, 700, &ui::txtCont, "v. %02d.%02d.%04d", BLD_MON, BLD_DAY, BLD_YEAR);

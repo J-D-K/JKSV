@@ -48,7 +48,6 @@ namespace ui
     inline uint64_t padKeysDown() { return padGetButtonsDown(&pad); }
     inline uint64_t padKeysHeld() { return padGetButtons(&pad); }
     inline uint64_t padKeysUp() { return padGetButtonsUp(&pad); }
-    inline void touchGetXY(uint32_t *x, uint32_t *y) { *x = touchState.touches[0].x; *y = touchState.touches[0].y; }
 
     inline void changeState(int newState)
     {
@@ -86,6 +85,9 @@ namespace ui
     //Loads graphics and stuff
     void init();
     void exit();
+
+    //Inits HID
+    void hidInit();
 
     //Adds a panel pointer to a vector since they need to be drawn over everything else
     int registerMenu(ui::menu *m);

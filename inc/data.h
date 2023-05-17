@@ -99,4 +99,5 @@ namespace data
     SDL_Texture *getTitleIconByTID(const uint64_t& tid);
     int getTitleIndexInUser(const data::user& u, const uint64_t& tid);
     extern SetLanguage sysLang;
+    
 }
