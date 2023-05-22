@@ -13,6 +13,7 @@
 
 static SDL_Window *wind;
 SDL_Renderer *gfx::render;
+gfx::textureMgr *gfx::texMgr;
 
 static FT_Library lib;
 static FT_Face face[6];
@@ -102,6 +103,8 @@ void gfx::init()
 
     SDL_SetRenderDrawBlendMode(render, SDL_BLENDMODE_BLEND);
 
+    gfx::texMgr = new gfx::textureMgr;
+
     loadSystemFont();
 }
 
@@ -110,45 +113,12 @@ void gfx::exit()
     IMG_Quit();
     SDL_Quit();
     freeSystemFont();
-
-    for(auto c : glyphCache)
-        SDL_DestroyTexture(c.second.tex);
+    delete gfx::texMgr;
 }
 
 void gfx::present()
 {
     SDL_RenderPresent(render);
-}
-
-SDL_Texture *gfx::loadJPEGMem(const void *jpegData, size_t jpegsize)
-{
-    SDL_Texture *ret = NULL;
-    SDL_RWops *jpeg = SDL_RWFromConstMem(jpegData, jpegsize);
-    SDL_Surface *tmpSurf = IMG_LoadJPG_RW(jpeg);
-    if(tmpSurf)
-    {
-        ret = SDL_CreateTextureFromSurface(render, tmpSurf);
-        SDL_FreeSurface(tmpSurf);
-    }
-    SDL_RWclose(jpeg);
-
-    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
-
-    return ret;
-}
-
-SDL_Texture *gfx::loadImageFile(const char *file)
-{
-    SDL_Texture *ret = NULL;
-    SDL_Surface *tmpSurf = IMG_Load(file);
-    if(tmpSurf)
-    {
-        ret = SDL_CreateTextureFromSurface(render, tmpSurf);
-        SDL_FreeSurface(tmpSurf);
-    }
-    SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
-
-    return ret;
 }
 
 static inline void resizeFont(int sz)
@@ -196,6 +166,9 @@ static glyphData *getGlyph(uint32_t chr, int size)
 
     SDL_FreeSurface(tmpSurf);
     free(tmpBuff);
+
+    //Add it to texture manager so textures are freed on exit
+    gfx::texMgr->textureAdd(tex);
 
     //Add it to cache map
     glyphCache[std::make_pair(chr, size)] = {(uint16_t)bmp.width, (uint16_t)bmp.rows, (int)glyph->advance.x >> 6, glyph->bitmap_top, glyph->bitmap_left, tex};

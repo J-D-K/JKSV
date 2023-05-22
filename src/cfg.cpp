@@ -155,6 +155,7 @@ void cfg::resetConfig()
     cfg::config["autoName"] = false;
     cfg::sortType = cfg::ALPHA;
     ui::animScale = 3.0f;
+    cfg::config["autoUpload"] = false;
 }
 
 static inline bool textToBool(const std::string& _txt)
@@ -437,6 +438,10 @@ void cfg::loadConfig()
                         cfg::driveRefreshToken = cfgRead.getNextValueStr();
                         break;
 
+                    case 20:
+                        cfg::config["autoUpload"] = textToBool(cfgRead.getNextValueStr());
+                        break;
+
                     default:
                         break;
                 }
@@ -474,6 +479,7 @@ void cfg::saveConfig()
     fprintf(cfgOut, "enableTrashBin = %s\n", boolToText(cfg::config["trashBin"]).c_str());
     fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
     fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
+    fprintf(cfgOut, "autoUpload = %s\n", boolToText(cfg::config["autoUpload"]).c_str());
 
     if(!cfg::driveRefreshToken.empty())
         fprintf(cfgOut, "driveRefreshToken = %s\n", cfg::driveRefreshToken.c_str());

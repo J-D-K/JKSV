@@ -130,7 +130,7 @@ static inline void addTitleToList(const uint64_t& tid)
         if(cfg::isFavorite(tid))
             data::titles[tid].fav = true;
         
-        data::titles[tid].icon = gfx::loadJPEGMem(ctrlData->icon, iconSize);
+        data::titles[tid].icon = gfx::texMgr->textureLoadFromMem(IMG_FMT_JPG, ctrlData->icon, iconSize);
         if(!data::titles[tid].icon)
             data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
     }
@@ -215,7 +215,7 @@ static void importSVIs()
                     data::titles[tid].fav = true;
 
                 if(!data::titles[tid].icon && iconSize > 0)
-                    data::titles[tid].icon = gfx::loadJPEGMem(iconBuffer, iconSize);
+                    data::titles[tid].icon = gfx::texMgr->textureLoadFromMem(IMG_FMT_JPG, iconBuffer, iconSize);
                 else if(!data::titles[tid].icon && iconSize == 0)
                     data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
             }
@@ -450,7 +450,7 @@ data::user::user(const AccountUid& _id, const std::string& _backupName, const st
         accountProfileGetImageSize(&prof, &jpgSize);
         uint8_t *jpegData = new uint8_t[jpgSize];
         accountProfileLoadImage(&prof, jpegData, jpgSize, &jpgSize);
-        userIcon = gfx::loadJPEGMem(jpegData, jpgSize);
+        userIcon = gfx::texMgr->textureLoadFromMem(IMG_FMT_JPG, jpegData, jpgSize);
         delete[] jpegData;
 
         accountProfileClose(&prof);

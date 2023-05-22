@@ -184,7 +184,7 @@ static void fldFuncDownload_t(void *a)
     dlFile.path = targetPath;
     dlFile.size = in->size;
     dlFile.o = &cpy->offset;
-
+    
     fs::gDrive->downloadFile(in->id, &dlFile);
 
     //fclose(dlFile.f);

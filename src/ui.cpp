@@ -102,10 +102,10 @@ void ui::initTheme()
 
 void ui::init()
 {
-    mnuTopLeft  = gfx::loadImageFile("romfs:/img/fb/menuTopLeft.png");
-    mnuTopRight = gfx::loadImageFile("romfs:/img/fb/menuTopRight.png");
-    mnuBotLeft  = gfx::loadImageFile("romfs:/img/fb/menuBotLeft.png");
-    mnuBotRight = gfx::loadImageFile("romfs:/img/fb/menuBotRight.png");
+    mnuTopLeft  = gfx::texMgr->textureLoadFromFile("romfs:/img/fb/menuTopLeft.png");
+    mnuTopRight = gfx::texMgr->textureLoadFromFile("romfs:/img/fb/menuTopRight.png");
+    mnuBotLeft  = gfx::texMgr->textureLoadFromFile("romfs:/img/fb/menuBotLeft.png");
+    mnuBotRight = gfx::texMgr->textureLoadFromFile("romfs:/img/fb/menuBotRight.png");
 
     corePanel  = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_TARGET | SDL_TEXTUREACCESS_STATIC, 1220, 559);
     SDL_SetTextureBlendMode(corePanel, SDL_BLENDMODE_BLEND);
@@ -114,26 +114,26 @@ void ui::init()
     {
         case ColorSetId_Light:
             //Dark corners
-            cornerTopLeft     = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
-            cornerTopRight    = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
-            cornerBottomLeft  = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
-            cornerBottomRight = gfx::loadImageFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
-            progCovLeft       = gfx::loadImageFile("romfs:/img/tboxDrk/progBarCoverLeftDrk.png");
-            progCovRight      = gfx::loadImageFile("romfs:/img/tboxDrk/progBarCoverRightDrk.png");
-            icn               = gfx::loadImageFile("romfs:/img/icn/icnDrk.png");
-            sideBar           = gfx::loadImageFile("romfs:/img/fb/lLight.png");
+            cornerTopLeft     = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxLght/tboxCornerTopLeft.png");
+            cornerTopRight    = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxLght/tboxCornerTopRight.png");
+            cornerBottomLeft  = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxLght/tboxCornerBotLeft.png");
+            cornerBottomRight = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxLght/tboxCornerBotRight.png");
+            progCovLeft       = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxDrk/progBarCoverLeftDrk.png");
+            progCovRight      = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxDrk/progBarCoverRightDrk.png");
+            icn               = gfx::texMgr->textureLoadFromFile("romfs:/img/icn/icnDrk.png");
+            sideBar           = gfx::texMgr->textureLoadFromFile("romfs:/img/fb/lLight.png");
             break;
 
         default:
             //Light corners
-            cornerTopLeft     = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
-            cornerTopRight    = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
-            cornerBottomLeft  = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
-            cornerBottomRight = gfx::loadImageFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
-            progCovLeft       = gfx::loadImageFile("romfs:/img/tboxLght/progBarCoverLeftLight.png");
-            progCovRight      = gfx::loadImageFile("romfs:/img/tboxLght/progBarCoverRightLight.png");
-            icn               = gfx::loadImageFile("romfs:/img/icn/icnLght.png");
-            sideBar           = gfx::loadImageFile("romfs:/img/fb/lDark.png");
+            cornerTopLeft     = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxDrk/tboxCornerTopLeft.png");
+            cornerTopRight    = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxDrk/tboxCornerTopRight.png");
+            cornerBottomLeft  = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxDrk/tboxCornerBotLeft.png");
+            cornerBottomRight = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxDrk/tboxCornerBotRight.png");
+            progCovLeft       = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxLght/progBarCoverLeftLight.png");
+            progCovRight      = gfx::texMgr->textureLoadFromFile("romfs:/img/tboxLght/progBarCoverRightLight.png");
+            icn               = gfx::texMgr->textureLoadFromFile("romfs:/img/icn/icnLght.png");
+            sideBar           = gfx::texMgr->textureLoadFromFile("romfs:/img/fb/lDark.png");
             break;
     }
 
@@ -166,22 +166,6 @@ void ui::exit()
 
     delete popMessages;
     delete threadMngr;
-
-    SDL_DestroyTexture(cornerTopLeft);
-    SDL_DestroyTexture(cornerTopRight);
-    SDL_DestroyTexture(cornerBottomLeft);
-    SDL_DestroyTexture(cornerBottomRight);
-    SDL_DestroyTexture(progCovLeft);
-    SDL_DestroyTexture(progCovRight);
-
-    SDL_DestroyTexture(mnuTopLeft);
-    SDL_DestroyTexture(mnuTopRight);
-    SDL_DestroyTexture(mnuBotLeft);
-    SDL_DestroyTexture(mnuBotRight);
-
-    SDL_DestroyTexture(corePanel);
-
-    SDL_DestroyTexture(icn);
 }
 
 int ui::registerPanel(slideOutPanel *sop)
@@ -197,12 +181,11 @@ threadInfo *ui::newThread(ThreadFunc func, void *args, funcPtr _drawFunc)
 
 void ui::showLoadScreen()
 {
-    SDL_Texture *icon = gfx::loadImageFile("romfs:/icon.png");
+    SDL_Texture *icon = gfx::texMgr->textureLoadFromFile("romfs:/icon.png");
     gfx::clearTarget(NULL, &ui::clearClr);
     gfx::texDraw(NULL, icon, 512, 232);
     gfx::drawTextf(NULL, 16, 1100, 673, &ui::txtCont, ui::getUICString("loadingStartPage", 0));
     gfx::present();
-    SDL_DestroyTexture(icon);
 }
 
 void ui::drawUI()

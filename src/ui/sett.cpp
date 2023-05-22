@@ -227,6 +227,10 @@ static void toggleOpt(void *a)
             if(ui::animScale > 8)
                 ui::animScale = 1;
             break;
+
+        case 21:
+            toggleBool(cfg::config["autoUpload"]);
+            break;
     }
 }
 
@@ -251,6 +255,7 @@ static void updateMenuText()
     char tmp[16];
     sprintf(tmp, "%.1f", ui::animScale);
     ui::settMenu->editOpt(20, NULL, ui::getUIString(settMenuStr, 20) + std::string(tmp));
+    ui::settMenu->editOpt(21, NULL, ui::getUIString(settMenuStr, 21) + getBoolText(cfg::config["autoUpload"]));
 }
 
 void ui::settInit()
@@ -267,7 +272,7 @@ void ui::settInit()
 
     optHelpX = 1220 - gfx::getTextWidth(ui::getUICString("helpSettings", 0), 18);
 
-    for(unsigned i = 0; i < 21; i++)
+    for(unsigned i = 0; i < 22; i++)
     {
         ui::settMenu->addOpt(NULL, ui::getUIString("settingsMenu", i));
         ui::settMenu->optAddButtonEvent(i, HidNpadButton_A, toggleOpt, NULL);

@@ -1,17 +1,16 @@
 #pragma once
 
 #include <SDL.h>
+#include "textureMgr.h"
 
 namespace gfx
 {
     extern SDL_Renderer *render;
+    extern gfx::textureMgr *texMgr;
 
     void init();
     void exit();
     void present();
-
-    SDL_Texture *loadJPEGMem(const void *jpegData, size_t jpegSize);
-    SDL_Texture *loadImageFile(const char *file);
 
     void drawTextf(SDL_Texture *target, int fontSize, int x, int y, const SDL_Color *c, const char *fmt, ...);
     void drawTextfWrap(SDL_Texture *target, int fontSize, int x, int y, int maxWidth, const SDL_Color* c, const char *fmt, ...);
