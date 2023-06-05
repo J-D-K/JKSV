@@ -1,4 +1,5 @@
 #include <vector>
+#include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL_image.h>
 
@@ -18,9 +19,12 @@ void gfx::textureMgr::textureAdd(SDL_Texture *_tex)
 SDL_Texture *gfx::textureMgr::textureCreate(int _w, int _h)
 {
     SDL_Texture *ret = NULL;
-    ret = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC, _w, _h);
+    ret = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, _w, _h);
     if(ret)
+    {
+        SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
         textures.push_back(ret);
+    }
     return ret;
 }
 
@@ -105,4 +109,16 @@ SDL_Texture *gfx::textureMgr::textureLoadFromMem(imgTypes _type, const void *_da
         textures.push_back(ret);
 
     return ret;
+}
+
+void gfx::textureMgr::textureResize(SDL_Texture **_tex, int _w, int _h)
+{
+    auto texIt = std::find(textures.begin(), textures.end(), *_tex);
+    if(texIt != textures.end())
+    {
+        SDL_DestroyTexture(*texIt);
+        *_tex = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, _w, _h);
+        SDL_SetTextureBlendMode(*_tex, SDL_BLENDMODE_BLEND);
+        *texIt = *_tex;
+    }
 }

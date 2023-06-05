@@ -15,13 +15,7 @@ ui::slideOutPanel::slideOutPanel(int _w, int _h, int _y, ui::slidePanelOrientati
         x = 1280;
 
     drawFunc = _draw;
-    panel = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, w, h);
-    SDL_SetTextureBlendMode(panel, SDL_BLENDMODE_BLEND);
-}
-
-ui::slideOutPanel::~slideOutPanel()
-{
-    SDL_DestroyTexture(panel);
+    panel = gfx::texMgr->textureCreate(w, h);
 }
 
 void ui::slideOutPanel::resizePanel(int _w, int _h, int _y)
@@ -32,9 +26,7 @@ void ui::slideOutPanel::resizePanel(int _w, int _h, int _y)
     if(sldSide == ui::SLD_LEFT)
         x = -w;
 
-    SDL_DestroyTexture(panel);
-    panel = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, w, h);
-    SDL_SetTextureBlendMode(panel, SDL_BLENDMODE_BLEND);
+    gfx::texMgr->textureResize(&panel, w, h);
 }
 
 void ui::slideOutPanel::update()

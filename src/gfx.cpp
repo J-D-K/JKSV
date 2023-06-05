@@ -106,14 +106,20 @@ void gfx::init()
     gfx::texMgr = new gfx::textureMgr;
 
     loadSystemFont();
+
+    //This is to avoid blank, black glyphs
+    for(unsigned i = 0x20; i < 0x7E; i++)
+        gfx::drawTextf(NULL, 18, 32, 32, &ui::txtCont, "%c", i);
 }
 
 void gfx::exit()
 {
+    delete gfx::texMgr;
+    SDL_DestroyRenderer(gfx::render);
+    SDL_DestroyWindow(wind);
     IMG_Quit();
     SDL_Quit();
     freeSystemFont();
-    delete gfx::texMgr;
 }
 
 void gfx::present()

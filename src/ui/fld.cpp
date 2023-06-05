@@ -290,7 +290,6 @@ void ui::fldExit()
     delete ui::fldPanel;
     delete fldMenu;
     delete fldList;
-    SDL_DestroyTexture(fldBuffer);
 }
 
 void ui::fldUpdate()

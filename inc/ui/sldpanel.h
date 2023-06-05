@@ -14,7 +14,6 @@ namespace ui
     {
         public:
             slideOutPanel(int _w, int _h, int _y, slidePanelOrientation _side, funcPtr _draw);
-            ~slideOutPanel();
 
             void resizePanel(int _w, int _h, int _y);
             void update();

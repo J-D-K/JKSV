@@ -32,8 +32,7 @@ ui::menu::menu(const int& _x, const int& _y, const int& _rW, const int& _fS, con
     rH = _fS + 30;
     spcWidth = gfx::getTextWidth(" ", _fS) * 3;
 
-    optTex = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, rW - 24, rH - 8);
-    SDL_SetTextureBlendMode(optTex, SDL_BLENDMODE_BLEND);
+    optTex = gfx::texMgr->textureCreate(rW - 24, rH - 8);
 }
 
 void ui::menu::editParam(int _param, int newVal)
@@ -110,7 +109,6 @@ int ui::menu::getOptPos(const std::string& txt)
 
 ui::menu::~menu()
 {
-    SDL_DestroyTexture(optTex);
     opt.clear();
 }
 

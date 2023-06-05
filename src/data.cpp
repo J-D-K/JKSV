@@ -360,9 +360,7 @@ void data::init()
 
 void data::exit()
 {
-    for(data::user& u : data::users) u.delIcon();
-    for(auto& tinfo : titles)
-        SDL_DestroyTexture(tinfo.second.icon);
+    /*Still needed for planned future revisions*/
 }
 
 void data::setUserIndex(unsigned _sUser)

@@ -290,7 +290,7 @@ void util::replaceButtonsInString(std::string& rep)
 
 SDL_Texture *util::createIconGeneric(const char *txt, int fontSize, bool clearBack)
 {
-    SDL_Texture *ret = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, 256, 256);
+    SDL_Texture *ret = gfx::texMgr->textureCreate(256, 256);
     SDL_SetRenderTarget(gfx::render, ret);
     if(clearBack)
     {

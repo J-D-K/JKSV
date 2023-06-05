@@ -444,9 +444,6 @@ void ui::usrExit()
     delete deviceSaveMenu;
     delete bcatSaveMenu;
     delete cacheSaveMenu;
-
-    SDL_DestroyTexture(sett);
-    SDL_DestroyTexture(ext);
 }
 
 void ui::usrRefresh()
