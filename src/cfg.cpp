@@ -294,7 +294,7 @@ static void loadTitleDefs()
 
 static void loadDriveConfig()
 {
-    fs::dirList cfgList("/config/JKSV/");
+    fs::dirList cfgList("/config/JKSV/", true);
 
     std::string clientSecretPath;
     for(unsigned i = 0; i < cfgList.getCount(); i++)

@@ -37,7 +37,7 @@ namespace fs
     {
         public:
             dirList() = default;
-            dirList(const std::string& _path);
+            dirList(const std::string& _path, bool ignoreDotFiles = false);
             void reassign(const std::string& _path);
             void rescan();
 
