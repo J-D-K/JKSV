@@ -309,15 +309,20 @@ static void loadDriveConfig()
 
     if(!clientSecretPath.empty())
     {
-        json_object *installed, *clientID, *clientSecret,*driveJSON = json_object_from_file(clientSecretPath.c_str());
-        json_object_object_get_ex(driveJSON, "installed", &installed);
-        json_object_object_get_ex(installed, "client_id", &clientID);
-        json_object_object_get_ex(installed, "client_secret", &clientSecret);
-
-        cfg::driveClientID = json_object_get_string(clientID);
-        cfg::driveClientSecret = json_object_get_string(clientSecret);
-
-        json_object_put(driveJSON);
+        json_object *installed, *clientID, *clientSecret, *driveJSON = json_object_from_file(clientSecretPath.c_str());
+        if (driveJSON) 
+        {
+            if(json_object_object_get_ex(driveJSON, "installed", &installed))
+            {
+                if(json_object_object_get_ex(installed, "client_id", &clientID) 
+                    && json_object_object_get_ex(installed, "client_secret", &clientSecret))
+                {
+                    cfg::driveClientID = json_object_get_string(clientID);
+                    cfg::driveClientSecret = json_object_get_string(clientSecret);
+                }
+            }
+            json_object_put(driveJSON);
+        }
     }
 }
 
