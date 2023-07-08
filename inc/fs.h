@@ -8,7 +8,7 @@
 #include "fs/dir.h"
 #include "fs/zip.h"
 #include "fs/fsfile.h"
-#include "fs/drive.h"
+#include "fs/remote.h"
 #include "ui/miscui.h"
 
 #define BUFF_SIZE 0x4000

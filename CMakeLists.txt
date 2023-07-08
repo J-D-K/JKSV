@@ -12,12 +12,13 @@ set(SOURCE_FILES
         src/gd.cpp
         src/gfx.cpp
         src/main.cpp
+        src/rfs.cpp
         src/type.cpp
         src/ui.cpp
         src/util.cpp
         src/webdav.cpp
         src/fs/dir.cpp
-        src/fs/drive.cpp
+        src/fs/remote.cpp
         src/fs/file.cpp
         src/fs/fsfile.c
         src/fs/zip.cpp
