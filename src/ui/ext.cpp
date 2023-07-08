@@ -1,5 +1,5 @@
 #include <switch.h>
-#include <SDL.h>
+#include <SDL2/SDL.h>
 
 #include "ui.h"
 #include "file.h"
