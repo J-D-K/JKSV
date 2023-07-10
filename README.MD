@@ -98,7 +98,7 @@ This started as a simple, straight port of my 3DS save manager I publicly releas
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)
-2. `dkp-pacman -S switch-curl switch-freetype switch-libjpeg-turbo switch-libjson-c switch-libpng switch-libwebp switch-sdl2 switch-sdl2_gfx switch-sdl2_image switch-zlib`
+2. `dkp-pacman -S switch-curl switch-freetype switch-libjpeg-turbo switch-tinyxml2 switch-libjson-c switch-libpng switch-libwebp switch-sdl2 switch-sdl2_gfx switch-sdl2_image switch-zlib`
 
 ## Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8 for loading system font with Freetype. All other font handling code (converting to SDL2, resizing on the fly, checking for glyphs, cache, etc) is my own.

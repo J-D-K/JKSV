@@ -155,7 +155,7 @@ static void fldFuncUpload(void *a)
     if(fs::rfs)
         ui::newThread(fldFuncUpload_t, a, NULL);
     else
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popDriveNotActive", 0));
+        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popRemoteNotActive", 0));
 }
 
 static void fldFuncDownload_t(void *a)

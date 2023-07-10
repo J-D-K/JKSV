@@ -7,6 +7,7 @@ rfs::WebDav::WebDav(const std::string& origin, const std::string& username, cons
 {
     curl = curl_easy_init();
     if (curl) {
+        curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
         if (!username.empty())
             curl_easy_setopt(curl, CURLOPT_USERNAME, username.c_str());
 
@@ -299,13 +300,6 @@ std::vector<rfs::RfsItem> rfs::WebDav::parseXMLResponse(const std::string& xml) 
             parentId = hrefElem->GetText();
             continue; // do not push parent to list (we are only interested in the children)
         }
-
-//        fs::logWrite("WebDav: Adding %s with\n", item.name.c_str());
-//        fs::logWrite("WebDav:   ID: %s\n", item.id.c_str());
-//        fs::logWrite("WebDav:   ParentID: %s\n", item.parent.c_str());
-//        fs::logWrite("WebDav:   Directory?: %s\n", item.isDir ? "yes" : "no");
-//        fs::logWrite("WebDav:   Size: %u\n", item.size);
-
 
         items.push_back(item);
     }

@@ -287,7 +287,7 @@ void ui::initStrings()
     addUIString("popSVIExported", 0, "SVI Exported.");
     addUIString("popDriveStarted", 0, "Google Drive started successfully.");
     addUIString("popDriveFailed", 0, "Failed to start Google Drive.");
-    addUIString("popDriveNotActive", 0, "Google Drive is not available");
+    addUIString("popRemoteNotActive", 0, "Remote is not available");
     addUIString("popWebdavStarted", 0, "Webdav started successfully.");
     addUIString("popWebdavFailed", 0, "Failed to start Webdav.");
 

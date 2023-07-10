@@ -129,8 +129,6 @@ void fs::webDavInit() {
         }
     }
 
-//    webdav->listInit(rfsRootID);
-
     rfs = webdav;
     ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popWebdavStarted", 0));
 }
