@@ -1,15 +1,10 @@
-//
-// Created by Martin Riedel on 7/7/23.
-//
+#pragma once
 
 #include <curl/curl.h>
 #include <string>
 #include <tinyxml2.h>
 
 #include "rfs.h"
-
-#ifndef JKSV_WEBDAV_H
-#define JKSV_WEBDAV_H
 
 namespace rfs {
 
@@ -55,5 +50,3 @@ namespace rfs {
         std::vector<RfsItem> getListWithParent(const std::string& _parent);
     };
 }
-
-#endif //JKSV_WEBDAV_H

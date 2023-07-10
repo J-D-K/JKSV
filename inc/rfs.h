@@ -1,13 +1,8 @@
-//
-// Created by Martin Riedel on 7/7/23.
-//
+#pragma once
 
 #include <string>
 #include "curlfuncs.h"
 #include <mutex>
-
-#ifndef JKSV_RFS_H
-#define JKSV_RFS_H
 
 #define UPLOAD_BUFFER_SIZE 0x8000
 #define DOWNLOAD_BUFFER_SIZE 0xC00000
@@ -56,5 +51,3 @@ namespace rfs {
     void writeThread_t(void *a);
     size_t writeDataBufferThreaded(uint8_t *buff, size_t sz, size_t cnt, void *u);
 }
-
-#endif //JKSV_RFS_H

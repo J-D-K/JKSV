@@ -47,10 +47,9 @@ ICON		:=	icon.jpg
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-override CFLAGS	+=	`sdl2-config --cflags`	-g -Wall -O2 -ffunction-sections -ffast-math \
-			$(ARCH) $(DEFINES)
-
-override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags` `curl-config --cflags`
+override CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+override CFLAGS += 	`sdl2-config --cflags` `freetype-config --cflags` `curl-config --cflags`
+override CFLAGS	+=	-g -Wall -O2 -ffunction-sections -ffast-math $(ARCH) $(DEFINES)
 
 CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
