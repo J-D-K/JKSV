@@ -265,7 +265,12 @@ std::vector<rfs::RfsItem> rfs::WebDav::parseXMLResponse(const std::string& xml) 
 
         tinyxml2::XMLElement* hrefElem = responseElem->FirstChildElement((nsPrefix + "href").c_str());
         if (hrefElem) {
-            item.id = hrefElem->GetText();
+            std::string hrefText = hrefElem->GetText();
+            // href can be absolute URI or relative reference. ALWAYS convert to relative reference
+            if(hrefText.find(origin) == 0) {
+                item.id = hrefText.substr(origin.length());
+            }
+
             item.parent = parentId;
         }
 
@@ -297,7 +302,7 @@ std::vector<rfs::RfsItem> rfs::WebDav::parseXMLResponse(const std::string& xml) 
 
         // first Item is always the parent.
         if (parentId.empty()) {
-            parentId = hrefElem->GetText();
+            parentId = item.id;
             continue; // do not push parent to list (we are only interested in the children)
         }
 
