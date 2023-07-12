@@ -268,9 +268,9 @@ std::vector<rfs::RfsItem> rfs::WebDav::parseXMLResponse(const std::string& xml) 
             std::string hrefText = hrefElem->GetText();
             // href can be absolute URI or relative reference. ALWAYS convert to relative reference
             if(hrefText.find(origin) == 0) {
-                item.id = hrefText.substr(origin.length());
+                hrefText = hrefText.substr(origin.length());
             }
-
+            item.id = hrefText;
             item.parent = parentId;
         }
 
