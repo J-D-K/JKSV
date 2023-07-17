@@ -1,3 +1,4 @@
+appletModeWarning = 0, "*ADVERTENCIA*: JKSV se está ejecutando en modo 'applet'. Algunas características no funcionarán."
 author = 0, "Impeeza"
 confirmBlacklist = 0, "¿Estás seguro que deseas adicionar #%s# a la lista negra?"
 confirmCopy = 0, "¿Seguro que desea copiar #%s# a #%s#?"
@@ -8,7 +9,7 @@ confirmDeleteBackupsTitle = 0, "¿Seguro que desea borrar *TODOS* los respaldos 
 confirmDeleteSaveData = 0, "*ADVERTENCIA*:  Ésto eliminará la partida guardada para #%s# *DE SU SISTEMA*. ¿Está seguro que así lo desea?"
 
 #CHANGED=============================================>
-confirmDriveOverwrite = 0, "Al descargar este respaldo desde Google Drive se reemplazará el que actualmente está en la tarjeta SD, ¿Continuar?"
+confirmDriveOverwrite = 0, "Al descargar este respaldo desde el servidor remoto se reemplazará el que actualmente está en la tarjeta SD, ¿Continuar?"
 #<====================================================
 
 confirmOverwrite = 0, "¿Sobre escribir #%s#?"
@@ -16,11 +17,11 @@ confirmResetSaveData = 0, "*ADVERTENCIA*:  Ésto restablecerá la partida guarda
 confirmRestore = 0, "¿Seguro que desea restaurar #%s#?"
 
 #CHANGED=============================================>
-debugStatus = 0, "User Count: "
-debugStatus = 1, "Current User: "
-debugStatus = 2, "Current Title: "
-debugStatus = 3, "Safe Title: "
-debugStatus = 4, "Sort Type: "
+debugStatus = 0, "Número de Usuarios: "
+debugStatus = 1, "Usuario Actual: "
+debugStatus = 2, "Título Actual: "
+debugStatus = 3, "Título Seguro: "
+debugStatus = 4, "Tipo órden: "
 #<====================================================
 
 dialogNo = 0, "No [B]"
@@ -66,10 +67,11 @@ infoStatus = 0, "TID: %016lX"
 infoStatus = 1, "SID: %016lX"
 infoStatus = 2, "Tiempo Jugado: %02d:%02d"
 infoStatus = 3, "Veces Ejecutado: %u"
-infoStatus = 4, "Editorr: %s"
+infoStatus = 4, "Editor: %s"
 infoStatus = 5, "Tipo Partida Guardada: %s"
 infoStatus = 6, "Índice de Caché: %u"
 infoStatus = 7, "Usuario: %s"
+infoStatus = 9, ""
 #<=====================================================
 
 loadingStartPage = 0, "Cargando..."
@@ -77,7 +79,7 @@ mainMenuExtras = 0, "Extras"
 mainMenuSettings = 0, "Configs."
 onlineErrorConnecting = 0, "¡Error Conectando!"
 onlineNoUpdates = 0, "No hay actualizaciones disponibles."
-popAddedToPathFilter = 0, "se adicionó '#%s#' a filtros de carpeta."
+popAddedToPathFilter = 0, "Se adicionó '#%s#' a filtros de carpeta."
 popCPUBoostEnabled = 0, "Aumento de CPU para ZIP."
 popChangeOutputError = 0, "#%s# contiene carácteres ilegales o no-ASCII."
 popChangeOutputFolder = 0, "Se cambia #%s# por #%s#"
@@ -86,18 +88,17 @@ popChangeOutputFolder = 0, "Se cambia #%s# por #%s#"
 popDriveFailed = 0, "Falla al iniciar Google Drive."
 popDriveNotActive = 0, "Google Drive no está disponible."
 popDriveStarted = 0, "Se ha iniciado Google Drive correctamente."
-#<====================================================
-
 popErrorCommittingFile = 0, "¡Error guardando archivo!"
 popFolderIsEmpty = 0, "¡La carpeta está vacía!"
 popProcessShutdown = 0, "#%s# Apagado satisfactorio."
-
-#CHANGED=============================================>
+popRemoteNotActive = 0, "Servidor remoto no está disponible"
 popSVIExported = 0, "SVI Exportado."
-#<====================================================
-
 popSaveIsEmpty = 0, "¡Partida Guardada está vacía!"
 popTrashEmptied = 0, "Papelera Vaciada"
+popWebdavFailed = 0, "Falla al iniciar Webdav."
+popWebdavStarted = 0, "Se ha iniciado Webdav Correctamente."
+#<====================================================
+
 popZipIsEmpty = 0, "¡Archivo ZIP está vacío!"
 saveDataBackupDeleted = 0, "#%s# ha sido borrado."
 saveDataBackupMovedToTrash = 0, "#%s# ha sido movido a papelera."
@@ -106,7 +107,7 @@ saveDataCreationFailed = 0, "¡Error en creación de Partida Guardada!"
 saveDataDeleteAllUser = 0, "*¿SEGURO QUE DESEA BORRAR TODAS LAS PARTIDAS GUARDADAS DE  %s?*"
 saveDataDeleteSuccess = 0, "¡Se borró la Partida Guardada de #%s#!"
 saveDataExtendFailed = 0, "Error al expandir la partida guardada."
-saveDataExtendSuccess = 0, "¡Partida Guardada para #%s# epandida con éxito!"
+saveDataExtendSuccess = 0, "¡Partida Guardada para #%s# expandida con éxito!"
 saveDataIndexText = 0, "Guardar Índice: "
 saveDataNoneFound = 0, "¡No se encontraron partidas guardadas para #%s#!"
 saveDataResetSuccess = 0, "¡Partida Guardada para  #%s# restablecida!"
@@ -144,6 +145,7 @@ settingsMenu = 17, "Forzar el uso de Inglés: "
 settingsMenu = 18, "Habilitar papelera: "
 settingsMenu = 19, "Ordenar Títulos: "
 settingsMenu = 20, "Escala de Animación: "
+settingsMenu = 21, "Subir automáticamente a GDrive/Webdav: "
 settingsOff = 0, "Apagado"
 settingsOn = 0, ">Encendido>"
 sortType = 0, "Alfabéticamente"
