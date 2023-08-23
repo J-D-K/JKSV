@@ -45,7 +45,7 @@ This started as a simple, straight port of my 3DS save manager I publicly releas
 			* SVI files located in `JKSV/svi` will also be loaded and added to this list. These are to create save data for games not currently on the system. This is for games that search for other saves to unlock extra content.
 			* Cache saves require a cache index number to be created. This information can be found under information for a cache save when being exported.
 		* Create All Save Data creates save data for every title on your system for the selected user.
-		* Delete All Save Data deletes all save data for the selected user. This is permanant.
+		* Delete All Save Data deletes all save data for the selected user. This is permanent.
 	* Settings and Extras below.
 
 2. Title/Game Select
