@@ -220,7 +220,7 @@ std::string fs::dirItem::getExt() const
     return util::getExtensionFromString(itm);
 }
 
-fs::dirList::dirList(const std::string& _path)
+fs::dirList::dirList(const std::string& _path, bool ignoreDotFiles)
 {
     DIR *d;
     struct dirent *ent;
@@ -228,7 +228,8 @@ fs::dirList::dirList(const std::string& _path)
     d = opendir(path.c_str());
 
     while((ent = readdir(d)))
-        item.emplace_back(path, ent->d_name);
+        if (!ignoreDotFiles || ent->d_name[0] != '.')
+            item.emplace_back(path, ent->d_name);
 
     closedir(d);
 

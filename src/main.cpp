@@ -53,13 +53,13 @@ int main(int argc, const char *argv[])
     curl_global_init(CURL_GLOBAL_ALL);
     //Drive needs config read
     if(!util::isApplet())
-        fs::driveInit();
+        fs::remoteInit();
     else
         ui::showMessage(ui::getUICString("appletModeWarning", 0));
         
     while(ui::runApp()){ }
 
-    fs::driveExit();
+    fs::remoteExit();
     curl_global_cleanup();
     cfg::saveConfig();
     ui::exit();

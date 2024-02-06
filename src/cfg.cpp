@@ -16,6 +16,8 @@ std::vector<uint64_t> cfg::favorites;
 static std::unordered_map<uint64_t, std::string> pathDefs;
 uint8_t cfg::sortType;
 std::string cfg::driveClientID, cfg::driveClientSecret, cfg::driveRefreshToken;
+std::string cfg::webdavOrigin, cfg::webdavBasePath, cfg::webdavUser, cfg::webdavPassword;
+
 
 const char *cfgPath = "sdmc:/config/JKSV/JKSV.cfg", *titleDefPath = "sdmc:/config/JKSV/titleDefs.txt", *workDirLegacy = "sdmc:/switch/jksv_dir.txt";
 static std::unordered_map<std::string, unsigned> cfgStrings =
@@ -294,8 +296,8 @@ static void loadTitleDefs()
 
 static void loadDriveConfig()
 {
-    fs::dirList cfgList("/config/JKSV/");
-
+    // Start Google Drive
+    fs::dirList cfgList("/config/JKSV/", true);
     std::string clientSecretPath;
     for(unsigned i = 0; i < cfgList.getCount(); i++)
     {
@@ -309,15 +311,40 @@ static void loadDriveConfig()
 
     if(!clientSecretPath.empty())
     {
-        json_object *installed, *clientID, *clientSecret,*driveJSON = json_object_from_file(clientSecretPath.c_str());
-        json_object_object_get_ex(driveJSON, "installed", &installed);
-        json_object_object_get_ex(installed, "client_id", &clientID);
-        json_object_object_get_ex(installed, "client_secret", &clientSecret);
+        json_object *installed, *clientID, *clientSecret, *driveJSON = json_object_from_file(clientSecretPath.c_str());
+        if (driveJSON) 
+        {
+            if(json_object_object_get_ex(driveJSON, "installed", &installed))
+            {
+                if(json_object_object_get_ex(installed, "client_id", &clientID) 
+                    && json_object_object_get_ex(installed, "client_secret", &clientSecret))
+                {
+                    cfg::driveClientID = json_object_get_string(clientID);
+                    cfg::driveClientSecret = json_object_get_string(clientSecret);
+                }
+            }
+            json_object_put(driveJSON);
+        }
+    }
+    // End Google Drive
 
-        cfg::driveClientID = json_object_get_string(clientID);
-        cfg::driveClientSecret = json_object_get_string(clientSecret);
-
-        json_object_put(driveJSON);
+    // Webdav
+    json_object *webdavJSON = json_object_from_file("/config/JKSV/webdav.json");
+    json_object *origin, *basepath, *username, *password;
+    if (webdavJSON)
+    {
+        if (json_object_object_get_ex(webdavJSON, "origin", &origin)) {
+            cfg::webdavOrigin = json_object_get_string(origin);
+        }
+        if (json_object_object_get_ex(webdavJSON, "basepath", &basepath)) {
+            cfg::webdavBasePath = json_object_get_string(basepath);
+        }
+        if (json_object_object_get_ex(webdavJSON, "username", &username)) {
+            cfg::webdavUser = json_object_get_string(username);
+        }
+        if (json_object_object_get_ex(webdavJSON, "password", &password)) {
+            cfg::webdavPassword = json_object_get_string(password);
+        }
     }
 }
 

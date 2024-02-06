@@ -1,7 +1,7 @@
 #include <vector>
 #include <algorithm>
 #include <SDL2/SDL.h>
-#include <SDL_image.h>
+#include <SDL2/SDL_image.h>
 
 #include "gfx.h"
 

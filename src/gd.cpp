@@ -16,27 +16,12 @@ Google Drive code for JKSV.
 Still major WIP
 */
 
-#define DRIVE_UPLOAD_BUFFER_SIZE 0x8000
-#define DRIVE_DOWNLOAD_BUFFER_SIZE 0xC00000
 #define DRIVE_DEFAULT_PARAMS_AND_QUERY "?fields=files(name,id,mimeType,size,parents)&pageSize=1000&q=trashed=false\%20and\%20\%27me\%27\%20in\%20owners"
 
 #define tokenURL "https://oauth2.googleapis.com/token"
 #define tokenCheckURL "https://oauth2.googleapis.com/tokeninfo"
 #define driveURL "https://www.googleapis.com/drive/v3/files"
 #define driveUploadURL "https://www.googleapis.com/upload/drive/v3/files"
-#define userAgent "JKSV"
-
-std::vector<uint8_t> downloadBuffer;
-
-typedef struct 
-{
-    curlFuncs::curlDlArgs *cfa;
-    std::mutex dataLock;
-    std::condition_variable cond;
-    std::vector<uint8_t> sharedBuffer;
-    bool bufferFull = false; 
-    unsigned int downloaded = 0;
-} dlWriteThreadStruct;
 
 static inline void writeDriveError(const std::string& _function, const std::string& _message)
 {
@@ -46,54 +31,6 @@ static inline void writeDriveError(const std::string& _function, const std::stri
 static inline void writeCurlError(const std::string& _function, int _cerror)
 {
     fs::logWrite("Drive/%s: CURL returned error %i\n", _function.c_str(), _cerror);
-}
-
-static void writeThread_t(void *a)
-{
-    dlWriteThreadStruct *in = (dlWriteThreadStruct *)a;
-    std::vector<uint8_t> localBuff;
-    unsigned written = 0;
-
-    FILE *out = fopen(in->cfa->path.c_str(), "wb");
-
-    while(written < in->cfa->size)
-    {
-        std::unique_lock<std::mutex> dataLock(in->dataLock);
-        in->cond.wait(dataLock, [in]{ return in->bufferFull; });
-        localBuff.clear();
-        localBuff.assign(in->sharedBuffer.begin(), in->sharedBuffer.end());
-        in->sharedBuffer.clear();
-        in->bufferFull = false;
-        dataLock.unlock();
-        in->cond.notify_one();
-
-        written += fwrite(localBuff.data(), 1, localBuff.size(), out);
-    }
-    fclose(out);
-    downloadBuffer.clear();
-}
-
-static size_t writeDataBufferThreaded(uint8_t *buff, size_t sz, size_t cnt, void *u)
-{
-    dlWriteThreadStruct *in = (dlWriteThreadStruct *)u;
-    downloadBuffer.insert(downloadBuffer.end(), buff, buff + (sz * cnt));
-    in->downloaded += sz * cnt;
-
-    if(in->downloaded == in->cfa->size || downloadBuffer.size() == DRIVE_DOWNLOAD_BUFFER_SIZE)
-    {
-        std::unique_lock<std::mutex> dataLock(in->dataLock);
-        in->cond.wait(dataLock, [in]{ return in->bufferFull == false; });
-        in->sharedBuffer.assign(downloadBuffer.begin(), downloadBuffer.end());
-        downloadBuffer.clear();
-        in->bufferFull = true;
-        dataLock.unlock();
-        in->cond.notify_one();
-    }
-
-    if(in->cfa->o)
-        *in->cfa->o = in->downloaded;
-
-    return sz * cnt;
 }
 
 bool drive::gd::exhangeAuthCode(const std::string& _authCode)
@@ -119,7 +56,7 @@ bool drive::gd::exhangeAuthCode(const std::string& _authCode)
     std::string *jsonResp = new std::string;
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, postHeader);
     curl_easy_setopt(curl, CURLOPT_URL, tokenURL);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
@@ -177,7 +114,7 @@ bool drive::gd::refreshToken()
     std::string *jsonResp = new std::string;
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, header);
     curl_easy_setopt(curl, CURLOPT_URL, tokenURL);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
@@ -220,7 +157,7 @@ bool drive::gd::tokenIsValid()
     CURL *curl = curl_easy_init();
     std::string *jsonResp = new std::string;
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, jsonResp);
@@ -252,7 +189,7 @@ static int requestList(const std::string& _url, const std::string& _token, std::
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
     curl_easy_setopt(curl, CURLOPT_ACCEPT_ENCODING, "");
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, postHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, _url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
@@ -266,7 +203,7 @@ static int requestList(const std::string& _url, const std::string& _token, std::
     return ret;
 }
 
-static void processList(const std::string& _json, std::vector<drive::gdItem>& _drvl, bool _clear)
+static void processList(const std::string& _json, std::vector<rfs::RfsItem>& _drvl, bool _clear)
 {
     if(_clear)
         _drvl.clear();
@@ -287,7 +224,7 @@ static void processList(const std::string& _json, std::vector<drive::gdItem>& _d
             json_object_object_get_ex(curFile, "size", &size);
             json_object_object_get_ex(curFile, "parents", &parentArray);
 
-            drive::gdItem newDirItem;
+            rfs::RfsItem newDirItem;
             newDirItem.name = json_object_get_string(nameString);
             newDirItem.id = json_object_get_string(idString);
             newDirItem.size = json_object_get_int(size);
@@ -353,14 +290,14 @@ void drive::gd::driveListAppend(const std::string& _q)
         writeCurlError("driveListAppend", error);
 }
 
-void drive::gd::getListWithParent(const std::string& _parent, std::vector<drive::gdItem *>& _out)
-{
-    _out.clear();
+std::vector<rfs::RfsItem> drive::gd::getListWithParent(const std::string& _parent) {
+    std::vector<rfs::RfsItem> filtered;
     for(unsigned i = 0; i < driveList.size(); i++)
     {
         if(driveList[i].parent == _parent)
-            _out.push_back(&driveList[i]);
+            filtered.push_back(driveList[i]);
     }
+    return filtered;
 }
 
 void drive::gd::debugWriteList()
@@ -403,7 +340,7 @@ bool drive::gd::createDir(const std::string& _dirName, const std::string& _paren
     std::string *jsonResp = new std::string;
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, postHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, driveURL);
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
@@ -419,7 +356,7 @@ bool drive::gd::createDir(const std::string& _dirName, const std::string& _paren
         json_object *id;
         json_object_object_get_ex(respParse, "id", &id);
 
-        drive::gdItem newDir;
+        rfs::RfsItem newDir;
         newDir.name = _dirName;
         newDir.id = json_object_get_string(id);
         newDir.isDir = true;
@@ -453,16 +390,6 @@ bool drive::gd::dirExists(const std::string& _dirName, const std::string& _paren
     for(unsigned i = 0; i < driveList.size(); i++)
     {
         if(driveList[i].isDir && driveList[i].name == _dirName && driveList[i].parent == _parent)
-            return true;
-    }
-    return false;
-}
-
-bool drive::gd::fileExists(const std::string& _filename)
-{
-    for(unsigned i = 0; i < driveList.size(); i++)
-    {
-        if(!driveList[i].isDir && driveList[i].name == _filename)
             return true;
     }
     return false;
@@ -508,7 +435,7 @@ void drive::gd::uploadFile(const std::string& _filename, const std::string& _par
     std::vector<std::string> *headers = new std::vector<std::string>;
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_HTTPPOST, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, postHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curlFuncs::writeHeaders);
@@ -526,7 +453,7 @@ void drive::gd::uploadFile(const std::string& _filename, const std::string& _par
         curl_easy_setopt(curlUp, CURLOPT_WRITEDATA, jsonResp);
         curl_easy_setopt(curlUp, CURLOPT_READFUNCTION, curlFuncs::readDataFile);
         curl_easy_setopt(curlUp, CURLOPT_READDATA, _upload);
-        curl_easy_setopt(curlUp, CURLOPT_UPLOAD_BUFFERSIZE, DRIVE_UPLOAD_BUFFER_SIZE);
+        curl_easy_setopt(curlUp, CURLOPT_UPLOAD_BUFFERSIZE, UPLOAD_BUFFER_SIZE);
         curl_easy_setopt(curlUp, CURLOPT_UPLOAD, 1);
         curl_easy_perform(curlUp);
         curl_easy_cleanup(curlUp);
@@ -538,7 +465,7 @@ void drive::gd::uploadFile(const std::string& _filename, const std::string& _par
 
         if(name && id && mimeType)
         {
-            drive::gdItem uploadData;
+            rfs::RfsItem uploadData;
             uploadData.id = json_object_get_string(id);
             uploadData.name = json_object_get_string(name);
             uploadData.isDir = false;
@@ -577,7 +504,7 @@ void drive::gd::updateFile(const std::string& _fileID, curlFuncs::curlUpArgs *_u
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "PATCH");
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, patchHeader);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, curlFuncs::writeDataString);
     curl_easy_setopt(curl, CURLOPT_HEADERFUNCTION, curlFuncs::writeHeaders);
@@ -593,7 +520,7 @@ void drive::gd::updateFile(const std::string& _fileID, curlFuncs::curlUpArgs *_u
         curl_easy_setopt(curlPatch, CURLOPT_URL, location.c_str());
         curl_easy_setopt(curlPatch, CURLOPT_READFUNCTION, curlFuncs::readDataFile);
         curl_easy_setopt(curlPatch, CURLOPT_READDATA, _upload);
-        curl_easy_setopt(curlPatch, CURLOPT_UPLOAD_BUFFERSIZE, DRIVE_UPLOAD_BUFFER_SIZE);
+        curl_easy_setopt(curlPatch, CURLOPT_UPLOAD_BUFFERSIZE, UPLOAD_BUFFER_SIZE);
         curl_easy_setopt(curlPatch, CURLOPT_UPLOAD, 1);
         curl_easy_perform(curlPatch);
         curl_easy_cleanup(curlPatch);
@@ -629,19 +556,19 @@ void drive::gd::downloadFile(const std::string& _fileID, curlFuncs::curlDlArgs *
     getHeaders = curl_slist_append(getHeaders, std::string(HEADER_AUTHORIZATION + token).c_str());
 
     //Downloading is threaded because it's too slow otherwise
-    dlWriteThreadStruct dlWrite;
+    rfs::dlWriteThreadStruct dlWrite;
     dlWrite.cfa = _download;
 
     Thread writeThread;
-    threadCreate(&writeThread, writeThread_t, &dlWrite, NULL, 0x8000, 0x2B, 2);
+    threadCreate(&writeThread, rfs::writeThread_t, &dlWrite, NULL, 0x8000, 0x2B, 2);
 
     //Curl
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_HTTPGET, 1);
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, getHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
-    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, writeDataBufferThreaded);
+    curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, rfs::writeDataBufferThreaded);
     curl_easy_setopt(curl, CURLOPT_WRITEDATA, &dlWrite);
     threadStart(&writeThread);
     
@@ -670,7 +597,7 @@ void drive::gd::deleteFile(const std::string& _fileID)
     //Curl
     CURL *curl = curl_easy_init();
     curl_easy_setopt(curl, CURLOPT_CUSTOMREQUEST, "DELETE");
-    curl_easy_setopt(curl, CURLOPT_USERAGENT, userAgent);
+    curl_easy_setopt(curl, CURLOPT_USERAGENT, USER_AGENT);
     curl_easy_setopt(curl, CURLOPT_HTTPHEADER, delHeaders);
     curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
     curl_easy_perform(curl);
@@ -686,16 +613,6 @@ void drive::gd::deleteFile(const std::string& _fileID)
 
     curl_slist_free_all(delHeaders);
     curl_easy_cleanup(curl);
-}
-
-std::string drive::gd::getFileID(const std::string& _name)
-{
-    for(unsigned i = 0; i < driveList.size(); i++)
-    {
-        if(!driveList[i].isDir && driveList[i].name == _name)
-            return driveList[i].id;
-    }
-    return "";
 }
 
 std::string drive::gd::getFileID(const std::string& _name, const std::string& _parent)

@@ -84,8 +84,10 @@ popChangeOutputFolder = 0, "#%s# から #%s#　に変更"
 
 #CHANGED=============================================>
 popDriveFailed = 0, "Google Driveの起動に失敗しました。"
-popDriveNotActive = 0, "Googleドライブは使用できません"
+popRemoteNotActive = 0, "Remoteドライブは使用できません"
 popDriveStarted = 0, "Google Driveが正常に起動しました。"
+popWebdavStarted = 0, "Webdav started successfully."
+popWebdavFailed =, 0, "Failed to start Webdav."
 #<====================================================
 
 popErrorCommittingFile = 0, "保存するファイルのコミット中にエラーが発生しました!"
