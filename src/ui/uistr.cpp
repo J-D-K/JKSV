@@ -203,7 +203,7 @@ void ui::initStrings()
     addUIString("settingsMenu", 18, "Enable Trash Bin: ");
     addUIString("settingsMenu", 19, "Title Sorting Type: ");
     addUIString("settingsMenu", 20, "Animation Scale: ");
-    addUIString("settingsMenu", 21, "Auto-upload to Drive: ");
+    addUIString("settingsMenu", 21, "Auto-upload to Drive/Webdav: ");
 
     //Main menu
     addUIString("mainMenuSettings", 0, "Settings");
@@ -287,7 +287,9 @@ void ui::initStrings()
     addUIString("popSVIExported", 0, "SVI Exported.");
     addUIString("popDriveStarted", 0, "Google Drive started successfully.");
     addUIString("popDriveFailed", 0, "Failed to start Google Drive.");
-    addUIString("popDriveNotActive", 0, "Google Drive is not available");
+    addUIString("popRemoteNotActive", 0, "Remote is not available");
+    addUIString("popWebdavStarted", 0, "Webdav started successfully.");
+    addUIString("popWebdavFailed", 0, "Failed to start Webdav.");
 
     //Keyboard hints
     addUIString("swkbdEnterName", 0, "Enter a new name");

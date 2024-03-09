@@ -38,7 +38,7 @@ INCLUDES	:=	inc inc/ui inc/fs inc/gfx
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  02.23.2023
+APP_VERSION :=  07.10.2023
 ROMFS	    :=	romfs
 ICON		:=	icon.jpg
 
@@ -47,17 +47,16 @@ ICON		:=	icon.jpg
 #---------------------------------------------------------------------------------
 ARCH	:=	-march=armv8-a+crc+crypto -mtune=cortex-a57 -mtp=soft -fPIE
 
-override CFLAGS	+=	`sdl2-config --cflags`	-g -Wall -O2 -ffunction-sections -ffast-math \
-			$(ARCH) $(DEFINES)
-
-override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags` `curl-config --cflags`
+override CFLAGS	+=	$(INCLUDE) -D__SWITCH__
+override CFLAGS += 	`sdl2-config --cflags` `freetype-config --cflags` `curl-config --cflags`
+override CFLAGS	+=	-g -Wall -O2 -ffunction-sections -ffast-math $(ARCH) $(DEFINES)
 
 CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -lnx
+LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

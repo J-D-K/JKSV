@@ -84,8 +84,10 @@ popChangeOutputFolder = 0, "Se cambia #%s# por #%s#"
 
 #CHANGED=============================================>
 popDriveFailed = 0, "Failed to start Google Drive."
-popDriveNotActive = 0, "Google Drive is not available"
+popRemoteNotActive = 0, "Remote is not available"
 popDriveStarted = 0, "Google Drive started successfully."
+popWebdavStarted = 0, "Webdav started successfully."
+popWebdavFailed =, 0, "Failed to start Webdav."
 #<====================================================
 
 popErrorCommittingFile = 0, "¡Error guardando archivo!"

@@ -12,26 +12,27 @@ This started as a simple, straight port of my 3DS save manager I publicly releas
 4. Dump and restore cache Saves.
 5. Dump system save data.
     * Dumping this data is always enabled, but writing back needs to be enabled from the options menu. Writing to this can be very dangerous.
-	* Processes can be terminated from the Extras menu allowing you to open even more of these and explore more.
+    * Processes can be terminated from the Extras menu allowing you to open even more of these and explore more.
 6. Export save data to folders like the orignal or compressed zip files to save space.
-7. Upload and download save backups to [Google Drive](https://github.com/J-D-K/JKSV/blob/master/GD_INSTRUCTIONS.MD) if it is configured.
-8. Create save data so the user no longer needs to boot games to import saves.
-	* Titles can be rescanned from the Extras menu. For example, if you insert a game card while JKSV is open, rescanning will load and add it to the save creation menu(s).
-9. Export and use SVI files to create save data for titles not installed on your system. For games that detect other game saves to unlock content.
-	* SVI files are simply the title ID, NACP, and icon packed into a file. Placing them in `JKSV/svi` will load them as if they are any other game on your switch. They will appear in the save creation menus with the rest.
-10. Extend save data containers to any size the user wants or automatically if the save cannot fit into the current one.
-11. Delete save data from the system.
-12. Reset save data as if the game was never launched.
-13. Display stats and information about the game/save: Play time, launch count, title ID (TID), save ID(SID)/name of save file on user nand partition, etc.
-14. Open and explore bis storage partitions via the Extras menu
+7. Upload and download save backups to [Google Drive](./REMOTE_INSTRUCTIONS.MD#gdrive) if it is configured.
+8. Upload and download save backups to [WebDav](./REMOTE_INSTRUCTIONS.MD#webdav) if it is configured.
+9. Create save data so the user no longer needs to boot games to import saves.
+    * Titles can be rescanned from the Extras menu. For example, if you insert a game card while JKSV is open, rescanning will load and add it to the save creation menu(s).
+10. Export and use SVI files to create save data for titles not installed on your system. For games that detect other game saves to unlock content.
+     * SVI files are simply the title ID, NACP, and icon packed into a file. Placing them in `JKSV/svi` will load them as if they are any other game on your switch. They will appear in the save creation menus with the rest.
+11. Extend save data containers to any size the user wants or automatically if the save cannot fit into the current one.
+12. Delete save data from the system.
+13. Reset save data as if the game was never launched.
+14. Display stats and information about the game/save: Play time, launch count, title ID (TID), save ID(SID)/name of save file on user nand partition, etc.
+15. Open and explore bis storage partitions via the Extras menu
     * BIS Storage is opened inside a basic filebrowser. The partition's listing is on the left. Your SD is on the right.
     * Only copying to SD and file properties work on BIS partitions. Writing to and deleting are disabled unless enabled like system save data.
-15. Misc Extras:
+16. Misc Extras:
     * Ability to remove downloaded firmware updates from NAND. This is located under Extras.
     * Terminating processes by [ID](https://switchbrew.org/wiki/Title_list#System_Modules). Allowing you to dump normally unopenable system archives.
     * Mount by System Save [ID](https://switchbrew.org/wiki/Flash_Filesystem#System_Savegames). Normally used when the terminated process makes JKSV unable to rescan titles without the Switch crashing.
-	* Mount and open RomFS of process the homebrew menu takes over (if launched as NRO).
-		* Hold R while opening a game or applet with Atmosphere so the homebrew menu loads. Open JKSV and press minus and select **Mount Process RomFS**. The romfs of the app should appear in the browser along with your SD on the right.
+    * Mount and open RomFS of process the homebrew menu takes over (if launched as NRO).
+        * Hold R while opening a game or applet with Atmosphere so the homebrew menu loads. Open JKSV and press minus and select **Mount Process RomFS**. The romfs of the app should appear in the browser along with your SD on the right.
 
 **NOTE: Some features may require building JKSV from source. I am extremely picky and only release when I am satisfied and sure things work 100% as expected.**
 
@@ -97,7 +98,7 @@ This started as a simple, straight port of my 3DS save manager I publicly releas
 
 ## Building:
 1. Requires [devkitPro](https://devkitpro.org/) and [libnx](https://github.com/switchbrew/libnx)
-2. `dkp-pacman -S switch-curl switch-freetype switch-libjpeg-turbo switch-libjson-c switch-libpng switch-libwebp switch-sdl2 switch-sdl2_gfx switch-sdl2_image switch-zlib`
+2. `dkp-pacman -S switch-curl switch-freetype switch-libjpeg-turbo switch-tinyxml2 switch-libjson-c switch-libpng switch-libwebp switch-sdl2 switch-sdl2_gfx switch-sdl2_image switch-zlib`
 
 ## Credits and Thanks:
 * [shared-font](https://github.com/switchbrew/switch-portlibs-examples) example by yellows8 for loading system font with Freetype. All other font handling code (converting to SDL2, resizing on the fly, checking for glyphs, cache, etc) is my own.
