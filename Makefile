@@ -32,9 +32,9 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	JKSV
 BUILD		:=	build
-SOURCES		:=	src src/ui src/fs src/gfx
+SOURCES		:=	src src/graphics src/system src/data src/filesystem src/ui src/appStates
 DATA		:=	data
-INCLUDES	:=	inc inc/ui inc/fs inc/gfx
+INCLUDES	:=	inc
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
@@ -52,12 +52,12 @@ override CFLAGS	+=	`sdl2-config --cflags`	-g -Wall -O2 -ffunction-sections -ffas
 
 override CFLAGS	+=	$(INCLUDE) -D__SWITCH__ `freetype-config --cflags` `curl-config --cflags`
 
-CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
+CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++20
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -lnx
+LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lharfbuzz -lz -lminizip -ljson-c -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

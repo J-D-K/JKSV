@@ -1,30 +1,28 @@
 #include <switch.h>
-#include <curl/curl.h>
-
-#include "gfx.h"
-#include "file.h"
-#include "data.h"
-#include "ui.h"
-#include "util.h"
-#include "cfg.h"
+#include "jksv.hpp"
+#include "log.hpp"
 
 extern "C"
 {
-    void userAppInit(void)
+    void userAppInit()
     {
         appletInitialize();
         hidInitialize();
         nsInitialize();
         setsysInitialize();
         setInitialize();
-        accountInitialize(AccountServiceType_Administrator);
+        accountInitialize(AccountServiceType_Application);
         pmshellInitialize();
         socketInitializeDefault();
         pdmqryInitialize();
+        plInitialize(PlServiceType_User);
+        romfsInit();
     }
 
-    void userAppExit(void)
+    void userAppExit()
     {
+        romfsExit();
+        plExit();
         appletExit();
         hidExit();
         nsExit();
@@ -39,30 +37,13 @@ extern "C"
 
 int main(int argc, const char *argv[])
 {
-    romfsInit();
-    cfg::resetConfig();
-    cfg::loadConfig();
-    fs::init();
-    gfx::init();
-    ui::initTheme();
-    ui::showLoadScreen();
-    data::init();
-    ui::init();
-    romfsExit();
-
-    curl_global_init(CURL_GLOBAL_ALL);
-    //Drive needs config read
-    if(!util::isApplet())
-        fs::driveInit();
-    else
-        ui::showMessage(ui::getUICString("appletModeWarning", 0));
-        
-    while(ui::runApp()){ }
-
-    fs::driveExit();
-    curl_global_cleanup();
-    cfg::saveConfig();
-    ui::exit();
-    data::exit();
-    gfx::exit();
+    nxlinkStdio();
+    jksv::init();
+    while(jksv::isRunning())
+    {
+        jksv::update();
+        jksv::render();
+    }
+    jksv::exit();
+    return 0;
 }
