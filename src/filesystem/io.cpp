@@ -1,7 +1,10 @@
 #include <switch.h>
 #include <fstream>
 #include <filesystem>
-#include <cstddef>
+#include <memory>
+#include <mutex>
+#include <condition_variable>
+#include <vector>
 #include "filesystem/filesystem.hpp"
 #include "filesystem/directoryListing.hpp"
 #include "filesystem/io.hpp"
@@ -9,17 +12,122 @@
 #include "system/taskArgs.hpp"
 #include "log.hpp"
 
-#define FILE_BUFFER_SIZE 0x80000
-
 // Generic error for opening files
-static const char *s_ErrorOpening = "Error opening files for reading and writing.";
+static const char *s_ErrorOpening = "Error opening files for reading and/or writing.";
 
-// This is the struct passed as shared_ptr for task functionss
-struct copyArgs : sys::taskArgs
+// Buffer size for read/write threads
+#define FILE_BUFFER_SIZE 0x400000
+
+// Struct shared for reading/writing
+typedef struct
 {
-    std::string source, destination, device;
-    bool commit = false;
-};
+    // File's size
+    uint64_t fileSize;
+    // Mutex
+    std::mutex bufferLock;
+    // Conditional for making sure buffer is empty/full
+    std::condition_variable bufferIsReady;
+    // Bool to check
+    bool bufferIsFull = false;
+    // Buffer shared for transfer
+    std::vector<char> buffer;
+    // Whether file needs to be commited on write
+    bool commitWrite = false;
+    // Journal size
+    uint64_t journalSize = 0;
+} threadStruct;
+
+// Read thread function
+void readFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
+{
+    // Bytes read
+    uint64_t bytesRead = 0;
+    // File stream
+    std::ifstream sourceFile(source, std::ios::binary);
+    // Local buffer for reading
+    std::vector<char> localBuffer(FILE_BUFFER_SIZE);
+
+    // Loop until file is fully read
+    while(bytesRead < sharedStruct->fileSize)
+    {
+        // Read to localBuffer
+        sourceFile.read(localBuffer.data(), FILE_BUFFER_SIZE);
+
+        // Wait for shared buffer to be emptied by write thread
+        std::unique_lock sharedBufferLock(sharedStruct->bufferLock);
+        sharedStruct->bufferIsReady.wait(sharedBufferLock, [sharedStruct] { return sharedStruct->bufferIsFull == false; });
+
+        // Copy localBuffer to shared buffer
+        sharedStruct->buffer.assign(localBuffer.begin(), localBuffer.begin() + sourceFile.gcount());
+
+        // Set condition so write thread can do its thing
+        sharedStruct->bufferIsFull = true;
+
+        // Unlock mutex
+        sharedBufferLock.unlock();
+
+        // Notify
+        sharedStruct->bufferIsReady.notify_one();
+
+        // Update bytes read
+        bytesRead += sourceFile.gcount();
+    }
+}
+
+// File writing thread function
+void writeFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct)
+{
+    // Keep track of bytes written
+    uint64_t bytesWritten = 0;
+    // Keep track of commits if needed
+    uint64_t journalCount = 0;
+    // File stream
+    std::ofstream destinationFile(destination, std::ios::binary);
+    // Local buffer
+    std::vector<char> localBuffer;
+
+    // Keep looping until entire file is done
+    while(bytesWritten < sharedStruct->fileSize)
+    {
+        // Wait for buffer to be full
+        std::unique_lock sharedBufferLock(sharedStruct->bufferLock);
+        sharedStruct->bufferIsReady.wait(sharedBufferLock, [sharedStruct] { return sharedStruct->bufferIsFull == true; });
+
+        // Copy shared buffer to localBuffer so read thread can continue
+        localBuffer.assign(sharedStruct->buffer.begin(), sharedStruct->buffer.end());
+
+        // Signal
+        sharedStruct->bufferIsFull = false;
+
+        // Unlock
+        sharedBufferLock.unlock();
+
+        // Notify
+        sharedStruct->bufferIsReady.notify_one();
+
+        // Check to see if commit is needed first
+        if(sharedStruct->commitWrite == true && journalCount + localBuffer.size() >= sharedStruct->journalSize)
+        {
+            // Close file
+            destinationFile.close();
+            // Commit to save device
+            fs::commitSaveData();
+            // Reopen destination
+            destinationFile.open(destination, std::ios::binary);
+            // Seek to end
+            destinationFile.seekp(std::ios::end);
+            // Reset journal counting
+            journalCount = 0;
+        }
+        // Write
+        destinationFile.write(localBuffer.data(), localBuffer.size());
+        // Update bytesWritten and journalCount
+        bytesWritten += localBuffer.size();
+        journalCount += localBuffer.size();
+    }
+    // One last commit just in case
+    fs::commitSaveData();
+}
 
 int fs::io::getFileSize(const std::string &filePath)
 {
@@ -30,71 +138,38 @@ int fs::io::getFileSize(const std::string &filePath)
 
 void fs::io::copyFile(const std::string &source, const std::string &destination)
 {
-    std::ifstream sourceFile(source, std::ios::binary);
-    std::ofstream destinationFile(destination, std::ios::binary);
+    // Create shared thread struct
+    std::shared_ptr<threadStruct> sharedStruct = std::make_shared<threadStruct>();
 
-    if(sourceFile.is_open() == false || destinationFile.is_open() == false)
-    {
-        logger::log(s_ErrorOpening);
-        return;
-    }
+    // Everything else is set by default
+    sharedStruct->fileSize = fs::io::getFileSize(source);
 
-    // Get file size since it's already opened and we can't use getFileSize
-    sourceFile.seekg(std::ios::end);
-    int sourceSize = sourceFile.tellg();
-    sourceFile.seekg(std::ios::beg);
+    // Read & write thread
+    std::thread readThread(readFunction, source, sharedStruct);
+    std::thread writeThread(writeFunction, destination, sharedStruct);
 
-    // Buffer
-    std::unique_ptr<std::byte[]> buffer(new std::byte[FILE_BUFFER_SIZE]);
-
-    int i = 0;
-    while(i < sourceSize)
-    {
-        sourceFile.read(reinterpret_cast<char *>(buffer.get()), FILE_BUFFER_SIZE);
-        destinationFile.write(reinterpret_cast<char *>(buffer.get()), sourceFile.gcount());
-        i += sourceFile.gcount();
-    }
+    // Wait for finish
+    readThread.join();
+    writeThread.join();
 }
 
 void fs::io::copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
 {
-    std::ifstream sourceFile(source, std::ios::binary);
-    std::ofstream destinationFile(destination, std::ios::binary);
+    // Shared struct
+    std::shared_ptr<threadStruct> sharedStruct = std::make_shared<threadStruct>();
 
-    if(sourceFile.is_open() == false || destinationFile.is_open() == false)
-    {
-        logger::log(s_ErrorOpening);
-        return;
-    }
+    // Set vars
+    sharedStruct->fileSize = fs::io::getFileSize(source);
+    sharedStruct->commitWrite = true;
+    sharedStruct->journalSize = journalSize;
 
-    sourceFile.seekg(std::ios::end);
-    int sourceSize = sourceFile.tellg();
-    sourceFile.seekg(std::ios::beg);
+    // Threads
+    std::thread readThread(readFunction, source, sharedStruct);
+    std::thread writeThread(writeFunction, destination, sharedStruct);
 
-    std::unique_ptr<std::byte[]> buffer(new std::byte[FILE_BUFFER_SIZE]);
-
-    // This is for keeping track of write size because of journaling
-    uint64_t writeCount = 0;
-
-    int i = 0;
-    while(i < sourceSize)
-    {
-        sourceFile.read(reinterpret_cast<char *>(buffer.get()), FILE_BUFFER_SIZE);
-        destinationFile.write(reinterpret_cast<char *>(buffer.get()), sourceFile.gcount());
-
-        writeCount += sourceFile.gcount();
-        i += sourceFile.gcount();
-
-        // Close, commit, reopen
-        if(writeCount >= journalSize - 0x200000)
-        {
-            destinationFile.close();
-            fsdevCommitDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE);
-            destinationFile.open(destination, std::ios::binary);
-            destinationFile.seekp(i, std::ios::beg);
-        }
-    }
-    fsdevCommitDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    // Wait
+    readThread.join();
+    writeThread.join();
 }
 
 void fs::io::copyDirectory(const std::string &source, const std::string &destination)

@@ -15,4 +15,6 @@ namespace fs
     // Mounts save from saveInfo
     bool mountSaveData(const FsSaveDataInfo &saveInfo);
     void unmountSaveData(void);
+    // Commits to default save path
+    void commitSaveData(void);
 }

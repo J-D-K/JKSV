@@ -97,3 +97,8 @@ void fs::unmountSaveData(void)
 {
     fsdevUnmountDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE);
 }
+
+void fs::commitSaveData(void)
+{
+    fsdevCommitDevice(DEFAULT_SAVE_MOUNT_DEVICE);
+}

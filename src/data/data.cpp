@@ -49,7 +49,6 @@ bool data::init(void)
     // Loop through results and load them to vector
     for (int i = 0; i < totalAccounts; i++)
     {
-        logger::log("Add user 0x%X.", accountUIDToU128(accountIDs[i]));
         s_UserVector.push_back(std::make_pair(accountUIDToU128(accountIDs[i]), data::user(accountIDs[i])));
     }
 
@@ -112,8 +111,6 @@ void data::loadUserSaveInfo(void)
             titleID = saveDataInfo.application_id;
         }
 
-        logger::log("0x%016lX", titleID);
-
         // Just in case it doesn't have and entry
         if(titleIsLoadedInMap(titleID) == false)
         {
@@ -158,7 +155,6 @@ void data::loadUserSaveInfo(void)
         if(targetUser != NULL)
         {
             targetUser->addNewUserSaveInfo(titleID, saveDataInfo, playStatistics);
-            logger::log("%s -> 0x%016lX", targetUser->getUsername().c_str(), titleID);
         }
     }
 
