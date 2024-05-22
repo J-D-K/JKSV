@@ -183,7 +183,8 @@ void fs::io::copyDirectory(const std::string &source, const std::string &destina
         {
             std::string newSource = source + list.getItemAt(i) + "/";
             std::string newDestination = destination + list.getItemAt(i) + "/"; 
-            std::filesystem::create_directory(newDestination.substr(0, newDestination.npos - 1));
+            std::filesystem::create_directories(newDestination);
+            //std::filesystem::create_directory(newDestination.substr(0, newDestination.npos - 1));
             fs::io::copyDirectory(newSource, newDestination);
         }
         else

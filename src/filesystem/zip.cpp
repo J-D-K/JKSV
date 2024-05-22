@@ -1,12 +1,12 @@
 #include <fstream>
+#include <filesystem>
 #include <memory>
 #include <ctime>
 #include <cstddef>
 #include <switch.h>
 #include <minizip/zip.h>
 #include <minizip/unzip.h>
-#include "filesystem/directoryListing.hpp"
-#include "filesystem/zip.hpp"
+#include "filesystem/filesystem.hpp"
 #include "log.hpp"
 
 #define ZIP_BUFFER_SIZE 0x80000
@@ -33,15 +33,20 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
             std::tm *local = std::localtime(&rawTime);
             
             // This is needed to prevent unzipping warnings and errors
-            zip_fileinfo zipFileInfo;
-            zipFileInfo.tmz_date = 
+            zip_fileinfo zipFileInfo = 
             {
-                .tm_sec = local->tm_sec,
-                .tm_min = local->tm_min,
-                .tm_hour = local->tm_hour,
-                .tm_mday = local->tm_mday,
-                .tm_mon = local->tm_mon,
-                .tm_year = local->tm_year + 1900
+                .tmz_date = 
+                {
+                   .tm_sec = local->tm_sec,
+                   .tm_min = local->tm_min,
+                   .tm_hour = local->tm_hour,
+                   .tm_mday = local->tm_mday,
+                   .tm_mon = local->tm_mon,
+                   .tm_year = 1900 + local->tm_year 
+                },
+                .dosDate = 0,
+                .internal_fa = 0,
+                .external_fa = 0
             };
 
             // This is the file name in zip. The mount device needs to be removed.
@@ -54,7 +59,7 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
             {
                 // Open the source file
                 std::string fullSource = source + listing.getItemAt(i);
-                std::fstream sourceFile(fullSource, std::ios::binary);
+                std::ifstream sourceFile(fullSource, std::ios::binary);
 
                 // File size
                 sourceFile.seekg(std::ios::end);
@@ -83,17 +88,50 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
 
 void fs::io::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize)
 {
-    std::unique_ptr<std::byte[]> buffer(new std::byte[0x80000]);
+    // Buffer to decompress to
+    std::vector<char> buffer(ZIP_BUFFER_SIZE);
+    // Filename of file being decompressed
     char currentFileName[FS_MAX_PATH];
+    // This contains CRC etc. I don't use it but it's needed.
     unz_file_info64 unzipFileInfo;
-
+    // Keep track of journaling space commits
+    uint64_t journalCount = 0;
+    // Number of bytes read/decompressed
+    uint32_t bytesRead = 0;
     do
     {
         unzGetCurrentFileInfo64(unzip, &unzipFileInfo, currentFileName, FS_MAX_PATH, NULL, 0, NULL, 0);
         if(unzOpenCurrentFile(unzip) == UNZ_OK)
         {
-            
+            // Full path to output
+            std::string fullDestination = destination + currentFileName;
+            // Make sure full path to exists
+            std::filesystem::create_directories(fullDestination.substr(0, fullDestination.find_last_of('/') + 1));
+            // File stream
+            std::ofstream destinationFile(fullDestination, std::ios::binary);
+
+            while((bytesRead = unzReadCurrentFile(unzip, buffer.data(), ZIP_BUFFER_SIZE)) > 0)
+            {
+                if(journalCount + bytesRead >= journalSize)
+                {
+                    // 0 out journal
+                    journalCount = 0;
+                    // Close file
+                    destinationFile.close();
+                    // Commit data
+                    fs::commitSaveData();
+                    // Reopen
+                    destinationFile.open(fullDestination, std::ios::binary);
+                    // Seek to end
+                    destinationFile.seekp(std::ios::end);
+                }
+                // Write
+                destinationFile.write(buffer.data(), bytesRead);
+                // Update journal
+                journalCount += bytesRead;
+            }
         }
     } while(unzGoToNextFile(unzip) != UNZ_END_OF_LIST_OF_FILE);
+    fs::commitSaveData();
 }
 
