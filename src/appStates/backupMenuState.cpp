@@ -74,7 +74,7 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         if(config::getByKey(CONFIG_USE_ZIP) || extension == "zip")
         {
             zipFile zipOut = zipOpen64(path.c_str(), 0);
-            fs::io::copyDirectoryToZip(path, zipOut);
+            fs::io::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
             zipClose(zipOut, "");
         }
         else
@@ -144,6 +144,10 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     // Test if there are actually files in the save
     fs::directoryListing testListing(argIn->path);
     int saveFileCount = testListing.getListingCount();
+    if(saveFileCount <= 0)
+    {
+        return;
+    }
 }
 
 backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser), m_CurrentUserSaveInfo(currentUserSaveInfo), m_CurrentTitleInfo(currentTitleInfo)

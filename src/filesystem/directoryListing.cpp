@@ -14,9 +14,8 @@ void fs::directoryListing::loadListing(void)
     // Clear vector first JIC reload
     m_DirectoryList.clear();
 
-    for(const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(m_DirectoryPath))
+    for(const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator{m_DirectoryPath})
     {
-        logger::log("push_back: %s", entry.path().string().c_str());
         m_DirectoryList.push_back(entry.path().string());
     }
 }

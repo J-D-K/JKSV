@@ -9,18 +9,20 @@
 #include "filesystem/zip.hpp"
 #include "log.hpp"
 
+#define ZIP_BUFFER_SIZE 0x80000
+
 void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
 {
-    logger::log("copyDirectoryToZip");
-    fs::directoryListing list(source);
-    logger::log("directoryListing");
+    // Source file listing
+    fs::directoryListing listing(source);
 
-    int listCount = list.getListingCount();
-    for(int i = 0; i > listCount; i++)
+    // Total size to loop
+    int listCount = listing.getListingCount();
+    for(int i = 0; i < listCount; i++)
     {
-        if(list.itemAtIsDirectory(i))
+        if(listing.itemAtIsDirectory(i))
         {
-            std::string newSource = source + list.getItemAt(i) + "/";
+            std::string newSource = source + listing.getItemAt(i) + "/";
             fs::io::copyDirectoryToZip(newSource, zip);
         }
         else
@@ -29,7 +31,6 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
             std::time_t rawTime;
             std::time(&rawTime);
             std::tm *local = std::localtime(&rawTime);
-            logger::log("std::time");
             
             // This is needed to prevent unzipping warnings and errors
             zip_fileinfo zipFileInfo;
@@ -42,20 +43,17 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
                 .tm_mon = local->tm_mon,
                 .tm_year = local->tm_year + 1900
             };
-            logger::log("zipFileInfo");
 
             // This is the file name in zip. The mount device needs to be removed.
-            std::string filename = source + list.getItemAt(i);
+            std::string filename = source + listing.getItemAt(i);
             int zipNameStart = filename.find_first_of('/') + 1;
-            logger::log("filename");
 
             // Open and copy into zip
             int error = zipOpenNewFileInZip64(zip, filename.substr(zipNameStart, filename.npos).c_str(), &zipFileInfo, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0);
-            logger::log("zipOpenNewFileInZip %s", filename.c_str());
             if(error == ZIP_OK)
             {
                 // Open the source file
-                std::string fullSource = source + list.getItemAt(i);
+                std::string fullSource = source + listing.getItemAt(i);
                 std::fstream sourceFile(fullSource, std::ios::binary);
 
                 // File size
@@ -64,14 +62,14 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
                 sourceFile.seekg(std::ios::beg);
 
                 // Buffer
-                std::unique_ptr<std::byte[]> buffer(new std::byte[0x80000]);
+                std::vector<char> buffer(ZIP_BUFFER_SIZE);
 
                 // Compress to zip
                 int offset = 0;
                 while(offset < fileSize)
                 {
-                    sourceFile.read(reinterpret_cast<char *>(buffer.get()), 0x80000);
-                    zipWriteInFileInZip(zip, buffer.get(), sourceFile.gcount());
+                    sourceFile.read(buffer.data(), ZIP_BUFFER_SIZE);
+                    zipWriteInFileInZip(zip, buffer.data(), sourceFile.gcount());
                     offset += sourceFile.gcount();
                 }
             }
