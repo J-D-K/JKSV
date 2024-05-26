@@ -5,12 +5,13 @@
 #include "config.hpp"
 #include "system/input.hpp"
 #include "graphics/graphics.hpp"
-#include "appstates/backupMenuState.hpp"
+#include "appStates/backupMenuState.hpp"
 #include "appStates/taskState.hpp"
 #include "filesystem/filesystem.hpp"
 #include "system/task.hpp"
 #include "stringUtil.hpp"
 #include "jksv.hpp"
+#include "log.hpp"
 
 // This is for backup task
 struct backupArgs : sys::taskArgs
@@ -25,7 +26,7 @@ struct backupArgs : sys::taskArgs
 // This is shared by overwrite and restore
 struct pathArg : sys::taskArgs
 {
-    std::string path;
+    std::string source, destination;
 };
 
 // These are the functions used for tasks
@@ -33,7 +34,7 @@ struct pathArg : sys::taskArgs
 void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     // Make sure we weren't passed nullptr
-    if(args == nullptr)
+    if (args == nullptr)
     {
         task->finished();
         return;
@@ -45,15 +46,15 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 
     // Process shortcuts or get name for backup
     std::string backupName;
-    if(sys::input::buttonHeld(HidNpadButton_R) || config::getByKey(CONFIG_AUTONAME_BACKUPS))
+    if (sys::input::buttonHeld(HidNpadButton_R) || config::getByKey(CONFIG_AUTONAME_BACKUPS))
     {
         backupName = argsIn->currentUser->getPathSafeUsername() + " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD);
     }
-    else if(sys::input::buttonHeld(HidNpadButton_L))
+    else if (sys::input::buttonHeld(HidNpadButton_L))
     {
         backupName = argsIn->currentUser->getPathSafeUsername() + " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YDM);
     }
-    else if(sys::input::buttonHeld(HidNpadButton_ZL))
+    else if (sys::input::buttonHeld(HidNpadButton_ZL))
     {
         backupName = argsIn->currentUser->getPathSafeUsername() + " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_ASC);
     }
@@ -65,13 +66,13 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     }
 
     // If it's not empty, check ZIP option or extension. Normally I avoid nested ifs when possible but...
-    if(backupName.empty() == false)
+    if (backupName.empty() == false)
     {
         // Get extension and full path
         std::string extension = stringUtil::getExtensionFromString(backupName);
         std::string path = argsIn->outputBasePath + backupName + "/";
 
-        if(config::getByKey(CONFIG_USE_ZIP) || extension == "zip")
+        if (config::getByKey(CONFIG_USE_ZIP) || extension == "zip")
         {
             zipFile zipOut = zipOpen64(path.c_str(), 0);
             fs::io::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
@@ -83,6 +84,9 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
             fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path);
         }
     }
+    {
+        logger::log("Backup name empty.");
+    }
     // Reload list to reflect changes
     argsIn->sendingState->loadDirectoryList();
     // Task is finished
@@ -93,7 +97,7 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     // Bail if no args present
-    if(args == nullptr)
+    if (args == nullptr)
     {
         task->finished();
         return;
@@ -110,20 +114,20 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     int saveFileCount = testListing.getListingCount();
 
     // For checking if overwriting a zip
-    std::string fileExtension = stringUtil::getExtensionFromString(argIn->path);
+    std::string fileExtension = stringUtil::getExtensionFromString(argIn->destination);
 
-    if(std::filesystem::is_directory(argIn->path) && saveFileCount > 0)
+    if (std::filesystem::is_directory(argIn->destination) && saveFileCount > 0)
     {
         // Delete backup then recreate directory
-        std::filesystem::remove_all(argIn->path);
-        std::filesystem::create_directory(argIn->path);
-        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argIn->path);
+        std::filesystem::remove_all(argIn->destination);
+        std::filesystem::create_directories(argIn->destination);
+        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argIn->destination);
     }
-    else if(std::filesystem::is_directory(argIn->path) == false && fileExtension == "zip" && saveFileCount > 0)
+    else if (std::filesystem::is_directory(argIn->destination) == false && fileExtension == "zip" && saveFileCount > 0)
     {
-        std::filesystem::remove(argIn->path);
-        zipFile zipOut  = zipOpen64(argIn->path.c_str(), 0);
-        fs::io::copyDirectoryToZip(argIn->path, zipOut);
+        std::filesystem::remove(argIn->destination);
+        zipFile zipOut = zipOpen64(argIn->destination.c_str(), 0);
+        fs::io::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
         zipClose(zipOut, "");
     }
     task->finished();
@@ -132,7 +136,7 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 // Wipes current save for game, then copies backup from SD to filesystem
 void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
-    if(args == nullptr)
+    if (args == nullptr)
     {
         task->finished();
         return;
@@ -142,9 +146,9 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     std::shared_ptr<pathArg> argIn = std::static_pointer_cast<pathArg>(args);
 
     // Test if there are actually files in the save
-    fs::directoryListing testListing(argIn->path);
+    fs::directoryListing testListing(argIn->source);
     int saveFileCount = testListing.getListingCount();
-    if(saveFileCount <= 0)
+    if (saveFileCount <= 0)
     {
         return;
     }
@@ -166,34 +170,48 @@ backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *cu
     m_BackupMenu = std::make_unique<ui::menu>(10, 4, panelWidth + 44, 18, 7);
     // Directory listing of backups
     m_BackupListing = std::make_unique<fs::directoryListing>(m_OutputBasePath);
+    // Directory listing of save
+    m_SaveListing = std::make_unique<fs::directoryListing>(fs::DEFAULT_SAVE_MOUNT_DEVICE);
 
     backupMenuState::loadDirectoryList();
 }
 
-backupMenuState::~backupMenuState() 
+backupMenuState::~backupMenuState()
 {
     fs::unmountSaveData();
 }
 
 void backupMenuState::update(void)
 {
+    // Update panel and menu
     m_BackupPanel->update();
-
     m_BackupMenu->update();
 
+    // Get selected item to check what's selected
     int selected = m_BackupMenu->getSelected();
-    if(sys::input::buttonDown(HidNpadButton_A) && selected == 0)
+    if (sys::input::buttonDown(HidNpadButton_A) && selected == 0)
     {
-        // Data to send to task
-        std::shared_ptr<backupArgs> backupTaskArgs = std::make_shared<backupArgs>();
-        backupTaskArgs->currentUser = m_CurrentUser;
-        backupTaskArgs->currentTitleInfo = m_CurrentTitleInfo;
-        backupTaskArgs->outputBasePath = m_OutputBasePath;
-        backupTaskArgs->sendingState = this;
+        // Check to make sure save data isn't empty before wasting time and space
+        if (m_BackupListing->getListingCount() > 0)
+        {
+            // Data to send to task
+            std::shared_ptr<backupArgs> backupTaskArgs = std::make_shared<backupArgs>();
+            backupTaskArgs->currentUser = m_CurrentUser;
+            backupTaskArgs->currentTitleInfo = m_CurrentTitleInfo;
+            backupTaskArgs->outputBasePath = m_OutputBasePath;
+            backupTaskArgs->sendingState = this;
 
-        // Task state
-        std::unique_ptr<appState> backupTask = std::make_unique<taskState> (createNewBackup, backupTaskArgs);
-        jksv::pushNewState(backupTask);
+            // Task state
+            std::unique_ptr<appState> backupTask = std::make_unique<taskState>(createNewBackup, backupTaskArgs);
+            jksv::pushNewState(backupTask);
+        }
+        else
+        {
+            ui::popMessage::newMessage(ui::strings::getString(LANG_POP_SAVE_EMPTY, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
+        }
+    }
+    else if (sys::input::buttonDown(HidNpadButton_Y))
+    {
     }
     else if (sys::input::buttonDown(HidNpadButton_B))
     {
@@ -223,7 +241,7 @@ void backupMenuState::loadDirectoryList(void)
 
     int listingCount = m_BackupListing->getListingCount();
     m_BackupMenu->addOpt(ui::strings::getString(LANG_FOLDER_MENU_NEW, 0));
-    for(int i = 0; i < listingCount; i++)
+    for (int i = 0; i < listingCount; i++)
     {
         m_BackupMenu->addOpt(m_BackupListing->getItemAt(i));
     }

@@ -1,3 +1,4 @@
+#include <vector>
 #include <cstring>
 #include "system/input.hpp"
 #include "log.hpp"
@@ -31,11 +32,10 @@ bool sys::input::buttonHeld(const HidNpadButton &button)
 
 std::string sys::input::getString(const std::string &defaultText, const std::string &headerText, const size_t &maximumLength)
 {
+    // Keyboard config
     SwkbdConfig config;
-    char inputBuffer[maximumLength + 1];
-
-    // Clear inputBuffer
-    std::memset(inputBuffer, 0x00, maximumLength + 1);
+    // Input buffer
+    std::vector<char> inputBuffer(maximumLength + 1);
 
     // Setup soft keyboard
     swkbdCreate(&config, 0);
@@ -46,10 +46,13 @@ std::string sys::input::getString(const std::string &defaultText, const std::str
     swkbdConfigSetStringLenMax(&config, maximumLength);
     swkbdConfigSetKeySetDisableBitmask(&config, SwkbdKeyDisableBitmask_Backslash | SwkbdKeyDisableBitmask_Percent);
 
-    Result showKeyboard = swkbdShow(&config, inputBuffer, maximumLength + 1);
+    Result showKeyboard = swkbdShow(&config, inputBuffer.data(), maximumLength + 1);
     if(R_FAILED(showKeyboard))
     {
-        logger::log("Error showing keyboard: 0x%X", showKeyboard);
+        logger::log("Error showing keyboard: 0x%X: %s", showKeyboard, inputBuffer.data());
     }
-    return std::string(inputBuffer);
+    // Free keyboard
+    swkbdClose(&config);
+
+    return std::string(inputBuffer.data());
 }

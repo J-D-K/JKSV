@@ -81,6 +81,22 @@
 
 #define LANG_THREAD_COMPRESSING_UPLOAD "threadStatusCompressingSaveForUpload"
 
+// Popup message strings
+#define LANG_POP_CPU_BOOST "popCPUBoostEnabled"
+#define LANG_POP_ERROR_COMMITING "popErrorCommitingFile"
+#define LANG_POP_ZIP_EMPTY "popZipIsEmpty"
+#define LANG_POP_SAVE_EMPTY "popSaveIsEmpty"
+#define LANG_POP_FOLDER_EMPTY "popFolderIsEmpty"
+#define LANG_POP_PROCESS_SHUTDOWN "popProcessShutdown"
+#define LANG_POP_ADDED_PATH_FILTER "popAddedPathToFilter"
+#define LANG_POP_CHANGED_OUTPUT_DIR "popChangedOutputFolder"
+#define LANG_POP_CHANGED_OUTPUT_ERROR "popChangedOutputError"
+#define LANG_POP_TRASH_EMPTIED "popTrashEmptied"
+#define LANG_POP_SVI_EXPORTED "popSVIExported"
+#define LANG_POP_DRIVE_STARTED "popDriveStarted"
+#define LANG_POP_DRIVE_FAILED "popDriveFailed"
+#define LANG_POP_DRIVE_INACTIVE "popDriveNotActive"
+
 namespace ui
 {
     namespace strings

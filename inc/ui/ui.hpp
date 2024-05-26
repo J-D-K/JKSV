@@ -6,6 +6,7 @@
 #include "ui/progressBar.hpp"
 #include "ui/slidePanel.hpp"
 #include "ui/titleSelection.hpp"
+#include "ui/popMessage.hpp"
 
 namespace ui
 {

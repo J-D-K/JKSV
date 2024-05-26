@@ -35,6 +35,8 @@ class backupMenuState : public appState
         std::unique_ptr<ui::slidePanel> m_BackupPanel;
         // Folder listing
         std::unique_ptr<fs::directoryListing> m_BackupListing;
+        // Listing to make sure there is a save
+        std::unique_ptr<fs::directoryListing> m_SaveListing;
         // Folder menu
         std::unique_ptr<ui::menu> m_BackupMenu;
 };

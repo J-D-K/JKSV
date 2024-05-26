@@ -7,6 +7,7 @@
 #include "system/input.hpp"
 #include "ui/ui.hpp"
 #include "system/task.hpp"
+#include "stringUtil.hpp"
 #include "log.hpp"
 
 // Tasks
@@ -61,7 +62,8 @@ void mainMenuState::update(void)
         }
         else
         {
-            logger::log("No titles found for user %s", selectedUser->getUsername().c_str());
+            std::string noSavesMessage = stringUtil::getFormattedString(ui::strings::getCString(LANG_SAVEDATA_NONE_FOUND, 0), selectedUser->getUsername().c_str());
+            ui::popMessage::newMessage(noSavesMessage, ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }
 }

@@ -37,12 +37,14 @@ bool jksv::init(void)
 
     // Config doesn't return anything
     config::init();
+
+    // Filesystem
     if(fs::init() == false)
     {
         return false;
     }
 
-    // ui doesn't return anything
+    // ui just loads some things
     ui::init();
 
     // Load data from system
@@ -93,6 +95,9 @@ void jksv::update(void)
 
     // Update back of vector
     s_AppStateVector.back()->update();
+
+    // Update pop up messages
+    ui::popMessage::update();
 }
 
 void jksv::render(void)
@@ -103,11 +108,16 @@ void jksv::render(void)
     graphics::renderLine(NULL, 30, 648, 1250, 648, COLOR_WHITE);
     graphics::textureRender(s_HeaderIcon, NULL, 66, 27);
     graphics::systemFont::renderText("JKSV", NULL, 130, 38, 24, COLOR_WHITE);
+
     // Render the state vector
     for (std::unique_ptr<appState> &a : s_AppStateVector)
     {
         a->render();
     }
+
+    // Render pop up messages
+    ui::popMessage::render();
+
     graphics::endFrame();
 }
 

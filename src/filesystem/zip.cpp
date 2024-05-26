@@ -42,7 +42,7 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
                    .tm_hour = local->tm_hour,
                    .tm_mday = local->tm_mday,
                    .tm_mon = local->tm_mon,
-                   .tm_year = 1900 + local->tm_year 
+                   .tm_year = local->tm_year + 1900
                 },
                 .dosDate = 0,
                 .internal_fa = 0,

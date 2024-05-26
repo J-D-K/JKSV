@@ -6,52 +6,25 @@
 #include <condition_variable>
 #include <vector>
 #include "filesystem/filesystem.hpp"
-#include "filesystem/directoryListing.hpp"
-#include "filesystem/io.hpp"
 #include "system/task.hpp"
 #include "system/taskArgs.hpp"
 #include "log.hpp"
 
-// Generic error for opening files
-static const char *s_ErrorOpening = "Error opening files for reading and/or writing.";
-
-// Buffer size for read/write threads
-#define FILE_BUFFER_SIZE 0x400000
-
-// Struct shared for reading/writing
-typedef struct
-{
-    // File's size
-    uint64_t fileSize;
-    // Mutex
-    std::mutex bufferLock;
-    // Conditional for making sure buffer is empty/full
-    std::condition_variable bufferIsReady;
-    // Bool to check
-    bool bufferIsFull = false;
-    // Buffer shared for transfer
-    std::vector<char> buffer;
-    // Whether file needs to be commited on write
-    bool commitWrite = false;
-    // Journal size
-    uint64_t journalSize = 0;
-} threadStruct;
-
 // Read thread function
-void readFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
+void fs::io::readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
 {
     // Bytes read
     uint64_t bytesRead = 0;
     // File stream
     std::ifstream sourceFile(source, std::ios::binary);
     // Local buffer for reading
-    std::vector<char> localBuffer(FILE_BUFFER_SIZE);
+    std::vector<char> localBuffer(fs::io::FILE_BUFFER_SIZE);
 
     // Loop until file is fully read
     while(bytesRead < sharedStruct->fileSize)
     {
         // Read to localBuffer
-        sourceFile.read(localBuffer.data(), FILE_BUFFER_SIZE);
+        sourceFile.read(localBuffer.data(), fs::io::FILE_BUFFER_SIZE);
 
         // Wait for shared buffer to be emptied by write thread
         std::unique_lock sharedBufferLock(sharedStruct->bufferLock);
@@ -75,7 +48,7 @@ void readFunction(const std::string &source, std::shared_ptr<threadStruct> share
 }
 
 // File writing thread function
-void writeFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct)
+void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct)
 {
     // Keep track of bytes written
     uint64_t bytesWritten = 0;
@@ -95,6 +68,9 @@ void writeFunction(const std::string &destination, std::shared_ptr<threadStruct>
 
         // Copy shared buffer to localBuffer so read thread can continue
         localBuffer.assign(sharedStruct->buffer.begin(), sharedStruct->buffer.end());
+
+        // Update offet
+        sharedStruct->currentOffset += localBuffer.size();
 
         // Signal
         sharedStruct->bufferIsFull = false;
@@ -145,8 +121,8 @@ void fs::io::copyFile(const std::string &source, const std::string &destination)
     sharedStruct->fileSize = fs::io::getFileSize(source);
 
     // Read & write thread
-    std::thread readThread(readFunction, source, sharedStruct);
-    std::thread writeThread(writeFunction, destination, sharedStruct);
+    std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
+    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct);
 
     // Wait for finish
     readThread.join();
@@ -164,8 +140,8 @@ void fs::io::copyFileCommit(const std::string &source, const std::string &destin
     sharedStruct->journalSize = journalSize;
 
     // Threads
-    std::thread readThread(readFunction, source, sharedStruct);
-    std::thread writeThread(writeFunction, destination, sharedStruct);
+    std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
+    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct);
 
     // Wait
     readThread.join();
@@ -184,7 +160,6 @@ void fs::io::copyDirectory(const std::string &source, const std::string &destina
             std::string newSource = source + list.getItemAt(i) + "/";
             std::string newDestination = destination + list.getItemAt(i) + "/"; 
             std::filesystem::create_directories(newDestination);
-            //std::filesystem::create_directory(newDestination.substr(0, newDestination.npos - 1));
             fs::io::copyDirectory(newSource, newDestination);
         }
         else

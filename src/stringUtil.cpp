@@ -1,8 +1,14 @@
+#include <array>
+#include <string>
+#include <cstring>
 #include <cstdarg>
 #include <cstdint>
 #include <ctime>
 #include <switch.h>
 #include "stringUtil.hpp"
+
+// va buffer size
+static const int VA_BUFFER_SIZE = 0x800;
 
 // Chars that shouldn't be in paths & function to test for them
 static const uint32_t forbiddenPathChars[] = {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
@@ -27,12 +33,15 @@ static bool codepointIsASCII(const uint32_t &codepoint)
 
 std::string stringUtil::getFormattedString(const char *format, ...)
 {
-    char vaBuffer[0x800];
+    // Use C++ array for fun
+    std::array<char, VA_BUFFER_SIZE> vaBuffer;
+    // Use va to assemble string
     va_list args;
     va_start(args, format);
-    vsnprintf(vaBuffer, 0x800, format, args);
+    vsnprintf(vaBuffer.data(), VA_BUFFER_SIZE, format, args);
     va_end(args);
-    return std::string(vaBuffer);
+    // Return array as C++ string
+    return std::string(vaBuffer.data());
 }
 
 std::string stringUtil::getPathSafeString(const std::string &str)
@@ -113,6 +122,9 @@ std::string stringUtil::getExtensionFromString(const std::string &path)
 
 std::string stringUtil::getTimeAndDateString(const dateFormats &dateFormat)
 {
+    // String to return
+    std::string dateString;
+
     // Get local time from system
     std::time_t rawTime;
     std::time(&rawTime);
@@ -125,24 +137,25 @@ std::string stringUtil::getTimeAndDateString(const dateFormats &dateFormat)
     {
         case stringUtil::dateFormats::DATE_FORMAT_YMD:
         {
-            return stringUtil::getFormattedString("%04d.%02d.%02d @ %02d.%02d.%02d", currentYear, local->tm_mon + 1, local->tm_mday, local->tm_min, local->tm_sec);
+            dateString = stringUtil::getFormattedString("%04d.%02d.%02d @ %02d.%02d.%02d", currentYear, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min, local->tm_sec);
         }
         break;
 
         case stringUtil::dateFormats::DATE_FORMAT_YDM:
         {
-            return stringUtil::getFormattedString("%04d.%02d.%02d @ %02d.%02d.%02d", currentYear, local->tm_mday, local->tm_mon + 1, local->tm_hour, local->tm_min, local->tm_sec);
+            dateString = stringUtil::getFormattedString("%04d.%02d.%02d @ %02d.%02d.%02d", currentYear, local->tm_mday, local->tm_mon + 1, local->tm_hour, local->tm_min, local->tm_sec);
         }
         break;
 
         case stringUtil::dateFormats::DATE_FORMAT_ASC:
         {
-            std::string dateString = stringUtil::getFormattedString("%04d%02d%02d_%02d%02d", currentYear, local->tm_mon + 1, local->tm_mday, local->tm_hour, local->tm_min);
+            // Assign date
+            dateString.assign(std::asctime(local));
+            // These need to be removed
             stringUtil::replaceInString(dateString, ":", "_");
             stringUtil::replaceInString(dateString, "\n", 0x00);
-            return dateString;
         }
         break;
     }
-    return std::string("");
+    return dateString;
 }
