@@ -1,3 +1,4 @@
+#include <array>
 #include <string>
 #include <cstring>
 #include <cstdio>
@@ -10,6 +11,8 @@
 #include "graphics/graphics.hpp"
 #include "graphics/systemFont.hpp"
 #include "log.hpp"
+
+static const int WORD_WRAP_BUFFER_LENGTH = 0x1000;
 
 //Masks for converting to surface
 static const uint32_t s_RedMask   = 0xFF000000;
@@ -226,6 +229,7 @@ void graphics::systemFont::exit(void)
         FT_Done_Face(s_FTFaces[i]);
     }
     FT_Done_FreeType(s_FTLib);
+
     logger::log("systemFont::exit(): Succeeded.");
 }
 
@@ -265,6 +269,7 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
         }
         else if(codepoint == '\n')
         {
+            // Break line, reset X, increase Y
             workingX = x;
             workingY += fontSize + 8;
             continue;
@@ -273,8 +278,11 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
         glyphData *gd = getGlyph(codepoint, fontSize);
         if(gd)
         {
+            // Set color just to be sure
             SDL_SetTextureColorMod(gd->glyph, getRed(workingColor), getGreen(workingColor), getBlue(workingColor));
+            // Render glyph texture
             graphics::textureRender(gd->glyph, target, workingX + gd->left, workingY + (fontSize - gd->top));
+            // X update
             workingX += gd->advanceX;
         }
     }
@@ -287,7 +295,7 @@ void graphics::systemFont::renderTextWrap(const std::string &text, SDL_Texture *
     int workingY = y;
     int stringLength = text.length();
     // This buffer is used to calculate if the next word should create a line break
-    char wordBuffer[0x100];
+    std::array<char, WORD_WRAP_BUFFER_LENGTH> wordBuffer = { 0 };
 
     resizeFont(fontSize);
 
@@ -296,21 +304,24 @@ void graphics::systemFont::renderTextWrap(const std::string &text, SDL_Texture *
         // Find the next char we can break a line at
         size_t nextBreakpoint = findNextBreakPoint(&text.c_str()[i]);
 
-        // Clear and copy string up until that point to wordBuffer
-        std::memset(wordBuffer, 0x00, 0x100);
-        std::memcpy(wordBuffer, &text.c_str()[i], nextBreakpoint);
+        // Copy string up until that point to wordBuffer
+        std::snprintf(wordBuffer.data(), WORD_WRAP_BUFFER_LENGTH, "%s", text.substr(i, nextBreakpoint).c_str());
 
         // Go to next line if maxWidth is exceeded
-        int wordWidth = graphics::systemFont::getTextWidth(wordBuffer, fontSize);
+        int wordWidth = graphics::systemFont::getTextWidth(wordBuffer.data(), fontSize);
         if(workingX + wordWidth >= x + maxWidth)
         {
             workingX = x;
             workingY += fontSize + 8;
         }
         // Render word
-        graphics::systemFont::renderText(wordBuffer, target, workingX, workingY, fontSize, color);
+        graphics::systemFont::renderText(wordBuffer.data(), target, workingX, workingY, fontSize, color);
+
         // Increase workingX  by word width
         workingX += wordWidth;
+
+        // Add length to i
+        i += std::strlen(wordBuffer.data());
     }
 }
 

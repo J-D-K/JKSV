@@ -1,5 +1,4 @@
 #include "ui/ui.hpp"
-#include "ui/lang.hpp"
 #include "graphics/graphics.hpp"
 
 namespace

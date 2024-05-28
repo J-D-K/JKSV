@@ -30,6 +30,11 @@ bool fs::directoryListing::itemAtIsDirectory(const int &index) const
     return std::filesystem::is_directory(m_DirectoryList.at(index));
 }
 
+std::string fs::directoryListing::getFullPathToItemAt(const int &index) const
+{
+    return m_DirectoryList.at(index);
+}
+
 std::string fs::directoryListing::getItemAt(const int &index) const
 {
     size_t lastSlash = m_DirectoryList.at(index).find_last_of('/') + 1;

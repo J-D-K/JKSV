@@ -61,7 +61,7 @@
 // Thread status strings
 #define LANG_THREAD_CREATING_SAVE "threadStatusCreatingSaveData"
 #define LANG_THREAD_COPYING_FILE "threadStatusCopyingFile"
-#define LANG_THREAD_STATUS_DELETE "threadStatusDeletingFile"
+#define LANG_THREAD_DELETE_FILE "threadStatusDeletingFile"
 #define LANG_THREAD_OPENING_FOLDER "threadStatusOpeningFolder"
 #define LANG_THREAD_ADDING_TO_ZIP "threadStatusAddingFolderToZip"
 #define LANG_THREAD_DECOMPRESSING_FILE "threadStatusDecompressingFile"

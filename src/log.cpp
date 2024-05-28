@@ -1,6 +1,9 @@
+#include <array>
 #include <cstdarg>
 #include <mutex>
 #include "log.hpp"
+
+static const int LOG_VA_BUFFER_SIZE = 0x1000;
 
 namespace
 {
@@ -15,14 +18,17 @@ void logger::init(void)
 
 void logger::log(const char *format, ...)
 {
-    char vaBuffer[0x800];
-    va_list args;
+    // Buffer for va
+    std::array<char, LOG_VA_BUFFER_SIZE> vaBuffer;
+
+    // VA
+    std::va_list args;
     va_start(args, format);
-    vsnprintf(vaBuffer, 0x800, format, args);
+    vsnprintf(vaBuffer.data(), LOG_VA_BUFFER_SIZE, format, args);
     va_end(args);
 
-    // JIC because of task threads
+    // This is because of threading
     s_LogMutex.lock();
-    s_LogFile << vaBuffer << std::endl; // Using std::endl for flush for more reliable logging
+    s_LogFile << vaBuffer.data() << std::endl; // endl for buffer flushing
     s_LogMutex.unlock();
 }

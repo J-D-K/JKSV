@@ -15,6 +15,8 @@ namespace fs
             int getListingCount(void) const;
             // Returns if item at index is a folder
             bool itemAtIsDirectory(const int &index) const;
+            // Returns full path of item at index
+            std::string getFullPathToItemAt(const int &index) const;
             // Returns full name + extension of index
             std::string getItemAt(const int &index) const;
             // Returns just the file name (no extension)

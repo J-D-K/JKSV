@@ -1,6 +1,6 @@
 #pragma once
 #include <SDL2/SDL.h>
-#include "ui/lang.hpp"
+#include "ui/strings.hpp"
 #include "ui/menu.hpp"
 #include "ui/iconMenu.hpp"
 #include "ui/progressBar.hpp"

@@ -30,6 +30,11 @@ bool sys::input::buttonHeld(const HidNpadButton &button)
     return padGetButtons(&s_PadState) & button;
 }
 
+bool sys::input::buttonReleased(const HidNpadButton &button)
+{
+    return padGetButtonsUp(&s_PadState) & button;
+}
+
 std::string sys::input::getString(const std::string &defaultText, const std::string &headerText, const size_t &maximumLength)
 {
     // Keyboard config

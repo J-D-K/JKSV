@@ -6,6 +6,7 @@
 #include "system/input.hpp"
 #include "graphics/graphics.hpp"
 #include "appStates/backupMenuState.hpp"
+#include "appStates/confirmState.hpp"
 #include "appStates/taskState.hpp"
 #include "filesystem/filesystem.hpp"
 #include "system/task.hpp"
@@ -24,9 +25,11 @@ struct backupArgs : sys::taskArgs
 };
 
 // This is shared by overwrite and restore
-struct pathArg : sys::taskArgs
+struct pathArgs : sys::taskArgs
 {
     std::string source, destination;
+    // For reloading folder list
+    backupMenuState *sendingState = NULL;
 };
 
 // These are the functions used for tasks
@@ -105,7 +108,7 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 
     // Set status, cast args to type
     task->setThreadStatus("REPLACE THIS LATER");
-    std::shared_ptr<pathArg> argIn = std::static_pointer_cast<pathArg>(args);
+    std::shared_ptr<pathArgs> argIn = std::static_pointer_cast<pathArgs>(args);
 
     // Get a test listing
     fs::directoryListing testListing(fs::DEFAULT_SAVE_MOUNT_DEVICE);
@@ -143,7 +146,7 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     }
 
     task->setThreadStatus("REPLACE THIS LATER");
-    std::shared_ptr<pathArg> argIn = std::static_pointer_cast<pathArg>(args);
+    std::shared_ptr<pathArgs> argIn = std::static_pointer_cast<pathArgs>(args);
 
     // Test if there are actually files in the save
     fs::directoryListing testListing(argIn->source);
@@ -154,6 +157,34 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     }
 }
 
+void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+{
+    if(args == nullptr)
+    {
+        task->finished();
+        return;
+    }
+
+    // Set thread status
+    task->setThreadStatus(ui::strings::getString(LANG_THREAD_DELETE_FILE, 0));
+
+    // Cast args
+    std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
+
+    if(std::filesystem::is_directory(argsIn->destination))
+    {
+        std::filesystem::remove_all(argsIn->destination);
+    }
+    else
+    {
+        std::filesystem::remove(argsIn->destination);
+    }
+
+    argsIn->sendingState->loadDirectoryList();
+
+    task->finished();
+}
+
 backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser), m_CurrentUserSaveInfo(currentUserSaveInfo), m_CurrentTitleInfo(currentTitleInfo)
 {
     // This is the path used for all in/output. Create it if it doesn't exist.
@@ -162,12 +193,14 @@ backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *cu
 
     // Controls displayed at bottom
     m_BackupMenuControlGuide = ui::strings::getString(LANG_FOLDER_GUIDE, 0);
-    int panelWidth = graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18);
+    m_PanelWidth = graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18);
 
     // The actual panel
-    m_BackupPanel = std::make_unique<ui::slidePanel>("backupMenuPanel", panelWidth + 64, ui::slidePanelSide::PANEL_SIDE_RIGHT);
+    m_BackupPanel = std::make_unique<ui::slidePanel>("backupMenuPanel", m_PanelWidth + 64, ui::slidePanelSide::PANEL_SIDE_RIGHT);
     // The menu of backups
-    m_BackupMenu = std::make_unique<ui::menu>(10, 4, panelWidth + 44, 18, 7);
+    m_BackupMenu = std::make_unique<ui::menu>(10, 4, m_PanelWidth + 44, 18, 6);
+    // Render target that menu is rendered to
+    m_BackupMenuRenderTarget = graphics::textureCreate("backupMenuRenderTarget", m_PanelWidth + 64, 647, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
     // Directory listing of backups
     m_BackupListing = std::make_unique<fs::directoryListing>(m_OutputBasePath);
     // Directory listing of save
@@ -192,7 +225,7 @@ void backupMenuState::update(void)
     if (sys::input::buttonDown(HidNpadButton_A) && selected == 0)
     {
         // Check to make sure save data isn't empty before wasting time and space
-        if (m_BackupListing->getListingCount() > 0)
+        if (m_SaveListing->getListingCount() > 0)
         {
             // Data to send to task
             std::shared_ptr<backupArgs> backupTaskArgs = std::make_shared<backupArgs>();
@@ -210,8 +243,53 @@ void backupMenuState::update(void)
             ui::popMessage::newMessage(ui::strings::getString(LANG_POP_SAVE_EMPTY, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }
-    else if (sys::input::buttonDown(HidNpadButton_Y))
+    else if(sys::input::buttonDown(HidNpadButton_A) && selected > 0)
     {
+        // Selected item
+        std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
+        // Get overwrite string
+        std::string confirmOverwrite = stringUtil::getFormattedString(ui::strings::getCString(LANG_CONFIRM_OVERWRITE, 0), selectedItem.c_str());
+
+        // Arg pointer
+        std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
+        paths->destination = m_BackupListing->getFullPathToItemAt(selected - 1);
+
+        // Create confirmation
+        std::unique_ptr<appState> overwriteConfirmationState = std::make_unique<confirmState>(confirmOverwrite, overwriteBackup, paths);
+        // Push it real good
+        jksv::pushNewState(overwriteConfirmationState);
+    }
+    else if (sys::input::buttonDown(HidNpadButton_Y) && selected > 0)
+    {
+        // Get selected menu item
+        std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
+        // Get restoration string
+        std::string confirmRestore = stringUtil::getFormattedString(ui::strings::getCString(LANG_CONFIRM_RESTORE, 0), selectedItem.c_str());
+
+        // Setup confirmation arg pointer
+        std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
+        paths->source = m_BackupListing->getFullPathToItemAt(selected - 1); // Need to subtract one to account for 'New' option
+
+        // Create confirmation
+        std::unique_ptr<appState> restoreConfirmationState = std::make_unique<confirmState>(confirmRestore, restoreBackup, paths);
+        // Push it to vector
+        jksv::pushNewState(restoreConfirmationState);
+    }
+    else if(sys::input::buttonDown(HidNpadButton_X) && selected > 0)
+    {
+        // Get selected
+        std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
+        // Get confirmation string
+        std::string confirmDelete = stringUtil::getFormattedString(ui::strings::getCString(LANG_CONFIRM_DELETE, 0), selectedItem.c_str());
+
+        // Setup args
+        std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
+        paths->destination = m_BackupListing->getFullPathToItemAt(selected - 1);
+        paths->sendingState = this;
+
+        // Create confirm and push
+        std::unique_ptr<appState> deleteConfirmationState = std::make_unique<confirmState>(confirmDelete, deleteBackup, paths);
+        jksv::pushNewState(deleteConfirmationState);
     }
     else if (sys::input::buttonDown(HidNpadButton_B))
     {
@@ -225,11 +303,24 @@ void backupMenuState::update(void)
 
 void backupMenuState::render(void)
 {
+    // Get panel's render target and clear it first
     SDL_Texture *panelTarget = m_BackupPanel->getPanelRenderTarget();
-
     graphics::textureClear(panelTarget, COLOR_SLIDE_PANEL_TARGET);
-    m_BackupMenu->render(panelTarget);
 
+    // Clear menu render target
+    graphics::textureClear(m_BackupMenuRenderTarget, COLOR_TRANSPARENT);
+
+    // Render menu to menu render target
+    m_BackupMenu->render(m_BackupMenuRenderTarget);
+
+    // Render menu target to panel target (this is so the menu can only be draw so far and not cover guider)
+    graphics::textureRender(m_BackupMenuRenderTarget, panelTarget, 0, 0);
+
+    // Draw divider and guide on bottom
+    graphics::renderLine(panelTarget, 18, 648, m_PanelWidth + 54, 648, COLOR_WHITE);
+    graphics::systemFont::renderText(m_BackupMenuControlGuide, panelTarget, 32, 673, 18, COLOR_WHITE);
+
+    // Render panel to framebuffer
     m_BackupPanel->render();
 }
 

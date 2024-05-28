@@ -1,6 +1,6 @@
 #include <map>
 #include <string>
-#include "ui/lang.hpp"
+#include "ui/strings.hpp"
 #include "log.hpp"
 #include "stringUtil.hpp"
 

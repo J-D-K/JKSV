@@ -8,6 +8,8 @@ namespace sys
         public:
             // Inits timer with current ticks
             timer(const uint32_t &triggerTicks);
+            // Restarts timer. Sets starting ticks to current
+            void restartTimer(void);
             // Returns if triggerTicks has been reached.
             bool triggered(void);
 

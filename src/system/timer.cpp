@@ -3,7 +3,12 @@
 
 sys::timer::timer(const uint32_t &triggerTicks) : m_TriggerTicks(triggerTicks)
 {
-    // Save starting ticks
+    restartTimer();
+}
+
+void sys::timer::restartTimer(void)
+{
+    // Set starting ticks
     m_StartingTicks = SDL_GetTicks();
 }
 
