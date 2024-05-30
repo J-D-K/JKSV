@@ -105,6 +105,8 @@ void fs::commitSaveData(void)
 
 void fs::eraseSaveData(void)
 {
-    fs::io::file::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    // Delete root of save container
+    fs::io::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    // Commit changes
     fs::commitSaveData();
 }

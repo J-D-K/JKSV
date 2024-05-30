@@ -1,6 +1,8 @@
 #pragma once
 #include <string>
 
+/* HUGE TO DO: REVISE THIS ENTIRE NAMING THING*/
+
 // To prevent typos
 #define LANG_AUTHOR "author"
 #define LANG_USER_GUIDE "helpUser"
@@ -39,6 +41,7 @@
 #define LANG_SAVEDATA_DELETE_ALL_USER_SAVES "saveDataDeleteAllUser"
 #define LANG_SAVEDATA_BACKUP_DELETED "saveDataBackupDeleted"
 #define LANG_SAVEDATA_BACKUP_TRASHED "saveDataBackupMovedToTrash"
+#define LANG_SAVEDATA_ERROR_MOUNTING "saveDataErrorMounting"
 
 // Save data types
 #define LANG_SAVEDATA_TYPE_TEXT "saveDataTypeText"

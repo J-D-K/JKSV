@@ -81,13 +81,13 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         if (config::getByKey(CONFIG_USE_ZIP) || extension == "zip")
         {
             zipFile zipOut = zipOpen64(path.c_str(), 0);
-            fs::io::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
+            fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
             zipClose(zipOut, "");
         }
         else
         {
             std::filesystem::create_directories(path);
-            fs::io::file::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path);
+            fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path);
         }
     }
 
@@ -120,11 +120,11 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Add trailing slash first.
         std::string target = argsIn->destination + "/";
         // std::filesystem::remove_all keeps crashing my switch, so I wrote my own again
-        fs::io::file::deleteDirectoryRecursively(target);
+        fs::io::deleteDirectoryRecursively(target);
         // Recreate whole path.
         std::filesystem::create_directories(argsIn->destination);
         // Create the new backup in the same folder
-        fs::io::file::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->destination);
+        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->destination);
     }
     else if (std::filesystem::is_directory(argsIn->destination) == false && fileExtension == "zip")
     {
@@ -133,7 +133,7 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Create a new one with the same name
         zipFile zipOut = zipOpen64(argsIn->destination.c_str(), 0);
         // Create new zip with old name
-        fs::io::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
+        fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
         zipClose(zipOut, "");
     }
     task->finished();
@@ -168,7 +168,7 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
             // Folder isn't empty, erase
             fs::eraseSaveData();
             // Copy source to save container
-            fs::io::file::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
+            fs::io::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
         }
     }
     else if(std::filesystem::is_directory(argsIn->source) == false && fileExtension == "zip")
@@ -176,9 +176,9 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Open zip for decompressing
         unzFile unzip = unzOpen64(argsIn->source.c_str());
         // Check if opening was successful and not empty first
-        if(unzip != NULL && fs::io::zip::zipFileIsNotEmpty(unzip))
+        if(unzip != NULL && fs::zip::zipFileIsNotEmpty(unzip))
         {
-            fs::io::zip::copyZipToDirectory(unzip, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
+            fs::zip::copyZipToDirectory(unzip, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
         }
         // Close zip
         unzClose(unzip);
@@ -203,7 +203,7 @@ void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     {
         // Doesn't have trailing slash
         std::string target = argsIn->destination + "/";
-        fs::io::file::deleteDirectoryRecursively(target);
+        fs::io::deleteDirectoryRecursively(target);
     }
     else
     {

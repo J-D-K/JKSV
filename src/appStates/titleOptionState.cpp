@@ -1,6 +1,13 @@
+#include <memory>
 #include "appStates/titleOptionState.hpp"
+#include "appStates/confirmState.hpp"
+#include "data/data.hpp"
 #include "filesystem/filesystem.hpp"
+#include "ui/ui.hpp"
+#include "system/task.hpp"
 #include "system/input.hpp"
+#include "jksv.hpp"
+#include "log.hpp"
 
 enum
 {
@@ -14,6 +21,55 @@ enum
     EXTEND_SAVE_DATA,
     EXPORT_SVI
 };
+
+// This struct is used to send data to tasks
+struct titleOptsArgs : sys::taskArgs
+{
+    data::user *currentUser;
+    data::userSaveInfo *currentUserSaveInfo;
+    data::titleInfo *currentTitleInfo;
+};
+
+// These are the task/thread functions for this state
+// This was needed to debug something. Only one for now.
+void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+{
+    if(args == nullptr)
+    {
+        task->finished();
+        return;
+    }
+    logger::log("Arg check");
+
+    // Set status
+    task->setThreadStatus(ui::strings::getString(LANG_THREAD_RESET_SAVE_DATA, 0));
+    logger::log("Set status");
+    
+    // Cast args
+    std::shared_ptr<titleOptsArgs> argsIn = std::static_pointer_cast<titleOptsArgs>(args);
+    logger::log("Cast pointer");
+
+    if(fs::mountSaveData(argsIn->currentUserSaveInfo->getSaveDataInfo()))
+    {
+        logger::log("Save mounted");
+        // This does everything this needs
+        fs::eraseSaveData();
+        logger::log("Erase Save Data");
+        // Close
+        fs::unmountSaveData();
+        logger::log("unmount");
+        // Display success
+        ui::popMessage::newMessage(ui::strings::getString(LANG_SAVEDATA_RESET_SUCCESS, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
+        logger::log("POP");
+    }
+    else
+    {
+        // Display failure
+        ui::popMessage::newMessage(ui::strings::getString(LANG_SAVEDATA_ERROR_MOUNTING, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
+    }
+
+    task->finished();
+}
 
 titleOptionState::titleOptionState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser), m_CurrentUserSaveInfo(currentUserSaveInfo), m_CurrentTitleInfo(currentTitleInfo)
 {
@@ -40,14 +96,21 @@ void titleOptionState::update(void)
     {
         switch(m_OptionsMenu->getSelected())
         {
+            // This is needed to debug something... and itself.
             case RESET_SAVE_DATA:
             {
-                if(fs::mountSaveData(m_CurrentUserSaveInfo->getSaveDataInfo()))
-                {
-                    fs::io::file::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
-                    fs::commitSaveData();
-                    fs::unmountSaveData();
-                }
+                // Prepare confirmation
+                std::string confirmationString = ui::strings::getString(LANG_CONFIRM_RESET_SAVEDATA, 0);
+
+                // Data to send
+                std::shared_ptr<titleOptsArgs> args = std::make_shared<titleOptsArgs>();
+                args->currentUserSaveInfo = m_CurrentUserSaveInfo;
+
+                // Confirm state
+                std::unique_ptr<appState> confirmReset = std::make_unique<confirmState>(confirmationString, resetSaveData, args);
+
+                // Push
+                jksv::pushNewState(confirmReset);
             }
             break;
 

@@ -12,7 +12,7 @@
 
 #define ZIP_BUFFER_SIZE 0x80000
 
-void fs::io::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
+void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
 {
     // Source file listing
     fs::directoryListing listing(source);
@@ -24,7 +24,7 @@ void fs::io::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
         if(listing.itemAtIsDirectory(i))
         {
             std::string newSource = source + listing.getItemAt(i) + "/";
-            fs::io::zip::copyDirectoryToZip(newSource, zip);
+            fs::zip::copyDirectoryToZip(newSource, zip);
         }
         else
         {
@@ -87,7 +87,7 @@ void fs::io::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
     }
 }
 
-void fs::io::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize)
+void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize)
 {
     // Buffer to decompress to
     std::vector<char> buffer(ZIP_BUFFER_SIZE);
@@ -136,7 +136,7 @@ void fs::io::zip::copyZipToDirectory(unzFile unzip, const std::string &destinati
     fs::commitSaveData();
 }
 
-uint64_t fs::io::zip::getZipTotalFileSize(unzFile unzip)
+uint64_t fs::zip::getZipTotalFileSize(unzFile unzip)
 {
     // Total size to return
     uint64_t totalSize = 0;
@@ -160,7 +160,7 @@ uint64_t fs::io::zip::getZipTotalFileSize(unzFile unzip)
     return totalSize;
 }
 
-bool fs::io::zip::zipFileIsNotEmpty(unzFile unzip)
+bool fs::zip::zipFileIsNotEmpty(unzFile unzip)
 {
     // Just return if we can get first file
     return unzGoToFirstFile(unzip) == UNZ_OK;

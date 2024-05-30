@@ -78,12 +78,15 @@ void ui::strings::init(void)
     addUIString("saveDataDeleteAllUser", 0, "*ARE YOU SURE YOU WANT TO DELETE ALL SAVE DATA FOR %s?*");
     addUIString("saveDataBackupDeleted", 0, "#%s# has been deleted.");
     addUIString("saveDataBackupMovedToTrash", 0, "#%s# has been moved to trash.");
+    addUIString("saveDataErrorMounting", 0, "Error mounting save data!");
+
     addUIString("saveTypeMainMenu", 0, "Device");
     addUIString("saveTypeMainMenu", 1, "BCAT");
     addUIString("saveTypeMainMenu", 2, "Cache");
     addUIString("saveTypeMainMenu", 3, "System");
     addUIString("saveTypeMainMenu", 4, "System BCAT");
     addUIString("saveTypeMainMenu", 5, "Temporary");
+
     // This is redundant. Need to merge and use one or the other...
     addUIString("saveDataTypeText", 0, "System");
     addUIString("saveDataTypeText", 1, "Account");
@@ -221,6 +224,7 @@ void ui::strings::init(void)
     addUIString("popDriveStarted", 0, "Google Drive started successfully.");
     addUIString("popDriveFailed", 0, "Failed to start Google Drive.");
     addUIString("popDriveNotActive", 0, "Google Drive is not available");
+    addUIString("popErrorMountingSave", 0, "Error mounting save data!");
 
     // Keyboard hints
     addUIString("swkbdEnterName", 0, "Enter a new name");
