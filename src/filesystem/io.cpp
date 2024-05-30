@@ -11,20 +11,20 @@
 #include "log.hpp"
 
 // Read thread function
-void fs::io::readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
+void fs::io::file::readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
 {
     // Bytes read
     uint64_t bytesRead = 0;
     // File stream
     std::ifstream sourceFile(source, std::ios::binary);
     // Local buffer for reading
-    std::vector<char> localBuffer(fs::io::FILE_BUFFER_SIZE);
+    std::vector<char> localBuffer(fs::io::file::FILE_BUFFER_SIZE);
 
     // Loop until file is fully read
     while(bytesRead < sharedStruct->fileSize)
     {
         // Read to localBuffer
-        sourceFile.read(localBuffer.data(), fs::io::FILE_BUFFER_SIZE);
+        sourceFile.read(localBuffer.data(), fs::io::file::FILE_BUFFER_SIZE);
 
         // Wait for shared buffer to be emptied by write thread
         std::unique_lock sharedBufferLock(sharedStruct->bufferLock);
@@ -48,7 +48,7 @@ void fs::io::readThreadFunction(const std::string &source, std::shared_ptr<threa
 }
 
 // File writing thread function
-void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct)
+void fs::io::file::writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct)
 {
     // Keep track of bytes written
     uint64_t bytesWritten = 0;
@@ -105,50 +105,50 @@ void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr
     fs::commitSaveData();
 }
 
-int fs::io::getFileSize(const std::string &filePath)
+int fs::io::file::getFileSize(const std::string &filePath)
 {
     std::ifstream file(filePath, std::ios::binary);
     file.seekg(std::ios::end);
     return file.tellg();
 }
 
-void fs::io::copyFile(const std::string &source, const std::string &destination)
+void fs::io::file::copyFile(const std::string &source, const std::string &destination)
 {
     // Create shared thread struct
     std::shared_ptr<threadStruct> sharedStruct = std::make_shared<threadStruct>();
 
     // Everything else is set by default
-    sharedStruct->fileSize = fs::io::getFileSize(source);
+    sharedStruct->fileSize = fs::io::file::getFileSize(source);
 
     // Read & write thread
-    std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
-    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct);
+    std::thread readThread(fs::io::file::readThreadFunction, source, sharedStruct);
+    std::thread writeThread(fs::io::file::writeThreadFunction, destination, sharedStruct);
 
     // Wait for finish
     readThread.join();
     writeThread.join();
 }
 
-void fs::io::copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
+void fs::io::file::copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
 {
     // Shared struct
     std::shared_ptr<threadStruct> sharedStruct = std::make_shared<threadStruct>();
 
     // Set vars
-    sharedStruct->fileSize = fs::io::getFileSize(source);
+    sharedStruct->fileSize = fs::io::file::getFileSize(source);
     sharedStruct->commitWrite = true;
     sharedStruct->journalSize = journalSize;
 
     // Threads
-    std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
-    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct);
+    std::thread readThread(fs::io::file::readThreadFunction, source, sharedStruct);
+    std::thread writeThread(fs::io::file::writeThreadFunction, destination, sharedStruct);
 
     // Wait
     readThread.join();
     writeThread.join();
 }
 
-void fs::io::copyDirectory(const std::string &source, const std::string &destination)
+void fs::io::file::copyDirectory(const std::string &source, const std::string &destination)
 {
     fs::directoryListing list(source);
 
@@ -160,18 +160,18 @@ void fs::io::copyDirectory(const std::string &source, const std::string &destina
             std::string newSource = source + list.getItemAt(i) + "/";
             std::string newDestination = destination + list.getItemAt(i) + "/"; 
             std::filesystem::create_directories(newDestination);
-            fs::io::copyDirectory(newSource, newDestination);
+            fs::io::file::copyDirectory(newSource, newDestination);
         }
         else
         {
             std::string fullSource = source + list.getItemAt(i);
             std::string fullDestination = destination + list.getItemAt(i);
-            fs::io::copyFile(fullSource, fullDestination);
+            fs::io::file::copyFile(fullSource, fullDestination);
         }
     }
 }
 
-void fs::io::copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
+void fs::io::file::copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
 {
     fs::directoryListing list(source);
 
@@ -183,13 +183,41 @@ void fs::io::copyDirectoryCommit(const std::string &source, const std::string &d
             std::string newSource = source + list.getItemAt(i) + "/";
             std::string newDestination = destination + list.getItemAt(i) + "/";
             std::filesystem::create_directory(newDestination.substr(0, newDestination.npos - 1));
-            fs::io::copyDirectoryCommit(newSource, newDestination, journalSize);
+            fs::io::file::copyDirectoryCommit(newSource, newDestination, journalSize);
         }
         else
         {
             std::string fullSource = source + list.getItemAt(i);
             std::string fullDestination = destination + list.getItemAt(i);
-            fs::io::copyFileCommit(fullSource, fullDestination, journalSize);
+            fs::io::file::copyFileCommit(fullSource, fullDestination, journalSize);
         }
     }
+}
+
+void fs::io::file::deleteDirectoryRecursively(const std::string &target)
+{
+    // Get directory listing
+    fs::directoryListing listing(target);
+    // Get item count
+    int listingCount = listing.getListingCount();
+    // Loop through
+    for(int i = 0; i < listingCount; i++)
+    {
+        if(listing.itemAtIsDirectory(i))
+        {
+            // New target path
+            std::string newTarget = listing.getFullPathToItemAt(i) + "/";
+            // Call self to continue
+            fs::io::file::deleteDirectoryRecursively(newTarget);
+            // Delete directory
+            std::filesystem::remove(listing.getFullPathToItemAt(i));
+        }
+        else
+        {
+            // Just delete file
+            std::filesystem::remove(listing.getFullPathToItemAt(i));
+        }
+    }
+    // Finally delete last directory
+    std::filesystem::remove(target);
 }

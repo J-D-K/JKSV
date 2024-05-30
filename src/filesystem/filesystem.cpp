@@ -102,3 +102,9 @@ void fs::commitSaveData(void)
 {
     fsdevCommitDevice(DEFAULT_SAVE_MOUNT_DEVICE);
 }
+
+void fs::eraseSaveData(void)
+{
+    fs::io::file::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    fs::commitSaveData();
+}

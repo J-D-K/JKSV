@@ -17,4 +17,6 @@ namespace fs
     void unmountSaveData(void);
     // Commits to default save path
     void commitSaveData(void);
+    // Erases current save data from device
+    void eraseSaveData(void);
 }

@@ -25,9 +25,12 @@ struct backupArgs : sys::taskArgs
 };
 
 // This is shared by overwrite and restore
+// To do: Find a better name since this holds more than paths now
 struct pathArgs : sys::taskArgs
 {
     std::string source, destination;
+    // Journal size for commits
+    uint64_t journalSize = 0;
     // For reloading folder list
     backupMenuState *sendingState = NULL;
 };
@@ -78,18 +81,16 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         if (config::getByKey(CONFIG_USE_ZIP) || extension == "zip")
         {
             zipFile zipOut = zipOpen64(path.c_str(), 0);
-            fs::io::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
+            fs::io::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
             zipClose(zipOut, "");
         }
         else
         {
             std::filesystem::create_directories(path);
-            fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path);
+            fs::io::file::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path);
         }
     }
-    {
-        logger::log("Backup name empty.");
-    }
+
     // Reload list to reflect changes
     argsIn->sendingState->loadDirectoryList();
     // Task is finished
@@ -108,35 +109,38 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 
     // Set status, cast args to type
     task->setThreadStatus("REPLACE THIS LATER");
-    std::shared_ptr<pathArgs> argIn = std::static_pointer_cast<pathArgs>(args);
-
-    // Get a test listing
-    fs::directoryListing testListing(fs::DEFAULT_SAVE_MOUNT_DEVICE);
-
-    // So JKSV doesn't create empty folders
-    int saveFileCount = testListing.getListingCount();
+    std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
 
     // For checking if overwriting a zip
-    std::string fileExtension = stringUtil::getExtensionFromString(argIn->destination);
+    std::string fileExtension = stringUtil::getExtensionFromString(argsIn->destination);
 
-    if (std::filesystem::is_directory(argIn->destination) && saveFileCount > 0)
+    if (std::filesystem::is_directory(argsIn->destination))
     {
         // Delete backup then recreate directory
-        std::filesystem::remove_all(argIn->destination);
-        std::filesystem::create_directories(argIn->destination);
-        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argIn->destination);
+        // Add trailing slash first.
+        std::string target = argsIn->destination + "/";
+        // std::filesystem::remove_all keeps crashing my switch, so I wrote my own again
+        fs::io::file::deleteDirectoryRecursively(target);
+        // Recreate whole path.
+        std::filesystem::create_directories(argsIn->destination);
+        // Create the new backup in the same folder
+        fs::io::file::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->destination);
     }
-    else if (std::filesystem::is_directory(argIn->destination) == false && fileExtension == "zip" && saveFileCount > 0)
+    else if (std::filesystem::is_directory(argsIn->destination) == false && fileExtension == "zip")
     {
-        std::filesystem::remove(argIn->destination);
-        zipFile zipOut = zipOpen64(argIn->destination.c_str(), 0);
-        fs::io::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
+        // Just delete zip file
+        std::filesystem::remove(argsIn->destination);
+        // Create a new one with the same name
+        zipFile zipOut = zipOpen64(argsIn->destination.c_str(), 0);
+        // Create new zip with old name
+        fs::io::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
         zipClose(zipOut, "");
     }
     task->finished();
 }
 
 // Wipes current save for game, then copies backup from SD to filesystem
+// Note: Needs to be tested better some time
 void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     if (args == nullptr)
@@ -145,21 +149,45 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         return;
     }
 
+    // Set status, cast args
     task->setThreadStatus("REPLACE THIS LATER");
-    std::shared_ptr<pathArgs> argIn = std::static_pointer_cast<pathArgs>(args);
+    std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
 
-    // Test if there are actually files in the save
-    fs::directoryListing testListing(argIn->source);
-    int saveFileCount = testListing.getListingCount();
-    if (saveFileCount <= 0)
+    // Get extension before we try to unzip something that isn't a zip
+    std::string fileExtension = stringUtil::getExtensionFromString(argsIn->source);
+
+    if(std::filesystem::is_directory(argsIn->source))
     {
-        return;
+        // Add trailing slash
+        std::string source = argsIn->source + "/";
+        // Get a test listing first to prevent writing an empty folder to save
+        fs::directoryListing testListing(source);
+
+        if(testListing.getListingCount() > 0)
+        {
+            // Folder isn't empty, erase
+            fs::eraseSaveData();
+            // Copy source to save container
+            fs::io::file::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
+        }
+    }
+    else if(std::filesystem::is_directory(argsIn->source) == false && fileExtension == "zip")
+    {
+        // Open zip for decompressing
+        unzFile unzip = unzOpen64(argsIn->source.c_str());
+        // Check if opening was successful and not empty first
+        if(unzip != NULL && fs::io::zip::zipFileIsNotEmpty(unzip))
+        {
+            fs::io::zip::copyZipToDirectory(unzip, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
+        }
+        // Close zip
+        unzClose(unzip);
     }
 }
 
 void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
-    if(args == nullptr)
+    if (args == nullptr)
     {
         task->finished();
         return;
@@ -171,15 +199,18 @@ void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     // Cast args
     std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
 
-    if(std::filesystem::is_directory(argsIn->destination))
+    if (std::filesystem::is_directory(argsIn->destination))
     {
-        std::filesystem::remove_all(argsIn->destination);
+        // Doesn't have trailing slash
+        std::string target = argsIn->destination + "/";
+        fs::io::file::deleteDirectoryRecursively(target);
     }
     else
     {
+        // Just remove it since it's probably a zip file
         std::filesystem::remove(argsIn->destination);
     }
-
+    // Refresh to reflect changes
     argsIn->sendingState->loadDirectoryList();
 
     task->finished();
@@ -243,7 +274,7 @@ void backupMenuState::update(void)
             ui::popMessage::newMessage(ui::strings::getString(LANG_POP_SAVE_EMPTY, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }
-    else if(sys::input::buttonDown(HidNpadButton_A) && selected > 0)
+    else if (sys::input::buttonDown(HidNpadButton_A) && selected > 0 && m_SaveListing->getListingCount() > 0)
     {
         // Selected item
         std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
@@ -269,13 +300,14 @@ void backupMenuState::update(void)
         // Setup confirmation arg pointer
         std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
         paths->source = m_BackupListing->getFullPathToItemAt(selected - 1); // Need to subtract one to account for 'New' option
+        paths->journalSize = m_CurrentTitleInfo->getJournalSize(static_cast<FsSaveDataType>(m_CurrentUserSaveInfo->getSaveDataInfo().save_data_type)); // Needed to prevent commit errors
 
         // Create confirmation
         std::unique_ptr<appState> restoreConfirmationState = std::make_unique<confirmState>(confirmRestore, restoreBackup, paths);
         // Push it to vector
         jksv::pushNewState(restoreConfirmationState);
     }
-    else if(sys::input::buttonDown(HidNpadButton_X) && selected > 0)
+    else if (sys::input::buttonDown(HidNpadButton_X) && selected > 0)
     {
         // Get selected
         std::string selectedItem = m_BackupListing->getItemAt(selected - 1);

@@ -1,5 +1,7 @@
+#include <memory>
 #include "appStates/titleSelectionState.hpp"
 #include "appStates/backupMenuState.hpp"
+#include "appStates/titleOptionState.hpp"
 #include "filesystem/filesystem.hpp"
 #include "graphics/graphics.hpp"
 #include "system/input.hpp"
@@ -41,6 +43,18 @@ void titleSelectionState::update(void)
         {
             logger::log("Error mounting save for %016lX", currentUserSaveInfo->getTitleID());
         }
+    }
+    else if(sys::input::buttonDown(HidNpadButton_X))
+    {
+        // Get some stuff needed
+        int selected = m_TitleSelection->getSelected();
+        data::userSaveInfo *currentUserSaveInfo = m_CurrentUser->getUserSaveInfoAt(selected);
+        data::titleInfo *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
+
+        // Create option state
+        std::unique_ptr<appState> optionState = std::make_unique<titleOptionState>(m_CurrentUser, currentUserSaveInfo, currentTitleInfo);
+        // Push it
+        jksv::pushNewState(optionState);
     }
     else if(sys::input::buttonDown(HidNpadButton_B))
     {

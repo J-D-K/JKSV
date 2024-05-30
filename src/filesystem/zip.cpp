@@ -1,3 +1,4 @@
+#include <array>
 #include <fstream>
 #include <filesystem>
 #include <memory>
@@ -11,7 +12,7 @@
 
 #define ZIP_BUFFER_SIZE 0x80000
 
-void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
+void fs::io::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
 {
     // Source file listing
     fs::directoryListing listing(source);
@@ -23,7 +24,7 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
         if(listing.itemAtIsDirectory(i))
         {
             std::string newSource = source + listing.getItemAt(i) + "/";
-            fs::io::copyDirectoryToZip(newSource, zip);
+            fs::io::zip::copyDirectoryToZip(newSource, zip);
         }
         else
         {
@@ -86,12 +87,12 @@ void fs::io::copyDirectoryToZip(const std::string &source, zipFile zip)
     }
 }
 
-void fs::io::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize)
+void fs::io::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize)
 {
     // Buffer to decompress to
     std::vector<char> buffer(ZIP_BUFFER_SIZE);
     // Filename of file being decompressed
-    char currentFileName[FS_MAX_PATH];
+    std::array<char, FS_MAX_PATH> currentFileName;
     // This contains CRC etc. I don't use it but it's needed.
     unz_file_info64 unzipFileInfo;
     // Keep track of journaling space commits
@@ -100,11 +101,11 @@ void fs::io::copyZipToDirectory(unzFile unzip, const std::string &destination, c
     uint32_t bytesRead = 0;
     do
     {
-        unzGetCurrentFileInfo64(unzip, &unzipFileInfo, currentFileName, FS_MAX_PATH, NULL, 0, NULL, 0);
+        unzGetCurrentFileInfo64(unzip, &unzipFileInfo, currentFileName.data(), FS_MAX_PATH, NULL, 0, NULL, 0);
         if(unzOpenCurrentFile(unzip) == UNZ_OK)
         {
             // Full path to output
-            std::string fullDestination = destination + currentFileName;
+            std::string fullDestination = destination + currentFileName.data();
             // Make sure full path to exists
             std::filesystem::create_directories(fullDestination.substr(0, fullDestination.find_last_of('/') + 1));
             // File stream
@@ -135,3 +136,32 @@ void fs::io::copyZipToDirectory(unzFile unzip, const std::string &destination, c
     fs::commitSaveData();
 }
 
+uint64_t fs::io::zip::getZipTotalFileSize(unzFile unzip)
+{
+    // Total size to return
+    uint64_t totalSize = 0;
+    if(unzGoToFirstFile(unzip) == UNZ_OK)
+    {
+        // Needed to get size
+        unz_file_info64 fileInfo = { 0 };
+        std::array<char, FS_MAX_PATH> filename;
+
+        // Loop through zip file
+        do
+        {
+            // Get info
+            unzGetCurrentFileInfo64(unzip, &fileInfo, filename.data(), FS_MAX_PATH, NULL, 0, NULL, 0);
+            // Add size to total size
+            totalSize += fileInfo.uncompressed_size;
+        } while (unzGoToNextFile(unzip) != UNZ_END_OF_LIST_OF_FILE);
+        // Reset to beginning of zip
+        unzGoToFirstFile(unzip);
+    }
+    return totalSize;
+}
+
+bool fs::io::zip::zipFileIsNotEmpty(unzFile unzip)
+{
+    // Just return if we can get first file
+    return unzGoToFirstFile(unzip) == UNZ_OK;
+}

@@ -58,6 +58,8 @@
 #define LANG_TITLE_OPTIONS_MENU "titleOptions"
 #define LANG_SAVE_TYPE_MAIN_MENU "saveTypeMainMenu"
 
+#define LANG_TITLE_OPTIONS_MENU "titleOptions"
+
 // Thread status strings
 #define LANG_THREAD_CREATING_SAVE "threadStatusCreatingSaveData"
 #define LANG_THREAD_COPYING_FILE "threadStatusCopyingFile"

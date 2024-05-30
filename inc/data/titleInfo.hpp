@@ -16,6 +16,8 @@ namespace data
             std::string getPathSafeTitle(void);
             // Returns icon texture
             SDL_Texture *getIcon(void);
+            // Returns journal size
+            uint64_t getJournalSize(const FsSaveDataType &saveType);
 
         private:
             // Title ID is needed for a few things
