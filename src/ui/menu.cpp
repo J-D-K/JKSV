@@ -103,6 +103,11 @@ int ui::menu::getSelected(void) const
     return m_Selected;
 }
 
+void ui::menu::setSelected(const int &newSelected)
+{
+    m_Selected = newSelected;
+}
+
 void ui::menu::clearMenu(void)
 {
     m_MenuOptions.clear();

@@ -12,15 +12,15 @@ namespace sys
 {
     class task;
 
-    using taskFunction = std::function<void(task *, std::shared_ptr<sys::taskArgs>)>;
+    using taskFunction = std::function<void(sys::task *, std::shared_ptr<sys::taskArgs>)>;
 
     class task
     {
         public:
-            // taskFunction is 
-            task(taskFunction function, std::shared_ptr<taskArgs> args);
+            // taskFunction is
+            task(sys::taskFunction threadFunction, std::shared_ptr<taskArgs> args);
             ~task();
-            // Returns status string of task. 
+            // Returns status string of task.
             std::string getThreadStatus(void);
             // Sets status of task
             void setThreadStatus(const std::string &newStatus);
@@ -28,9 +28,9 @@ namespace sys
             void finished(void);
             // Returns if task
             bool isRunning(void);
-            
+
         private:
-            // Thread
+            // Thread. Orignally used C++ threads, but without control they choked the main thread.
             std::unique_ptr<std::thread> m_Thread;
             // Status string
             std::string m_ThreadStatus;

@@ -14,9 +14,12 @@ void fs::directoryListing::loadListing(void)
     // Clear vector first JIC reload
     m_DirectoryList.clear();
 
-    for(const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(m_DirectoryPath))
+    // Error code
+    std::error_code errorCode;
+
+    for(const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(m_DirectoryPath, errorCode))
     {
-        m_DirectoryList.push_back(entry.path().string());
+        m_DirectoryList.push_back(entry);
     }
 }
 
@@ -27,26 +30,30 @@ int fs::directoryListing::getListingCount(void) const
 
 bool fs::directoryListing::itemAtIsDirectory(const int &index) const
 {
-    return std::filesystem::is_directory(m_DirectoryList.at(index));
+    return m_DirectoryList.at(index).is_directory();
 }
 
 std::string fs::directoryListing::getFullPathToItemAt(const int &index) const
 {
-    return m_DirectoryList.at(index);
+    return m_DirectoryList.at(index).path().string();
 }
 
 std::string fs::directoryListing::getItemAt(const int &index) const
 {
-    size_t lastSlash = m_DirectoryList.at(index).find_last_of('/') + 1;
-    return m_DirectoryList.at(index).substr(lastSlash, m_DirectoryList.at(index).npos);
+    // Get string first
+    std::string itemString = m_DirectoryList.at(index).path().string();
+    // Find last slash
+    size_t lastSlash = itemString.find_last_of('/') + 1;
+    // Return sub string
+    return itemString.substr(lastSlash, itemString.npos);
 }
 
 std::string fs::directoryListing::getFilenameAt(const int &index) const
 {
-    return stringUtil::getFilenameFromString(m_DirectoryList.at(index));
+    return stringUtil::getFilenameFromString(m_DirectoryList.at(index).path().string());
 }
 
 std::string fs::directoryListing::getExtensionAt(const int &index) const
 {
-    return stringUtil::getExtensionFromString(m_DirectoryList.at(index));
+    return stringUtil::getExtensionFromString(m_DirectoryList.at(index).path().string());
 }

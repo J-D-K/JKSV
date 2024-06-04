@@ -1,33 +1,41 @@
 #include "system/task.hpp"
+#include "log.hpp"
 
-#define THREAD_STACK_SIZE 0x400000
-#define THREAD_PRIORITY 0x2B
-#define THREAD_CPU_ID 1
+static const size_t THREAD_STACK_SIZE = 0x80000;
+static const int THREAD_PRIORITY = 0x2B;
+static const int THREAD_CPU_ID = 1;
 
-sys::task::task(taskFunction function, std::shared_ptr<taskArgs> args)
+sys::task::task(sys::taskFunction threadFunction, std::shared_ptr<taskArgs> args)
 {
-    m_Thread = std::make_unique<std::thread>(function, this, args);
+    // Spawn thread
+    m_Thread = std::make_unique<std::thread>(threadFunction, this, args);
+
+    // Let's just hope it's running
+    m_IsRunning = true;
 }
 
 sys::task::~task()
 {
+    // Wait for thread to finish.
     m_Thread->join();
 }
 
 std::string sys::task::getThreadStatus(void)
 {
     // Like this to prevent corruption
-    std::string status;
+    std::string threadStatus;
+
     m_StatusMutex.lock();
-    status.assign(m_ThreadStatus);
+    threadStatus = m_ThreadStatus;
     m_StatusMutex.unlock();
-    return status;
+
+    return threadStatus;
 }
 
 void sys::task::setThreadStatus(const std::string &newStatus)
 {
     m_StatusMutex.lock();
-    m_ThreadStatus.assign(newStatus);
+    m_ThreadStatus = newStatus;
     m_StatusMutex.unlock();
 }
 
@@ -40,9 +48,11 @@ void sys::task::finished(void)
 
 bool sys::task::isRunning(void)
 {
-    bool running = false;
+    bool threadRunning = false;
+
     m_RunningMutex.lock();
-    running = m_IsRunning;
+    threadRunning = m_IsRunning;
     m_RunningMutex.unlock();
-    return running;
+
+    return threadRunning;
 }

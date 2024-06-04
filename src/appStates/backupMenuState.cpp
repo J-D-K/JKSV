@@ -14,6 +14,14 @@
 #include "jksv.hpp"
 #include "log.hpp"
 
+// Names of panels, render targets, and coordinates + dimensions of menu
+static const char *BACKUP_PANEL_NAME = "backupMenuPanel";
+static const char *BACKUP_MENU_TARGET_NAME = "backupMenuRenderTarget";
+static const int BACKUP_MENU_X = 10;
+static const int BACKUP_MENU_Y = 4;
+static const int BACKUP_MENU_FONT_SIZE = 18;
+static const int BACKUP_MENU_SCROLL_LENGTH = 6;
+
 // This is for backup task
 struct backupArgs : sys::taskArgs
 {
@@ -37,7 +45,7 @@ struct pathArgs : sys::taskArgs
 
 // These are the functions used for tasks
 // Creates a new backup when new is selected. args must be a backupArgs struct as a shared pointer
-void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+static void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     // Make sure we weren't passed nullptr
     if (args == nullptr)
@@ -98,7 +106,7 @@ void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 }
 
 // Overwrites a backup already on SD
-void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+static void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     // Bail if no args present
     if (args == nullptr)
@@ -106,6 +114,9 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         task->finished();
         return;
     }
+
+    // Error code for filesystem
+    std::error_code errorCode;
 
     // Set status, cast args to type
     task->setThreadStatus("REPLACE THIS LATER");
@@ -119,12 +130,12 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Delete backup then recreate directory
         // Add trailing slash first.
         std::string target = argsIn->destination + "/";
-        // std::filesystem::remove_all keeps crashing my switch, so I wrote my own again
-        fs::io::deleteDirectoryRecursively(target);
+        // Delete old backup
+        std::filesystem::remove_all(target, errorCode);
         // Recreate whole path.
         std::filesystem::create_directories(argsIn->destination);
         // Create the new backup in the same folder
-        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->destination);
+        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, target);
     }
     else if (std::filesystem::is_directory(argsIn->destination) == false && fileExtension == "zip")
     {
@@ -141,13 +152,16 @@ void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 
 // Wipes current save for game, then copies backup from SD to filesystem
 // Note: Needs to be tested better some time
-void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+static void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     if (args == nullptr)
     {
         task->finished();
         return;
     }
+
+    // Error code for later
+    std::error_code errorCode;
 
     // Set status, cast args
     task->setThreadStatus("REPLACE THIS LATER");
@@ -166,7 +180,7 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         if(testListing.getListingCount() > 0)
         {
             // Folder isn't empty, erase
-            fs::eraseSaveData();
+            std::filesystem::remove_all(fs::DEFAULT_SAVE_MOUNT_DEVICE, errorCode);
             // Copy source to save container
             fs::io::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
         }
@@ -183,15 +197,20 @@ void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Close zip
         unzClose(unzip);
     }
+
+    task->finished();
 }
 
-void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+static void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
     if (args == nullptr)
     {
         task->finished();
         return;
     }
+
+    // Error code for filesystem later
+    std::error_code errorCode;
 
     // Set thread status
     task->setThreadStatus(ui::strings::getString(LANG_THREAD_DELETE_FILE, 0));
@@ -201,14 +220,15 @@ void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 
     if (std::filesystem::is_directory(argsIn->destination))
     {
-        // Doesn't have trailing slash
-        std::string target = argsIn->destination + "/";
-        fs::io::deleteDirectoryRecursively(target);
+        logger::log("%s is directory.", argsIn->destination.c_str());
+        std::uintmax_t deleted = std::filesystem::remove_all(argsIn->destination, errorCode);
+        logger::log("Error code: %s, %i - %u", errorCode.message().c_str(), errorCode.value(), deleted);
     }
     else
     {
+        logger::log("%s is not a directory", argsIn->destination.c_str());
         // Just remove it since it's probably a zip file
-        std::filesystem::remove(argsIn->destination);
+        std::filesystem::remove(argsIn->destination, errorCode);
     }
     // Refresh to reflect changes
     argsIn->sendingState->loadDirectoryList();
@@ -216,27 +236,23 @@ void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     task->finished();
 }
 
-backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser), m_CurrentUserSaveInfo(currentUserSaveInfo), m_CurrentTitleInfo(currentTitleInfo)
+backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) :
+m_CurrentUser(currentUser), 
+m_CurrentUserSaveInfo(currentUserSaveInfo), 
+m_CurrentTitleInfo(currentTitleInfo),
+m_BackupMenuControlGuide(ui::strings::getString(LANG_FOLDER_GUIDE, 0)),
+m_OutputBasePath(config::getWorkingDirectory() + m_CurrentTitleInfo->getPathSafeTitle() + "/"),
+m_PanelWidth(graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18)),
+m_BackupPanel(std::make_unique<ui::slidePanel>(BACKUP_PANEL_NAME, m_PanelWidth + 64, ui::slidePanelSide::PANEL_SIDE_RIGHT)),
+m_BackupListing(std::make_unique<fs::directoryListing>(m_OutputBasePath)),
+m_SaveListing(std::make_unique<fs::directoryListing>(fs::DEFAULT_SAVE_MOUNT_DEVICE)),
+m_BackupMenu(std::make_unique<ui::menu>(BACKUP_MENU_X, BACKUP_MENU_Y, m_PanelWidth + 44, BACKUP_MENU_FONT_SIZE, BACKUP_MENU_SCROLL_LENGTH))
 {
-    // This is the path used for all in/output. Create it if it doesn't exist.
-    m_OutputBasePath = config::getWorkingDirectory() + m_CurrentTitleInfo->getPathSafeTitle() + "/";
+    // Make sure path exists
     std::filesystem::create_directories(m_OutputBasePath);
-
-    // Controls displayed at bottom
-    m_BackupMenuControlGuide = ui::strings::getString(LANG_FOLDER_GUIDE, 0);
-    m_PanelWidth = graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18);
-
-    // The actual panel
-    m_BackupPanel = std::make_unique<ui::slidePanel>("backupMenuPanel", m_PanelWidth + 64, ui::slidePanelSide::PANEL_SIDE_RIGHT);
-    // The menu of backups
-    m_BackupMenu = std::make_unique<ui::menu>(10, 4, m_PanelWidth + 44, 18, 6);
     // Render target that menu is rendered to
-    m_BackupMenuRenderTarget = graphics::textureCreate("backupMenuRenderTarget", m_PanelWidth + 64, 647, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
-    // Directory listing of backups
-    m_BackupListing = std::make_unique<fs::directoryListing>(m_OutputBasePath);
-    // Directory listing of save
-    m_SaveListing = std::make_unique<fs::directoryListing>(fs::DEFAULT_SAVE_MOUNT_DEVICE);
-
+    m_BackupMenuRenderTarget = graphics::textureCreate(BACKUP_MENU_TARGET_NAME, m_PanelWidth + 64, 647, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    // Call this just to be sure.
     backupMenuState::loadDirectoryList();
 }
 
@@ -361,6 +377,7 @@ void backupMenuState::loadDirectoryList(void)
     // Reload list, clear menu
     m_BackupListing->loadListing();
     m_BackupMenu->clearMenu();
+    m_BackupMenu->setSelected(0);
 
     int listingCount = m_BackupListing->getListingCount();
     m_BackupMenu->addOpt(ui::strings::getString(LANG_FOLDER_MENU_NEW, 0));

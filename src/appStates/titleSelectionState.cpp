@@ -9,18 +9,20 @@
 #include "log.hpp"
 #include "jksv.hpp"
 
+// Texture names
+const char *TITLE_SELECT_RENDER_TARGET = "titleSelectionRenderTarget";
 
-titleSelectionState::titleSelectionState(data::user *currentUser) : m_CurrentUser(currentUser)
+// Render target dimensions
+static const int RENDER_TARGET_WIDTH = 1080;
+static const int RENDER_TARGET_HEIGHT = 555;
+
+titleSelectionState::titleSelectionState(data::user *currentUser) :
+m_CurrentUser(currentUser),
+m_TitleSelection(std::make_unique<ui::titleSelection>(m_CurrentUser)),
+m_TitleControlGuide(ui::strings::getString(LANG_TITLE_GUIDE, 0))
 {
-    // Setup control string
-    m_TitleControlGuide = ui::strings::getString(LANG_TITLE_GUIDE, 0);
-    m_TitleControlGuideX = 1220 - graphics::systemFont::getTextWidth(m_TitleControlGuide, 18);
-
     // Render target to render everything too
-    m_RenderTarget = graphics::textureCreate("titleSelectionRenderTarget", 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
-
-    // Icon 
-    m_TitleSelection = std::make_unique<ui::titleSelection>(m_CurrentUser);
+    m_RenderTarget = graphics::textureCreate(TITLE_SELECT_RENDER_TARGET, RENDER_TARGET_WIDTH, RENDER_TARGET_HEIGHT, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 }
 
 titleSelectionState::~titleSelectionState() {}

@@ -1,4 +1,5 @@
 #pragma once
+#include <filesystem>
 #include <string>
 #include <vector>
 
@@ -28,6 +29,6 @@ namespace fs
             // Stores the path to the directory passed
             std::string m_DirectoryPath;
             // Stores the names of items from list
-            std::vector<std::string> m_DirectoryList;
+            std::vector<std::filesystem::directory_entry> m_DirectoryList;
     };
 }

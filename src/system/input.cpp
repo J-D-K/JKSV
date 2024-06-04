@@ -35,6 +35,21 @@ bool sys::input::buttonReleased(const HidNpadButton &button)
     return padGetButtonsUp(&s_PadState) & button;
 }
 
+uint64_t sys::input::buttonsDown(void)
+{
+    return padGetButtonsDown(&s_PadState);
+}
+
+uint64_t sys::input::buttonsHeld(void)
+{
+    return padGetButtons(&s_PadState);
+}
+
+uint64_t sys::input::buttonsReleased(void)
+{
+    return padGetButtonsUp(&s_PadState);
+}
+
 std::string sys::input::getString(const std::string &defaultText, const std::string &headerText, const size_t &maximumLength)
 {
     // Keyboard config

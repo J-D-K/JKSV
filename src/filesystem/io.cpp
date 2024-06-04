@@ -101,8 +101,15 @@ void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr
         bytesWritten += localBuffer.size();
         journalCount += localBuffer.size();
     }
+
+    // Close destination first
+    destinationFile.close();
+
     // One last commit just in case
-    fs::commitSaveData();
+    if(sharedStruct->commitWrite)
+    {
+        fs::commitSaveData();
+    }
 }
 
 int fs::io::getFileSize(const std::string &filePath)
@@ -211,39 +218,10 @@ void fs::io::copyDirectoryCommit(const std::string &source, const std::string &d
             std::string fullSource = source + list.getItemAt(i);
             std::string fullDestination = destination + list.getItemAt(i);
 
+            logger::log("%s, %s", fullSource.c_str(), fullDestination.c_str());
+
             // Copy it and commit it to save
             fs::io::copyFileCommit(fullSource, fullDestination, journalSize);
         }
     }
-}
-
-void fs::io::deleteDirectoryRecursively(const std::string &target)
-{
-    // Get directory listing
-    fs::directoryListing listing(target);
-    // Get item count
-    int listingCount = listing.getListingCount();
-    // Error code to stop from throwing exceptions on failure to delete.
-    std::error_code errorCode;
-
-    // Loop through
-    for(int i = 0; i < listingCount; i++)
-    {
-        if(listing.itemAtIsDirectory(i))
-        {
-            // New target path
-            std::string newTarget = listing.getFullPathToItemAt(i) + "/";
-            // Call self to continue
-            fs::io::deleteDirectoryRecursively(newTarget);
-            // Delete directory
-            std::filesystem::remove(listing.getFullPathToItemAt(i), errorCode);
-        }
-        else
-        {
-            // Just delete file
-            std::filesystem::remove(listing.getFullPathToItemAt(i), errorCode);
-        }
-    }
-    // Finally delete last directory
-    std::filesystem::remove(target, errorCode);
 }

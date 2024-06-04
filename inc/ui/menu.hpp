@@ -24,6 +24,8 @@ namespace ui
             void updateColorPulse(void);
             // Returns currently selected option
             int getSelected(void) const;
+            // Sets selected option to newSelected
+            void setSelected(const int &newSelected);
             // Clears all options from menu
             void clearMenu(void);
 

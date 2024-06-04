@@ -29,10 +29,10 @@ class backupMenuState : public appState
         std::string m_BackupMenuControlGuide;
         // Base path for output
         std::string m_OutputBasePath;
-        // Slide in/out panel
-        std::unique_ptr<ui::slidePanel> m_BackupPanel;
         // Width of panel/text
         int m_PanelWidth;
+        // Slide in/out panel
+        std::unique_ptr<ui::slidePanel> m_BackupPanel;
         // Folder listing
         std::unique_ptr<fs::directoryListing> m_BackupListing;
         // Listing to make sure there is a save

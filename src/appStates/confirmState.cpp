@@ -8,14 +8,13 @@
 
 static const int HOLD_TICKS = 1000;
 
-confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args) : m_Message(message), m_OnConfirmation(onConfirmation), m_Args(args)
-{
-    // Init timer
-    m_HoldTimer = std::make_unique<sys::timer>(HOLD_TICKS);
-    // Get Text for yes and no
-    m_Yes = ui::strings::getString(LANG_DIALOG_YES, 0);
-    m_No  = ui::strings::getString(LANG_DIALOG_NO, 0);
-}
+confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args) : 
+m_Message(message),
+m_Yes(ui::strings::getString(LANG_DIALOG_YES, 0)),
+m_No(ui::strings::getString(LANG_DIALOG_NO, 0)),
+m_HoldTimer(std::make_unique<sys::timer>(HOLD_TICKS)), 
+m_OnConfirmation(onConfirmation), 
+m_Args(args) { }
 
 confirmState::~confirmState() { }
 

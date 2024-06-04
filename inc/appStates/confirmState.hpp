@@ -1,6 +1,7 @@
 #pragma once
 #include <memory>
 #include <string>
+#include <switch.h>
 #include "appStates/appState.hpp"
 #include "system/timer.hpp"
 #include "system/task.hpp"

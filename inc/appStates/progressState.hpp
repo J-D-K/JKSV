@@ -10,7 +10,7 @@
 class progressState : public appState
 {
     public:
-        progressState(sys::taskFunction function, std::shared_ptr<sys::progressArgs> args, const uint64_t &maxValue);
+        progressState(sys::taskFunction threadFunction, std::shared_ptr<sys::progressArgs> args, const uint64_t &maxValue);
         ~progressState();
         void update(void);
         void render(void);

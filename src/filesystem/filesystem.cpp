@@ -100,13 +100,13 @@ void fs::unmountSaveData(void)
 
 void fs::commitSaveData(void)
 {
-    fsdevCommitDevice(DEFAULT_SAVE_MOUNT_DEVICE);
-}
-
-void fs::eraseSaveData(void)
-{
-    // Delete root of save container
-    fs::io::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
-    // Commit changes
-    fs::commitSaveData();
+    Result commitError = fsdevCommitDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    if(R_SUCCEEDED(commitError))
+    {
+        logger::log("Commit succeeded.");
+    }
+    else
+    {
+        logger::log("Commit failed. %X", commitError);
+    }
 }

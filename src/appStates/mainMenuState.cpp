@@ -1,3 +1,4 @@
+#include <chrono>
 #include "jksv.hpp"
 #include "appStates/mainMenuState.hpp"
 #include "appStates/titleSelectionState.hpp"
@@ -10,26 +11,34 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
+// Main menu coordinates and dimensions
+static const int MAIN_MENU_X = 50;
+static const int MAIN_MENU_Y = 16;
+static const int MAIN_MENU_SCROLL_LENGTH = 1;
+
+// Texture names
+static const char *MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
+static const char *MAIN_MENU_SETTINGS = "mainMenuSettings";
+static const char *MAIN_MENU_EXTRAS = "mainMenuExtras";
+
 // Tasks
-static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+static void backupAllUserSaves(void *in)
 {
     
 }
 
-mainMenuState::mainMenuState(void)
+mainMenuState::mainMenuState(void) :
+m_MainControlGuide(ui::strings::getString(LANG_USER_GUIDE, 0)),
+m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, 18)),
+m_MainMenu(std::make_unique<ui::iconMenu>(MAIN_MENU_X, MAIN_MENU_Y, MAIN_MENU_SCROLL_LENGTH))
 {
-    // Setup control guide
-    m_MainControlGuide = ui::strings::getString(LANG_USER_GUIDE, 0);
-    m_MainControlGuideX = 1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, 18);
-
     // Render target
-    m_RenderTarget = graphics::textureCreate("mainMenuRenderTarget", 200, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_RenderTarget = graphics::textureCreate(MAIN_MENU_RENDER_TARGET, 200, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 
     // Load gradient for behind menu
     m_MenuBackgroundTexture = graphics::textureLoadFromFile(TEXTURE_MENU_BACKGROUND, "romfs:/img/menu/backgroundDark.png");
 
     // Setup menu
-    m_MainMenu = std::make_unique<ui::iconMenu>(50, 16, 1);
     m_UserEnd = data::getTotalUsers();
     for (int i = 0; i < m_UserEnd; i++)
     {
@@ -40,8 +49,8 @@ mainMenuState::mainMenuState(void)
     // Settings & extras
     std::string settingsString = ui::strings::getString(LANG_MAIN_MENU_SETTINGS, 0);
     std::string extrasString = ui::strings::getString(LANG_MAIN_MENU_EXTRAS, 0);
-    m_MainMenu->addOpt(graphics::createIcon("mainMenuSettings", settingsString, 42));
-    m_MainMenu->addOpt(graphics::createIcon("mainMenuExtras", extrasString, 42));
+    m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_SETTINGS, settingsString, 42));
+    m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_EXTRAS, extrasString, 42));
 }
 
 mainMenuState::~mainMenuState() {}

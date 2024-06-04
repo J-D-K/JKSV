@@ -43,8 +43,6 @@ namespace fs
         void copyDirectory(const std::string &source, const std::string &destination);
         // Recursively copies source to destination
         void copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize);
-        // std::filesystem::remove all crashes switch? Had to write my own...
-        void deleteDirectoryRecursively(const std::string &target);
         // These are functions for threaded copying that other parts of JKSV can use.
         void readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct);
         void writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct);
