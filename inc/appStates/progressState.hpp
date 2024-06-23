@@ -3,23 +3,31 @@
 #include <string>
 #include <cstdint>
 #include "appStates/appState.hpp"
+#include "appStates/taskState.hpp"
 #include "ui/progressBar.hpp"
-#include "system/task.hpp"
-#include "system/progressArgs.hpp"
+#include "system/progressTask.hpp"
+#include "system/taskArgs.hpp"
 
 class progressState : public appState
 {
     public:
-        progressState(sys::taskFunction threadFunction, std::shared_ptr<sys::progressArgs> args, const uint64_t &maxValue);
+        // This is like taskState, but can display the progress of an operation. Only really used for copying and uploading
+        progressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);
         ~progressState();
         void update(void);
         void render(void);
 
     private:
         // Task to be run
-        std::unique_ptr<sys::task> m_Task;
-        // This is the actual progress bar
-        std::unique_ptr<ui::progressBar> m_ProgressBar;
-        // Args sent to task and this
-        std::shared_ptr<sys::progressArgs> m_Args;
+        std::unique_ptr<sys::progressTask> m_Task;
+        // Width of progress to be rendered
+        double m_BarWidth = 0;
+        // String to display current task status
+        std::string m_TaskStatus;
+        // String to display current progress of task
+        std::string m_ProgressStatus;
+        // X coordinate to render task status to
+        int m_ProgressStatusX = 0;
 };
+
+void createAndPushNewProgressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);

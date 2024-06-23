@@ -30,3 +30,5 @@ class taskState : public appState
         uint8_t m_LoadingGlyphColorMod = 0x00;
 
 };
+
+void createAndPushNewTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);

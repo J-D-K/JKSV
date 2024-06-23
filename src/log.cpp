@@ -3,6 +3,10 @@
 #include <mutex>
 #include "log.hpp"
 
+// Log path
+static const char *LOG_OUTPUT_PATH = "/JKSV/log.txt";
+
+// Size for va 
 static const int LOG_VA_BUFFER_SIZE = 0x1000;
 
 namespace
@@ -13,11 +17,16 @@ namespace
 
 void logger::init(void)
 {
-    s_LogFile.open("sdmc:/JKSV/log.txt");
+    // Open and close just to clear.
+    s_LogFile.open(LOG_OUTPUT_PATH);
+    s_LogFile.close();
 }
 
 void logger::log(const char *format, ...)
 {
+    // Open log for appending
+    s_LogFile.open(LOG_OUTPUT_PATH, std::ios::app);
+
     // Buffer for va
     std::array<char, LOG_VA_BUFFER_SIZE> vaBuffer;
 
@@ -31,4 +40,7 @@ void logger::log(const char *format, ...)
     s_LogMutex.lock();
     s_LogFile << vaBuffer.data() << std::endl; // endl for buffer flushing
     s_LogMutex.unlock();
+
+    // Close
+    s_LogFile.close();
 }

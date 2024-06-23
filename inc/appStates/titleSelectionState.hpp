@@ -26,3 +26,5 @@ class titleSelectionState : public appState
         // Render target
         SDL_Texture *m_RenderTarget;
 };
+
+void createAndPushNewTitleSelectionState(data::user *currentUser);

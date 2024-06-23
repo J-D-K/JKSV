@@ -12,9 +12,10 @@
 #include "graphics/systemFont.hpp"
 #include "log.hpp"
 
+// This is how large the buffer is for words for line wrapping
 static const int WORD_WRAP_BUFFER_LENGTH = 0x1000;
 
-//Masks for converting to surface
+//Masks for converting glyphs to sdl surface
 static const uint32_t s_RedMask   = 0xFF000000;
 static const uint32_t s_GreenMask = 0x00FF0000;
 static const uint32_t s_BlueMask  = 0x0000FF00;
@@ -83,13 +84,12 @@ static glyphData *getGlyph(const uint32_t& c, const int &fontSize)
     //Vector to put together full glyph
     int bitmapSize = bitmap.rows * bitmap.width;
     uint8_t *bitmapPointer = bitmap.buffer;
-    std::vector<uint32_t> glyphPixelData;
-    glyphPixelData.reserve(bitmapSize);
+    std::vector<uint32_t> glyphPixelData(bitmapSize);
 
     //Loop through and make full pixels in white
     for(int i = 0; i < bitmapSize; i++)
     {
-        glyphPixelData.push_back(0xFFFFFF00 | *bitmapPointer++);
+        glyphPixelData.at(i) = (0xFFFFFF00 | *bitmapPointer++);
     }
 
     //Create SDL_Surface from pixel data

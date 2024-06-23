@@ -25,3 +25,5 @@ class titleOptionState : public appState
         // Menu
         std::unique_ptr<ui::menu> m_OptionsMenu;
 };
+
+void createAndPushNewTitleOptionState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo);

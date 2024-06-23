@@ -6,6 +6,7 @@
 #include "appStates/appState.hpp"
 #include "ui/ui.hpp"
 
+// This is the actual state class
 class backupMenuState : public appState
 {
     public:
@@ -42,3 +43,6 @@ class backupMenuState : public appState
         // Render target for menu
         SDL_Texture *m_BackupMenuRenderTarget = NULL;
 };
+
+// This is a shortcut sort of function so we don't have to constantly create and push the new state ourselves
+void createAndPushNewBackupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo);

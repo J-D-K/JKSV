@@ -1,5 +1,6 @@
 #include "appStates/confirmState.hpp"
 #include "appStates/taskState.hpp"
+#include "appStates/progressState.hpp"
 #include "graphics/graphics.hpp"
 #include "ui/ui.hpp"
 #include "system/input.hpp"
@@ -8,13 +9,14 @@
 
 static const int HOLD_TICKS = 1000;
 
-confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args) : 
+confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, const sys::taskTypes &taskType) : 
 m_Message(message),
 m_Yes(ui::strings::getString(LANG_DIALOG_YES, 0)),
 m_No(ui::strings::getString(LANG_DIALOG_NO, 0)),
 m_HoldTimer(std::make_unique<sys::timer>(HOLD_TICKS)), 
 m_OnConfirmation(onConfirmation), 
-m_Args(args) { }
+m_Args(args),
+m_TaskType(taskType) { }
 
 confirmState::~confirmState() { }
 
@@ -31,10 +33,22 @@ void confirmState::update(void)
         // Confirmed, create new task.
         if(++m_HoldStage == 3)
         {
-            // Create new task
-            std::unique_ptr<appState> confirmationTask = std::make_unique<taskState>(m_OnConfirmation, m_Args);
-            jksv::pushNewState(confirmationTask);
-            // Deactivate this one and pray JKSV catches it
+            // Spawn task according to m_TaskType
+            switch(m_TaskType)
+            {
+                case sys::taskTypes::TASK_TYPE_TASK:
+                {
+                    createAndPushNewTask(m_OnConfirmation, m_Args);
+                }
+                break;
+
+                case sys::taskTypes::TASK_TYPE_PROGRESS:
+                {
+                    createAndPushNewProgressState(m_OnConfirmation, m_Args);
+                }
+                break;
+            }
+            // Deactivate
             appState::deactivateState();
         }
         else
@@ -88,4 +102,12 @@ void confirmState::render(void)
     graphics::renderLine(NULL, 640, 454, 640, 517, COLOR_DARK_GRAY);
     graphics::systemFont::renderText(m_Yes, NULL, yesXPosition, 478, 18, COLOR_WHITE);
     graphics::systemFont::renderText(m_No, NULL, 782, 478, 18, COLOR_WHITE);
+}
+
+void confirmAction(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, const sys::taskTypes &taskType)
+{
+    // Create the new state
+    std::unique_ptr<appState> confirmationState = std::make_unique<confirmState>(message, onConfirmation, args, taskType);
+    // Push it to back of state vector
+    jksv::pushNewState(confirmationState);
 }

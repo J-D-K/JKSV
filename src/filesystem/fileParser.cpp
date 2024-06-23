@@ -3,12 +3,13 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
-#define VALUE_DELIMINATORS "()=,"
-#define STRING_DELIMINATORS ",;\n"
+// Strings needed for this file
+static const char *VALUE_DELIMINATORS = "()=,";
+static const char *STRING_DELIMINATORS = ",;\n";
+static const char *VALUE_TRUE = "true";
+static const char *VALUE_FALSE = "false";
 
-#define VALUE_TRUE "true"
-#define VALUE_FALSE "false"
-
+// Length limit for line reading
 static const int FILE_PARSER_LINE_SIZE_LIMIT = 0x1000;
 
 fs::fileParser::fileParser(const std::string &filePath)

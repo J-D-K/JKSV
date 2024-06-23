@@ -1,13 +1,15 @@
-#include <switch.h>
 #include <fstream>
 #include <filesystem>
 #include <memory>
 #include <mutex>
 #include <condition_variable>
 #include <vector>
+#include <switch.h>
 #include "filesystem/filesystem.hpp"
 #include "system/task.hpp"
 #include "system/taskArgs.hpp"
+#include "ui/ui.hpp"
+#include "stringUtil.hpp"
 #include "log.hpp"
 
 // Read thread function
@@ -48,7 +50,7 @@ void fs::io::readThreadFunction(const std::string &source, std::shared_ptr<threa
 }
 
 // File writing thread function
-void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct)
+void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct, sys::progressTask *task)
 {
     // Keep track of bytes written
     uint64_t bytesWritten = 0;
@@ -100,6 +102,11 @@ void fs::io::writeThreadFunction(const std::string &destination, std::shared_ptr
         // Update bytesWritten and journalCount
         bytesWritten += localBuffer.size();
         journalCount += localBuffer.size();
+        // Update progress if passed
+        if(task != nullptr)
+        {
+            task->updateProgress(task->getProgress() + localBuffer.size());
+        }
     }
 
     // Close destination first
@@ -117,48 +124,70 @@ int fs::io::getFileSize(const std::string &filePath)
     // Open file for reading to prevent problems
     std::ifstream file(filePath, std::ios::binary);
     // Seek to end
-    file.seekg(std::ios::end);
+    file.seekg(0, std::ios::end);
     // Return offset. ifstream destructor should take care of closing
     return file.tellg();
 }
 
-void fs::io::copyFile(const std::string &source, const std::string &destination)
+void fs::io::copyFile(const std::string &source, const std::string &destination, sys::progressTask *task)
 {
-    // Create shared thread struct
+    // Shared pointer for threads.
     std::shared_ptr<threadStruct> sharedStruct = std::make_shared<threadStruct>();
-
-    // Everything else is set by default
+    // Get source file size 
     sharedStruct->fileSize = fs::io::getFileSize(source);
+
+    // Set status if available
+    if(task != nullptr)
+    {
+        // Get status string
+        std::string statusCopyingFile = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_COPYING_FILE, 0), source.c_str());
+        // Set task thread status.
+        task->setThreadStatus(statusCopyingFile);
+        // Reset and set max for progress
+        task->reset();
+        task->setMax(sharedStruct->fileSize);
+    }
 
     // Read & write thread
     std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
-    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct);
+    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct, task);
 
     // Wait for finish
     readThread.join();
     writeThread.join();
 }
 
-void fs::io::copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
+void fs::io::copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task)
 {
-    // Shared struct
+    // Shared pointer for threads
     std::shared_ptr<threadStruct> sharedStruct = std::make_shared<threadStruct>();
-
-    // Set vars
+    // Source size
     sharedStruct->fileSize = fs::io::getFileSize(source);
+    // Commit on write, journal size
     sharedStruct->commitWrite = true;
     sharedStruct->journalSize = journalSize;
 
+    // Set status if passed
+    if(task != nullptr)
+    {
+        // Thread status
+        std::string statusCopyingFile = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_COPYING_FILE, 0), source.c_str());
+        task->setThreadStatus(statusCopyingFile);
+        // Reset, set max
+        task->reset();
+        task->setMax(sharedStruct->fileSize);
+    }
+
     // Threads
     std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
-    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct);
+    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct, task);
 
     // Wait
     readThread.join();
     writeThread.join();
 }
 
-void fs::io::copyDirectory(const std::string &source, const std::string &destination)
+void fs::io::copyDirectory(const std::string &source, const std::string &destination, sys::progressTask *task)
 {
     // Get source directory listing
     fs::directoryListing list(source);
@@ -177,7 +206,7 @@ void fs::io::copyDirectory(const std::string &source, const std::string &destina
             std::filesystem::create_directories(newDestination);
 
             // Recusive copy using new source and destination
-            fs::io::copyDirectory(newSource, newDestination);
+            fs::io::copyDirectory(newSource, newDestination, task);
         }
         else
         {
@@ -186,12 +215,12 @@ void fs::io::copyDirectory(const std::string &source, const std::string &destina
             std::string fullDestination = destination + list.getItemAt(i);
 
             // Copy file
-            fs::io::copyFile(fullSource, fullDestination);
+            fs::io::copyFile(fullSource, fullDestination, task);
         }
     }
 }
 
-void fs::io::copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize)
+void fs::io::copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task)
 {
     // Source listing
     fs::directoryListing list(source);
@@ -210,7 +239,7 @@ void fs::io::copyDirectoryCommit(const std::string &source, const std::string &d
             std::filesystem::create_directory(newDestination.substr(0, newDestination.npos - 1));
 
             // Recursive 
-            fs::io::copyDirectoryCommit(newSource, newDestination, journalSize);
+            fs::io::copyDirectoryCommit(newSource, newDestination, journalSize, task);
         }
         else
         {
@@ -218,10 +247,39 @@ void fs::io::copyDirectoryCommit(const std::string &source, const std::string &d
             std::string fullSource = source + list.getItemAt(i);
             std::string fullDestination = destination + list.getItemAt(i);
 
-            logger::log("%s, %s", fullSource.c_str(), fullDestination.c_str());
-
             // Copy it and commit it to save
-            fs::io::copyFileCommit(fullSource, fullDestination, journalSize);
+            fs::io::copyFileCommit(fullSource, fullDestination, journalSize, task);
         }
     }
+}
+
+void fs::io::deleteDirectoryRecursively(const std::string &directoryPath)
+{
+    // Error code for remove
+    std::error_code errorCode;
+
+    // Get directory listing
+    fs::directoryListing listing(directoryPath);
+
+    // Count for looping
+    int listingSize = listing.getListingCount();
+    for(int i = 0; i < listingSize; i++)
+    {
+        if(listing.itemAtIsDirectory(i))
+        {
+            // New target directory
+            std::string newDirectoryPath = directoryPath + listing.getItemAt(i) + "/";
+            // Recursion
+            fs::io::deleteDirectoryRecursively(newDirectoryPath);
+        }
+        else
+        {
+            // Full target path
+            std::string targetFile = directoryPath + listing.getItemAt(i);
+            // Delete it
+            std::filesystem::remove(targetFile, errorCode);
+        }
+    }
+    // Delete base directory if possible.
+    std::filesystem::remove(directoryPath, errorCode);
 }

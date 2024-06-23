@@ -8,11 +8,13 @@
 #include <minizip/zip.h>
 #include <minizip/unzip.h>
 #include "filesystem/filesystem.hpp"
+#include "ui/ui.hpp"
+#include "stringUtil.hpp"
 #include "log.hpp"
 
-#define ZIP_BUFFER_SIZE 0x80000
+static const int ZIP_BUFFER_SIZE = 0x80000;
 
-void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
+void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip, sys::progressTask *task)
 {
     // Source file listing
     fs::directoryListing listing(source);
@@ -23,8 +25,10 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
     {
         if(listing.itemAtIsDirectory(i))
         {
+            // New source
             std::string newSource = source + listing.getItemAt(i) + "/";
-            fs::zip::copyDirectoryToZip(newSource, zip);
+            // Recursive zipping
+            fs::zip::copyDirectoryToZip(newSource, zip, task);
         }
         else
         {
@@ -54,19 +58,33 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
             std::string filename = source + listing.getItemAt(i);
             int zipNameStart = filename.find_first_of('/') + 1;
 
+            // Set progress status
+            if(task != nullptr)
+            {
+                std::string zipStatusString = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_ADDING_TO_ZIP, 0), filename.c_str());
+                task->setThreadStatus(zipStatusString);
+            }
+
             // Open and copy into zip
             int error = zipOpenNewFileInZip64(zip, filename.substr(zipNameStart, filename.npos).c_str(), &zipFileInfo, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0);
             if(error == ZIP_OK)
             {
-                // Open the source file
-                std::string fullSource = source + listing.getItemAt(i);
-                std::ifstream sourceFile(fullSource, std::ios::binary);
+                // Get file size quick
+                int fileSize = fs::io::getFileSize(filename);
 
-                // File size
-                sourceFile.seekg(std::ios::end);
-                int fileSize = sourceFile.tellg();
-                sourceFile.seekg(std::ios::beg);
+                // Open the source file for reading
+                std::ifstream sourceFile(filename, std::ios::binary);
 
+                if(task != nullptr)
+                {
+                    // Set thread status
+                    std::string zipStatusString = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_ADDING_TO_ZIP, 0), filename.c_str());
+                    task->setThreadStatus(zipStatusString);
+                    // Reset and set max
+                    task->reset();
+                    task->setMax(fileSize);
+                }
+                
                 // Buffer
                 std::vector<char> buffer(ZIP_BUFFER_SIZE);
 
@@ -77,6 +95,11 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
                     sourceFile.read(buffer.data(), ZIP_BUFFER_SIZE);
                     zipWriteInFileInZip(zip, buffer.data(), sourceFile.gcount());
                     offset += sourceFile.gcount();
+
+                    if(task != nullptr)
+                    {
+                        task->updateProgress(offset);
+                    }
                 }
             }
             else
@@ -87,7 +110,7 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip)
     }
 }
 
-void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize)
+void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task)
 {
     // Buffer to decompress to
     std::vector<char> buffer(ZIP_BUFFER_SIZE);
@@ -111,6 +134,17 @@ void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, 
             // File stream
             std::ofstream destinationFile(fullDestination, std::ios::binary);
 
+            // Update status
+            if(task != nullptr)
+            {
+                std::string decompressingStatusString = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_DECOMPRESSING_FILE, 0), currentFileName.data());
+                task->setThreadStatus(decompressingStatusString);
+
+                // Progress 
+                task->reset();
+                task->setMax(unzipFileInfo.uncompressed_size);
+            }
+
             while((bytesRead = unzReadCurrentFile(unzip, buffer.data(), ZIP_BUFFER_SIZE)) > 0)
             {
                 if(journalCount + bytesRead >= journalSize)
@@ -130,6 +164,12 @@ void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, 
                 destinationFile.write(buffer.data(), bytesRead);
                 // Update journal
                 journalCount += bytesRead;
+
+                if(task != nullptr)
+                {
+                    // Only kind of way to do this with unzip
+                    task->updateProgress(task->getProgress() + bytesRead);
+                }
             }
         }
     } while(unzGoToNextFile(unzip) != UNZ_END_OF_LIST_OF_FILE);

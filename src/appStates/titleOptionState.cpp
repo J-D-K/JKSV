@@ -66,7 +66,7 @@ void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     {
         // Erase save data in container
         // To do: remove_all keeps failing if the folder has sub dirs. Maybe I should just stick with my own?
-        std::filesystem::remove_all(fs::DEFAULT_SAVE_MOUNT_DEVICE, errorCode);
+        fs::io::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
         // Commit changes
         fs::commitSaveData();
         // Close
@@ -113,7 +113,7 @@ void titleOptionState::update(void)
             // This is needed to debug something... and itself.
             case RESET_SAVE_DATA:
             {
-                // Prepare confirmation
+                // Prepare confirmation string
                 std::string confirmationString = ui::strings::getString(LANG_CONFIRM_RESET_SAVEDATA, 0);
 
                 // Data to send
@@ -121,11 +121,7 @@ void titleOptionState::update(void)
                 args->currentUserSaveInfo = m_CurrentUserSaveInfo;
                 args->currentTitleInfo = m_CurrentTitleInfo;
 
-                // Confirm state
-                std::unique_ptr<appState> confirmReset = std::make_unique<confirmState>(confirmationString, resetSaveData, args);
-
-                // Push
-                jksv::pushNewState(confirmReset);
+                confirmAction(confirmationString, resetSaveData, args, sys::taskTypes::TASK_TYPE_TASK);
             }
             break;
 
@@ -156,4 +152,10 @@ void titleOptionState::render(void)
     m_OptionsMenu->render(panelTarget);
     // Render panel to framebuffer
     m_SlidePanel->render();
+}
+
+void createAndPushNewTitleOptionState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo)
+{
+    std::unique_ptr<appState> newTitleOptionState = std::make_unique<titleOptionState>(currentUser, currentUserSaveInfo, currentTitleInfo);
+    jksv::pushNewState(newTitleOptionState);
 }

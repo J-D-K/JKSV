@@ -1,5 +1,6 @@
 #include "appStates/taskState.hpp"
 #include "graphics/graphics.hpp"
+#include "jksv.hpp"
 #include "log.hpp"
 
 // Time in ticks before changing glyph frames
@@ -59,4 +60,10 @@ void taskState::renderLoadingGlyph(void)
     }
 
     graphics::systemFont::renderText(s_LoadGlyphArray[m_GlyphFrame], NULL, 56, 673, 32, createColor(0x00, (0x88 + m_LoadingGlyphColorMod), (0xC5 + (m_LoadingGlyphColorMod / 2)), 0xFF));
+}
+
+void createAndPushNewTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args)
+{
+    std::unique_ptr<appState> newTaskState = std::make_unique<taskState>(threadFunction, args);
+    jksv::pushNewState(newTaskState);
 }

@@ -4,6 +4,7 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+#include "system/progressTask.hpp"
 
 namespace fs
 {
@@ -32,19 +33,21 @@ namespace fs
             uint64_t currentOffset = 0;
         } threadStruct;
 
-        // Just returns size of file
-        int getFileSize(const std::string &filePath);
-        // These functions are all threaded/task wrapper functions
-        // Copies source to destination.
-        void copyFile(const std::string &source, const std::string &destination);
-        // Copies source to destination, but commits to save device after journalSize bytes have been written
-        void copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize);
-        // Recusively copies source to destination
-        void copyDirectory(const std::string &source, const std::string &destination);
-        // Recursively copies source to destination
-        void copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize);
         // These are functions for threaded copying that other parts of JKSV can use.
         void readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct);
-        void writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct);
+        void writeThreadFunction(const std::string &destination, std::shared_ptr<threadStruct> sharedStruct, sys::progressTask *task);
+        // Just returns size of file
+        int getFileSize(const std::string &filePath);
+        // These functions can be passed a sys::progressArgs struct to have task status and progress updated. If it's not needed, use nullptr
+        // Copies source to destination.
+        void copyFile(const std::string &source, const std::string &destination, sys::progressTask *task);
+        // Copies source to destination, but commits to save device after journalSize bytes have been written
+        void copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task);
+        // Recusively copies source to destination
+        void copyDirectory(const std::string &source, const std::string &destination, sys::progressTask *task);
+        // Recursively copies source to destination
+        void copyDirectoryCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task);
+        // Deletes directory recursively. std::remove_all was causing too many issues on Switch for me.
+        void deleteDirectoryRecursively(const std::string &directoryPath);
     }
 }

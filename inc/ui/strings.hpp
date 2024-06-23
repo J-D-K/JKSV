@@ -68,7 +68,7 @@
 #define LANG_THREAD_COPYING_FILE "threadStatusCopyingFile"
 #define LANG_THREAD_DELETE_FILE "threadStatusDeletingFile"
 #define LANG_THREAD_OPENING_FOLDER "threadStatusOpeningFolder"
-#define LANG_THREAD_ADDING_TO_ZIP "threadStatusAddingFolderToZip"
+#define LANG_THREAD_ADDING_TO_ZIP "threadStatusAddingFileToZip"
 #define LANG_THREAD_DECOMPRESSING_FILE "threadStatusDecompressingFile"
 #define LANG_THREAD_DELETING_SAVE_DATA "threadStatusDeletingSaveData"
 #define LANG_THREAD_EXTENDING_SAVE_DATA "threadStatusExtendingSaveData"

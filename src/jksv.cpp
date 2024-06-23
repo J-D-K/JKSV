@@ -11,12 +11,16 @@
 #include "appStates/mainMenuState.hpp"
 #include "log.hpp"
 
+// Things specifically only for here
 namespace
 {
     bool s_IsRunning = false;
     SDL_Texture *s_HeaderIcon = NULL;
     std::vector<std::unique_ptr<appState>> s_AppStateVector;
 }
+
+// Icon path
+static const char *ICON_PATH = "romfs:/img/icn/iconWhite.png";
 
 bool jksv::init(void)
 {
@@ -57,7 +61,7 @@ bool jksv::init(void)
     sys::input::init();
 
     // Load header icon
-    s_HeaderIcon = graphics::textureLoadFromFile(TEXTURE_APP_ICON, "romfs:/img/icn/iconWhite.png");
+    s_HeaderIcon = graphics::textureLoadFromFile(TEXTURE_APP_ICON, ICON_PATH);
 
     // Push the first main view/state
     std::unique_ptr<appState> mainMenu = std::make_unique<mainMenuState>();

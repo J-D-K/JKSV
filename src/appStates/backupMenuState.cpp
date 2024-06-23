@@ -8,8 +8,10 @@
 #include "appStates/backupMenuState.hpp"
 #include "appStates/confirmState.hpp"
 #include "appStates/taskState.hpp"
+#include "appStates/progressState.hpp"
 #include "filesystem/filesystem.hpp"
 #include "system/task.hpp"
+#include "system/taskArgs.hpp"
 #include "stringUtil.hpp"
 #include "jksv.hpp"
 #include "log.hpp"
@@ -28,8 +30,8 @@ struct backupArgs : sys::taskArgs
     data::user *currentUser;
     data::titleInfo *currentTitleInfo;
     std::string outputBasePath;
-    // This is to be able to reload the list after a new backup is created
-    backupMenuState *sendingState;
+    // So we can force sending state to refresh
+    backupMenuState *sendingState = NULL;
 };
 
 // This is shared by overwrite and restore
@@ -37,9 +39,9 @@ struct backupArgs : sys::taskArgs
 struct pathArgs : sys::taskArgs
 {
     std::string source, destination;
-    // Journal size for commits
+    // This is for commiting to device
     uint64_t journalSize = 0;
-    // For reloading folder list
+    // For refresh
     backupMenuState *sendingState = NULL;
 };
 
@@ -55,8 +57,10 @@ static void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args
     }
 
     // Set task status, cast args to backupArgs
-    task->setThreadStatus("REPLACE THIS LATER");
     std::shared_ptr<backupArgs> argsIn = std::static_pointer_cast<backupArgs>(args);
+    
+    // To do: Maybe find a better way to do this without rewriting everything
+    sys::progressTask *progress = reinterpret_cast<sys::progressTask *>(task);
 
     // Process shortcuts or get name for backup
     std::string backupName;
@@ -89,13 +93,13 @@ static void createNewBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args
         if (config::getByKey(CONFIG_USE_ZIP) || extension == "zip")
         {
             zipFile zipOut = zipOpen64(path.c_str(), 0);
-            fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
+            fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut, progress);
             zipClose(zipOut, "");
         }
         else
         {
             std::filesystem::create_directories(path);
-            fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path);
+            fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, path, progress);
         }
     }
 
@@ -121,6 +125,7 @@ static void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args
     // Set status, cast args to type
     task->setThreadStatus("REPLACE THIS LATER");
     std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
+    sys::progressTask *progress = reinterpret_cast<sys::progressTask *>(task);
 
     // For checking if overwriting a zip
     std::string fileExtension = stringUtil::getExtensionFromString(argsIn->destination);
@@ -131,11 +136,11 @@ static void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args
         // Add trailing slash first.
         std::string target = argsIn->destination + "/";
         // Delete old backup
-        std::filesystem::remove_all(target, errorCode);
+        fs::io::deleteDirectoryRecursively(target);
         // Recreate whole path.
         std::filesystem::create_directories(argsIn->destination);
         // Create the new backup in the same folder
-        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, target);
+        fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, target, progress);
     }
     else if (std::filesystem::is_directory(argsIn->destination) == false && fileExtension == "zip")
     {
@@ -144,7 +149,7 @@ static void overwriteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args
         // Create a new one with the same name
         zipFile zipOut = zipOpen64(argsIn->destination.c_str(), 0);
         // Create new zip with old name
-        fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut);
+        fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, zipOut, progress);
         zipClose(zipOut, "");
     }
     task->finished();
@@ -166,6 +171,7 @@ static void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     // Set status, cast args
     task->setThreadStatus("REPLACE THIS LATER");
     std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
+    sys::progressTask *progress = reinterpret_cast<sys::progressTask *>(task);
 
     // Get extension before we try to unzip something that isn't a zip
     std::string fileExtension = stringUtil::getExtensionFromString(argsIn->source);
@@ -180,9 +186,9 @@ static void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         if(testListing.getListingCount() > 0)
         {
             // Folder isn't empty, erase
-            std::filesystem::remove_all(fs::DEFAULT_SAVE_MOUNT_DEVICE, errorCode);
+            fs::io::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
             // Copy source to save container
-            fs::io::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
+            fs::io::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize, progress);
         }
     }
     else if(std::filesystem::is_directory(argsIn->source) == false && fileExtension == "zip")
@@ -192,12 +198,11 @@ static void restoreBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Check if opening was successful and not empty first
         if(unzip != NULL && fs::zip::zipFileIsNotEmpty(unzip))
         {
-            fs::zip::copyZipToDirectory(unzip, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize);
+            fs::zip::copyZipToDirectory(unzip, fs::DEFAULT_SAVE_MOUNT_DEVICE, argsIn->journalSize, progress);
         }
         // Close zip
         unzClose(unzip);
     }
-
     task->finished();
 }
 
@@ -220,14 +225,10 @@ static void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 
     if (std::filesystem::is_directory(argsIn->destination))
     {
-        logger::log("%s is directory.", argsIn->destination.c_str());
-        std::uintmax_t deleted = std::filesystem::remove_all(argsIn->destination, errorCode);
-        logger::log("Error code: %s, %i - %u", errorCode.message().c_str(), errorCode.value(), deleted);
+        fs::io::deleteDirectoryRecursively(argsIn->destination);
     }
     else
     {
-        logger::log("%s is not a directory", argsIn->destination.c_str());
-        // Just remove it since it's probably a zip file
         std::filesystem::remove(argsIn->destination, errorCode);
     }
     // Refresh to reflect changes
@@ -282,8 +283,7 @@ void backupMenuState::update(void)
             backupTaskArgs->sendingState = this;
 
             // Task state
-            std::unique_ptr<appState> backupTask = std::make_unique<taskState>(createNewBackup, backupTaskArgs);
-            jksv::pushNewState(backupTask);
+            createAndPushNewProgressState(createNewBackup, backupTaskArgs);
         }
         else
         {
@@ -302,9 +302,7 @@ void backupMenuState::update(void)
         paths->destination = m_BackupListing->getFullPathToItemAt(selected - 1);
 
         // Create confirmation
-        std::unique_ptr<appState> overwriteConfirmationState = std::make_unique<confirmState>(confirmOverwrite, overwriteBackup, paths);
-        // Push it real good
-        jksv::pushNewState(overwriteConfirmationState);
+        confirmAction(confirmOverwrite, overwriteBackup, paths, sys::taskTypes::TASK_TYPE_PROGRESS);
     }
     else if (sys::input::buttonDown(HidNpadButton_Y) && selected > 0)
     {
@@ -319,9 +317,7 @@ void backupMenuState::update(void)
         paths->journalSize = m_CurrentTitleInfo->getJournalSize(static_cast<FsSaveDataType>(m_CurrentUserSaveInfo->getSaveDataInfo().save_data_type)); // Needed to prevent commit errors
 
         // Create confirmation
-        std::unique_ptr<appState> restoreConfirmationState = std::make_unique<confirmState>(confirmRestore, restoreBackup, paths);
-        // Push it to vector
-        jksv::pushNewState(restoreConfirmationState);
+        confirmAction(confirmRestore, restoreBackup, paths, sys::taskTypes::TASK_TYPE_PROGRESS);
     }
     else if (sys::input::buttonDown(HidNpadButton_X) && selected > 0)
     {
@@ -336,8 +332,7 @@ void backupMenuState::update(void)
         paths->sendingState = this;
 
         // Create confirm and push
-        std::unique_ptr<appState> deleteConfirmationState = std::make_unique<confirmState>(confirmDelete, deleteBackup, paths);
-        jksv::pushNewState(deleteConfirmationState);
+        confirmAction(confirmDelete, deleteBackup, paths, sys::taskTypes::TASK_TYPE_TASK);
     }
     else if (sys::input::buttonDown(HidNpadButton_B))
     {
@@ -385,4 +380,12 @@ void backupMenuState::loadDirectoryList(void)
     {
         m_BackupMenu->addOpt(m_BackupListing->getItemAt(i));
     }
+}
+
+void createAndPushNewBackupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo)
+{
+    // Create new backupmenu
+    std::unique_ptr<appState> newBackupMenuState = std::make_unique<backupMenuState>(currentUser, currentUserSaveInfo, currentTitleInfo);
+    // have JKSV push it to back of vector
+    jksv::pushNewState(newBackupMenuState);
 }

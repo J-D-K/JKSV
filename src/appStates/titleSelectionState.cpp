@@ -78,3 +78,9 @@ void titleSelectionState::render(void)
         graphics::systemFont::renderText(m_TitleControlGuide, NULL, m_TitleControlGuideX, 673, 18, COLOR_WHITE);
     }
 }
+
+void createAndPushNewTitleSelectionState(data::user *currentUser)
+{
+    std::unique_ptr<appState> newTitleSelectionState = std::make_unique<titleSelectionState>(currentUser);
+    jksv::pushNewState(newTitleSelectionState);
+}
