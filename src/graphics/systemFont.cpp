@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <string>
 #include <cstring>
@@ -22,7 +23,7 @@ static const uint32_t s_BlueMask  = 0x0000FF00;
 static const uint32_t s_AlphaMask = 0x000000FF;
 
 //Codepoints to break a line at
-static const uint32_t s_BreakPoints[7] = {' ', L'　', '/', '_', '-', L'。', L'、'};
+static const std::array<uint32_t, 7> s_BreakPoints = {' ', L'　', '/', '_', '-', L'。', L'、'};
 
 //This struct is for caching glyph data needed
 typedef struct
@@ -112,12 +113,9 @@ static glyphData *getGlyph(const uint32_t& c, const int &fontSize)
 //Returns if line breakable character
 static bool isBreakableCharacter(const uint32_t &codepoint)
 {
-    for(int i = 0; i < 7; i++)
+    if(std::find(s_BreakPoints.begin(), s_BreakPoints.end(), codepoint) != s_BreakPoints.end())
     {
-        if(codepoint == s_BreakPoints[i])
-        {
-            return true;
-        }
+        return true;
     }
     return false;
 }
