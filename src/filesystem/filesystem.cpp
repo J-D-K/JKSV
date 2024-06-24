@@ -1,5 +1,6 @@
 #include <filesystem>
 #include "filesystem/filesystem.hpp"
+#include "data/data.hpp"
 #include "config.hpp"
 #include "log.hpp"
 
@@ -109,4 +110,26 @@ void fs::commitSaveData(void)
     {
         logger::log("Commit failed. %X", commitError);
     }
+}
+
+void fs::createTitleDirectoryByTID(const uint64_t &titleID)
+{
+    // Get title info needed
+    data::titleInfo *workingTitleInfo = data::getTitleInfoByTitleID(titleID);
+    // Full path 
+    std::filesystem::path fullTitlePath = config::getWorkingDirectory() + workingTitleInfo->getPathSafeTitle();
+    // Create it
+    std::filesystem::create_directories(fullTitlePath);
+}
+
+bool fs::directoryContainsFiles(const std::string &path)
+{
+    // Get a test listing.
+    fs::directoryListing testListing(path);
+    // If the list has files, true.
+    if(testListing.getListingCount() > 0)
+    {
+        return true;
+    }
+    return false;
 }

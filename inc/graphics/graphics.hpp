@@ -2,7 +2,6 @@
 #include <string>
 #include <SDL2/SDL.h>
 #include "graphics/colors.hpp"
-#include "graphics/textureNames.hpp"
 #include "graphics/systemFont.hpp"
 
 namespace graphics

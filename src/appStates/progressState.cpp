@@ -44,7 +44,7 @@ void progressState::update(void)
     double taskProgress = m_Task->getProgress() / 1024 / 1024;
     m_ProgressStatus = stringUtil::getFormattedString("%.2fMB / %.2fMB", taskProgress, taskMax);
     // Calculate X of m_ProgressStatus
-    m_ProgressStatusX = 640 - (graphics::systemFont::getTextWidth(m_ProgressStatus, 18) / 2);
+    m_ProgressStatusX = 640 - (graphics::systemFont::getTextWidth(m_ProgressStatus, PROGRESS_STATUS_FONT_SIZE) / 2);
 
     // Grab current task status
     m_TaskStatus = m_Task->getThreadStatus();

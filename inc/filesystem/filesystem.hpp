@@ -17,4 +17,8 @@ namespace fs
     void unmountSaveData(void);
     // Commits to default save path
     void commitSaveData(void);
+    // Creates directory for title using title ID
+    void createTitleDirectoryByTID(const uint64_t &titleID);
+    // Checks if folder actually contains data.
+    bool directoryContainsFiles(const std::string &path);
 }

@@ -3,11 +3,12 @@
 #include "appStates/mainMenuState.hpp"
 #include "appStates/titleSelectionState.hpp"
 #include "appStates/taskState.hpp"
+#include "filesystem/filesystem.hpp"
 #include "graphics/graphics.hpp"
+#include "system/system.hpp"
 #include "data/data.hpp"
-#include "system/input.hpp"
 #include "ui/ui.hpp"
-#include "system/task.hpp"
+#include "config.hpp"
 #include "stringUtil.hpp"
 #include "log.hpp"
 
@@ -15,28 +16,66 @@
 static const int MAIN_MENU_X = 50;
 static const int MAIN_MENU_Y = 16;
 static const int MAIN_MENU_SCROLL_LENGTH = 1;
+// Render target
+static const int RENDER_TARGET_WIDTH = 200;
+static const int RENDER_TARGET_HEIGHT = 555;
+// This is the font size used to render 'Settings' and 'Extras' to their icons
+static const int EXTRA_OPTIONS_FONT_SIZE = 42;
+// Coordinates and font size of control guide
+static const int CONTROL_GUIDE_Y_POSITION = 673;
+static const int CONTROL_GUIDE_FONT_SIZE = 18;
 
 // Texture names
 static const char *MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
 static const char *MAIN_MENU_SETTINGS = "mainMenuSettings";
 static const char *MAIN_MENU_EXTRAS = "mainMenuExtras";
+static const char *MAIN_MENU_TEXTURE_NAME = "mainMenuBackgroundTexture";
+
+// Path to texture needed
+static const char *MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/menu/backgroundDark.png";
 
 // Tasks
-static void backupAllUserSaves(void *in)
+static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> args)
 {
-    
+    // Cast to progress
+    sys::progressTask *progress = reinterpret_cast<sys::progressTask *>(task);
+
+    // Loop through users
+    int totalUserCount = data::getTotalUsers();
+    for(int i = 0; i < totalUserCount; i++)
+    {
+        // Get pointer to user
+        data::user *currentUser = data::getUserAtPosition(i);
+
+        // Loop through titles
+        int totalUserGameCount = currentUser->getTotalUserSaveInfo();
+        for(int j = 0; j < totalUserGameCount; j++)
+        {
+            // Get pointer to userSaveInfo
+            data::userSaveInfo *currentUserSaveInfo = currentUser->getUserSaveInfoAt(i);
+
+            // Try to mount save
+            bool saveIsMounted = fs::mountSaveData(currentUserSaveInfo->getSaveDataInfo());
+            // Make sure full path for title exists
+            fs::createTitleDirectoryByTID(currentUserSaveInfo->getTitleID());
+            if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP))
+            {
+
+            }
+        }
+    }
 }
 
 mainMenuState::mainMenuState(void) :
 m_MainControlGuide(ui::strings::getString(LANG_USER_GUIDE, 0)),
-m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, 18)),
+m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, CONTROL_GUIDE_FONT_SIZE)),
 m_MainMenu(std::make_unique<ui::iconMenu>(MAIN_MENU_X, MAIN_MENU_Y, MAIN_MENU_SCROLL_LENGTH))
 {
     // Render target
-    m_RenderTarget = graphics::textureCreate(MAIN_MENU_RENDER_TARGET, 200, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_RenderTarget = graphics::textureCreate(MAIN_MENU_RENDER_TARGET, RENDER_TARGET_WIDTH, RENDER_TARGET_HEIGHT, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 
     // Load gradient for behind menu
-    m_MenuBackgroundTexture = graphics::textureLoadFromFile(TEXTURE_MENU_BACKGROUND, "romfs:/img/menu/backgroundDark.png");
+    m_MenuBackgroundTexture = graphics::textureLoadFromFile(MAIN_MENU_TEXTURE_NAME, MAIN_MENU_BACKGROUND_TEXTURE_PATH);
 
     // Setup menu
     m_UserEnd = data::getTotalUsers();
@@ -49,8 +88,8 @@ m_MainMenu(std::make_unique<ui::iconMenu>(MAIN_MENU_X, MAIN_MENU_Y, MAIN_MENU_SC
     // Settings & extras
     std::string settingsString = ui::strings::getString(LANG_MAIN_MENU_SETTINGS, 0);
     std::string extrasString = ui::strings::getString(LANG_MAIN_MENU_EXTRAS, 0);
-    m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_SETTINGS, settingsString, 42));
-    m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_EXTRAS, extrasString, 42));
+    m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_SETTINGS, settingsString, EXTRA_OPTIONS_FONT_SIZE));
+    m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_EXTRAS, extrasString, EXTRA_OPTIONS_FONT_SIZE));
 }
 
 mainMenuState::~mainMenuState() {}
@@ -88,6 +127,6 @@ void mainMenuState::render(void)
 
     if(appState::hasFocus())
     {
-        graphics::systemFont::renderText(m_MainControlGuide, NULL, m_MainControlGuideX, 673, 18, COLOR_WHITE);
+        graphics::systemFont::renderText(m_MainControlGuide, NULL, m_MainControlGuideX, CONTROL_GUIDE_Y_POSITION, CONTROL_GUIDE_FONT_SIZE, COLOR_WHITE);
     }
 }
