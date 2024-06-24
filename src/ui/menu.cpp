@@ -1,14 +1,19 @@
+#include <cmath>
 #include "ui/menu.hpp"
 #include "ui/ui.hpp"
 #include "system/input.hpp"
 #include "graphics/systemFont.hpp"
 #include "config.hpp"
 
-ui::menu::menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll) : m_X(x), m_Y(y), m_OriginalY(y), m_RectWidth(rectWidth), m_FontSize(fontSize), m_MaxScroll(maxScroll)
-{
-    m_RectHeight = m_FontSize + 30;
-    m_Selected = 0;
-}
+ui::menu::menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll) : 
+m_X(x),
+m_Y(y),
+m_OriginalY(y),
+m_FontSize(fontSize),
+m_RectWidth(rectWidth),
+m_RectHeight(m_FontSize + 32),
+m_Selected(0),
+m_MaxScroll(maxScroll) { } 
 
 ui::menu::menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll, const std::string *menuOpts, const int &menuOptCount) : menu(x, y, rectWidth, fontSize, maxScroll)
 {
@@ -55,8 +60,8 @@ void ui::menu::update(void)
     // Calculate scroll amount
     if (m_Y != m_TargetY)
     {
-        float addY = (float)((float)m_TargetY - (float)m_Y) / config::getAnimationScaling();
-        m_Y += addY;
+        double addToY = static_cast<double>(static_cast<double>(m_TargetY) - static_cast<double>(m_Y)) / config::getAnimationScaling();
+        m_Y += std::ceil(addToY);
     } 
 }
 

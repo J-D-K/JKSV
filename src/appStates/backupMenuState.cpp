@@ -17,12 +17,15 @@
 #include "log.hpp"
 
 // Names of panels, render targets, and coordinates + dimensions of menu
-static const std::string BACKUP_PANEL_NAME = "backupMenuPanel";
-static const std::string BACKUP_MENU_TARGET_NAME = "backupMenuRenderTarget";
-static const int BACKUP_MENU_X = 10;
-static const int BACKUP_MENU_Y = 4;
-static const int BACKUP_MENU_FONT_SIZE = 18;
-static const int BACKUP_MENU_SCROLL_LENGTH = 6;
+namespace
+{
+    const std::string BACKUP_PANEL_NAME = "backupMenuPanel";
+    const std::string BACKUP_MENU_TARGET_NAME = "backupMenuRenderTarget";
+    const int BACKUP_MENU_X = 10;
+    const int BACKUP_MENU_Y = 4;
+    const int BACKUP_MENU_FONT_SIZE = 18;
+    const int BACKUP_MENU_SCROLL_LENGTH = 6;
+}
 
 // This is for backup task
 struct backupArgs : sys::taskArgs

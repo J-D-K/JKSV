@@ -4,7 +4,7 @@
 #include "config.hpp"
 #include "log.hpp"
 
-const char *fs::DEFAULT_SAVE_MOUNT_DEVICE = "save:/";
+const std::string fs::DEFAULT_SAVE_MOUNT_DEVICE = "save:/";
 
 bool fs::init(void)
 {
@@ -96,12 +96,12 @@ bool fs::mountSaveData(const FsSaveDataInfo &saveInfo)
 
 void fs::unmountSaveData(void)
 {
-    fsdevUnmountDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    fsdevUnmountDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE.c_str());
 }
 
 void fs::commitSaveData(void)
 {
-    Result commitError = fsdevCommitDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE);
+    Result commitError = fsdevCommitDevice(fs::DEFAULT_SAVE_MOUNT_DEVICE.c_str());
     if(R_SUCCEEDED(commitError))
     {
         logger::log("Commit succeeded.");

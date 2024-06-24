@@ -4,9 +4,12 @@
 #include "jksv.hpp"
 #include "log.hpp"
 
-// Y position of thread status text
-static const int STATUS_TEXT_Y = 348;
-static const int STATUS_TEXT_FONT_SIZE = 24;
+namespace
+{
+    // Y position of thread status text
+    static const int STATUS_TEXT_Y = 348;
+    static const int STATUS_TEXT_FONT_SIZE = 24;
+}
 
 taskState::taskState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args) :
 m_Task(std::make_unique<sys::task>(threadFunction, args)) { }

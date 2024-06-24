@@ -1,12 +1,19 @@
 #include "ui/titleTile.hpp"
 #include "graphics/systemFont.hpp"
 
+namespace
+{
+    double ICON_SIZE_MULTIPLIER = 1.28f;
+    int ICON_EXPAND_SIZE = 18;
+    int ICON_CONTRACT_SIZE = 9;
+}
+
 ui::titleTile::titleTile(const int &width, const int &height, const bool &favorite, SDL_Texture *icon) : m_Width(width), m_Height(height), m_IsFavorite(favorite), m_Icon(icon)
 {
     m_RenderWidth = m_Width;
     m_RenderHeight = m_Height;
-    m_SelectedWidth = m_Width * 1.28f;
-    m_SelectedHeight = m_Height * 1.28;
+    m_SelectedWidth = m_Width * ICON_SIZE_MULTIPLIER;
+    m_SelectedHeight = m_Height * ICON_SIZE_MULTIPLIER;
 }
 
 void ui::titleTile::update(const bool &isSelected)
@@ -14,22 +21,22 @@ void ui::titleTile::update(const bool &isSelected)
     // Not sure if I should leave this like this. Feels kind of wrong
     if (isSelected && m_RenderWidth < m_SelectedWidth)
     {
-        m_RenderWidth += 18;
+        m_RenderWidth += ICON_EXPAND_SIZE;
     }
 
     if (isSelected && m_RenderHeight < m_SelectedHeight)
     {
-        m_RenderHeight += 18;
+        m_RenderHeight += ICON_EXPAND_SIZE;
     }
 
     if (!isSelected && m_RenderWidth > m_Width)
     {
-        m_RenderWidth -= 9;
+        m_RenderWidth -= ICON_CONTRACT_SIZE;
     }
 
     if (!isSelected && m_RenderHeight > m_Height)
     {
-        m_RenderHeight -= 9;
+        m_RenderHeight -= ICON_CONTRACT_SIZE;
     }
 }
 

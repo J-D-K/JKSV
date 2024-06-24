@@ -12,27 +12,30 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
-// Main menu coordinates and dimensions
-static const int MAIN_MENU_X = 50;
-static const int MAIN_MENU_Y = 16;
-static const int MAIN_MENU_SCROLL_LENGTH = 1;
-// Render target
-static const int RENDER_TARGET_WIDTH = 200;
-static const int RENDER_TARGET_HEIGHT = 555;
-// This is the font size used to render 'Settings' and 'Extras' to their icons
-static const int EXTRA_OPTIONS_FONT_SIZE = 42;
-// Coordinates and font size of control guide
-static const int CONTROL_GUIDE_Y_POSITION = 673;
-static const int CONTROL_GUIDE_FONT_SIZE = 18;
+namespace
+{
+    // Main menu coordinates and dimensions
+    const int MAIN_MENU_X = 50;
+    const int MAIN_MENU_Y = 16;
+    const int MAIN_MENU_SCROLL_LENGTH = 1;
+    // Render target
+    const int RENDER_TARGET_WIDTH = 200;
+    const int RENDER_TARGET_HEIGHT = 555;
+    // This is the font size used to render 'Settings' and 'Extras' to their icons
+    const int EXTRA_OPTIONS_FONT_SIZE = 42;
+    // Coordinates and font size of control guide
+    const int CONTROL_GUIDE_Y_POSITION = 673;
+    const int CONTROL_GUIDE_FONT_SIZE = 18;
 
-// Texture names
-static const char *MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
-static const char *MAIN_MENU_SETTINGS = "mainMenuSettings";
-static const char *MAIN_MENU_EXTRAS = "mainMenuExtras";
-static const char *MAIN_MENU_TEXTURE_NAME = "mainMenuBackgroundTexture";
+    // Texture names
+    const char *MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
+    const char *MAIN_MENU_SETTINGS = "mainMenuSettings";
+    const char *MAIN_MENU_EXTRAS = "mainMenuExtras";
+    const char *MAIN_MENU_TEXTURE_NAME = "mainMenuBackgroundTexture";
 
-// Path to texture needed
-static const char *MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/menu/backgroundDark.png";
+    // Path to texture needed
+    const char *MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/menu/backgroundDark.png";
+}
 
 // Tasks
 static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> args)

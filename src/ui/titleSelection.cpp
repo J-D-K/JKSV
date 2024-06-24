@@ -5,24 +5,35 @@
 #include "system/input.hpp"
 #include "config.hpp"
 
-ui::titleSelection::titleSelection(data::user *currentUser) : m_CurrentUser(currentUser)
+namespace
 {
-    // To do: Not this. Originally were passed as variables
-    m_X = 32;
-    m_Y = 38;
-    m_IconWidth = 128;
-    m_IconHeight = 128;
-    m_HorizontalGap = 16;
-    m_VerticalGap = 16;
-    m_RowSize = 7;
-    m_Selected = 0;
-    m_ColorMod = 0;
+    // Starting coordinates for rendering loop
+    const int ICON_STARTING_X = 32;
+    const int ICON_STARTING_Y = 38;
+    // Icon dimensions
+    const int ICON_WIDTH = 128;
+    const int ICON_HEIGHT = 128;
+    // Gap size in between icons
+    const int ICON_GAP_HORIZONTAL = 16;
+    const int ICON_GAP_VERTICAL = 16;
+    // How many icons per row
+    const int ICON_ROW_SIZE = 7;
+    // I really need to figure out what this is and where it came from. I don't remember.
+    const int TARGET_Y_START = 280;
+}
 
+ui::titleSelection::titleSelection(data::user *currentUser) : 
+m_X(ICON_STARTING_X),
+m_Y(ICON_STARTING_Y),
+m_CurrentUser(currentUser),
+m_Selected(0),
+m_ColorMod(0)
+{
     for (int i = 0; i < m_CurrentUser->getTotalUserSaveInfo(); i++)
     {
         data::userSaveInfo *currentUserSaveInfo = m_CurrentUser->getUserSaveInfoAt(i);
         data::titleInfo *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
-        m_TitleTiles.emplace_back(128, 128, config::titleIsFavorite(currentUserSaveInfo->getTitleID()), currentTitleInfo->getIcon());
+        m_TitleTiles.emplace_back(ICON_WIDTH, ICON_HEIGHT, config::titleIsFavorite(currentUserSaveInfo->getTitleID()), currentTitleInfo->getIcon());
     }
 }
 
@@ -44,11 +55,11 @@ void ui::titleSelection::update(void)
     }
 
     // I chose this over switch case because the _AnyX can't work that way
-    if (sys::input::buttonDown(HidNpadButton_AnyUp) && (m_Selected -= m_RowSize) < 0)
+    if (sys::input::buttonDown(HidNpadButton_AnyUp) && (m_Selected -= ICON_ROW_SIZE) < 0)
     {
         m_Selected = 0;
     }
-    else if (sys::input::buttonDown(HidNpadButton_AnyDown) && (m_Selected += m_RowSize) > totalTiles)
+    else if (sys::input::buttonDown(HidNpadButton_AnyDown) && (m_Selected += ICON_ROW_SIZE) > totalTiles)
     {
         m_Selected = totalTiles;
     }
@@ -60,27 +71,27 @@ void ui::titleSelection::update(void)
     {
         ++m_Selected;
     }
-    else if (sys::input::buttonDown(HidNpadButton_L) && (m_Selected -= m_RowSize * 3) < 0)
+    else if (sys::input::buttonDown(HidNpadButton_L) && (m_Selected -= ICON_ROW_SIZE * 3) < 0)
     {
         m_Selected = 0;
     }
-    else if (sys::input::buttonDown(HidNpadButton_R) && (m_Selected += m_RowSize * 3) > totalTiles)
+    else if (sys::input::buttonDown(HidNpadButton_R) && (m_Selected += ICON_ROW_SIZE * 3) > totalTiles)
     {
         m_Selected = totalTiles;
     }
 
     // Calculate scrolling
     float animationScaling = config::getAnimationScaling();
-    m_TargetY = 280;
+    m_TargetY = TARGET_Y_START;
     if (m_SelectionY > m_TargetY)
     {
-        float addToY = ((float)m_TargetY - (float)m_SelectionY) / animationScaling;
-        m_Y += ceil(addToY);
+        double addToY = (static_cast<double>(m_TargetY) - (static_cast<double>(m_SelectionY))) / animationScaling;
+        m_Y += std::ceil(addToY);
     }
-    else if (m_SelectionY < 38)
+    else if (m_SelectionY < ICON_STARTING_Y)
     {
-        float addToY = (38.0f - (float)m_SelectionY) / animationScaling;
-        m_Y += ceil(addToY);
+        double addToY = (static_cast<double>(ICON_STARTING_Y) - static_cast<double>(m_SelectionY)) / animationScaling;
+        m_Y += std::ceil(addToY);
     }
 
     // Update title titles
@@ -111,11 +122,11 @@ void ui::titleSelection::render(SDL_Texture *target)
 
     int totalTiles = m_TitleTiles.size();
     m_TargetY = m_Y;
-    for (int i = 0; i < totalTiles; m_TargetY += (m_IconHeight + m_VerticalGap))
+    for (int i = 0; i < totalTiles; m_TargetY += (ICON_HEIGHT + ICON_GAP_VERTICAL))
     {
-        int endOfRow = i + m_RowSize;
+        int endOfRow = i + ICON_ROW_SIZE;
         m_TargetX = m_X;
-        for (; i < endOfRow; m_TargetX += (m_IconWidth + m_HorizontalGap), i++)
+        for (; i < endOfRow; m_TargetX += (ICON_WIDTH + ICON_GAP_HORIZONTAL), i++)
         {
             if (i >= totalTiles)
             {
@@ -134,7 +145,6 @@ void ui::titleSelection::render(SDL_Texture *target)
             }
         }
     }
-
     // This renders the selected title icon so it's over top of the surrounding ones
     graphics::renderRect(target, m_SelectionX - 23, m_SelectionY - 23, 174, 174, COLOR_DEFAULT_CLEAR);
     m_TitleTiles[m_Selected].render(target, m_SelectionX, m_SelectionY);

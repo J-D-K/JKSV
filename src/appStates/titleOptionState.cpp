@@ -11,16 +11,19 @@
 #include "jksv.hpp"
 #include "log.hpp"
 
-// Texture/target names
-const char *PANEL_RENDER_TARGET_NAME = "titleOptionPanel";
+namespace
+{
+    // Texture/target names
+    const char *PANEL_RENDER_TARGET_NAME = "titleOptionPanel";
 
-// Dimensions and coordinates for panel and menu
-static const int PANEL_WIDTH = 410;
-static const int MENU_X = 10;
-static const int MENU_Y = 32;
-static const int MENU_WIDTH = 390;
-static const int MENU_FONT_SIZE = 20;
-static const int MENU_SCROLL_LENGTH = 7;
+    // Dimensions and coordinates for panel and menu
+    const int PANEL_WIDTH = 410;
+    const int MENU_X = 10;
+    const int MENU_Y = 32;
+    const int MENU_WIDTH = 390;
+    const int MENU_FONT_SIZE = 20;
+    const int MENU_SCROLL_LENGTH = 7;
+}
 
 enum
 {

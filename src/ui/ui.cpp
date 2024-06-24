@@ -1,50 +1,51 @@
+#include <array>
 #include <memory>
 #include "ui/ui.hpp"
 #include "graphics/graphics.hpp"
 #include "system/system.hpp"
 
 // Oh boy, here we go~
-// Selection bounding box names
-static const std::string SELECTION_TOP_LEFT_NAME = "s_SelectionTopLeft";
-static const std::string SELECTION_TOP_RIGHT_NAME = "s_SelectionTopRight";
-static const std::string SELECTION_BOTTOM_LEFT_NAME = "s_SelectionBottomLeft";
-static const std::string SELECTION_BOTTOM_RIGHT_NAME = "s_SelectionBottomRight";
-
-// Dialog box paths
-static const std::string DIALOG_TOP_LEFT_NAME = "s_DialogTopLeft";
-static const std::string DIALOG_TOP_RIGHT_NAME = "s_DialogTopRight";
-static const std::string DIALOG_BOTTOM_LEFT_NAME = "s_DialogBottomLeft";
-static const std::string DIALOG_BOTTOM_RIGHT_NAME = "s_DialogBottomRight";
-
-// Selection paths
-static const std::string SELECTION_TOP_LEFT_PATH = "romfs:/img/menu/selectionTopLeft.png";
-static const std::string SELECTION_TOP_RIGHT_PATH = "romfs:/img/menu/selectionTopRight.png";
-static const std::string SELECTION_BOTTOM_LEFT_PATH = "romfs:/img/menu/selectionBottomLeft.png";
-static const std::string SELECTION_BOTTOM_RIGHT_PATH = "romfs:/img/menu/selectionBottomRight.png";
-
-// Dialog paths
-static const std::string DIALOG_TOP_LEFT_PATH = "romfs:/img/dialogDark/dialogTopLeft.png";
-static const std::string DIALOG_TOP_RIGHT_PATH = "romfs:/img/dialogDark/dialogTopRight.png";
-static const std::string DIALOG_BOTTOM_LEFT_PATH = "romfs:/img/dialogDark/dialogBottomLeft.png";
-static const std::string DIALOG_BOTTOM_RIGHT_PATH = "romfs:/img/dialogDark/dialogBottomRight.png";
-
-// Nintendo Wii or 3DS? loading glyph array
-static const std::string s_LoadGlyphArray[8] = 
-{
-    "\ue020", "\ue021", "\ue022", "\ue023",
-    "\ue024", "\ue025", "\ue026", "\ue027"
-};
-
-// Ticks for loading glyph changing
-static const int LOADING_GLYPH_CHANGE_TICKS = 50;
-
-// Loading Glyph render coordinates
-static const int LOADING_GLYPH_RENDER_X = 56;
-static const int LOADING_GLYPH_RENDER_Y = 673;
-static const int LOADING_GLYPH_RENDER_SIZE = 32;
-
 namespace
 {
+    // Selection bounding box names
+    const std::string SELECTION_TOP_LEFT_NAME = "s_SelectionTopLeft";
+    const std::string SELECTION_TOP_RIGHT_NAME = "s_SelectionTopRight";
+    const std::string SELECTION_BOTTOM_LEFT_NAME = "s_SelectionBottomLeft";
+    const std::string SELECTION_BOTTOM_RIGHT_NAME = "s_SelectionBottomRight";
+
+    // Dialog box paths
+    const std::string DIALOG_TOP_LEFT_NAME = "s_DialogTopLeft";
+    const std::string DIALOG_TOP_RIGHT_NAME = "s_DialogTopRight";
+    const std::string DIALOG_BOTTOM_LEFT_NAME = "s_DialogBottomLeft";
+    const std::string DIALOG_BOTTOM_RIGHT_NAME = "s_DialogBottomRight";
+
+    // Selection paths
+    const std::string SELECTION_TOP_LEFT_PATH = "romfs:/img/menu/selectionTopLeft.png";
+    const std::string SELECTION_TOP_RIGHT_PATH = "romfs:/img/menu/selectionTopRight.png";
+    const std::string SELECTION_BOTTOM_LEFT_PATH = "romfs:/img/menu/selectionBottomLeft.png";
+    const std::string SELECTION_BOTTOM_RIGHT_PATH = "romfs:/img/menu/selectionBottomRight.png";
+
+    // Dialog paths
+    const std::string DIALOG_TOP_LEFT_PATH = "romfs:/img/dialogDark/dialogTopLeft.png";
+    const std::string DIALOG_TOP_RIGHT_PATH = "romfs:/img/dialogDark/dialogTopRight.png";
+    const std::string DIALOG_BOTTOM_LEFT_PATH = "romfs:/img/dialogDark/dialogBottomLeft.png";
+    const std::string DIALOG_BOTTOM_RIGHT_PATH = "romfs:/img/dialogDark/dialogBottomRight.png";
+
+    // Ticks for loading glyph changing
+    const int LOADING_GLYPH_CHANGE_TICKS = 50;
+
+    // Loading Glyph render coordinates
+    const int LOADING_GLYPH_RENDER_X = 56;
+    const int LOADING_GLYPH_RENDER_Y = 673;
+    const int LOADING_GLYPH_RENDER_SIZE = 32;
+
+    // Nintendo Wii or 3DS? loading glyph array
+    const std::array<std::string, 8> s_LoadGlyphArray = 
+    {
+        "\ue020", "\ue021", "\ue022", "\ue023",
+        "\ue024", "\ue025", "\ue026", "\ue027"
+    };
+
     // Timer for changing glyph. Might wanna rethink this some time
     std::unique_ptr<sys::timer> s_LoadGlyphChangeTimer;
     // Frame the animation is on
@@ -53,10 +54,7 @@ namespace
     bool s_GlyphColorModifier = true;
     // This is the how much to add to the base color for the pulse
     uint8_t s_GlyphColorModification = 0x00;
-}
 
-namespace
-{
     // These are all corner textures for rendering various things on screen
     SDL_Texture *s_SelectionTopLeft, *s_SelectionTopRight, *s_SelectionBottomLeft, *s_SelectionBottomRight;
     SDL_Texture *s_DialogTopLeft, *s_DialogTopRight, *s_DialogBottomLeft, *s_DialogBottomRight;
@@ -74,7 +72,7 @@ void ui::init(void)
     s_SelectionTopLeft = graphics::textureLoadFromFile(SELECTION_TOP_LEFT_NAME, SELECTION_TOP_LEFT_PATH);
     s_SelectionTopRight = graphics::textureLoadFromFile(SELECTION_TOP_RIGHT_NAME, SELECTION_TOP_RIGHT_PATH);
     s_SelectionBottomLeft = graphics::textureLoadFromFile(SELECTION_BOTTOM_LEFT_NAME, SELECTION_BOTTOM_LEFT_PATH);
-    s_SelectionBottomRight = graphics::textureLoadFromFile(SELECTION_BOTTOM_RIGHT_NAME, SELECTION_TOP_RIGHT_PATH);
+    s_SelectionBottomRight = graphics::textureLoadFromFile(SELECTION_BOTTOM_RIGHT_NAME, SELECTION_BOTTOM_RIGHT_PATH);
 
     // Corners for dialog
     s_DialogTopLeft = graphics::textureLoadFromFile(DIALOG_TOP_LEFT_NAME, DIALOG_TOP_LEFT_PATH);
@@ -137,5 +135,5 @@ void ui::renderLoadingGlyph(void)
     // Create color. For semi-readability
     uint32_t loadingGlyphColor = createColor(0x00, (0x88 + s_GlyphColorModification), (0xC5 + (s_GlyphColorModification / 2)), 0xFF);
     // Finally render it to screen
-    graphics::systemFont::renderText(s_LoadGlyphArray[s_LoadGlyphFrame], NULL, LOADING_GLYPH_RENDER_X, LOADING_GLYPH_RENDER_Y, LOADING_GLYPH_RENDER_SIZE, loadingGlyphColor);
+    graphics::systemFont::renderText(s_LoadGlyphArray.at(s_LoadGlyphFrame), NULL, LOADING_GLYPH_RENDER_X, LOADING_GLYPH_RENDER_Y, LOADING_GLYPH_RENDER_SIZE, loadingGlyphColor);
 }

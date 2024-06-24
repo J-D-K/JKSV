@@ -97,8 +97,6 @@ data::user::user(const AccountUid &accountID) : m_AccountID(accountID)
         m_PathSafeUsername = m_Username;
         logger::log("Error getting profile for user 0x%X", getAccountIDU128());
     }
-
-    logger::log("%s @ %p", m_Username.c_str(), this);
 }
 
 data::user::user(const AccountUid &accountID, const std::string &username, const std::string &pathSafeUsername) : m_AccountID(accountID), m_Username(username), m_PathSafeUsername(pathSafeUsername)

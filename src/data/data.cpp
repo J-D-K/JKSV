@@ -12,7 +12,9 @@
 
 namespace
 {
+    // Using vector for Users to preserve order
     std::vector<std::pair<u128, data::user>> s_UserVector;
+    // Map of title data
     std::unordered_map<uint64_t, data::titleInfo> s_TitleMap;
 }
 

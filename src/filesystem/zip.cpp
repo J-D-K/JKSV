@@ -12,7 +12,10 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
-static const int ZIP_BUFFER_SIZE = 0x80000;
+namespace
+{
+    const int ZIP_BUFFER_SIZE = 0x80000;
+}
 
 void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip, sys::progressTask *task)
 {

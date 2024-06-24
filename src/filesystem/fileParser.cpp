@@ -1,16 +1,20 @@
 #include <array>
+#include <string>
 #include "filesystem/fileParser.hpp"
 #include "stringUtil.hpp"
 #include "log.hpp"
 
-// Strings needed for this file
-static const char *VALUE_DELIMINATORS = "()=,";
-static const char *STRING_DELIMINATORS = ",;\n";
-static const char *VALUE_TRUE = "true";
-static const char *VALUE_FALSE = "false";
+namespace
+{
+    // Strings needed for this file
+    const std::string VALUE_DELIMINATORS = "()=,";
+    const std::string STRING_DELIMINATORS = ",;\n";
+    const std::string VALUE_TRUE = "true";
+    const std::string VALUE_FALSE = "false";
 
-// Length limit for line reading
-static const int FILE_PARSER_LINE_SIZE_LIMIT = 0x1000;
+    // Length limit for line reading
+    const int FILE_PARSER_LINE_SIZE_LIMIT = 0x1000;
+}
 
 fs::fileParser::fileParser(const std::string &filePath)
 {

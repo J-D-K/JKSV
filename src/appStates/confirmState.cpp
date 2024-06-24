@@ -7,7 +7,10 @@
 #include "jksv.hpp"
 #include "log.hpp"
 
-static const int HOLD_TICKS = 1000;
+namespace
+{
+   const int HOLD_TICKS = 1000;
+}
 
 confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, const sys::taskTypes &taskType) : 
 m_Message(message),

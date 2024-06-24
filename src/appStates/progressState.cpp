@@ -4,25 +4,28 @@
 #include "stringUtil.hpp"
 #include "jksv.hpp"
 
-// These are the coordinates and dimensions of the dialog boxrendered to screen
-static const int PROG_DIALOG_X = 280;
-static const int PROG_DIALOG_Y = 262;
-static const int PROG_DIALOG_WIDTH = 720;
-static const int PROG_DIALOG_HEIGHT = 256;
-// These are for the actual bar inside the box
-static const double PROG_BAR_WIDTH = 648.0f;
-static const int PROG_BAR_X = 312;
-static const int PROG_BAR_Y = 471;
-//static const int PROG_BAR_WIDTH = 484; Where'd this come from? Try to figure it out later...
-static const int PROG_BAR_HEIGHT = 32;
-// These are for the status string
-static const int STATUS_TEXT_X = PROG_DIALOG_X + 16;
-static const int STATUS_TEXT_Y = PROG_DIALOG_Y + 16;
-static const int STATUS_TEXT_MAX_WIDTH = 478;
-static const int STATUS_TEXT_FONT_SIZE = 18;
-// For the [X]MB/[X]MB
-static const int PROGRESS_STATUS_Y = 478;
-static const int PROGRESS_STATUS_FONT_SIZE = 18;
+namespace
+{
+    // These are the coordinates and dimensions of the dialog boxrendered to screen
+    const int PROG_DIALOG_X = 280;
+    const int PROG_DIALOG_Y = 262;
+    const int PROG_DIALOG_WIDTH = 720;
+    const int PROG_DIALOG_HEIGHT = 256;
+    // These are for the actual bar inside the box
+    const double PROG_BAR_WIDTH = 648.0f;
+    const int PROG_BAR_X = 312;
+    const int PROG_BAR_Y = 471;
+    //static const int PROG_BAR_WIDTH = 484; Where'd this come from? Try to figure it out later...
+    const int PROG_BAR_HEIGHT = 32;
+    // These are for the status string
+    const int STATUS_TEXT_X = PROG_DIALOG_X + 16;
+    const int STATUS_TEXT_Y = PROG_DIALOG_Y + 16;
+    const int STATUS_TEXT_MAX_WIDTH = 478;
+    const int STATUS_TEXT_FONT_SIZE = 18;
+    // For the [X]MB/[X]MB
+    const int PROGRESS_STATUS_Y = 478;
+    const int PROGRESS_STATUS_FONT_SIZE = 18;
+}
 
 progressState::progressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args) : 
 m_Task(std::make_unique<sys::progressTask>(threadFunction, args)) { }

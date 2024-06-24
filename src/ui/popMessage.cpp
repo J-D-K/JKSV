@@ -5,11 +5,11 @@
 #include "ui/ui.hpp"
 #include "ui/popMessage.hpp"
 
-static const int POPMESSAGE_X_COORDINATE = 24;
-static const int POPMESSAGE_Y_COORDINATE = 640;
-
 namespace
 {
+    // X and starting Y coordinate for pop messages.
+    const int POPMESSAGE_X_COORDINATE = 24;
+    const int POPMESSAGE_Y_COORDINATE = 640;
     // Queue to be processed. Needed to avoid threading graphics issues.
     std::vector<ui::popMessage::pMessage> s_MessageQueue;
     // Actual vector of messages

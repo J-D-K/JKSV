@@ -20,7 +20,7 @@ namespace ui
         private:
             // Pointer to current user to load/reload
             data::user *m_CurrentUser;
-            // X and Y to render tiles to
+            // X and Y
             int m_X, m_Y;
             // Target X and Y (???)
             int m_TargetX, m_TargetY;
@@ -28,12 +28,6 @@ namespace ui
             int m_Selected;
             // X and Y to render selection box
             int m_SelectionX, m_SelectionY;
-            // Width and height of icons
-            int m_IconWidth, m_IconHeight;
-            // Gaps between icons
-            int m_HorizontalGap, m_VerticalGap;
-            // How long a row is
-            int m_RowSize;
             // Color shifting for selection box
             bool m_ColorShift;
             // How much color is modified

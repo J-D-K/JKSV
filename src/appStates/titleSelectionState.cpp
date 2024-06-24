@@ -9,15 +9,18 @@
 #include "log.hpp"
 #include "jksv.hpp"
 
-// Texture names
-const char *TITLE_SELECT_RENDER_TARGET = "titleSelectionRenderTarget";
+namespace
+{
+    // Texture names
+    const char *TITLE_SELECT_RENDER_TARGET = "titleSelectionRenderTarget";
 
-// Render target dimensions
-static const int RENDER_TARGET_WIDTH = 1080;
-static const int RENDER_TARGET_HEIGHT = 555;
+    // Render target dimensions
+    static const int RENDER_TARGET_WIDTH = 1080;
+    static const int RENDER_TARGET_HEIGHT = 555;
 
-// X coordinate to subtract from for guide text
-static const int GUIDE_STARTING_X = 1220;
+    // X coordinate to subtract from for guide text
+    static const int GUIDE_STARTING_X = 1220;
+}
 
 titleSelectionState::titleSelectionState(data::user *currentUser) :
 m_CurrentUser(currentUser),

@@ -4,7 +4,6 @@
 #include <cstdint>
 #include "appStates/appState.hpp"
 #include "appStates/taskState.hpp"
-#include "ui/progressBar.hpp"
 #include "system/progressTask.hpp"
 #include "system/taskArgs.hpp"
 

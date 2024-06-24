@@ -34,10 +34,10 @@ namespace ui
             int m_X, m_Y;
             // These are used for scrolling effect
             int m_OriginalY, m_TargetY;
-            // Selection rectangle width and height
-            int m_RectWidth, m_RectHeight;
             // Font size to use
             int m_FontSize;
+            // Selection rectangle width and height
+            int m_RectWidth, m_RectHeight;
             // Selected option
             int m_Selected;
             // Maximum options for scrolling occurs

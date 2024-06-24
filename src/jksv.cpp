@@ -14,14 +14,16 @@
 // Things specifically only for here
 namespace
 {
+    // This is for returning whether or not the program was successfully initialized and is running
     bool s_IsRunning = false;
+    // This is the icon at the top left
     SDL_Texture *s_HeaderIcon = NULL;
+    // This is the vector of states
     std::vector<std::unique_ptr<appState>> s_AppStateVector;
+    // Name of icon texture
+    const std::string ICON_NAME = "appIcon";
+    const std::string ICON_PATH = "romfs:/img/icn/iconWhite.png";
 }
-
-// Icon name & path
-static const char *ICON_NAME = "appIcon";
-static const char *ICON_PATH = "romfs:/img/icn/iconWhite.png";
 
 bool jksv::init(void)
 {

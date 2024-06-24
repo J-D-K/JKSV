@@ -13,18 +13,6 @@
 #include "graphics/systemFont.hpp"
 #include "log.hpp"
 
-// This is how large the buffer is for words for line wrapping
-static const int WORD_WRAP_BUFFER_LENGTH = 0x1000;
-
-//Masks for converting glyphs to sdl surface
-static const uint32_t s_RedMask   = 0xFF000000;
-static const uint32_t s_GreenMask = 0x00FF0000;
-static const uint32_t s_BlueMask  = 0x0000FF00;
-static const uint32_t s_AlphaMask = 0x000000FF;
-
-//Codepoints to break a line at
-static const std::array<uint32_t, 7> s_BreakPoints = {' ', L'　', '/', '_', '-', L'。', L'、'};
-
 //This struct is for caching glyph data needed
 typedef struct
 {
@@ -40,7 +28,17 @@ namespace
     FT_Face    s_FTFaces[6];
     //Number of fonts loaded
     int s_TotalFonts;
+    // This is the glyph texture cache map
     std::map<std::pair<uint32_t, int>, glyphData> s_GlyphMap;
+    // How large the word buffer is for line wrapping.
+    const int WORD_WRAP_BUFFER_LENGTH = 0x1000;
+    // Masks for converting glyphs to sdl surface
+    const uint32_t s_RedMask = 0xFF000000;
+    const uint32_t s_GreenMask = 0x00FF0000;
+    const uint32_t s_BlueMask = 0x0000FF00;
+    const uint32_t s_AlphaMask = 0x000000FF;
+    // Codepoints to break lines at
+    const std::array<uint32_t, 7> s_BreakPoints = {' ', L'　', '/', '_', '-', L'。', L'、'};
 }
 
 //Resizes faces

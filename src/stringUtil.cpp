@@ -1,3 +1,4 @@
+#include <algorithm>
 #include <array>
 #include <string>
 #include <cstring>
@@ -7,20 +8,19 @@
 #include <switch.h>
 #include "stringUtil.hpp"
 
-// va buffer size
-static const int VA_BUFFER_SIZE = 0x800;
-
-// Chars that shouldn't be in paths & function to test for them
-static const uint32_t forbiddenPathChars[] = {L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®'};
+namespace
+{
+    // Size for VA
+    const int VA_BUFFER_SIZE = 0x1000;
+    // Characters forbidden from file paths
+    std::array<uint32_t, 13> FORBIDDEN_PATH_CHARACTERS = { L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®' };
+}
 
 static bool characterIsForbidden(const uint32_t &codepoint)
 {
-    for (int i = 0; i < 13; i++)
+    if(std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) != FORBIDDEN_PATH_CHARACTERS.end())
     {
-        if (codepoint == forbiddenPathChars[i])
-        {
-            return true;
-        }
+        return true;
     }
     return false;
 }

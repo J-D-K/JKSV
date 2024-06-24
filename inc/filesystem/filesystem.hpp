@@ -9,7 +9,7 @@
 namespace fs
 {
     // Default device name used for the currently open save filesystem
-    extern const char *DEFAULT_SAVE_MOUNT_DEVICE;
+    extern const std::string DEFAULT_SAVE_MOUNT_DEVICE;
     // Inits fs, creates folders, etc
     bool init(void);
     // Mounts save from saveInfo
