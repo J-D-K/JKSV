@@ -24,7 +24,7 @@ namespace ui
         } pMessage;
 
         // Adds a message to the queue to be processed. tickLength is how long in ticks for it to be displayed.
-        void newMessage(const std::string &newMessage, const int &tickLength);
+        void newMessage(const std::string &newMessage, int tickLength);
         // Updates the message queue and vector
         void update(void);
         // Renders messages to screen

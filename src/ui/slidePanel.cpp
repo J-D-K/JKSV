@@ -2,7 +2,9 @@
 #include "config.hpp"
 #include "ui/slidePanel.hpp"
 
-ui::slidePanel::slidePanel(const std::string &panelName, const int &panelWidth, const ui::slidePanelSide &panelSide) : m_PanelWidth(panelWidth), m_PanelSide(panelSide)
+ui::slidePanel::slidePanel(const std::string &panelName, int panelWidth, ui::slidePanelSide panelSide) : 
+m_PanelWidth(panelWidth), 
+m_PanelSide(panelSide)
 {
     if(m_PanelSide == ui::PANEL_SIDE_LEFT)
     {

@@ -16,13 +16,13 @@ namespace
     std::vector<ui::popMessage::pMessage> s_Messages;
 }
 
-void ui::popMessage::newMessage(const std::string &newMessage, const int &tickCount)
+void ui::popMessage::newMessage(const std::string &newMessage, int tickLength)
 {
     // Create message to push to processing queue
     ui::popMessage::pMessage newPopMessage = 
     {
         .message = newMessage,
-        .messageTimer = std::make_unique<sys::timer>(tickCount),
+        .messageTimer = std::make_unique<sys::timer>(tickLength),
         .rectangleWidth = 0, // Will be calculated at update.
         .y = 720
     };

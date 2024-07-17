@@ -7,10 +7,10 @@ namespace ui
     class titleTile
     {
         public:
-            titleTile(const int &width, const int &height, const bool &favorite, SDL_Texture *icon);
+            titleTile(int width, int height, bool favorite, SDL_Texture *icon);
 
-            void update(const bool &isSelected);
-            void render(SDL_Texture *target, const int &x, const int &y);
+            void update(bool isSelected);
+            void render(SDL_Texture *target, int x, int y);
 
         private:
             // Base width and height of tiles

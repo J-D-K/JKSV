@@ -9,9 +9,9 @@ namespace ui
     class iconMenu : public menu
     {
         public:
-            iconMenu(const int &x, const int &y, const int &maxScroll);
+            iconMenu(int x, int y, int maxScroll);
 
-            void addOpt(SDL_Texture *newOpt);
+            void addOpt(SDL_Texture *newOption);
             void render(SDL_Texture *target);
 
         private:

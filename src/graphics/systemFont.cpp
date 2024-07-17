@@ -38,11 +38,11 @@ namespace
     const uint32_t s_BlueMask = 0x0000FF00;
     const uint32_t s_AlphaMask = 0x000000FF;
     // Codepoints to break lines at
-    const std::array<uint32_t, 7> s_BreakPoints = {' ', L'　', '/', '_', '-', L'。', L'、'};
+    const std::array<uint32_t, 7> s_BreakPoints = {L' ', L'　', L'/', L'_', L'-', L'。', L'、'};
 }
 
 //Resizes faces
-static void resizeFont(const int &fontSize)
+static void resizeFont(int fontSize)
 {
     for(int i = 0; i < s_TotalFonts; i++)
     {
@@ -51,12 +51,15 @@ static void resizeFont(const int &fontSize)
 }
 
 //This is for loading a glyph at the current size if it hasn't been already
-static FT_GlyphSlot loadGlyph(const uint32_t &c, const FT_Int32 &flags)
+static FT_GlyphSlot loadGlyph(uint32_t codepoint, FT_Int32 flags)
 {
     for(int i = 0; i < s_TotalFonts; i++)
     {
-        FT_UInt index = 0;
-        if ( (index = FT_Get_Char_Index(s_FTFaces[i], c)) != 0 && FT_Load_Glyph(s_FTFaces[i], index, flags) == 0 )
+        // Get codepoint index and try to load it.
+        FT_UInt codepointIndex = FT_Get_Char_Index(s_FTFaces[i], codepoint);
+        FT_Error loadGlyphError = FT_Load_Glyph(s_FTFaces[i], codepointIndex, flags);
+
+        if (codepointIndex != 0 && loadGlyphError == 0)
         {
             return s_FTFaces[i]->glyph;
         }
@@ -65,51 +68,59 @@ static FT_GlyphSlot loadGlyph(const uint32_t &c, const FT_Int32 &flags)
 }
 
 //Checks map for glyph, if it's not found, loads and converts
-static glyphData *getGlyph(const uint32_t& c, const int &fontSize)
+static glyphData *getGlyph(uint32_t codepoint, int fontSize)
 {
-    if(s_GlyphMap.find(std::make_pair(c, fontSize)) != s_GlyphMap.end())
+    if(s_GlyphMap.find(std::make_pair(codepoint, fontSize)) != s_GlyphMap.end())
     {
-        return &s_GlyphMap[std::make_pair(c, fontSize)];
+        return &s_GlyphMap[std::make_pair(codepoint, fontSize)];
     }
 
     //Load glyph and make sure we got the alpha basically
-    FT_GlyphSlot glyphSlot = loadGlyph(c, FT_LOAD_RENDER);
+    FT_GlyphSlot glyphSlot = loadGlyph(codepoint, FT_LOAD_RENDER);
     FT_Bitmap bitmap = glyphSlot->bitmap;
     if(bitmap.pixel_mode != FT_PIXEL_MODE_GRAY)
     {
         return NULL;
     }
 
-    //Vector to put together full glyph
+    // This is the size of the glyph bitmap
     int bitmapSize = bitmap.rows * bitmap.width;
+    // Pointer to actual pixel buffer
     uint8_t *bitmapPointer = bitmap.buffer;
+    // Vector of pixels to fill. I tried writing directly to SDL_Surface->pixels but it was all corrupted.
     std::vector<uint32_t> glyphPixelData(bitmapSize);
-
     //Loop through and make full pixels in white
     for(int i = 0; i < bitmapSize; i++)
     {
         glyphPixelData.at(i) = (0xFFFFFF00 | *bitmapPointer++);
     }
 
-    //Create SDL_Surface from pixel data
-    SDL_Surface *glyphSurface = SDL_CreateRGBSurfaceFrom(glyphPixelData.data(), bitmap.width, bitmap.rows, 32, sizeof(uint32_t) * bitmap.width, s_RedMask, s_GreenMask, s_BlueMask, s_AlphaMask);
-
+    // Create Temporary SDL_Surface to convert to texture
+    SDL_Surface *tempGlyphSurface = SDL_CreateRGBSurfaceFrom(glyphPixelData.data(), bitmap.width, bitmap.rows, 32, sizeof(uint32_t) * bitmap.width, s_RedMask, s_GreenMask, s_BlueMask, s_AlphaMask);
     //Convert to texture, graphics needs name for texture
-    std::string glyphName = std::to_string(c) + "_" + std::to_string(fontSize);
-    SDL_Texture *glyphTexture = graphics::textureCreateFromSurface(glyphName, glyphSurface);
+    std::string glyphName = std::to_string(codepoint) + "_" + std::to_string(fontSize);
+    SDL_Texture *glyphTexture = graphics::textureCreateFromSurface(glyphName, tempGlyphSurface);
 
     //Free surface, job is done
-    SDL_FreeSurface(glyphSurface);
+    SDL_FreeSurface(tempGlyphSurface);
 
     //Add it to glyph map
-    s_GlyphMap[std::make_pair(c, fontSize)] = {static_cast<uint16_t>(bitmap.width), static_cast<uint16_t>(bitmap.rows), static_cast<int>(glyphSlot->advance.x >> 6), glyphSlot->bitmap_top, glyphSlot->bitmap_left, glyphTexture };
+    s_GlyphMap[std::make_pair(codepoint, fontSize)] = 
+    {
+        .width = static_cast<uint16_t>(bitmap.width),
+        .height = static_cast<uint16_t>(bitmap.rows),
+        .advanceX = static_cast<int>(glyphSlot->advance.x >> 6),
+        .top = glyphSlot->bitmap_top,
+        .left = glyphSlot->bitmap_left,
+        .glyph = glyphTexture
+    };
 
     //Return it
-    return &s_GlyphMap[std::make_pair(c, fontSize)];
+    return &s_GlyphMap[std::make_pair(codepoint, fontSize)];
 }
 
 //Returns if line breakable character
-static bool isBreakableCharacter(const uint32_t &codepoint)
+static bool isBreakableCharacter(uint32_t codepoint)
 {
     if(std::find(s_BreakPoints.begin(), s_BreakPoints.end(), codepoint) != s_BreakPoints.end())
     {
@@ -140,7 +151,7 @@ static size_t findNextBreakPoint(const char *str)
 }
 
 //Processes characters set to change text colors. Returns true if character is special
-static bool processSpecialCharacters(const uint32_t &codepoint, const uint32_t &originalColor, uint32_t &color)
+static bool processSpecialCharacters(uint32_t codepoint, uint32_t originalColor, uint32_t &color)
 {
     bool isSpecial = true;
     switch (codepoint)
@@ -229,7 +240,7 @@ void graphics::systemFont::exit(void)
     logger::log("systemFont::exit(): Succeeded.");
 }
 
-void graphics::systemFont::renderText(const std::string &text, SDL_Texture *target, const int &x, const int &y, const int &fontSize, const uint32_t &color)
+void graphics::systemFont::renderText(const std::string &text, SDL_Texture *target, int x, int y, int fontSize, uint32_t color)
 {
     //X and Y we're working with
     int workingX = x;
@@ -271,20 +282,20 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
             continue;
         }
 
-        glyphData *gd = getGlyph(codepoint, fontSize);
-        if(gd)
+        glyphData *glyph = getGlyph(codepoint, fontSize);
+        if(glyph)
         {
             // Set color just to be sure
-            SDL_SetTextureColorMod(gd->glyph, getRed(workingColor), getGreen(workingColor), getBlue(workingColor));
+            SDL_SetTextureColorMod(glyph->glyph, getRed(workingColor), getGreen(workingColor), getBlue(workingColor));
             // Render glyph texture
-            graphics::textureRender(gd->glyph, target, workingX + gd->left, workingY + (fontSize - gd->top));
+            graphics::textureRender(glyph->glyph, target, workingX + glyph->left, workingY + (fontSize - glyph->top));
             // X update
-            workingX += gd->advanceX;
+            workingX += glyph->advanceX;
         }
     }
 }
 
-void graphics::systemFont::renderTextWrap(const std::string &text, SDL_Texture *target, const int &x, const int &y, const int &fontSize, const int &maxWidth, const uint32_t &color)
+void graphics::systemFont::renderTextWrap(const std::string &text, SDL_Texture *target, int x, int y, int fontSize, int maxWidth, uint32_t color)
 {
     // These are the same as above
     int workingX = x;
@@ -321,7 +332,7 @@ void graphics::systemFont::renderTextWrap(const std::string &text, SDL_Texture *
     }
 }
 
-int graphics::systemFont::getTextWidth(const std::string &text, const int &fontSize)
+int graphics::systemFont::getTextWidth(const std::string &text, int fontSize)
 {
     int textWidth = 0;
     uint32_t codepoint = 0;

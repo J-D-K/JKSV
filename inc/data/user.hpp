@@ -11,11 +11,11 @@ namespace data
     {
         public:
             //First is for accounts that actually exist, second is for fake system ones
-            user(const AccountUid &accountID);
-            user(const AccountUid &accountID, const std::string &username, const std::string &pathSafeUserName);
+            user(AccountUid accountID);
+            user(AccountUid accountID, const std::string &username, const std::string &pathSafeUserName);
 
             // Pushes userSaveInfo struct to m_UserSaveInfo
-            void addNewUserSaveInfo(const uint64_t &titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
+            void addNewUserSaveInfo(uint64_t titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
             //Sorts m_UserSaveInfo according to config
             void sortUserSaveInfo(void);
             // Clears save info vector
@@ -26,7 +26,7 @@ namespace data
             std::string getUsername(void) const;
             std::string getPathSafeUsername(void) const;
             SDL_Texture *getUserIcon(void) const;
-            data::userSaveInfo *getUserSaveInfoAt(const int &index);
+            data::userSaveInfo *getUserSaveInfoAt(int index);
             int getTotalUserSaveInfo(void) const;
 
         private:

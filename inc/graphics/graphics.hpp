@@ -14,28 +14,28 @@ namespace graphics
     } imageTypes;
 
     // Creates window and renderer
-    bool init(const std::string &windowTitle, const int &windowWidth, const int &windowHeight);
+    bool init(const std::string &windowTitle, int windowWidth, int windowHeight, uint32_t windowFlags);
     void exit(void);
 
     // Clears the framebuffer to clearColor.
-    void beginFrame(const uint32_t &clearColor);
+    void beginFrame(uint32_t clearColor);
     //Calls SDL_RenderPresent
     void endFrame(void);
 
     // Texture loading functions. Textures are freed automatically at app exit
-    SDL_Texture *textureCreate(const std::string &textureName, const int &width, const int &height, const int &accessFlags);
-    SDL_Texture *textureCreateFromSurface(const std::string &textureName, SDL_Surface *SDL_Surface);
+    SDL_Texture *textureCreate(const std::string &textureName, int width, int height, int accessFlags);
+    SDL_Texture *textureCreateFromSurface(const std::string &textureName, SDL_Surface *surface);
     SDL_Texture *textureLoadFromFile(const std::string &textureName, const std::string &texturePath);
-    SDL_Texture *textureLoadFromMem(const std::string &textureName, const graphics::imageTypes &imgType, const void *data, const size_t &dataSize);
+    SDL_Texture *textureLoadFromMem(const std::string &textureName, graphics::imageTypes imageType, const void *data, size_t dataSize);
 
     // Texture rendering functions
-    void textureClear(SDL_Texture *texture, const uint32_t &clearColor);
-    void textureRender(SDL_Texture *texture, SDL_Texture *target, const int &x, const int &y);
-    void textureRenderPart(SDL_Texture *texture, SDL_Texture *target, const int &x, const int &y, const int &sourceX, const int &sourceY, const int &sourceWidth, const int &sourceHeight);
-    void textureRenderStretched(SDL_Texture *texture, SDL_Texture *target, const int &x, const int &y, const int &width, const int &height);
+    void textureClear(SDL_Texture *texture, uint32_t clearColor);
+    void textureRender(SDL_Texture *texture, SDL_Texture *target, int x, int y);
+    void textureRenderPart(SDL_Texture *texture, SDL_Texture *target, int x, int y, int sourceX, int sourceY, int sourceWidth, int sourceHeight);
+    void textureRenderStretched(SDL_Texture *texture, SDL_Texture *target, int x, int y, int width, int height);
 
     // Misc
-    SDL_Texture *createIcon(const std::string &iconName, const std::string &text, const int &fontSize);
-    void renderLine(SDL_Texture *target, const int &x1, const int &y1, const int &x2, const int &y2, const uint32_t &color);
-    void renderRect(SDL_Texture *target, const int &x, const int &y, const int &width, const int &height, const uint32_t &color);
+    SDL_Texture *createIcon(const std::string &iconName, const std::string &text, int fontSize);
+    void renderLine(SDL_Texture *target, int x1, int y1, int x2, int y2, uint32_t color);
+    void renderRect(SDL_Texture *target, int x, int y, int width, int height, uint32_t color);
 }

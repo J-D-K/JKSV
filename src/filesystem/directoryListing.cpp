@@ -4,7 +4,8 @@
 
 #include "log.hpp"
 
-fs::directoryListing::directoryListing(const std::string &directoryPath) : m_DirectoryPath(directoryPath)
+fs::directoryListing::directoryListing(const std::string &directoryPath) : 
+m_DirectoryPath(directoryPath)
 {
     loadListing();
 }
@@ -28,17 +29,17 @@ int fs::directoryListing::getListingCount(void) const
     return m_DirectoryList.size();
 }
 
-bool fs::directoryListing::itemAtIsDirectory(const int &index) const
+bool fs::directoryListing::itemAtIsDirectory(int index) const
 {
     return m_DirectoryList.at(index).is_directory();
 }
 
-std::string fs::directoryListing::getFullPathToItemAt(const int &index) const
+std::string fs::directoryListing::getFullPathToItemAt(int index) const
 {
     return m_DirectoryList.at(index).path().string();
 }
 
-std::string fs::directoryListing::getItemAt(const int &index) const
+std::string fs::directoryListing::getItemAt(int index) const
 {
     // Get string first
     std::string itemString = m_DirectoryList.at(index).path().string();
@@ -48,12 +49,12 @@ std::string fs::directoryListing::getItemAt(const int &index) const
     return itemString.substr(lastSlash, itemString.npos);
 }
 
-std::string fs::directoryListing::getFilenameAt(const int &index) const
+std::string fs::directoryListing::getFilenameAt(int index) const
 {
     return stringUtil::getFilenameFromString(m_DirectoryList.at(index).path().string());
 }
 
-std::string fs::directoryListing::getExtensionAt(const int &index) const
+std::string fs::directoryListing::getExtensionAt(int index) const
 {
     return stringUtil::getExtensionFromString(m_DirectoryList.at(index).path().string());
 }

@@ -16,7 +16,7 @@ namespace stringUtil
     // Returns a string safe to use in filepaths, or empty string if not possible
     std::string getPathSafeString(const std::string &str);
     // Erases character 'c' from string
-    void eraseCharacterFromString(const char &c, std::string &str);
+    void eraseCharacterFromString(char c, std::string &str);
     // Replaces all 'find' in 'str' with 'replace'
     void replaceInString(std::string &str, const std::string &find, const std::string &replace);
     // Gets filename from string
@@ -24,5 +24,5 @@ namespace stringUtil
     // Gets extension from string
     std::string getExtensionFromString(const std::string &path);
     // This is just for now. Don't know where else it should go.
-    std::string getTimeAndDateString(const stringUtil::dateFormats &dateFormat);
+    std::string getTimeAndDateString(stringUtil::dateFormats dateFormat);
 }

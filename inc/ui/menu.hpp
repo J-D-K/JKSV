@@ -10,8 +10,8 @@ namespace ui
     {
         public:
             // First is a blank menu, second is initialized using array of strings
-            menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll);
-            menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll, const std::string *menuOpts, const int &menuOptCount);
+            menu(int x, int y, int rectWidth, int fontSize, int maxScroll);
+            menu(int x, int y, int rectWidth, int fontSize, int maxScroll, const std::string *menuOptions, int menuOptionCount);
             ~menu();
 
             // Updates menu
@@ -19,13 +19,13 @@ namespace ui
             // Renders menu to target
             void render(SDL_Texture *target);
             // Adds option
-            void addOpt(const std::string &newOpt);
+            void addOption(const std::string &newOption);
             // Updates the color pulsing variables
             void updateColorPulse(void);
             // Returns currently selected option
             int getSelected(void) const;
             // Sets selected option to newSelected
-            void setSelected(const int &newSelected);
+            void setSelected(int newSelected);
             // Clears all options from menu
             void clearMenu(void);
 

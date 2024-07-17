@@ -9,13 +9,19 @@
 
 namespace
 {
-   const int HOLD_TICKS = 1000;
+    // How many ticks are required when confirmation requires holding down the A button
+    const int HOLD_TICKS = 1000;
+    // Strings used here
+    const std::string DIALOG_YES = "dialogYes";
+    const std::string DIALOG_NO  = "dialogNo";
+    const std::string HOLDING_TEXT = "holdingText";
+    
 }
 
-confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, const sys::taskTypes &taskType) : 
+confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, sys::taskTypes taskType) : 
 m_Message(message),
-m_Yes(ui::strings::getString(LANG_DIALOG_YES, 0)),
-m_No(ui::strings::getString(LANG_DIALOG_NO, 0)),
+m_Yes(ui::strings::getString(DIALOG_YES, 0)),
+m_No(ui::strings::getString(DIALOG_NO, 0)),
 m_HoldTimer(std::make_unique<sys::timer>(HOLD_TICKS)), 
 m_OnConfirmation(onConfirmation), 
 m_Args(args),
@@ -61,19 +67,19 @@ void confirmState::update(void)
             {
                 case 0:
                     {
-                        m_Yes = ui::strings::getString(LANG_HOLDING_TEXT, 0);
+                        m_Yes = ui::strings::getString(HOLDING_TEXT, 0);
                     }
                     break;
 
                 case 1:
                     {
-                        m_Yes = ui::strings::getString(LANG_HOLDING_TEXT, 1);
+                        m_Yes = ui::strings::getString(HOLDING_TEXT, 1);
                     }
                     break;
 
                 case 2:
                     {
-                        m_Yes = ui::strings::getString(LANG_HOLDING_TEXT, 2);
+                        m_Yes = ui::strings::getString(HOLDING_TEXT, 2);
                     }
                     break;
             }
@@ -81,7 +87,7 @@ void confirmState::update(void)
     }
     else if(sys::input::buttonReleased(HidNpadButton_A))
     {
-        m_Yes = ui::strings::getString(LANG_DIALOG_YES, 0);
+        m_Yes = ui::strings::getString(DIALOG_YES, 0);
     }
     else if(sys::input::buttonDown(HidNpadButton_B))
     {
@@ -92,7 +98,7 @@ void confirmState::update(void)
 
 void confirmState::render(void)
 {
-    // Darken underlying
+    // Dim screen
     graphics::renderRect(NULL, 0, 0, 1280, 720, COLOR_DIM_BACKGROUND);
 
     // Calculate X position of m_Yes because it changes on hold

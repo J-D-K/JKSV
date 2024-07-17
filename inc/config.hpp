@@ -47,12 +47,12 @@ namespace config
     // Returns the float to use for animations
     float getAnimationScaling(void);
     // Returns if titleID is found in favorites vector
-    bool titleIsFavorite(const uint64_t &titleID);
+    bool titleIsFavorite(uint64_t titleID);
     // Returns if titleID is found in blacklist vector
-    bool titleIsBlacklisted(const uint64_t &titleID);
+    bool titleIsBlacklisted(uint64_t titleID);
 
     // Adds or removes titleID from favorites vector
-    void addRemoveTitleToFavorites(const uint64_t &titleID);
+    void addRemoveTitleToFavorites(uint64_t titleID);
     // Adds or removes title to blacklist vector
-    void addRemoveTitleToBlacklist(const uint64_t &titleID);
+    void addRemoveTitleToBlacklist(uint64_t titleID);
 }

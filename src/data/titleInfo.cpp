@@ -8,7 +8,8 @@
 
 #include "log.hpp"
 
-data::titleInfo::titleInfo(const uint64_t &titleID) : m_TitleID(titleID)
+data::titleInfo::titleInfo(uint64_t titleID) : 
+m_TitleID(titleID)
 {
     // This is the size of the control data. Used for getting icon size
     uint64_t nsAppControlSize = 0;
@@ -36,7 +37,7 @@ data::titleInfo::titleInfo(const uint64_t &titleID) : m_TitleID(titleID)
         std::memset(&m_Nacp, 0x00, sizeof(NacpStruct));
 
         // Create the icon in this case
-        std::string lowerTitleIDHexString = stringUtil::getFormattedString("%08X", static_cast<uint32_t>(m_TitleID), 32);
+        std::string lowerTitleIDHexString = stringUtil::getFormattedString("%08X", static_cast<uint32_t>(m_TitleID));
         m_Icon = graphics::createIcon(lowerTitleIDHexString, lowerTitleIDHexString, 32);
     }
 }
@@ -72,7 +73,7 @@ SDL_Texture *data::titleInfo::getIcon(void)
     return m_Icon;
 }
 
-uint64_t data::titleInfo::getJournalSize(const FsSaveDataType &saveType)
+uint64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
 {
     // Journal size to return
     uint64_t journalSize = 0;

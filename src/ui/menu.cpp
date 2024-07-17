@@ -5,21 +5,28 @@
 #include "graphics/systemFont.hpp"
 #include "config.hpp"
 
-ui::menu::menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll) : 
+namespace
+{
+    // This is how much extra vertical space is needed for bounding/selection box
+    const int BOUNDING_EXTRA_HEIGHT = 32;
+}
+
+ui::menu::menu(int x, int y, int rectWidth, int fontSize, int maxScroll) : 
 m_X(x),
 m_Y(y),
 m_OriginalY(y),
 m_FontSize(fontSize),
 m_RectWidth(rectWidth),
-m_RectHeight(m_FontSize + 32),
+m_RectHeight(m_FontSize + BOUNDING_EXTRA_HEIGHT),
 m_Selected(0),
 m_MaxScroll(maxScroll) { } 
 
-ui::menu::menu(const int &x, const int &y, const int &rectWidth, const int &fontSize, const int &maxScroll, const std::string *menuOpts, const int &menuOptCount) : menu(x, y, rectWidth, fontSize, maxScroll)
+ui::menu::menu(int x, int y, int rectWidth, int fontSize, int maxScroll, const std::string *menuOptions, int menuOptCount) : 
+menu(x, y, rectWidth, fontSize, maxScroll)
 {
     for (int i = 0; i < menuOptCount; i++)
     {
-        m_MenuOptions.push_back(menuOpts[i]);
+        m_MenuOptions.push_back(std::string(menuOptions[i]));
     }
 }
 
@@ -86,9 +93,9 @@ void ui::menu::render(SDL_Texture *target)
     }
 }
 
-void ui::menu::addOpt(const std::string &newOpt)
+void ui::menu::addOption(const std::string &newOption)
 {
-    m_MenuOptions.push_back(newOpt);
+    m_MenuOptions.push_back(newOption);
 }
 
 void ui::menu::updateColorPulse(void)
@@ -108,7 +115,7 @@ int ui::menu::getSelected(void) const
     return m_Selected;
 }
 
-void ui::menu::setSelected(const int &newSelected)
+void ui::menu::setSelected(int newSelected)
 {
     m_Selected = newSelected;
 }

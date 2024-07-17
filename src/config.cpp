@@ -253,7 +253,7 @@ float config::getAnimationScaling()
     return s_UIAnimationScaling;
 }
 
-bool config::titleIsFavorite(const uint64_t &titleID)
+bool config::titleIsFavorite(uint64_t titleID)
 {
     if (std::find(s_Favorites.begin(), s_Favorites.end(), titleID) != s_Favorites.end())
     {
@@ -263,7 +263,7 @@ bool config::titleIsFavorite(const uint64_t &titleID)
     return false;
 }
 
-bool config::titleIsBlacklisted(const uint64_t &titleID)
+bool config::titleIsBlacklisted(uint64_t titleID)
 {
     if (std::find(s_Blacklist.begin(), s_Blacklist.end(), titleID) != s_Blacklist.end())
     {
@@ -273,7 +273,7 @@ bool config::titleIsBlacklisted(const uint64_t &titleID)
     return false;
 }
 
-void config::addRemoveTitleToFavorites(const uint64_t &titleID)
+void config::addRemoveTitleToFavorites(uint64_t titleID)
 {
     auto favoritePosition = std::find(s_Favorites.begin(), s_Favorites.end(), titleID);
     if (favoritePosition == s_Favorites.end())
@@ -286,7 +286,7 @@ void config::addRemoveTitleToFavorites(const uint64_t &titleID)
     }
 }
 
-void config::addRemoveTitleToBlacklist(const uint64_t &titleID)
+void config::addRemoveTitleToBlacklist(uint64_t titleID)
 {
     auto blacklistPosition = std::find(s_Blacklist.begin(), s_Blacklist.end(), titleID);
     if (blacklistPosition == s_Blacklist.end())

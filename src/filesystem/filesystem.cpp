@@ -112,7 +112,7 @@ void fs::commitSaveData(void)
     }
 }
 
-void fs::createTitleDirectoryByTID(const uint64_t &titleID)
+void fs::createTitleDirectoryByTID(uint64_t titleID)
 {
     // Get title info needed
     data::titleInfo *workingTitleInfo = data::getTitleInfoByTitleID(titleID);

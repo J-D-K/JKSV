@@ -23,9 +23,9 @@ namespace
 }
 
 ui::titleSelection::titleSelection(data::user *currentUser) : 
+m_CurrentUser(currentUser),
 m_X(ICON_STARTING_X),
 m_Y(ICON_STARTING_Y),
-m_CurrentUser(currentUser),
 m_Selected(0),
 m_ColorMod(0)
 {

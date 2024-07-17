@@ -21,10 +21,14 @@ namespace
 {
     const std::string BACKUP_PANEL_NAME = "backupMenuPanel";
     const std::string BACKUP_MENU_TARGET_NAME = "backupMenuRenderTarget";
-    const int BACKUP_MENU_X = 10;
-    const int BACKUP_MENU_Y = 4;
-    const int BACKUP_MENU_FONT_SIZE = 18;
-    const int BACKUP_MENU_SCROLL_LENGTH = 6;
+    // Names of strings used in this file
+    const std::string FOLDER_MENU_CONTROL_GUIDE = "helpFolder";
+    const std::string THREAD_STATUS_DELETING_FILE = "threadStatusDeletingFile";
+    const std::string POP_MESSAGE_SAVE_EMPTY = "popSaveIsEmpty";
+    const std::string CONFIRM_OVERWRITE = "confirmOverwrite";
+    const std::string CONFIRM_RESTORE   = "confirmRestore";
+    const std::string CONFIRM_DELETE    = "confirmDelete";
+    const std::string BACKUP_MENU_NEW   = "folderMenuNew";
 }
 
 // This is for backup task
@@ -221,7 +225,7 @@ static void deleteBackup(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     std::error_code errorCode;
 
     // Set thread status
-    task->setThreadStatus(ui::strings::getString(LANG_THREAD_DELETE_FILE, 0));
+    task->setThreadStatus(ui::strings::getString(THREAD_STATUS_DELETING_FILE, 0));
 
     // Cast args
     std::shared_ptr<pathArgs> argsIn = std::static_pointer_cast<pathArgs>(args);
@@ -244,13 +248,13 @@ backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *cu
 m_CurrentUser(currentUser), 
 m_CurrentUserSaveInfo(currentUserSaveInfo), 
 m_CurrentTitleInfo(currentTitleInfo),
-m_BackupMenuControlGuide(ui::strings::getString(LANG_FOLDER_GUIDE, 0)),
+m_BackupMenuControlGuide(ui::strings::getString(FOLDER_MENU_CONTROL_GUIDE, 0)),
 m_OutputBasePath(config::getWorkingDirectory() + m_CurrentTitleInfo->getPathSafeTitle() + "/"),
 m_PanelWidth(graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18)),
 m_BackupPanel(std::make_unique<ui::slidePanel>(BACKUP_PANEL_NAME, m_PanelWidth + 64, ui::slidePanelSide::PANEL_SIDE_RIGHT)),
 m_BackupListing(std::make_unique<fs::directoryListing>(m_OutputBasePath)),
 m_SaveListing(std::make_unique<fs::directoryListing>(fs::DEFAULT_SAVE_MOUNT_DEVICE)),
-m_BackupMenu(std::make_unique<ui::menu>(BACKUP_MENU_X, BACKUP_MENU_Y, m_PanelWidth + 44, BACKUP_MENU_FONT_SIZE, BACKUP_MENU_SCROLL_LENGTH))
+m_BackupMenu(std::make_unique<ui::menu>(10, 4, m_PanelWidth + 44, 18, 6))
 {
     // Make sure path exists
     std::filesystem::create_directories(m_OutputBasePath);
@@ -290,7 +294,7 @@ void backupMenuState::update(void)
         }
         else
         {
-            ui::popMessage::newMessage(ui::strings::getString(LANG_POP_SAVE_EMPTY, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
+            ui::popMessage::newMessage(ui::strings::getString(POP_MESSAGE_SAVE_EMPTY, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }
     else if (sys::input::buttonDown(HidNpadButton_A) && selected > 0 && m_SaveListing->getListingCount() > 0)
@@ -298,7 +302,7 @@ void backupMenuState::update(void)
         // Selected item
         std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
         // Get overwrite string
-        std::string confirmOverwrite = stringUtil::getFormattedString(ui::strings::getCString(LANG_CONFIRM_OVERWRITE, 0), selectedItem.c_str());
+        std::string confirmOverwrite = stringUtil::getFormattedString(ui::strings::getCString(CONFIRM_OVERWRITE, 0), selectedItem.c_str());
 
         // Arg pointer
         std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
@@ -312,7 +316,7 @@ void backupMenuState::update(void)
         // Get selected menu item
         std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
         // Get restoration string
-        std::string confirmRestore = stringUtil::getFormattedString(ui::strings::getCString(LANG_CONFIRM_RESTORE, 0), selectedItem.c_str());
+        std::string confirmRestore = stringUtil::getFormattedString(ui::strings::getCString(CONFIRM_RESTORE, 0), selectedItem.c_str());
 
         // Setup confirmation arg pointer
         std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
@@ -327,7 +331,7 @@ void backupMenuState::update(void)
         // Get selected
         std::string selectedItem = m_BackupListing->getItemAt(selected - 1);
         // Get confirmation string
-        std::string confirmDelete = stringUtil::getFormattedString(ui::strings::getCString(LANG_CONFIRM_DELETE, 0), selectedItem.c_str());
+        std::string confirmDelete = stringUtil::getFormattedString(ui::strings::getCString(CONFIRM_DELETE, 0), selectedItem.c_str());
 
         // Setup args
         std::shared_ptr<pathArgs> paths = std::make_shared<pathArgs>();
@@ -378,10 +382,10 @@ void backupMenuState::loadDirectoryList(void)
     m_BackupMenu->setSelected(0);
 
     int listingCount = m_BackupListing->getListingCount();
-    m_BackupMenu->addOpt(ui::strings::getString(LANG_FOLDER_MENU_NEW, 0));
+    m_BackupMenu->addOption(ui::strings::getString(BACKUP_MENU_NEW, 0));
     for (int i = 0; i < listingCount; i++)
     {
-        m_BackupMenu->addOpt(m_BackupListing->getItemAt(i));
+        m_BackupMenu->addOption(m_BackupListing->getItemAt(i));
     }
 }
 

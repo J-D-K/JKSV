@@ -9,7 +9,7 @@ namespace data
     {
         public:
             // Constructor loads data for title
-            titleInfo(const uint64_t &titleID);
+            titleInfo(uint64_t titleID);
             // Returns title as UTF-8 from NACP
             std::string getTitle(void);
             // Returns the path safe version of above
@@ -17,7 +17,7 @@ namespace data
             // Returns icon texture
             SDL_Texture *getIcon(void);
             // Returns journal size
-            uint64_t getJournalSize(const FsSaveDataType &saveType);
+            uint64_t getJournalSize(FsSaveDataType saveType);
 
         private:
             // Title ID is needed for a few things

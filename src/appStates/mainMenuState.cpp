@@ -1,4 +1,5 @@
 #include <chrono>
+#include <string>
 #include "jksv.hpp"
 #include "appStates/mainMenuState.hpp"
 #include "appStates/titleSelectionState.hpp"
@@ -26,15 +27,18 @@ namespace
     // Coordinates and font size of control guide
     const int CONTROL_GUIDE_Y_POSITION = 673;
     const int CONTROL_GUIDE_FONT_SIZE = 18;
-
     // Texture names
-    const char *MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
-    const char *MAIN_MENU_SETTINGS = "mainMenuSettings";
-    const char *MAIN_MENU_EXTRAS = "mainMenuExtras";
-    const char *MAIN_MENU_TEXTURE_NAME = "mainMenuBackgroundTexture";
-
+    const std::string MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
+    const std::string MAIN_MENU_SETTINGS = "mainMenuSettings";
+    const std::string MAIN_MENU_EXTRAS = "mainMenuExtras";
+    const std::string MAIN_MENU_TEXTURE_NAME = "mainMenuBackgroundTexture";
     // Path to texture needed
-    const char *MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/menu/backgroundDark.png";
+    const std::string MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/menu/backgroundDark.png";
+    // Strings used here
+    const std::string MAIN_MENU_CONTROL_GUIDE = "helpUser";
+    const std::string MAIN_MENU_SETTINGS_STRING = "mainMenuSettings";
+    const std::string MAIN_MENU_EXTRAS_STRING = "mainMenuExtras";
+    const std::string POP_NO_SAVES_FOUND = "saveDataNoneFound";
 }
 
 // Tasks
@@ -57,20 +61,43 @@ static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> a
             // Get pointer to userSaveInfo
             data::userSaveInfo *currentUserSaveInfo = currentUser->getUserSaveInfoAt(i);
 
+            // Get pointer to title data for path later
+            data::titleInfo *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
+
             // Try to mount save
             bool saveIsMounted = fs::mountSaveData(currentUserSaveInfo->getSaveDataInfo());
             // Make sure full path for title exists
             fs::createTitleDirectoryByTID(currentUserSaveInfo->getTitleID());
             if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP))
             {
-
+                // Path to zip we're backing up. It's a biggin'
+                std::string outputZipPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + currentUser->getPathSafeUsername() + \
+                                            " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD) + ".zip";
+                // Open zip
+                zipFile newZip = zipOpen64(outputZipPath.c_str(), 0);
+                // Copy to it
+                fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, newZip, progress);
+                // Close save
+                fs::unmountSaveData();
+            }
+            else if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP) == false)
+            {
+                // Output path
+                std::string newSaveBackupPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + currentUser->getPathSafeUsername() + \
+                                                " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD) + "/";
+                // Make sure it exists
+                std::filesystem::create_directories(newSaveBackupPath);
+                // Backup
+                fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, newSaveBackupPath, progress);
+                // Close
+                fs::unmountSaveData();
             }
         }
     }
 }
 
 mainMenuState::mainMenuState(void) :
-m_MainControlGuide(ui::strings::getString(LANG_USER_GUIDE, 0)),
+m_MainControlGuide(ui::strings::getString(MAIN_MENU_CONTROL_GUIDE, 0)),
 m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, CONTROL_GUIDE_FONT_SIZE)),
 m_MainMenu(std::make_unique<ui::iconMenu>(MAIN_MENU_X, MAIN_MENU_Y, MAIN_MENU_SCROLL_LENGTH))
 {
@@ -89,8 +116,8 @@ m_MainMenu(std::make_unique<ui::iconMenu>(MAIN_MENU_X, MAIN_MENU_Y, MAIN_MENU_SC
     }
 
     // Settings & extras
-    std::string settingsString = ui::strings::getString(LANG_MAIN_MENU_SETTINGS, 0);
-    std::string extrasString = ui::strings::getString(LANG_MAIN_MENU_EXTRAS, 0);
+    std::string settingsString = ui::strings::getString(MAIN_MENU_SETTINGS_STRING, 0);
+    std::string extrasString = ui::strings::getString(MAIN_MENU_EXTRAS_STRING, 0);
     m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_SETTINGS, settingsString, EXTRA_OPTIONS_FONT_SIZE));
     m_MainMenu->addOpt(graphics::createIcon(MAIN_MENU_EXTRAS, extrasString, EXTRA_OPTIONS_FONT_SIZE));
 }
@@ -113,7 +140,7 @@ void mainMenuState::update(void)
         }
         else
         {
-            std::string noSavesMessage = stringUtil::getFormattedString(ui::strings::getCString(LANG_SAVEDATA_NONE_FOUND, 0), selectedUser->getUsername().c_str());
+            std::string noSavesMessage = stringUtil::getFormattedString(ui::strings::getCString(POP_NO_SAVES_FOUND, 0), selectedUser->getUsername().c_str());
             ui::popMessage::newMessage(noSavesMessage, ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }

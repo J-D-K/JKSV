@@ -4,7 +4,7 @@
 sys::progressTask::progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args) :
 task::task(threadFunction, this, args) { }
 
-sys::progressTask::progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args, const uint64_t &maxValue) :
+sys::progressTask::progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args, uint64_t maxValue) :
 task::task(threadFunction, this, args),
 m_MaxValue(maxValue) { }
 
@@ -15,7 +15,7 @@ double sys::progressTask::getMax(void)
     return m_MaxValue;
 }
 
-void sys::progressTask::setMax(const uint64_t &newMax)
+void sys::progressTask::setMax(uint64_t newMax)
 {
     m_MaxValueMutex.lock();
     m_MaxValue = newMax;
@@ -27,7 +27,7 @@ double sys::progressTask::getProgress(void)
     return m_Progress;
 }
 
-void sys::progressTask::updateProgress(const uint64_t &newProgress)
+void sys::progressTask::updateProgress(uint64_t newProgress)
 {
     m_ProgressMutex.lock();
     m_Progress = newProgress;

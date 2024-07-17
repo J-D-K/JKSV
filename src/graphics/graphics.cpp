@@ -18,7 +18,7 @@ static bool textureExists(const std::string &textureName)
     return s_TextureMap.find(textureName) != s_TextureMap.end();
 }
 
-bool graphics::init(const std::string &windowTitle, const int &windowWidth, const int &windowHeight)
+bool graphics::init(const std::string &windowTitle, int windowWidth, int windowHeight, uint32_t windowFlags)
 {
     int sdlInitError = SDL_Init(SDL_INIT_VIDEO | SDL_INIT_TIMER);
     if (sdlInitError != 0)
@@ -27,7 +27,7 @@ bool graphics::init(const std::string &windowTitle, const int &windowWidth, cons
         return false;
     }
 
-    s_Window = SDL_CreateWindow(windowTitle.c_str(), 0, 0, 1280, 720, 0);
+    s_Window = SDL_CreateWindow(windowTitle.c_str(), 0, 0, windowWidth, windowHeight, windowFlags);
     if (s_Window == NULL)
     {
         logger::log("Error creating SDL Window: %s.", SDL_GetError());
@@ -72,7 +72,7 @@ void graphics::exit(void)
     logger::log("graphics::exit(): Succeeded.");
 }
 
-void graphics::beginFrame(const uint32_t &clearColor)
+void graphics::beginFrame(uint32_t clearColor)
 {
     graphics::textureClear(NULL, clearColor);
 }
@@ -82,14 +82,7 @@ void graphics::endFrame(void)
     SDL_RenderPresent(s_Renderer);
 }
 
-void graphics::textureClear(SDL_Texture *texture, const uint32_t &clearColor)
-{
-    SDL_SetRenderTarget(s_Renderer, texture);
-    SDL_SetRenderDrawColor(s_Renderer, getRed(clearColor), getGreen(clearColor), getBlue(clearColor), getAlpha(clearColor));
-    SDL_RenderClear(s_Renderer);
-}
-
-SDL_Texture *graphics::textureCreate(const std::string &textureName, const int &width, const int &height, const int &accessFlags)
+SDL_Texture *graphics::textureCreate(const std::string &textureName, int width, int height, int accessFlags)
 {
     if (textureExists(textureName))
     {
@@ -130,7 +123,7 @@ SDL_Texture *graphics::textureLoadFromFile(const std::string &textureName, const
     return s_TextureMap[textureName];
 }
 
-SDL_Texture *graphics::textureLoadFromMem(const std::string &textureName, const graphics::imageTypes &imgType, const void *data, const size_t &dataSize)
+SDL_Texture *graphics::textureLoadFromMem(const std::string &textureName, graphics::imageTypes imageType, const void *data, size_t dataSize)
 {
     if (textureExists(textureName))
     {
@@ -139,7 +132,7 @@ SDL_Texture *graphics::textureLoadFromMem(const std::string &textureName, const 
 
     SDL_RWops *image = SDL_RWFromConstMem(data, dataSize);
     SDL_Surface *surface = NULL;
-    switch (imgType)
+    switch (imageType)
     {
         case graphics::IMG_TYPE_JPEG:
         {
@@ -161,7 +154,14 @@ SDL_Texture *graphics::textureLoadFromMem(const std::string &textureName, const 
     return s_TextureMap[textureName];
 }
 
-void graphics::textureRender(SDL_Texture *texture, SDL_Texture *target, const int &x, const int &y)
+void graphics::textureClear(SDL_Texture *texture, uint32_t clearColor)
+{
+    SDL_SetRenderTarget(s_Renderer, texture);
+    SDL_SetRenderDrawColor(s_Renderer, getRed(clearColor), getGreen(clearColor), getBlue(clearColor), getAlpha(clearColor));
+    SDL_RenderClear(s_Renderer);
+}
+
+void graphics::textureRender(SDL_Texture *texture, SDL_Texture *target, int x, int y)
 {
     // Get width and height of texture
     int textureWidth = 0, textureHeight = 0;
@@ -174,7 +174,7 @@ void graphics::textureRender(SDL_Texture *texture, SDL_Texture *target, const in
     SDL_RenderCopy(s_Renderer, texture, &sourceRect, &destinationRect);
 }
 
-void graphics::textureRenderPart(SDL_Texture *texture, SDL_Texture *target, const int &x, const int &y, const int &sourceX, const int &sourceY, const int &sourceWidth, const int &sourceHeight)
+void graphics::textureRenderPart(SDL_Texture *texture, SDL_Texture *target, int x, int y, int sourceX, int sourceY, int sourceWidth, int sourceHeight)
 {
     SDL_Rect sourceRect = {sourceX, sourceY, sourceWidth, sourceHeight};
     SDL_Rect destinationRect = {x, y, sourceWidth, sourceHeight};
@@ -183,7 +183,7 @@ void graphics::textureRenderPart(SDL_Texture *texture, SDL_Texture *target, cons
     SDL_RenderCopy(s_Renderer, texture, &sourceRect, &destinationRect);
 }
 
-void graphics::textureRenderStretched(SDL_Texture *texture, SDL_Texture *target, const int &x, const int &y, const int &width, const int &height)
+void graphics::textureRenderStretched(SDL_Texture *texture, SDL_Texture *target, int x, int y, int width, int height)
 {
     int textureWidth = 0, textureHeight = 0;
     SDL_QueryTexture(texture, NULL, NULL, &textureWidth, &textureHeight);
@@ -195,7 +195,7 @@ void graphics::textureRenderStretched(SDL_Texture *texture, SDL_Texture *target,
     SDL_RenderCopy(s_Renderer, texture, &sourceRect, &destinationRect);
 }
 
-SDL_Texture *graphics::createIcon(const std::string &iconName, const std::string &text, const int &fontSize)
+SDL_Texture *graphics::createIcon(const std::string &iconName, const std::string &text, int fontSize)
 {
     SDL_Texture *icon = graphics::textureCreate(iconName, 256, 256, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
     graphics::textureClear(icon, COLOR_DIALOG_BOX);
@@ -204,14 +204,14 @@ SDL_Texture *graphics::createIcon(const std::string &iconName, const std::string
     return icon;
 }
 
-void graphics::renderLine(SDL_Texture *target, const int &x1, const int &y1, const int &x2, const int &y2, const uint32_t &color)
+void graphics::renderLine(SDL_Texture *target, int x1, int y1, int x2, int y2, uint32_t color)
 {
     SDL_SetRenderTarget(s_Renderer, target);
     SDL_SetRenderDrawColor(s_Renderer, getRed(color), getGreen(color), getBlue(color), getAlpha(color));
     SDL_RenderDrawLine(s_Renderer, x1, y1, x2, y2);
 }
 
-void graphics::renderRect(SDL_Texture *target, const int &x, const int &y, const int &width, const int &height, const uint32_t &color)
+void graphics::renderRect(SDL_Texture *target, int x, int y, int width, int height, uint32_t color)
 {
     // Set target and color
     SDL_SetRenderTarget(s_Renderer, target);

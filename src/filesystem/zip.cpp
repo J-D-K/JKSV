@@ -14,7 +14,11 @@
 
 namespace
 {
+    // Buffer size for compressing/decompressing
     const int ZIP_BUFFER_SIZE = 0x80000;
+    // String names needed from UI
+    const std::string STRING_ADDING_TO_ZIP = "threadStatusAddingFileToZip";
+    const std::string STRING_DECOMPRESSING_FROM_ZIP = "threadStatusDecompressingFile";
 }
 
 void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip, sys::progressTask *task)
@@ -61,13 +65,6 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip, sys::pr
             std::string filename = source + listing.getItemAt(i);
             int zipNameStart = filename.find_first_of('/') + 1;
 
-            // Set progress status
-            if(task != nullptr)
-            {
-                std::string zipStatusString = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_ADDING_TO_ZIP, 0), filename.c_str());
-                task->setThreadStatus(zipStatusString);
-            }
-
             // Open and copy into zip
             int error = zipOpenNewFileInZip64(zip, filename.substr(zipNameStart, filename.npos).c_str(), &zipFileInfo, NULL, 0, NULL, 0, NULL, Z_DEFLATED, Z_DEFAULT_COMPRESSION, 0);
             if(error == ZIP_OK)
@@ -81,7 +78,7 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip, sys::pr
                 if(task != nullptr)
                 {
                     // Set thread status
-                    std::string zipStatusString = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_ADDING_TO_ZIP, 0), filename.c_str());
+                    std::string zipStatusString = stringUtil::getFormattedString(ui::strings::getCString(STRING_ADDING_TO_ZIP, 0), filename.c_str());
                     task->setThreadStatus(zipStatusString);
                     // Reset and set max
                     task->reset();
@@ -113,7 +110,7 @@ void fs::zip::copyDirectoryToZip(const std::string &source, zipFile zip, sys::pr
     }
 }
 
-void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task)
+void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, uint64_t journalSize, sys::progressTask *task)
 {
     // Buffer to decompress to
     std::vector<char> buffer(ZIP_BUFFER_SIZE);
@@ -140,7 +137,7 @@ void fs::zip::copyZipToDirectory(unzFile unzip, const std::string &destination, 
             // Update status
             if(task != nullptr)
             {
-                std::string decompressingStatusString = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_DECOMPRESSING_FILE, 0), currentFileName.data());
+                std::string decompressingStatusString = stringUtil::getFormattedString(ui::strings::getCString(STRING_DECOMPRESSING_FROM_ZIP, 0), currentFileName.data());
                 task->setThreadStatus(decompressingStatusString);
 
                 // Progress 

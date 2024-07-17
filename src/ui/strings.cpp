@@ -80,13 +80,6 @@ void ui::strings::init(void)
     addUIString("saveDataBackupMovedToTrash", 0, "#%s# has been moved to trash.");
     addUIString("saveDataErrorMounting", 0, "Error mounting save data!");
 
-    addUIString("saveTypeMainMenu", 0, "Device");
-    addUIString("saveTypeMainMenu", 1, "BCAT");
-    addUIString("saveTypeMainMenu", 2, "Cache");
-    addUIString("saveTypeMainMenu", 3, "System");
-    addUIString("saveTypeMainMenu", 4, "System BCAT");
-    addUIString("saveTypeMainMenu", 5, "Temporary");
-
     // This is redundant. Need to merge and use one or the other...
     addUIString("saveDataTypeText", 0, "System");
     addUIString("saveDataTypeText", 1, "Account");
@@ -171,7 +164,7 @@ void ui::strings::init(void)
     addUIString("extrasMenu", 11, "*[DEV]* Output en-US");
 
     // User Options
-    addUIString("userOptions", 0, "Dump All For ");
+    addUIString("userOptions", 0, "Dump All For %s");
     addUIString("userOptions", 1, "Create Save Data");
     addUIString("userOptions", 2, "Create All Save Data");
     addUIString("userOptions", 3, "Delete All User Saves");
@@ -266,12 +259,12 @@ void ui::strings::init(void)
     logger::log("ui::strings::init(): Succeeded.");
 }
 
-std::string ui::strings::getString(const std::string &name, const int &index)
+std::string ui::strings::getString(const std::string &name, int index)
 {
     return s_UIStringMap[std::make_pair(name, index)];
 }
 
-const char *ui::strings::getCString(const std::string &name, const int &index)
+const char *ui::strings::getCString(const std::string &name, int index)
 {
     return s_UIStringMap[std::make_pair(name, index)].c_str();
 }

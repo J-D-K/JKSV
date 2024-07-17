@@ -12,6 +12,12 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
+namespace
+{
+    // String names needed from UI to update thread status
+    const std::string FILE_COPYING_STRING = "threadStatusCopyingFile";
+}
+
 // Read thread function
 void fs::io::readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
 {
@@ -140,7 +146,7 @@ void fs::io::copyFile(const std::string &source, const std::string &destination,
     if(task != nullptr)
     {
         // Get status string
-        std::string statusCopyingFile = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_COPYING_FILE, 0), source.c_str());
+        std::string statusCopyingFile = stringUtil::getFormattedString(ui::strings::getCString(FILE_COPYING_STRING, 0), source.c_str());
         // Set task thread status.
         task->setThreadStatus(statusCopyingFile);
         // Reset and set max for progress
@@ -171,7 +177,7 @@ void fs::io::copyFileCommit(const std::string &source, const std::string &destin
     if(task != nullptr)
     {
         // Thread status
-        std::string statusCopyingFile = stringUtil::getFormattedString(ui::strings::getCString(LANG_THREAD_COPYING_FILE, 0), source.c_str());
+        std::string statusCopyingFile = stringUtil::getFormattedString(ui::strings::getCString(FILE_COPYING_STRING, 0), source.c_str());
         task->setThreadStatus(statusCopyingFile);
         // Reset, set max
         task->reset();

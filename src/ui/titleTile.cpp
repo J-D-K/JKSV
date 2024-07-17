@@ -8,7 +8,11 @@ namespace
     int ICON_CONTRACT_SIZE = 9;
 }
 
-ui::titleTile::titleTile(const int &width, const int &height, const bool &favorite, SDL_Texture *icon) : m_Width(width), m_Height(height), m_IsFavorite(favorite), m_Icon(icon)
+ui::titleTile::titleTile(int width, int height, bool favorite, SDL_Texture *icon) : 
+m_Width(width), 
+m_Height(height), 
+m_IsFavorite(favorite), 
+m_Icon(icon)
 {
     m_RenderWidth = m_Width;
     m_RenderHeight = m_Height;
@@ -16,7 +20,7 @@ ui::titleTile::titleTile(const int &width, const int &height, const bool &favori
     m_SelectedHeight = m_Height * ICON_SIZE_MULTIPLIER;
 }
 
-void ui::titleTile::update(const bool &isSelected)
+void ui::titleTile::update(bool isSelected)
 {
     // Not sure if I should leave this like this. Feels kind of wrong
     if (isSelected && m_RenderWidth < m_SelectedWidth)
@@ -40,7 +44,7 @@ void ui::titleTile::update(const bool &isSelected)
     }
 }
 
-void ui::titleTile::render(SDL_Texture *target, const int &x, const int &y)
+void ui::titleTile::render(SDL_Texture *target, int x, int y)
 {
     m_RenderX = x - ((m_RenderWidth - m_Width) / 2);
     m_RenderY = y - ((m_RenderHeight - m_Height) / 2);

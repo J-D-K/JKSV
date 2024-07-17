@@ -13,7 +13,7 @@ namespace ui
     void init(void);
 
     // Considering moving these to a different place. Not sure where they really belong
-    void renderSelectionBox(SDL_Texture *target, const int &x, const int &y, const int &width, const int & height, const uint8_t &colorMod);
-    void renderDialogBox(SDL_Texture *target, const int &x, const int &y, const int &width, const int &height);
+    void renderSelectionBox(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod);
+    void renderDialogBox(SDL_Texture *target, int x, int y, int width, int height);
     void renderLoadingGlyph(void);
 }

@@ -13,7 +13,7 @@ namespace ui
     class slidePanel
     {
         public:
-            slidePanel(const std::string &panelName, const int &panelWidth, const ui::slidePanelSide &panelSide);
+            slidePanel(const std::string &panelName, int panelWidth, ui::slidePanelSide panelSide);
             ~slidePanel();
 
             void update(void);

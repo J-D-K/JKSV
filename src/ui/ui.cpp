@@ -81,7 +81,7 @@ void ui::init(void)
     s_DialogBottomRight = graphics::textureLoadFromFile(DIALOG_BOTTOM_RIGHT_NAME, DIALOG_BOTTOM_RIGHT_PATH);
 }
 
-void ui::renderSelectionBox(SDL_Texture *target, const int &x, const int &y, const int &width, const int &height, const uint8_t &colorMod)
+void ui::renderSelectionBox(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod)
 {
     // Setup color mod for pulse
     uint8_t red = 0x00;
@@ -104,7 +104,7 @@ void ui::renderSelectionBox(SDL_Texture *target, const int &x, const int &y, con
     graphics::textureRender(s_SelectionBottomRight, target, (x + width) - 4, (y + height) - 4);
 }
 
-void ui::renderDialogBox(SDL_Texture *target, const int &x, const int &y, const int &width, const int &height)
+void ui::renderDialogBox(SDL_Texture *target, int x, int y, int width, int height)
 {
     graphics::textureRender(s_DialogTopLeft, target, x, y);
     graphics::renderRect(target, x + 32, y, width - 64, 32, COLOR_DIALOG_BOX);

@@ -23,6 +23,13 @@ namespace
     const int MENU_WIDTH = 390;
     const int MENU_FONT_SIZE = 20;
     const int MENU_SCROLL_LENGTH = 7;
+    // Strings
+    const std::string CONFIRM_RESET_SAVE_DATA = "confirmResetSaveData";
+    const std::string THREAD_STATUS_RESETTING_SAVE = "threadStatusResettingSaveData";
+    const std::string POP_SAVE_RESET_SUCCESS = "saveDataResetSuccess";
+    const std::string POP_ERROR_MOUNTING_SAVE = "popErrorMountingSave";
+    const std::string TITLE_OPTIONS_MENU_STRINGS = "titleOptions";
+
 }
 
 enum
@@ -60,7 +67,7 @@ void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     std::error_code errorCode;
 
     // Set status
-    task->setThreadStatus(ui::strings::getString(LANG_THREAD_RESET_SAVE_DATA, 0));
+    task->setThreadStatus(ui::strings::getString(THREAD_STATUS_RESETTING_SAVE, 0));
     
     // Cast args
     std::shared_ptr<titleOptsArgs> argsIn = std::static_pointer_cast<titleOptsArgs>(args);
@@ -75,13 +82,13 @@ void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Close
         fs::unmountSaveData();
         // Display success
-        std::string successMessage = stringUtil::getFormattedString(ui::strings::getCString(LANG_SAVEDATA_RESET_SUCCESS, 0), argsIn->currentTitleInfo->getTitle().c_str());
+        std::string successMessage = stringUtil::getFormattedString(ui::strings::getCString(POP_SAVE_RESET_SUCCESS, 0), argsIn->currentTitleInfo->getTitle().c_str());
         ui::popMessage::newMessage(successMessage, ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
     }
     else
     {
         // Display failure
-        ui::popMessage::newMessage(ui::strings::getString(LANG_SAVEDATA_ERROR_MOUNTING, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
+        ui::popMessage::newMessage(ui::strings::getString(POP_ERROR_MOUNTING_SAVE, 0), ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
     }
 
     task->finished();
@@ -97,7 +104,7 @@ m_OptionsMenu(std::make_unique<ui::menu>(MENU_X, MENU_Y, MENU_WIDTH, MENU_FONT_S
     // Setup menu
     for(int i = 0; i < 9; i++)
     {
-        m_OptionsMenu->addOpt(ui::strings::getString(LANG_TITLE_OPTIONS_MENU, i));
+        m_OptionsMenu->addOption(ui::strings::getString(TITLE_OPTIONS_MENU_STRINGS, i));
     }
 }
 
@@ -117,7 +124,7 @@ void titleOptionState::update(void)
             case RESET_SAVE_DATA:
             {
                 // Prepare confirmation string
-                std::string confirmationString = ui::strings::getString(LANG_CONFIRM_RESET_SAVEDATA, 0);
+                std::string confirmationString = ui::strings::getString(CONFIRM_RESET_SAVE_DATA, 0);
 
                 // Data to send
                 std::shared_ptr<titleOptsArgs> args = std::make_shared<titleOptsArgs>();

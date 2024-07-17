@@ -1,5 +1,6 @@
 #include <memory>
 #include <vector>
+#include <chrono>
 #include "jksv.hpp"
 #include "graphics/graphics.hpp"
 #include "filesystem/filesystem.hpp"
@@ -7,7 +8,6 @@
 #include "data/data.hpp"
 #include "ui/ui.hpp"
 #include "system/input.hpp"
-#include "appStates/appState.hpp"
 #include "appStates/mainMenuState.hpp"
 #include "log.hpp"
 
@@ -25,13 +25,15 @@ namespace
     const std::string ICON_PATH = "romfs:/img/icn/iconWhite.png";
 }
 
+// This is a special struct so I 
+
 bool jksv::init(void)
 {
     // Init logger
     logger::init();
 
     // Almost everything depends on graphics so first
-    if (graphics::init("JKSV", 1280, 720) == false)
+    if (graphics::init("JKSV", 1280, 720, 0) == false)
     {
         return false;
     }
@@ -54,23 +56,22 @@ bool jksv::init(void)
     // ui just loads some things
     ui::init();
 
-    // Load data from system
+    // Input doesn't have anything to return.
+    sys::input::init();
+
     if(data::init() == false)
     {
         return false;
     }
 
-    // Input doesn't have anything to return.
-    sys::input::init();
-
     // Load header icon
     s_HeaderIcon = graphics::textureLoadFromFile(ICON_NAME, ICON_PATH);
 
-    // Push the first main view/state
+    // Hope this works and will add main menu state
     std::unique_ptr<appState> mainMenu = std::make_unique<mainMenuState>();
     jksv::pushNewState(mainMenu);
 
-    // Everything is up and running
+    // Hope everything is up and running
     s_IsRunning = true;
 
     return true;
@@ -94,14 +95,16 @@ void jksv::update(void)
     }
 
     // Clean up vector
-    while(s_AppStateVector.back()->isActive() == false)
+    if(s_AppStateVector.empty() == false)
     {
-        s_AppStateVector.pop_back();
-        s_AppStateVector.back()->giveFocus();
+        while(s_AppStateVector.back()->isActive() == false)
+        {
+            s_AppStateVector.pop_back();
+            s_AppStateVector.back()->giveFocus();
+        }
+        // Update only back
+        s_AppStateVector.back()->update();
     }
-
-    // Update back of vector
-    s_AppStateVector.back()->update();
 
     // Update pop up messages
     ui::popMessage::update();

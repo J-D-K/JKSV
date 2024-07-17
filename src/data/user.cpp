@@ -1,9 +1,16 @@
 #include <algorithm>
+#include <vector>
 #include "data/data.hpp"
 #include "graphics/graphics.hpp"
 #include "config.hpp"
 #include "stringUtil.hpp"
 #include "log.hpp"
+
+namespace
+{
+    // Font size for creating icons for users with no icon
+    const int ICON_FONT_SIZE = 42;
+}
 
 // This is for sorting titles according to config
 bool compareTitles(const data::userSaveInfo &a, const data::userSaveInfo &b)
@@ -61,19 +68,20 @@ bool compareTitles(const data::userSaveInfo &a, const data::userSaveInfo &b)
 static SDL_Texture *loadUserIcon(AccountProfile *profile, AccountProfileBase *profileBase)
 {
     unsigned int iconSize = 0;
-    uint8_t *iconData = NULL;
     SDL_Texture *returnTexture = NULL;
 
+    // Get profile jpeg's size.
     accountProfileGetImageSize(profile, &iconSize);
-    iconData = new uint8_t[iconSize];
-    accountProfileLoadImage(profile, iconData, iconSize, &iconSize);
-    returnTexture = graphics::textureLoadFromMem(profileBase->nickname, graphics::IMG_TYPE_JPEG, iconData, iconSize);
-
-    delete[] iconData;
+    // Vector for buffer
+    std::vector<uint8_t> iconData(iconSize);
+    // Get icon data from system
+    accountProfileLoadImage(profile, iconData.data(), iconSize, &iconSize);
+    // Load it and return the texture pointer.
+    returnTexture = graphics::textureLoadFromMem(profileBase->nickname, graphics::IMG_TYPE_JPEG, iconData.data(), iconSize);
     return returnTexture;
 }
 
-data::user::user(const AccountUid &accountID) : m_AccountID(accountID)
+data::user::user(AccountUid accountID) : m_AccountID(accountID)
 {
     AccountProfile profile;
     AccountProfileBase profileBase;
@@ -87,25 +95,25 @@ data::user::user(const AccountUid &accountID) : m_AccountID(accountID)
         m_PathSafeUsername = stringUtil::getPathSafeString(m_Username);
         if(m_PathSafeUsername.empty())
         {
-            m_PathSafeUsername = stringUtil::getFormattedString("Acc_0x%08X", static_cast<uint32_t>(getAccountIDU128()));
+            m_PathSafeUsername = stringUtil::getFormattedString("Acc_%08X", static_cast<uint32_t>(getAccountIDU128()));
         }
     }
     else
     {
         m_Icon = graphics::createIcon(m_Username, m_Username, 42);
-        m_Username = stringUtil::getFormattedString("Account_0x%08X", static_cast<uint32_t>(getAccountIDU128()));
+        m_Username = stringUtil::getFormattedString("Account_%08X", static_cast<uint32_t>(getAccountIDU128()));
         m_PathSafeUsername = m_Username;
-        logger::log("Error getting profile for user 0x%X", getAccountIDU128());
+        logger::log("Error getting profile for user %08X", getAccountIDU128());
     }
 }
 
-data::user::user(const AccountUid &accountID, const std::string &username, const std::string &pathSafeUsername) : m_AccountID(accountID), m_Username(username), m_PathSafeUsername(pathSafeUsername)
-{
-    // Create icon for user
-    m_Icon = graphics::createIcon(m_Username, m_Username, 42);
-}
+data::user::user(AccountUid accountID, const std::string &username, const std::string &pathSafeUsername) : 
+m_AccountID(accountID), 
+m_Username(username), 
+m_PathSafeUsername(pathSafeUsername),
+m_Icon(graphics::createIcon(m_Username, m_Username, 42)) { }
 
-void data::user::addNewUserSaveInfo(const uint64_t &titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
+void data::user::addNewUserSaveInfo(uint64_t titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
 {
     m_UserSaveInfo.emplace_back(titleID, saveInfo, playStats);
 }
@@ -127,7 +135,7 @@ AccountUid data::user::getAccountID(void) const
 
 u128 data::user::getAccountIDU128(void) const
 {
-    return ((u128)m_AccountID.uid[0] << 64 | m_AccountID.uid[1]);
+    return static_cast<u128>(m_AccountID.uid[0] << 64 | m_AccountID.uid[1]);
 }
 
 std::string data::user::getUsername(void) const
@@ -145,7 +153,7 @@ SDL_Texture *data::user::getUserIcon(void) const
     return m_Icon;
 }
 
-data::userSaveInfo *data::user::getUserSaveInfoAt(const int &index)
+data::userSaveInfo *data::user::getUserSaveInfoAt(int index)
 {
     if(index >= 0 && index < static_cast<int>(m_UserSaveInfo.size()))
     {

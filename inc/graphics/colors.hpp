@@ -14,27 +14,27 @@
 #define COLOR_YELLOW 0xF8FC00FF
 #define COLOR_HEART 0xFF4444FF
 
-static inline uint8_t getRed(const uint32_t &color)
+static inline uint8_t getRed(uint32_t color)
 {
     return color >> 24 & 0xFF;
 }
 
-static inline uint8_t getGreen(const uint32_t &color)
+static inline uint8_t getGreen(uint32_t color)
 {
     return color >> 16 & 0xFF;
 }
 
-static inline uint8_t getBlue(const uint32_t &color)
+static inline uint8_t getBlue(uint32_t color)
 {
     return color >> 8 & 0xFF;
 }
 
-static inline uint8_t getAlpha(const uint32_t &color)
+static inline uint8_t getAlpha(uint32_t color)
 {
     return color & 0xFF;
 }
 
-static inline uint32_t createColor(const uint8_t &red, const uint8_t &green, const uint8_t &blue, const uint8_t &alpha)
+static inline uint32_t createColor(uint8_t red, uint8_t green, uint8_t blue, uint8_t alpha)
 {
     return (red << 24 | green << 16 | blue << 8 | alpha);
 }

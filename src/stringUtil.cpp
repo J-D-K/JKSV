@@ -16,7 +16,7 @@ namespace
     std::array<uint32_t, 13> FORBIDDEN_PATH_CHARACTERS = { L',', L'/', L'\\', L'<', L'>', L':', L'"', L'|', L'?', L'*', L'™', L'©', L'®' };
 }
 
-static bool characterIsForbidden(const uint32_t &codepoint)
+static bool characterIsForbidden(uint32_t codepoint)
 {
     if(std::find(FORBIDDEN_PATH_CHARACTERS.begin(), FORBIDDEN_PATH_CHARACTERS.end(), codepoint) != FORBIDDEN_PATH_CHARACTERS.end())
     {
@@ -26,7 +26,7 @@ static bool characterIsForbidden(const uint32_t &codepoint)
 }
 
 // Tests if a codepoint falls within ASCII range
-static bool codepointIsASCII(const uint32_t &codepoint)
+static bool codepointIsASCII(uint32_t codepoint)
 {
     return codepoint > 0x1E && codepoint < 0x7F;
 }
@@ -81,7 +81,7 @@ std::string stringUtil::getPathSafeString(const std::string &str)
     return returnString;
 }
 
-void stringUtil::eraseCharacterFromString(const char &c, std::string &str)
+void stringUtil::eraseCharacterFromString(char c, std::string &str)
 {
     size_t charPosition = 0;
     while((charPosition = str.find(c, charPosition)) != str.npos)
@@ -120,7 +120,7 @@ std::string stringUtil::getExtensionFromString(const std::string &path)
     return std::string("");
 }
 
-std::string stringUtil::getTimeAndDateString(const dateFormats &dateFormat)
+std::string stringUtil::getTimeAndDateString(stringUtil::dateFormats dateFormat)
 {
     // String to return
     std::string dateString;

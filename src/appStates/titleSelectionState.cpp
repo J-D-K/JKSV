@@ -12,20 +12,20 @@
 namespace
 {
     // Texture names
-    const char *TITLE_SELECT_RENDER_TARGET = "titleSelectionRenderTarget";
-
+    const std::string TITLE_SELECT_RENDER_TARGET = "titleSelectionRenderTarget";
     // Render target dimensions
     static const int RENDER_TARGET_WIDTH = 1080;
     static const int RENDER_TARGET_HEIGHT = 555;
-
     // X coordinate to subtract from for guide text
     static const int GUIDE_STARTING_X = 1220;
+    // Strings
+    const std::string TITLE_SELECTION_CONTROL_GUIDE = "helpTitle";
 }
 
 titleSelectionState::titleSelectionState(data::user *currentUser) :
 m_CurrentUser(currentUser),
 m_TitleSelection(std::make_unique<ui::titleSelection>(m_CurrentUser)),
-m_TitleControlGuide(ui::strings::getString(LANG_TITLE_GUIDE, 0)),
+m_TitleControlGuide(ui::strings::getString(TITLE_SELECTION_CONTROL_GUIDE, 0)),
 m_TitleControlGuideX(GUIDE_STARTING_X - graphics::systemFont::getTextWidth(m_TitleControlGuide, 18))
 {
     // Render target to render everything too

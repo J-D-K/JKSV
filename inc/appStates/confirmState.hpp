@@ -3,14 +3,13 @@
 #include <string>
 #include <switch.h>
 #include "appStates/appState.hpp"
-#include "system/timer.hpp"
-#include "system/task.hpp"
+#include "system/system.hpp"
 
 class confirmState : public appState
 {
     public:
         // Message is the question asked. onConfirmation is the function executed if user confirms. Args is the shared_ptr sent to onConfirmation
-        confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, const sys::taskTypes &taskType);
+        confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, sys::taskTypes taskType);
         ~confirmState();
 
         void update(void);
