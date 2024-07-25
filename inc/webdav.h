@@ -48,5 +48,6 @@ namespace rfs {
         std::string getDirID(const std::string& dirName, const std::string& parentId);
 
         std::vector<RfsItem> getListWithParent(const std::string& _parent);
+        std::string getDisplayNameFromURL(const std::string &url);
     };
 }
