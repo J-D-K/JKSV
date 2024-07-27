@@ -317,10 +317,10 @@ void ui::fldPopulateMenu()
     unsigned fldInd = 1;
     if(fs::rfs)
     {
-        if(!fs::rfs->dirExists(t->title, fs::rfsRootID))
-            fs::rfs->createDir(t->title, fs::rfsRootID);
+        if(!fs::rfs->dirExists(t->safeTitle, fs::rfsRootID))
+            fs::rfs->createDir(t->safeTitle, fs::rfsRootID);
 
-        driveParent = fs::rfs->getDirID(t->title, fs::rfsRootID);
+        driveParent = fs::rfs->getDirID(t->safeTitle, fs::rfsRootID);
         driveFldList = fs::rfs->getListWithParent(driveParent);
 
         for(unsigned i = 0; i < driveFldList.size(); i++, fldInd++)
