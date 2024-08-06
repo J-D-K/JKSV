@@ -281,6 +281,9 @@ std::vector<rfs::RfsItem> rfs::WebDav::parseXMLResponse(const std::string& xml) 
                 tinyxml2::XMLElement* displaynameElem = propElem->FirstChildElement((nsPrefix + "displayname").c_str());
                 if (displaynameElem) {
                     item.name = displaynameElem->GetText();
+                } else {
+                    // Fallback to name from href
+                    item.name = getDisplayNameFromURL(item.id);
                 }
 
                 tinyxml2::XMLElement* resourcetypeElem = propElem->FirstChildElement((nsPrefix + "resourcetype").c_str());
@@ -310,4 +313,27 @@ std::vector<rfs::RfsItem> rfs::WebDav::parseXMLResponse(const std::string& xml) 
     }
 
     return items;
+}
+
+// Function to extract and URL decode the filename from the URL
+std::string rfs::WebDav::getDisplayNameFromURL(const std::string &url) {
+    // Find the position of the last '/'
+    size_t pos = url.find_last_of('/');
+    if (pos == std::string::npos) {
+        // If '/' is not found, return the whole URL as it is
+        return url;
+    }
+
+    // Extract the filename from the URL
+    std::string encodedFilename = url.substr(pos + 1);
+
+    // URL decode the filename
+    int outlength;
+    char *decodedFilename = curl_easy_unescape(curl, encodedFilename.c_str(), encodedFilename.length(), &outlength);
+    std::string result(decodedFilename, outlength);
+
+    // Free the memory allocated by curl_easy_unescape
+    curl_free(decodedFilename);
+
+    return result;
 }
