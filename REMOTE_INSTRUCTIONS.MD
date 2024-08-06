@@ -1,4 +1,7 @@
 # Remote Storage
+
+⚠️ **WARNING** ⚠️: Breaking change with Version 07.27.2024. See [here](#remote-changelog)
+
 ## <a name="gdrive"></a><center> How to use Google Drive with JKSV </center>
 **USING GOOGLE DRIVE WITH JKSV CURRENTLY REQUIRES BUILDING IT YOURSELF. I AM VERY BUSY LATELY AND THINGS WILL ONLY GET FINISHED WHEN I HAVE TIME. Thanks, sorry for yelling.**
 
@@ -49,3 +52,7 @@
 2. Copy file to following folder on your card `SD:/config/JKSV/`
 3. The next time you start JKSV on your Switch, you should get a popup about the Webdav status
 4. If problems arise, check the log at `SD:/JKSV/log.txt`
+
+## Remote Changelog
+- **07.27.2024**: **Breaking Change**. "Unsafe" characters were removed from titlename on the remote directory. That means,
+  that if you had existing safes under a title with unsafe characters, you will need to move them manually.
