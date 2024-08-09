@@ -1,6 +1,7 @@
 #pragma once
-#include <switch.h>
 #include <string>
+
+#include <switch.h>
 
 namespace sys
 {
@@ -22,6 +23,6 @@ namespace sys
         uint64_t buttonsReleased(void);
 
         // Gets input and returns C++ string
-        std::string getString(const std::string &defaultText, const std::string &headerText, size_t maximumLength);
+        std::string getString(SwkbdType swkbdType, const std::string &defaultText, const std::string &headerText, size_t maximumLength);
     }
 }

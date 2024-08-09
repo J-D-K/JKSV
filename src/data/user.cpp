@@ -1,6 +1,8 @@
 #include <algorithm>
 #include <vector>
+
 #include "data/data.hpp"
+
 #include "graphics/graphics.hpp"
 #include "config.hpp"
 #include "stringUtil.hpp"
@@ -65,10 +67,12 @@ bool compareTitles(const data::userSaveInfo &a, const data::userSaveInfo &b)
     return false;
 }
 
-static SDL_Texture *loadUserIcon(AccountProfile *profile, AccountProfileBase *profileBase)
+static graphics::sdlTexture loadUserIcon(AccountProfile *profile, AccountProfileBase *profileBase)
 {
+    // This is the iconSize that's returned.
     unsigned int iconSize = 0;
-    SDL_Texture *returnTexture = NULL;
+    // This is the texture being returned
+    graphics::sdlTexture returnTexture;
 
     // Get profile jpeg's size.
     accountProfileGetImageSize(profile, &iconSize);
@@ -76,8 +80,10 @@ static SDL_Texture *loadUserIcon(AccountProfile *profile, AccountProfileBase *pr
     std::vector<uint8_t> iconData(iconSize);
     // Get icon data from system
     accountProfileLoadImage(profile, iconData.data(), iconSize, &iconSize);
-    // Load it and return the texture pointer.
-    returnTexture = graphics::textureLoadFromMem(profileBase->nickname, graphics::IMG_TYPE_JPEG, iconData.data(), iconSize);
+
+    // Load it and return
+    returnTexture = graphics::textureManager::createTextureFromMem(profileBase->nickname, iconData.data(), iconSize, graphics::IMAGE_TYPE_JPEG);
+
     return returnTexture;
 }
 
@@ -135,7 +141,7 @@ AccountUid data::user::getAccountID(void) const
 
 u128 data::user::getAccountIDU128(void) const
 {
-    return static_cast<u128>(m_AccountID.uid[0] << 64 | m_AccountID.uid[1]);
+    return static_cast<u128>(m_AccountID.uid[0]) << 64 | m_AccountID.uid[1];\
 }
 
 std::string data::user::getUsername(void) const
@@ -148,7 +154,7 @@ std::string data::user::getPathSafeUsername(void) const
     return m_PathSafeUsername;
 }
 
-SDL_Texture *data::user::getUserIcon(void) const
+graphics::sdlTexture data::user::getUserIcon(void) const
 {
     return m_Icon;
 }

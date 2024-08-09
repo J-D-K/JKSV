@@ -1,7 +1,10 @@
 #pragma once
 #include <memory>
+
 #include "appStates/appState.hpp"
+
 #include "data/data.hpp"
+
 #include "ui/ui.hpp"
 
 class titleOptionState : public appState

@@ -1,9 +1,12 @@
 #include <chrono>
 #include <string>
 #include "jksv.hpp"
+
 #include "appStates/mainMenuState.hpp"
 #include "appStates/titleSelectionState.hpp"
 #include "appStates/taskState.hpp"
+#include "appStates/progressState.hpp"
+#include "appStates/userOptionState.hpp"
 #include "filesystem/filesystem.hpp"
 #include "graphics/graphics.hpp"
 #include "system/system.hpp"
@@ -15,25 +18,14 @@
 
 namespace
 {
-    // Main menu coordinates and dimensions
-    const int MAIN_MENU_X = 50;
-    const int MAIN_MENU_Y = 16;
-    const int MAIN_MENU_SCROLL_LENGTH = 1;
-    // Render target
-    const int RENDER_TARGET_WIDTH = 200;
-    const int RENDER_TARGET_HEIGHT = 555;
     // This is the font size used to render 'Settings' and 'Extras' to their icons
-    const int EXTRA_OPTIONS_FONT_SIZE = 42;
-    // Coordinates and font size of control guide
-    const int CONTROL_GUIDE_Y_POSITION = 673;
-    const int CONTROL_GUIDE_FONT_SIZE = 18;
+    constexpr int EXTRA_OPTIONS_FONT_SIZE = 42;
     // Texture names
     const std::string MAIN_MENU_RENDER_TARGET = "mainMenuRenderTarget";
     const std::string MAIN_MENU_SETTINGS = "mainMenuSettings";
     const std::string MAIN_MENU_EXTRAS = "mainMenuExtras";
-    const std::string MAIN_MENU_TEXTURE_NAME = "mainMenuBackgroundTexture";
     // Path to texture needed
-    const std::string MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/menu/backgroundDark.png";
+    const std::string MAIN_MENU_BACKGROUND_TEXTURE_PATH = "romfs:/img/backgroundDark.png";
     // Strings used here
     const std::string MAIN_MENU_CONTROL_GUIDE = "helpUser";
     const std::string MAIN_MENU_SETTINGS_STRING = "mainMenuSettings";
@@ -42,7 +34,7 @@ namespace
 }
 
 // Tasks
-static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+static void backupAllUserSaves(sys::task *task, sys::sharedTaskData sharedData)
 {
     // Cast to progress
     sys::progressTask *progress = reinterpret_cast<sys::progressTask *>(task);
@@ -59,7 +51,7 @@ static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> a
         for(int j = 0; j < totalUserGameCount; j++)
         {
             // Get pointer to userSaveInfo
-            data::userSaveInfo *currentUserSaveInfo = currentUser->getUserSaveInfoAt(i);
+            data::userSaveInfo *currentUserSaveInfo = currentUser->getUserSaveInfoAt(j);
 
             // Get pointer to title data for path later
             data::titleInfo *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
@@ -77,8 +69,6 @@ static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> a
                 zipFile newZip = zipOpen64(outputZipPath.c_str(), 0);
                 // Copy to it
                 fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, newZip, progress);
-                // Close save
-                fs::unmountSaveData();
             }
             else if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP) == false)
             {
@@ -89,23 +79,23 @@ static void backupAllUserSaves(sys::task *task, std::shared_ptr<sys::taskArgs> a
                 std::filesystem::create_directories(newSaveBackupPath);
                 // Backup
                 fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, newSaveBackupPath, progress);
-                // Close
-                fs::unmountSaveData();
             }
+            fs::unmountSaveData();
         }
     }
+    progress->finished();
 }
 
 mainMenuState::mainMenuState(void) :
 m_MainControlGuide(ui::strings::getString(MAIN_MENU_CONTROL_GUIDE, 0)),
-m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, CONTROL_GUIDE_FONT_SIZE)),
-m_MainMenu(std::make_unique<ui::iconMenu>(MAIN_MENU_X, MAIN_MENU_Y, MAIN_MENU_SCROLL_LENGTH))
+m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, 18)),
+m_MainMenu(std::make_unique<ui::iconMenu>(50, 16, 1))
 {
     // Render target
-    m_RenderTarget = graphics::textureCreate(MAIN_MENU_RENDER_TARGET, RENDER_TARGET_WIDTH, RENDER_TARGET_HEIGHT, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_RenderTarget = graphics::textureManager::createTexture(MAIN_MENU_RENDER_TARGET, 200, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 
     // Load gradient for behind menu
-    m_MenuBackgroundTexture = graphics::textureLoadFromFile(MAIN_MENU_TEXTURE_NAME, MAIN_MENU_BACKGROUND_TEXTURE_PATH);
+    m_MenuBackgroundTexture = graphics::textureManager::loadTextureFromFile(MAIN_MENU_BACKGROUND_TEXTURE_PATH);
 
     // Setup menu
     m_UserEnd = data::getTotalUsers();
@@ -144,19 +134,33 @@ void mainMenuState::update(void)
             ui::popMessage::newMessage(noSavesMessage, ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }
+    else if(sys::input::buttonDown(HidNpadButton_Y))
+    {
+        // This doesn't need any input
+        createAndPushNewProgressState(backupAllUserSaves, nullptr);
+    }
+    else if(sys::input::buttonDown(HidNpadButton_X) && selected < m_UserEnd)
+    {
+        // Get selected user
+        data::user *selectedUser = data::getUserAtPosition(selected);
+        // Create new option state
+        std::unique_ptr<appState> userOptions = std::make_unique<userOptionState>(selectedUser);
+        // Push it
+        jksv::pushNewState(userOptions);
+    }
 }
 
 void mainMenuState::render(void)
 {
-    graphics::textureClear(m_RenderTarget, COLOR_DEFAULT_CLEAR);
-    graphics::textureRender(m_MenuBackgroundTexture, m_RenderTarget, 0, 0);
-    m_MainMenu->render(m_RenderTarget);
+    graphics::textureClear(m_RenderTarget.get(), COLOR_DEFAULT_CLEAR);
+    graphics::textureRender(m_MenuBackgroundTexture.get(), m_RenderTarget.get(), 0, 0);
+    m_MainMenu->render(m_RenderTarget.get());
 
     // Render render target to framebuffer
-    graphics::textureRender(m_RenderTarget, NULL, 0, 91);
+    graphics::textureRender(m_RenderTarget.get(), NULL, 0, 91);
 
     if(appState::hasFocus())
     {
-        graphics::systemFont::renderText(m_MainControlGuide, NULL, m_MainControlGuideX, CONTROL_GUIDE_Y_POSITION, CONTROL_GUIDE_FONT_SIZE, COLOR_WHITE);
+        graphics::systemFont::renderText(m_MainControlGuide, NULL, m_MainControlGuideX, 673, 18, COLOR_WHITE);
     }
 }

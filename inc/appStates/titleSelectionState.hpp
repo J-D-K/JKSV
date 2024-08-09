@@ -1,8 +1,12 @@
 #pragma once
 #include <memory>
+
 #include <SDL2/SDL.h>
+
 #include "appStates/appState.hpp"
+
 #include "ui/titleSelection.hpp"
+
 #include "data/user.hpp"
 
 class titleSelectionState : public appState
@@ -24,7 +28,7 @@ class titleSelectionState : public appState
         // X position of above
         int m_TitleControlGuideX;
         // Render target
-        SDL_Texture *m_RenderTarget;
+        graphics::sdlTexture m_RenderTarget;
 };
 
 void createAndPushNewTitleSelectionState(data::user *currentUser);

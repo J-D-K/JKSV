@@ -1,5 +1,6 @@
 #include <array>
 #include <string>
+
 #include "filesystem/fileParser.hpp"
 #include "stringUtil.hpp"
 #include "log.hpp"

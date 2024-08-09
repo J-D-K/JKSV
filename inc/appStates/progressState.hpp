@@ -2,16 +2,18 @@
 #include <memory>
 #include <string>
 #include <cstdint>
+
 #include "appStates/appState.hpp"
 #include "appStates/taskState.hpp"
+
 #include "system/progressTask.hpp"
-#include "system/taskArgs.hpp"
+#include "system/taskData.hpp"
 
 class progressState : public appState
 {
     public:
         // This is like taskState, but can display the progress of an operation. Only really used for copying and uploading
-        progressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);
+        progressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData);
         ~progressState();
         void update(void);
         void render(void);
@@ -29,4 +31,4 @@ class progressState : public appState
         int m_ProgressStatusX = 0;
 };
 
-void createAndPushNewProgressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);
+void createAndPushNewProgressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData);

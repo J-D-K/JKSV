@@ -4,9 +4,11 @@
 #include <memory>
 #include <ctime>
 #include <cstddef>
+
 #include <switch.h>
 #include <minizip/zip.h>
 #include <minizip/unzip.h>
+
 #include "filesystem/filesystem.hpp"
 #include "ui/ui.hpp"
 #include "stringUtil.hpp"

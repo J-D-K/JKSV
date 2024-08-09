@@ -1,11 +1,12 @@
 #include "system/progressTask.hpp"
+
 #include "log.hpp"
 
-sys::progressTask::progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args) :
-task::task(threadFunction, this, args) { }
+sys::progressTask::progressTask(sys::taskFunction threadFunction, sys::sharedTaskData taskData) :
+task::task(threadFunction, this, taskData) { }
 
-sys::progressTask::progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args, uint64_t maxValue) :
-task::task(threadFunction, this, args),
+sys::progressTask::progressTask(sys::taskFunction threadFunction, sys::sharedTaskData taskData, uint64_t maxValue) :
+task::task(threadFunction, this, taskData),
 m_MaxValue(maxValue) { }
 
 sys::progressTask::~progressTask() { }

@@ -1,35 +1,18 @@
 #include <array>
 #include <memory>
+
 #include "ui/ui.hpp"
+
 #include "graphics/graphics.hpp"
+
 #include "system/system.hpp"
 
-// Oh boy, here we go~
+// Oh boy, here we go~... Nevermind.
 namespace
 {
-    // Selection bounding box names
-    const std::string SELECTION_TOP_LEFT_NAME = "s_SelectionTopLeft";
-    const std::string SELECTION_TOP_RIGHT_NAME = "s_SelectionTopRight";
-    const std::string SELECTION_BOTTOM_LEFT_NAME = "s_SelectionBottomLeft";
-    const std::string SELECTION_BOTTOM_RIGHT_NAME = "s_SelectionBottomRight";
-
-    // Dialog box paths
-    const std::string DIALOG_TOP_LEFT_NAME = "s_DialogTopLeft";
-    const std::string DIALOG_TOP_RIGHT_NAME = "s_DialogTopRight";
-    const std::string DIALOG_BOTTOM_LEFT_NAME = "s_DialogBottomLeft";
-    const std::string DIALOG_BOTTOM_RIGHT_NAME = "s_DialogBottomRight";
-
-    // Selection paths
-    const std::string SELECTION_TOP_LEFT_PATH = "romfs:/img/menu/selectionTopLeft.png";
-    const std::string SELECTION_TOP_RIGHT_PATH = "romfs:/img/menu/selectionTopRight.png";
-    const std::string SELECTION_BOTTOM_LEFT_PATH = "romfs:/img/menu/selectionBottomLeft.png";
-    const std::string SELECTION_BOTTOM_RIGHT_PATH = "romfs:/img/menu/selectionBottomRight.png";
-
-    // Dialog paths
-    const std::string DIALOG_TOP_LEFT_PATH = "romfs:/img/dialogDark/dialogTopLeft.png";
-    const std::string DIALOG_TOP_RIGHT_PATH = "romfs:/img/dialogDark/dialogTopRight.png";
-    const std::string DIALOG_BOTTOM_LEFT_PATH = "romfs:/img/dialogDark/dialogBottomLeft.png";
-    const std::string DIALOG_BOTTOM_RIGHT_PATH = "romfs:/img/dialogDark/dialogBottomRight.png";
+    // Paths to UI textures.
+    const std::string menuBoundingBoxPath = "romfs:/img/menuBounding.png";
+    const std::string dialogBoxPath = "romfs:/img/dialogBox.png";
 
     // Ticks for loading glyph changing
     const int LOADING_GLYPH_CHANGE_TICKS = 50;
@@ -56,8 +39,8 @@ namespace
     uint8_t s_GlyphColorModification = 0x00;
 
     // These are all corner textures for rendering various things on screen
-    SDL_Texture *s_SelectionTopLeft, *s_SelectionTopRight, *s_SelectionBottomLeft, *s_SelectionBottomRight;
-    SDL_Texture *s_DialogTopLeft, *s_DialogTopRight, *s_DialogBottomLeft, *s_DialogBottomRight;
+    graphics::sdlTexture s_MenuBoundingBox;
+    graphics::sdlTexture s_DialogBox;
 }
 
 void ui::init(void)
@@ -67,18 +50,10 @@ void ui::init(void)
 
     // Init timer for loading glyph
     s_LoadGlyphChangeTimer = std::make_unique<sys::timer>(LOADING_GLYPH_CHANGE_TICKS);
-
-    // Corners for selection box
-    s_SelectionTopLeft = graphics::textureLoadFromFile(SELECTION_TOP_LEFT_NAME, SELECTION_TOP_LEFT_PATH);
-    s_SelectionTopRight = graphics::textureLoadFromFile(SELECTION_TOP_RIGHT_NAME, SELECTION_TOP_RIGHT_PATH);
-    s_SelectionBottomLeft = graphics::textureLoadFromFile(SELECTION_BOTTOM_LEFT_NAME, SELECTION_BOTTOM_LEFT_PATH);
-    s_SelectionBottomRight = graphics::textureLoadFromFile(SELECTION_BOTTOM_RIGHT_NAME, SELECTION_BOTTOM_RIGHT_PATH);
-
-    // Corners for dialog
-    s_DialogTopLeft = graphics::textureLoadFromFile(DIALOG_TOP_LEFT_NAME, DIALOG_TOP_LEFT_PATH);
-    s_DialogTopRight = graphics::textureLoadFromFile(DIALOG_TOP_RIGHT_NAME, DIALOG_TOP_RIGHT_PATH);
-    s_DialogBottomLeft = graphics::textureLoadFromFile(DIALOG_BOTTOM_LEFT_NAME, DIALOG_BOTTOM_LEFT_PATH);
-    s_DialogBottomRight = graphics::textureLoadFromFile(DIALOG_BOTTOM_RIGHT_NAME, DIALOG_BOTTOM_RIGHT_PATH);
+    
+    // Load textures
+    s_MenuBoundingBox = graphics::textureManager::loadTextureFromFile(menuBoundingBoxPath);
+    s_DialogBox = graphics::textureManager::loadTextureFromFile(dialogBoxPath);
 }
 
 void ui::renderSelectionBox(SDL_Texture *target, int x, int y, int width, int height, uint8_t colorMod)
@@ -89,30 +64,40 @@ void ui::renderSelectionBox(SDL_Texture *target, int x, int y, int width, int he
     uint8_t blue =  0xC5 + colorMod / 2;
     uint32_t fullColor = createColor(red, green, blue, 0xFF);
 
-    SDL_SetTextureColorMod(s_SelectionTopLeft, red, green, blue);
-    SDL_SetTextureColorMod(s_SelectionTopRight, red, green, blue);
-    SDL_SetTextureColorMod(s_SelectionBottomLeft, red, green, blue);
-    SDL_SetTextureColorMod(s_SelectionBottomRight, red, green, blue);
+    // Makes stuff easier to type AND READ!!!!!!!!!!!!!!!!!!!!!
+    SDL_Texture *boundingBox = s_MenuBoundingBox.get();
 
-    graphics::textureRender(s_SelectionTopLeft, target, x, y);
+    // Mod colors for pulse.
+    SDL_SetTextureColorMod(boundingBox, red, green, blue);
+
+    // Top
+    graphics::textureRenderPart(boundingBox, target, x, y, 0, 0, 8, 8);
     graphics::renderRect(target, x + 4, y, width - 8, 4, fullColor);
-    graphics::textureRender(s_SelectionTopRight, target, (x + width) - 4, y);
+    graphics::textureRenderPart(boundingBox, target, (x + width) - 8, y, 8, 0, 8, 8);
+    // Middle
     graphics::renderRect(target, x, y + 4, 4, height - 8, fullColor);
     graphics::renderRect(target, (x + width) - 4, y + 4, 4, height - 8, fullColor);
-    graphics::textureRender(s_SelectionBottomLeft, target, x, (y + height) - 4);
+    // Bottom
+    graphics::textureRenderPart(boundingBox, target, x, (y + height) - 8, 0, 8, 8, 8);
     graphics::renderRect(target, x + 4, (y + height) - 4, width - 8, 4, fullColor);
-    graphics::textureRender(s_SelectionBottomRight, target, (x + width) - 4, (y + height) - 4);
+    graphics::textureRenderPart(boundingBox, target, (x + width) - 8, (y + height) - 8, 8, 8, 8, 8);
 }
 
 void ui::renderDialogBox(SDL_Texture *target, int x, int y, int width, int height)
 {
-    graphics::textureRender(s_DialogTopLeft, target, x, y);
+    // Same here
+    SDL_Texture *dialogBox = s_DialogBox.get();
+
+    // Top
+    graphics::textureRenderPart(dialogBox, target, x, y, 0, 0, 32, 32);
     graphics::renderRect(target, x + 32, y, width - 64, 32, COLOR_DIALOG_BOX);
-    graphics::textureRender(s_DialogTopRight, target, (x + width) - 32, y);
+    graphics::textureRenderPart(dialogBox, target, (x + width) - 32, y, 32, 0, 32, 32);
+    // Middle
     graphics::renderRect(target, x, y + 32, width, height - 64, COLOR_DIALOG_BOX);
-    graphics::textureRender(s_DialogBottomLeft, target, x, (y + height) - 32);
+    // Bottom
+    graphics::textureRenderPart(dialogBox, target, x, (y + height) - 32, 0, 32, 32, 32);
     graphics::renderRect(target, x + 32, (y + height) - 32, width - 64, 32, COLOR_DIALOG_BOX);
-    graphics::textureRender(s_DialogBottomRight, target, (x + width) - 32, (y + height) - 32);
+    graphics::textureRenderPart(dialogBox, target, (x + width) - 32, (y + height) - 32, 32, 32, 32, 32);
 }
 
 void ui::renderLoadingGlyph(void)

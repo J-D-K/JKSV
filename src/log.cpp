@@ -2,6 +2,7 @@
 #include <array>
 #include <cstdarg>
 #include <mutex>
+
 #include "log.hpp"
 
 namespace

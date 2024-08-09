@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+
 #include "appStates/appState.hpp"
 
 namespace jksv

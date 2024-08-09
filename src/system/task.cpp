@@ -1,11 +1,12 @@
 #include "system/task.hpp"
+
 #include "log.hpp"
 
-sys::task::task(sys::taskFunction threadFunction, std::shared_ptr<taskArgs> args) :
-m_Thread(std::make_unique<std::thread>(threadFunction, this, args)) { }
+sys::task::task(sys::taskFunction threadFunction, sys::sharedTaskData sharedData) :
+m_Thread(std::make_unique<std::thread>(threadFunction, this, sharedData)) { }
 
-sys::task::task(sys::taskFunction threadFunction, sys::task *childTask, std::shared_ptr<taskArgs> args) :
-m_Thread(std::make_unique<std::thread>(threadFunction, childTask, args)) { }
+sys::task::task(sys::taskFunction threadFunction, sys::task *childTask, sys::sharedTaskData sharedData) :
+m_Thread(std::make_unique<std::thread>(threadFunction, childTask, sharedData)) { }
 
 sys::task::~task()
 {

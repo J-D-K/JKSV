@@ -1,5 +1,6 @@
 #include <memory>
 #include <filesystem>
+
 #include "appStates/titleOptionState.hpp"
 #include "appStates/confirmState.hpp"
 #include "data/data.hpp"
@@ -29,7 +30,6 @@ namespace
     const std::string POP_SAVE_RESET_SUCCESS = "saveDataResetSuccess";
     const std::string POP_ERROR_MOUNTING_SAVE = "popErrorMountingSave";
     const std::string TITLE_OPTIONS_MENU_STRINGS = "titleOptions";
-
 }
 
 enum
@@ -46,7 +46,7 @@ enum
 };
 
 // This struct is used to send data to tasks
-struct titleOptsArgs : sys::taskArgs
+struct titleOptsData : sys::taskData
 {
     data::user *currentUser;
     data::userSaveInfo *currentUserSaveInfo;
@@ -55,9 +55,9 @@ struct titleOptsArgs : sys::taskArgs
 
 // These are the task/thread functions for this state
 // This was needed to debug something. Only one for now.
-void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
+void resetSaveData(sys::task *task, sys::sharedTaskData sharedData)
 {
-    if(args == nullptr)
+    if(sharedData == nullptr)
     {
         task->finished();
         return;
@@ -70,9 +70,9 @@ void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
     task->setThreadStatus(ui::strings::getString(THREAD_STATUS_RESETTING_SAVE, 0));
     
     // Cast args
-    std::shared_ptr<titleOptsArgs> argsIn = std::static_pointer_cast<titleOptsArgs>(args);
+    std::shared_ptr<titleOptsData> dataIn = std::static_pointer_cast<titleOptsData>(sharedData);
 
-    if(fs::mountSaveData(argsIn->currentUserSaveInfo->getSaveDataInfo()))
+    if(fs::mountSaveData(dataIn->currentUserSaveInfo->getSaveDataInfo()))
     {
         // Erase save data in container
         // To do: remove_all keeps failing if the folder has sub dirs. Maybe I should just stick with my own?
@@ -82,7 +82,7 @@ void resetSaveData(sys::task *task, std::shared_ptr<sys::taskArgs> args)
         // Close
         fs::unmountSaveData();
         // Display success
-        std::string successMessage = stringUtil::getFormattedString(ui::strings::getCString(POP_SAVE_RESET_SUCCESS, 0), argsIn->currentTitleInfo->getTitle().c_str());
+        std::string successMessage = stringUtil::getFormattedString(ui::strings::getCString(POP_SAVE_RESET_SUCCESS, 0), dataIn->currentTitleInfo->getTitle().c_str());
         ui::popMessage::newMessage(successMessage, ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
     }
     else
@@ -127,11 +127,11 @@ void titleOptionState::update(void)
                 std::string confirmationString = ui::strings::getString(CONFIRM_RESET_SAVE_DATA, 0);
 
                 // Data to send
-                std::shared_ptr<titleOptsArgs> args = std::make_shared<titleOptsArgs>();
-                args->currentUserSaveInfo = m_CurrentUserSaveInfo;
-                args->currentTitleInfo = m_CurrentTitleInfo;
+                std::shared_ptr<titleOptsData> optsData = std::make_shared<titleOptsData>();
+                optsData->currentUserSaveInfo = m_CurrentUserSaveInfo;
+                optsData->currentTitleInfo = m_CurrentTitleInfo;
 
-                confirmAction(confirmationString, resetSaveData, args, sys::taskTypes::TASK_TYPE_TASK);
+                confirmAction(confirmationString, resetSaveData, optsData, sys::taskTypes::TASK_TYPE_TASK);
             }
             break;
 
@@ -155,11 +155,11 @@ void titleOptionState::update(void)
 void titleOptionState::render(void)
 {
     // Get panel render target
-    SDL_Texture *panelTarget = m_SlidePanel->getPanelRenderTarget();
+    graphics::sdlTexture panelTarget = m_SlidePanel->getPanelRenderTarget();
     // Clear it
-    graphics::textureClear(panelTarget, COLOR_SLIDE_PANEL_TARGET);
+    graphics::textureClear(panelTarget.get(), COLOR_SLIDE_PANEL_TARGET);
     // Render menu to panel
-    m_OptionsMenu->render(panelTarget);
+    m_OptionsMenu->render(panelTarget.get());
     // Render panel to framebuffer
     m_SlidePanel->render();
 }

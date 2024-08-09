@@ -1,14 +1,21 @@
 #include <memory>
 #include <vector>
 #include <chrono>
-#include "jksv.hpp"
+
 #include "graphics/graphics.hpp"
+
 #include "filesystem/filesystem.hpp"
-#include "config.hpp"
+
 #include "data/data.hpp"
+
 #include "ui/ui.hpp"
+
 #include "system/input.hpp"
+
 #include "appStates/mainMenuState.hpp"
+
+#include "config.hpp"
+#include "jksv.hpp"
 #include "log.hpp"
 
 // Things specifically only for here
@@ -17,7 +24,7 @@ namespace
     // This is for returning whether or not the program was successfully initialized and is running
     bool s_IsRunning = false;
     // This is the icon at the top left
-    SDL_Texture *s_HeaderIcon = NULL;
+    graphics::sdlTexture s_HeaderIcon;
     // This is the vector of states
     std::vector<std::unique_ptr<appState>> s_AppStateVector;
     // Name of icon texture
@@ -65,7 +72,7 @@ bool jksv::init(void)
     }
 
     // Load header icon
-    s_HeaderIcon = graphics::textureLoadFromFile(ICON_NAME, ICON_PATH);
+    s_HeaderIcon = graphics::textureManager::loadTextureFromFile(ICON_PATH);
 
     // Hope this works and will add main menu state
     std::unique_ptr<appState> mainMenu = std::make_unique<mainMenuState>();
@@ -116,7 +123,7 @@ void jksv::render(void)
     // Render the base
     graphics::renderLine(NULL, 30, 88, 1250, 88, COLOR_WHITE);
     graphics::renderLine(NULL, 30, 648, 1250, 648, COLOR_WHITE);
-    graphics::textureRender(s_HeaderIcon, NULL, 66, 27);
+    graphics::textureRender(s_HeaderIcon.get(), NULL, 66, 27);
     graphics::systemFont::renderText("JKSV", NULL, 130, 38, 24, COLOR_WHITE);
 
     // Render the state vector

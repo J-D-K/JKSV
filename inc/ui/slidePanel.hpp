@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+
 #include "graphics/graphics.hpp"
 
 namespace ui
@@ -19,16 +20,25 @@ namespace ui
             void update(void);
             // Panels are always rendered to framebuffer
             void render(void);
+
             // Returns render target for rendering in state
-            SDL_Texture *getPanelRenderTarget(void);
+            graphics::sdlTexture getPanelRenderTarget(void);
+            // Hides panel, but doesn't close it.
+            void hidePanel(void);
+            // Unhides panel
+            void unhidePanel(void);
             // Closes panel
             void closePanel(void);
             // Returns if panel is fully closed
             bool isClosed(void);
+            // Returns if panel is hidden.
+            bool isHidden(void);
 
         private:
             // Whether panel is opened. Always true by default
             bool m_IsOpen = true;
+            // Whether panel should be hidden
+            bool m_HidePanel = false;
             // Width of panel. Height is always 720
             int m_PanelWidth;
             // Current X
@@ -36,6 +46,6 @@ namespace ui
             // Which side the panel slides from
             ui::slidePanelSide m_PanelSide;
             // Render target of panel
-            SDL_Texture *m_RenderTarget;
+            graphics::sdlTexture m_RenderTarget;
     };
 }

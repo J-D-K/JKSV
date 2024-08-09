@@ -2,6 +2,7 @@
 #include <functional>
 #include <memory>
 #include <mutex>
+
 #include "system/task.hpp"
 
 // This is for threads and functions that need to report and show progress being m
@@ -12,8 +13,8 @@ namespace sys
     {
         public:
             // Basically the same as a regular task. Second allows setting maximum immediately.
-            progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);
-            progressTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args, uint64_t maxValue);
+            progressTask(sys::taskFunction threadFunction, sys::sharedTaskData sharedData);
+            progressTask(sys::taskFunction threadFunction, sys::sharedTaskData sharedData, uint64_t maxValue);
             ~progressTask();
             // Resets m_Progress back to 0.
             void reset(void);

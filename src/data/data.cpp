@@ -5,10 +5,12 @@
 #include <unordered_map>
 #include <cstdint>
 #include <cstring>
+
 #include <switch.h>
+
 #include "data/data.hpp"
-#include "config.hpp"
 #include "ui/ui.hpp"
+#include "config.hpp"
 #include "jksv.hpp"
 #include "log.hpp"
 
@@ -19,7 +21,7 @@ namespace
     // Using vector for Users to preserve order and access by index
     std::vector<userIDPair> s_UserVector;
     // Map of title data
-    std::unordered_map<uint64_t, data::titleInfo> s_TitleMap;
+    data::titleMap s_TitleMap;
     // Names of ui strings needed
     const std::string SAVE_TYPE_STRINGS = "saveDataTypeText";
     // This is to make stuff slightly easier to read. In the same order as ui::strings. 1 is account so missing here.
@@ -98,6 +100,16 @@ bool data::init(void)
         s_UserVector.push_back(std::make_pair(userID128, data::user(accountIDs[i])));
     }
 
+    // Add Initial system users there will probably be saves for
+    std::string deviceUserString = ui::strings::getString(SAVE_TYPE_STRINGS, DEVICE_SAVE_USER_ID);
+    std::string bcatUserString = ui::strings::getString(SAVE_TYPE_STRINGS, BCAT_SAVE_USER_ID);
+    std::string cacheUserString = ui::strings::getString(SAVE_TYPE_STRINGS, CACHE_SAVE_USER_ID);
+    std::string systemUserString = ui::strings::getString(SAVE_TYPE_STRINGS, SYSTEM_SAVE_USER_ID);
+    s_UserVector.push_back(std::make_pair(DEVICE_SAVE_USER_ID, data::user(u128ToAccountUID(DEVICE_SAVE_USER_ID), deviceUserString, "Device")));
+    s_UserVector.push_back(std::make_pair(BCAT_SAVE_USER_ID, data::user(u128ToAccountUID(BCAT_SAVE_USER_ID), bcatUserString, "BCAT")));
+    s_UserVector.push_back(std::make_pair(CACHE_SAVE_USER_ID, data::user(u128ToAccountUID(CACHE_SAVE_USER_ID), cacheUserString, "Cache")));
+    s_UserVector.push_back(std::make_pair(SYSTEM_SAVE_USER_ID, data::user(u128ToAccountUID(SYSTEM_SAVE_USER_ID), systemUserString, "System")));
+
     // Do the same except for title records
     NsApplicationRecord currentRecord;
     int entryCount = 0;
@@ -159,26 +171,11 @@ void data::loadUserSaveInfo(void)
             continue;
         }
 
-        // System "users" are added upon finding saves for them.
+        // This is so things get sorted right into the correct system users
         switch (saveDataInfo.save_data_type)
         {
-            case FsSaveDataType_System:
-            {
-                // If user doesn't exist in map yet, add it.
-                if(userExistsInVector(SYSTEM_SAVE_USER_ID) == false)
-                {
-                    createAddSystemUser(SYSTEM_SAVE_USER_ID);
-                }
-            }
-            break;
-
             case FsSaveDataType_Bcat:
             {
-                if(userExistsInVector(BCAT_SAVE_USER_ID) == false)
-                {
-                    createAddSystemUser(BCAT_SAVE_USER_ID);
-                }
-                // Set the user id to the one pointing to the user in JKSV
                 saveDataInfo.uid = u128ToAccountUID(BCAT_SAVE_USER_ID);
             }
             break;
@@ -191,6 +188,7 @@ void data::loadUserSaveInfo(void)
 
             case FsSaveDataType_Temporary:
             {
+                // This is special for compatibility just in case.
                 if(userExistsInVector(TEMPORARY_SAVE_USER_ID) == false)
                 {
                     createAddSystemUser(TEMPORARY_SAVE_USER_ID);
@@ -250,7 +248,7 @@ void data::sortUserSaveInfo(void)
 
 int data::getTotalUsers(void)
 {
-    return  s_UserVector.size();
+    return s_UserVector.size();
 }
 
 data::user *data::getUserByAccountID(u128 accountID)
@@ -270,6 +268,16 @@ data::user *data::getUserAtPosition(int position)
         return &s_UserVector.at(position).second;
     }
     return NULL;
+}
+
+data::titleMap &data::getTitleMap(void)
+{
+    return s_TitleMap;
+}
+
+int data::getTotalTitleCount(void)
+{
+    return s_TitleMap.size();
 }
 
 data::titleInfo *data::getTitleInfoByTitleID(uint64_t titleID)

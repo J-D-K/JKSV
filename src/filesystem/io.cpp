@@ -7,7 +7,6 @@
 #include <switch.h>
 #include "filesystem/filesystem.hpp"
 #include "system/task.hpp"
-#include "system/taskArgs.hpp"
 #include "ui/ui.hpp"
 #include "stringUtil.hpp"
 #include "log.hpp"
@@ -17,6 +16,7 @@ namespace
     // String names needed from UI to update thread status
     const std::string FILE_COPYING_STRING = "threadStatusCopyingFile";
 }
+
 
 // Read thread function
 void fs::io::readThreadFunction(const std::string &source, std::shared_ptr<threadStruct> sharedStruct)
@@ -154,13 +154,13 @@ void fs::io::copyFile(const std::string &source, const std::string &destination,
         task->setMax(sharedStruct->fileSize);
     }
 
-    // Read & write thread
+    // Read thread
     std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
-    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct, task);
+    // Just run write function in this thread
+    fs::io::writeThreadFunction(destination, sharedStruct, task);
 
     // Wait for finish
     readThread.join();
-    writeThread.join();
 }
 
 void fs::io::copyFileCommit(const std::string &source, const std::string &destination, const uint64_t &journalSize, sys::progressTask *task)
@@ -186,11 +186,10 @@ void fs::io::copyFileCommit(const std::string &source, const std::string &destin
 
     // Threads
     std::thread readThread(fs::io::readThreadFunction, source, sharedStruct);
-    std::thread writeThread(fs::io::writeThreadFunction, destination, sharedStruct, task);
+    fs::io::writeThreadFunction(destination, sharedStruct, task);
 
     // Wait
     readThread.join();
-    writeThread.join();
 }
 
 void fs::io::copyDirectory(const std::string &source, const std::string &destination, sys::progressTask *task)

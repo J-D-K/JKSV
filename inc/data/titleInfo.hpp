@@ -1,7 +1,10 @@
 #pragma once
 #include <string>
+
 #include <switch.h>
 #include <SDL2/SDL.h>
+
+#include "graphics/graphics.hpp"
 
 namespace data
 {
@@ -15,9 +18,18 @@ namespace data
             // Returns the path safe version of above
             std::string getPathSafeTitle(void);
             // Returns icon texture
-            SDL_Texture *getIcon(void);
+            graphics::sdlTexture getIcon(void);
+            // Returns save data size
+            uint64_t getSaveDataSize(FsSaveDataType saveType);
+            uint64_t getSaveDataSizeMax(FsSaveDataType saveType);
             // Returns journal size
             uint64_t getJournalSize(FsSaveDataType saveType);
+            uint64_t getJournalSizeMax(FsSaveDataType saveType);
+            // Return if title has data for save type
+            bool hasAccountSaveData(void);
+            bool hasBCATSaveData(void);
+            bool hasDeviceSaveData(void);
+            bool hasCacheSaveData(void);
 
         private:
             // Title ID is needed for a few things
@@ -25,6 +37,6 @@ namespace data
             // NACP contains all the fun important stuff
             NacpStruct m_Nacp;
             // Pointer to icon
-            SDL_Texture *m_Icon;
+            graphics::sdlTexture m_Icon;
     };
 }

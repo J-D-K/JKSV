@@ -9,7 +9,7 @@ namespace
     std::map<std::pair<std::string, int>, std::string> s_UIStringMap;
 }
 
-static void addUIString(const std::string &name, const int &index, const std::string &newString)
+static void addUIString(const std::string &name, int index, const std::string &newString)
 {
     s_UIStringMap[std::make_pair(name, index)] = newString;
 }

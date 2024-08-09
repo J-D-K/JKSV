@@ -1,8 +1,12 @@
 #include <cmath>
+
 #include "data/titleInfo.hpp"
+
 #include "ui/titleSelection.hpp"
 #include "ui/ui.hpp"
+
 #include "system/input.hpp"
+
 #include "config.hpp"
 
 namespace

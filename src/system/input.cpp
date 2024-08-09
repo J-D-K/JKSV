@@ -1,6 +1,8 @@
 #include <vector>
 #include <cstring>
+
 #include "system/input.hpp"
+
 #include "log.hpp"
 
 namespace
@@ -50,7 +52,7 @@ uint64_t sys::input::buttonsReleased(void)
     return padGetButtonsUp(&s_PadState);
 }
 
-std::string sys::input::getString(const std::string &defaultText, const std::string &headerText, size_t maximumLength)
+std::string sys::input::getString(SwkbdType swkbdType, const std::string &defaultText, const std::string &headerText, size_t maximumLength)
 {
     // Keyboard config
     SwkbdConfig config;
@@ -60,6 +62,7 @@ std::string sys::input::getString(const std::string &defaultText, const std::str
     // Setup soft keyboard
     swkbdCreate(&config, 0);
     swkbdConfigMakePresetDefault(&config);
+    swkbdConfigSetType(&config, swkbdType);
     swkbdConfigSetInitialText(&config, defaultText.c_str());
     swkbdConfigSetHeaderText(&config, headerText.c_str());
     swkbdConfigSetGuideText(&config, headerText.c_str());

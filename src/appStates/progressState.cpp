@@ -27,8 +27,8 @@ namespace
     const int PROGRESS_STATUS_FONT_SIZE = 18;
 }
 
-progressState::progressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args) : 
-m_Task(std::make_unique<sys::progressTask>(threadFunction, args)) { }
+progressState::progressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData) : 
+m_Task(std::make_unique<sys::progressTask>(threadFunction, sharedData)) { }
 
 progressState::~progressState() { }
 
@@ -66,8 +66,8 @@ void progressState::render()
     graphics::systemFont::renderText(m_ProgressStatus, NULL, m_ProgressStatusX, PROGRESS_STATUS_Y, PROGRESS_STATUS_FONT_SIZE, COLOR_WHITE); // Actual progress
 }
 
-void createAndPushNewProgressState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args)
+void createAndPushNewProgressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData)
 {
-    std::unique_ptr<appState> newProgressState = std::make_unique<progressState>(threadFunction, args);
+    std::unique_ptr<appState> newProgressState = std::make_unique<progressState>(threadFunction, sharedData);
     jksv::pushNewState(newProgressState);
 }

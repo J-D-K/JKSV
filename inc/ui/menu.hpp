@@ -1,7 +1,9 @@
 #pragma once
 #include <string>
 #include <vector>
+
 #include <SDL2/SDL.h>
+
 #include "graphics/graphics.hpp"
 
 namespace ui

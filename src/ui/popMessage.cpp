@@ -1,9 +1,13 @@
 #include <vector>
+
 #include <SDL2/SDL.h>
-#include "config.hpp"
+
 #include "graphics/graphics.hpp"
+
 #include "ui/ui.hpp"
 #include "ui/popMessage.hpp"
+
+#include "config.hpp"
 
 namespace
 {

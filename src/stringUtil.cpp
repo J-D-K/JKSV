@@ -5,7 +5,9 @@
 #include <cstdarg>
 #include <cstdint>
 #include <ctime>
+
 #include <switch.h>
+
 #include "stringUtil.hpp"
 
 namespace

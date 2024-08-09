@@ -1,14 +1,17 @@
 #pragma once
 #include <memory>
+
 #include <switch.h>
+
 #include "appStates/appState.hpp"
+
 #include "system/timer.hpp"
 #include "system/task.hpp"
 
 class taskState : public appState
 {
     public:
-        taskState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);
+        taskState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData);
         ~taskState();
 
         void update(void);
@@ -19,4 +22,4 @@ class taskState : public appState
         std::unique_ptr<sys::task> m_Task;
 };
 
-void createAndPushNewTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args);
+void createAndPushNewTask(sys::taskFunction threadFunction, sys::sharedTaskData sharedData);

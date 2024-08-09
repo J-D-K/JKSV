@@ -1,7 +1,9 @@
 #pragma once
 #include <memory>
 #include <string>
+
 #include "appStates/appState.hpp"
+
 #include "ui/iconMenu.hpp"
 
 class mainMenuState : public appState
@@ -21,9 +23,9 @@ class mainMenuState : public appState
         // Menu on left of screen
         std::unique_ptr<ui::iconMenu> m_MainMenu;
         // Texture behind menu
-        SDL_Texture *m_MenuBackgroundTexture;
+        graphics::sdlTexture m_MenuBackgroundTexture;
         // Render target
-        SDL_Texture *m_RenderTarget;
+        graphics::sdlTexture m_RenderTarget;
         // End of users for settings and extras
         int m_UserEnd;
 };

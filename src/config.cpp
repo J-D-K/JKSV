@@ -85,73 +85,73 @@ void config::init()
 
             case CASE_INCLUDE_DEVICE:
             {
-                s_ConfigValues[CONFIG_INLCUDE_DEVICE_SAVES] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_INLCUDE_DEVICE_SAVES] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_AUTO_BACKUP:
             {
-                s_ConfigValues[CONFIG_AUTO_BACKUP_SAVES] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_AUTO_BACKUP_SAVES] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_OVERCLOCK_ZIP:
             {
-                s_ConfigValues[CONFIG_OVERCLOCK_FOR_ZIP] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_OVERCLOCK_FOR_ZIP] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_HOLD_DELETE:
             {
-                s_ConfigValues[CONFIG_HOLD_TO_DELETE] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_HOLD_TO_DELETE] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_HOLD_RESTORE:
             {
-                s_ConfigValues[CONFIG_HOLD_TO_RESTORE] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_HOLD_TO_RESTORE] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_HOLD_OVERWRITE:
             {
-                s_ConfigValues[CONFIG_HOLD_TO_OVERWRITE] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_HOLD_TO_OVERWRITE] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_ONLY_MOUNTABLE:
             {
-                s_ConfigValues[CONFIG_ONLY_LIST_MOUNTABLE] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_ONLY_LIST_MOUNTABLE] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_LIST_ACCOUNT_SYSTEM:
             {
-                s_ConfigValues[CONFIG_LIST_ACCOUNT_SYSTEM_SAVES] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_LIST_ACCOUNT_SYSTEM_SAVES] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_ALLOW_SYSTEM_SAVE:
             {
-                s_ConfigValues[CONFIG_ALLOW_SYSTEM_SAVE_WRITING] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_ALLOW_SYSTEM_SAVE_WRITING] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_USE_ZIP:
             {
-                s_ConfigValues[CONFIG_USE_ZIP] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_USE_ZIP] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_OVERRIDE_LANG:
             {
-                s_ConfigValues[CONFIG_OVERRIDE_LANGUAGE] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_OVERRIDE_LANGUAGE] = configParser.getNextValueAsInt();
             }
             break;
 
             case CASE_USE_TRASH:
             {
-                s_ConfigValues[CONFIG_USE_TRASH_FOLDER] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_USE_TRASH_FOLDER] = configParser.getNextValueAsInt();
             }
             break;
 
@@ -181,7 +181,7 @@ void config::init()
 
             case CASE_AUTONAME:
             {
-                s_ConfigValues[CONFIG_AUTONAME_BACKUPS] = configParser.getNextValueAsBool();
+                s_ConfigValues[CONFIG_AUTONAME_BACKUPS] = configParser.getNextValueAsInt();
             }
             break;
 
@@ -230,7 +230,7 @@ void config::reset()
     s_ConfigValues[CONFIG_ONLY_LIST_MOUNTABLE] = true;
     s_ConfigValues[CONFIG_LIST_ACCOUNT_SYSTEM_SAVES] = false;
     s_ConfigValues[CONFIG_ALLOW_SYSTEM_SAVE_WRITING] = false;
-    s_ConfigValues[CONFIG_USE_ZIP] = false;
+    s_ConfigValues[CONFIG_USE_ZIP] = true;
     s_ConfigValues[CONFIG_OVERRIDE_LANGUAGE] = false;
     s_ConfigValues[CONFIG_USE_TRASH_FOLDER] = true;
     s_ConfigValues[CONFIG_AUTONAME_BACKUPS] = false;

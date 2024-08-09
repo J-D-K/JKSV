@@ -10,21 +10,20 @@
 namespace
 {
     // How many ticks are required when confirmation requires holding down the A button
-    const int HOLD_TICKS = 1000;
+    constexpr int HOLD_TICKS = 1000;
     // Strings used here
     const std::string DIALOG_YES = "dialogYes";
     const std::string DIALOG_NO  = "dialogNo";
     const std::string HOLDING_TEXT = "holdingText";
-    
 }
 
-confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, sys::taskTypes taskType) : 
+confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, sys::sharedTaskData sharedData, sys::taskTypes taskType) : 
 m_Message(message),
 m_Yes(ui::strings::getString(DIALOG_YES, 0)),
 m_No(ui::strings::getString(DIALOG_NO, 0)),
 m_HoldTimer(std::make_unique<sys::timer>(HOLD_TICKS)), 
 m_OnConfirmation(onConfirmation), 
-m_Args(args),
+m_SharedData(sharedData),
 m_TaskType(taskType) { }
 
 confirmState::~confirmState() { }
@@ -47,13 +46,13 @@ void confirmState::update(void)
             {
                 case sys::taskTypes::TASK_TYPE_TASK:
                 {
-                    createAndPushNewTask(m_OnConfirmation, m_Args);
+                    createAndPushNewTask(m_OnConfirmation, m_SharedData);
                 }
                 break;
 
                 case sys::taskTypes::TASK_TYPE_PROGRESS:
                 {
-                    createAndPushNewProgressState(m_OnConfirmation, m_Args);
+                    createAndPushNewProgressState(m_OnConfirmation, m_SharedData);
                 }
                 break;
             }
@@ -113,10 +112,10 @@ void confirmState::render(void)
     graphics::systemFont::renderText(m_No, NULL, 782, 478, 18, COLOR_WHITE);
 }
 
-void confirmAction(const std::string &message, sys::taskFunction onConfirmation, std::shared_ptr<sys::taskArgs> args, const sys::taskTypes &taskType)
+void confirmAction(const std::string &message, sys::taskFunction onConfirmation, sys::sharedTaskData sharedData, const sys::taskTypes &taskType)
 {
     // Create the new state
-    std::unique_ptr<appState> confirmationState = std::make_unique<confirmState>(message, onConfirmation, args, taskType);
+    std::unique_ptr<appState> confirmationState = std::make_unique<confirmState>(message, onConfirmation, sharedData, taskType);
     // Push it to back of state vector
     jksv::pushNewState(confirmationState);
 }

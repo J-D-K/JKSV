@@ -5,12 +5,15 @@
 #include <cstdio>
 #include <vector>
 #include <map>
+
 #include <switch.h>
 #include <SDL2/SDL.h>
 #include <ft2build.h>
 #include FT_FREETYPE_H
+
 #include "graphics/graphics.hpp"
 #include "graphics/systemFont.hpp"
+
 #include "log.hpp"
 
 //This struct is for caching glyph data needed
@@ -18,7 +21,7 @@ typedef struct
 {
     uint16_t width, height;
     int advanceX, top, left;
-    SDL_Texture *glyph;
+    graphics::sdlTexture glyph;
 } glyphData;
 
 namespace
@@ -97,12 +100,8 @@ static glyphData *getGlyph(uint32_t codepoint, int fontSize)
 
     // Create Temporary SDL_Surface to convert to texture
     SDL_Surface *tempGlyphSurface = SDL_CreateRGBSurfaceFrom(glyphPixelData.data(), bitmap.width, bitmap.rows, 32, sizeof(uint32_t) * bitmap.width, s_RedMask, s_GreenMask, s_BlueMask, s_AlphaMask);
-    //Convert to texture, graphics needs name for texture
+    // Texture manager needs name for texture.
     std::string glyphName = std::to_string(codepoint) + "_" + std::to_string(fontSize);
-    SDL_Texture *glyphTexture = graphics::textureCreateFromSurface(glyphName, tempGlyphSurface);
-
-    //Free surface, job is done
-    SDL_FreeSurface(tempGlyphSurface);
 
     //Add it to glyph map
     s_GlyphMap[std::make_pair(codepoint, fontSize)] = 
@@ -112,8 +111,11 @@ static glyphData *getGlyph(uint32_t codepoint, int fontSize)
         .advanceX = static_cast<int>(glyphSlot->advance.x >> 6),
         .top = glyphSlot->bitmap_top,
         .left = glyphSlot->bitmap_left,
-        .glyph = glyphTexture
+        .glyph = graphics::textureManager::createTextureFromSurface(glyphName, tempGlyphSurface)
     };
+
+    //Free surface, job is done
+    SDL_FreeSurface(tempGlyphSurface);
 
     //Return it
     return &s_GlyphMap[std::make_pair(codepoint, fontSize)];
@@ -286,9 +288,9 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
         if(glyph)
         {
             // Set color just to be sure
-            SDL_SetTextureColorMod(glyph->glyph, getRed(workingColor), getGreen(workingColor), getBlue(workingColor));
+            SDL_SetTextureColorMod(glyph->glyph.get(), getRed(workingColor), getGreen(workingColor), getBlue(workingColor));
             // Render glyph texture
-            graphics::textureRender(glyph->glyph, target, workingX + glyph->left, workingY + (fontSize - glyph->top));
+            graphics::textureRender(glyph->glyph.get(), target, workingX + glyph->left, workingY + (fontSize - glyph->top));
             // X update
             workingX += glyph->advanceX;
         }

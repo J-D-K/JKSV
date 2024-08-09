@@ -1,9 +1,12 @@
 #pragma once
 #include <string>
 #include <vector>
+
 #include <switch.h>
 #include <SDL2/SDL.h>
+
 #include "data/userSaveInfo.hpp"
+#include "graphics/graphics.hpp"
 
 namespace data
 {
@@ -25,7 +28,7 @@ namespace data
             u128 getAccountIDU128(void) const;
             std::string getUsername(void) const;
             std::string getPathSafeUsername(void) const;
-            SDL_Texture *getUserIcon(void) const;
+            graphics::sdlTexture getUserIcon(void) const;
             data::userSaveInfo *getUserSaveInfoAt(int index);
             int getTotalUserSaveInfo(void) const;
 
@@ -37,7 +40,7 @@ namespace data
             // Safe version of username to use in paths
             std::string m_PathSafeUsername;
             // User's icon
-            SDL_Texture *m_Icon;
+            graphics::sdlTexture m_Icon;
             // Vector of save info for user
             std::vector<data::userSaveInfo> m_UserSaveInfo;
 

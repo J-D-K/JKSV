@@ -1,11 +1,12 @@
 #include <memory>
 #include <cstring>
+
 #include <switch.h>
+
 #include "filesystem/filesystem.hpp"
 #include "data/data.hpp"
 #include "graphics/graphics.hpp"
 #include "stringUtil.hpp"
-
 #include "log.hpp"
 
 data::titleInfo::titleInfo(uint64_t titleID) : 
@@ -29,7 +30,7 @@ m_TitleID(titleID)
         std::memcpy(&m_Nacp, &nsAppConrolData->nacp, sizeof(NacpStruct));
 
         // Load icon
-        m_Icon = graphics::textureLoadFromMem(titleIDHexString, graphics::IMG_TYPE_JPEG, nsAppConrolData->icon, appIconSize);
+        m_Icon = graphics::textureManager::createTextureFromMem(titleIDHexString, nsAppConrolData->icon, appIconSize, graphics::IMAGE_TYPE_JPEG);
     }
     else
     {
@@ -68,9 +69,77 @@ std::string data::titleInfo::getPathSafeTitle(void)
     return pathSafeTitle;
 }
 
-SDL_Texture *data::titleInfo::getIcon(void)
+graphics::sdlTexture data::titleInfo::getIcon(void)
 {
     return m_Icon;
+}
+
+uint64_t data::titleInfo::getSaveDataSize(FsSaveDataType saveType)
+{
+    uint64_t saveDataSize = 0;
+    switch(saveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            saveDataSize = m_Nacp.user_account_save_data_size;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            saveDataSize = m_Nacp.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            saveDataSize = m_Nacp.device_save_data_size;
+        }
+        break;
+
+        default:
+        {
+            saveDataSize = 0;
+        }
+    }
+    return saveDataSize;
+}
+
+uint64_t data::titleInfo::getSaveDataSizeMax(FsSaveDataType saveType)
+{
+    uint64_t saveSize = 0;
+    uint64_t saveSizeMax = 0;
+
+    switch(saveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            saveSize = m_Nacp.user_account_save_data_size;
+            saveSizeMax = m_Nacp.user_account_save_data_size_max;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            saveSize = m_Nacp.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            saveSize = m_Nacp.device_save_data_size;
+            saveSizeMax = m_Nacp.device_save_data_size_max;
+        }
+        break;
+
+        default:
+        {
+            saveSize = 0;
+            saveSizeMax = 0;
+        }
+        break;
+    }
+    return saveSizeMax > saveSize ? saveSizeMax : saveSize;
 }
 
 uint64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
@@ -109,4 +178,61 @@ uint64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
         break;
     }
     return journalSize;
+}
+
+uint64_t data::titleInfo::getJournalSizeMax(FsSaveDataType saveType)
+{
+    uint64_t journalSize = 0;
+    uint64_t journalSizeMax = 0;
+
+    switch (saveType)
+    {
+        case FsSaveDataType_Account:
+        {
+            journalSize = m_Nacp.user_account_save_data_journal_size;
+            journalSizeMax = m_Nacp.user_account_save_data_journal_size_max;
+        }
+        break;
+
+        case FsSaveDataType_Bcat:
+        {
+            journalSize = m_Nacp.bcat_delivery_cache_storage_size;
+        }
+        break;
+
+        case FsSaveDataType_Device:
+        {
+            journalSize = m_Nacp.device_save_data_journal_size;
+            journalSizeMax = m_Nacp.device_save_data_journal_size_max;
+        }
+        break;
+
+        default:
+        {
+            journalSize = 0;
+            journalSizeMax = 0;
+        }
+        break;
+    }
+    return journalSizeMax > journalSize ? journalSizeMax : journalSize;
+}
+
+bool data::titleInfo::hasAccountSaveData(void)
+{
+    return m_Nacp.user_account_save_data_size > 0;
+}
+
+bool data::titleInfo::hasBCATSaveData(void)
+{
+    return m_Nacp.bcat_delivery_cache_storage_size > 0;
+}
+
+bool data::titleInfo::hasDeviceSaveData(void)
+{
+    return m_Nacp.device_save_data_size > 0;
+}
+
+bool data::titleInfo::hasCacheSaveData(void)
+{
+    return m_Nacp.cache_storage_size > 0;
 }

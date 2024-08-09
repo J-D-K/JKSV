@@ -1,4 +1,5 @@
 #include "appStates/taskState.hpp"
+
 #include "graphics/graphics.hpp"
 #include "ui/ui.hpp"
 #include "jksv.hpp"
@@ -11,8 +12,8 @@ namespace
     static const int STATUS_TEXT_FONT_SIZE = 24;
 }
 
-taskState::taskState(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args) :
-m_Task(std::make_unique<sys::task>(threadFunction, args)) { }
+taskState::taskState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData) :
+m_Task(std::make_unique<sys::task>(threadFunction, sharedData)) { }
 
 taskState::~taskState() { }
 
@@ -38,8 +39,8 @@ void taskState::render(void)
     graphics::systemFont::renderText(taskStatus, NULL, taskStatusX, STATUS_TEXT_Y, STATUS_TEXT_FONT_SIZE, COLOR_WHITE);
 }
 
-void createAndPushNewTask(sys::taskFunction threadFunction, std::shared_ptr<sys::taskArgs> args)
+void createAndPushNewTask(sys::taskFunction threadFunction, sys::sharedTaskData sharedData)
 {
-    std::unique_ptr<appState> newTaskState = std::make_unique<taskState>(threadFunction, args);
+    std::unique_ptr<appState> newTaskState = std::make_unique<taskState>(threadFunction, sharedData);
     jksv::pushNewState(newTaskState);
 }

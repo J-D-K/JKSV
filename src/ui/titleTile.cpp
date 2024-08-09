@@ -1,4 +1,5 @@
 #include "ui/titleTile.hpp"
+
 #include "graphics/systemFont.hpp"
 
 namespace
@@ -8,7 +9,7 @@ namespace
     int ICON_CONTRACT_SIZE = 9;
 }
 
-ui::titleTile::titleTile(int width, int height, bool favorite, SDL_Texture *icon) : 
+ui::titleTile::titleTile(int width, int height, bool favorite, graphics::sdlTexture icon) : 
 m_Width(width), 
 m_Height(height), 
 m_IsFavorite(favorite), 
@@ -48,7 +49,7 @@ void ui::titleTile::render(SDL_Texture *target, int x, int y)
 {
     m_RenderX = x - ((m_RenderWidth - m_Width) / 2);
     m_RenderY = y - ((m_RenderHeight - m_Height) / 2);
-    graphics::textureRenderStretched(m_Icon, target, m_RenderX, m_RenderY, m_RenderWidth, m_RenderHeight);
+    graphics::textureRenderStretched(m_Icon.get(), target, m_RenderX, m_RenderY, m_RenderWidth, m_RenderHeight);
     if (m_IsFavorite)
     {
         graphics::systemFont::renderText("♥", target, m_RenderX + 8, m_RenderY + 8, 20, COLOR_HEART);

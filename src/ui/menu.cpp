@@ -1,8 +1,12 @@
 #include <cmath>
+
 #include "ui/menu.hpp"
 #include "ui/ui.hpp"
+
 #include "system/input.hpp"
+
 #include "graphics/systemFont.hpp"
+
 #include "config.hpp"
 
 namespace

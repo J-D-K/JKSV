@@ -1,8 +1,10 @@
 #pragma once
 #include <string>
 #include <cstdint>
+
 #include <minizip/zip.h>
 #include <minizip/unzip.h>
+
 #include "system/progressTask.hpp"
 
 namespace fs

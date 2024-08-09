@@ -1,6 +1,8 @@
 #pragma once
 #include <vector>
+
 #include <SDL2/SDL.h>
+
 #include "data/data.hpp"
 #include "ui/titleTile.hpp"
 

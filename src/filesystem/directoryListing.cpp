@@ -1,7 +1,8 @@
 #include <filesystem>
-#include "filesystem/filesystem.hpp"
-#include "stringUtil.hpp"
 
+#include "filesystem/filesystem.hpp"
+
+#include "stringUtil.hpp"
 #include "log.hpp"
 
 fs::directoryListing::directoryListing(const std::string &directoryPath) : 

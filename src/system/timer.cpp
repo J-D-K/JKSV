@@ -1,4 +1,5 @@
 #include <SDL2/SDL.h>
+
 #include "system/timer.hpp"
 
 sys::timer::timer(uint32_t triggerTicks) : 

@@ -1,6 +1,8 @@
 #pragma once
-#include <switch.h>
 #include <string>
+
+#include <switch.h>
+
 #include "filesystem/directoryListing.hpp"
 #include "filesystem/fileParser.hpp"
 #include "filesystem/zip.hpp"

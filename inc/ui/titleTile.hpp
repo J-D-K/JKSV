@@ -1,5 +1,6 @@
 #pragma once
 #include <SDL2/SDL.h>
+
 #include "graphics/graphics.hpp"
 
 namespace ui
@@ -7,7 +8,7 @@ namespace ui
     class titleTile
     {
         public:
-            titleTile(int width, int height, bool favorite, SDL_Texture *icon);
+            titleTile(int width, int height, bool favorite, graphics::sdlTexture icon);
 
             void update(bool isSelected);
             void render(SDL_Texture *target, int x, int y);
@@ -24,6 +25,6 @@ namespace ui
             // If it's a favorite and a heart is rendered in top left corner
             bool m_IsFavorite;
             // Point to icon texture
-            SDL_Texture *m_Icon;
+            graphics::sdlTexture m_Icon;
     };
 }

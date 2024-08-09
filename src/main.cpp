@@ -1,4 +1,5 @@
 #include <switch.h>
+
 #include "jksv.hpp"
 #include "log.hpp"
 
@@ -37,7 +38,6 @@ extern "C"
 
 int main(int argc, const char *argv[])
 {
-    nxlinkStdio();
     jksv::init();
     while(jksv::isRunning())
     {
