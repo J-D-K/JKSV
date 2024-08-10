@@ -74,9 +74,9 @@ graphics::sdlTexture data::titleInfo::getIcon(void)
     return m_Icon;
 }
 
-uint64_t data::titleInfo::getSaveDataSize(FsSaveDataType saveType)
+int64_t data::titleInfo::getSaveDataSize(FsSaveDataType saveType)
 {
-    uint64_t saveDataSize = 0;
+    int64_t saveDataSize = 0;
     switch(saveType)
     {
         case FsSaveDataType_Account:
@@ -105,10 +105,10 @@ uint64_t data::titleInfo::getSaveDataSize(FsSaveDataType saveType)
     return saveDataSize;
 }
 
-uint64_t data::titleInfo::getSaveDataSizeMax(FsSaveDataType saveType)
+int64_t data::titleInfo::getSaveDataSizeMax(FsSaveDataType saveType)
 {
-    uint64_t saveSize = 0;
-    uint64_t saveSizeMax = 0;
+    int64_t saveSize = 0;
+    int64_t saveSizeMax = 0;
 
     switch(saveType)
     {
@@ -142,10 +142,10 @@ uint64_t data::titleInfo::getSaveDataSizeMax(FsSaveDataType saveType)
     return saveSizeMax > saveSize ? saveSizeMax : saveSize;
 }
 
-uint64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
+int64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
 {
     // Journal size to return
-    uint64_t journalSize = 0;
+    int64_t journalSize = 0;
 
     // Different save types have different journal limits
     switch(saveType)
@@ -180,10 +180,10 @@ uint64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
     return journalSize;
 }
 
-uint64_t data::titleInfo::getJournalSizeMax(FsSaveDataType saveType)
+int64_t data::titleInfo::getJournalSizeMax(FsSaveDataType saveType)
 {
-    uint64_t journalSize = 0;
-    uint64_t journalSizeMax = 0;
+    int64_t journalSize = 0;
+    int64_t journalSizeMax = 0;
 
     switch (saveType)
     {
@@ -215,6 +215,11 @@ uint64_t data::titleInfo::getJournalSizeMax(FsSaveDataType saveType)
         break;
     }
     return journalSizeMax > journalSize ? journalSizeMax : journalSize;
+}
+
+uint64_t data::titleInfo::getSaveDataOwnerID(void)
+{
+    return m_Nacp.save_data_owner_id;
 }
 
 bool data::titleInfo::hasAccountSaveData(void)

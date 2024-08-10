@@ -113,6 +113,61 @@ void fs::commitSaveData(void)
     }
 }
 
+bool fs::createSaveDataFileSystem(FsSaveDataType saveType, uint64_t titleID, AccountUid accountID, uint16_t cacheSaveIndex)
+{
+    // Get working title 
+    data::titleInfo *workingTitleInfo = data::getTitleInfoByTitleID(titleID);
+
+    // Save attributes needed.
+    FsSaveDataAttribute saveDataAttributes = 
+    {
+        .application_id = titleID,
+        .uid = accountID,
+        .system_save_data_id = 0,
+        .save_data_type = saveType,
+        .save_data_rank = 0,
+        .save_data_index = cacheSaveIndex
+    };
+
+    // Creation info
+    FsSaveDataCreationInfo saveCreationInfo = 
+    {
+        .save_data_size = workingTitleInfo->getSaveDataSize(saveType),
+        .journal_size = workingTitleInfo->getJournalSize(saveType),
+        .available_size = 0x4000,
+        .owner_id = saveType == FsSaveDataType_Bcat ? 0x010000000000000C : workingTitleInfo->getSaveDataOwnerID(),
+        .flags = 0,
+        .save_data_space_id = FsSaveDataSpaceId_User
+    };
+
+    FsSaveDataMetaInfo saveMetaInfo = 
+    {
+        .size = saveType == FsSaveDataType_Bcat ? 0 : 0x40060,
+        .type = saveType == FsSaveDataType_Bcat ? 0 : FsSaveDataMetaType_Thumbnail
+    };
+
+    Result createSaveResult = fsCreateSaveDataFileSystem(&saveDataAttributes, &saveCreationInfo, &saveMetaInfo);
+
+    if(R_FAILED(createSaveResult))
+    {
+        logger::log("Error creating save data for 0x%016lX -> 0x%08X.", titleID, createSaveResult);
+    }
+
+    return R_SUCCEEDED(createSaveResult);
+}
+
+bool fs::deleteSaveDataFileSystem(uint64_t saveDataID)
+{
+    Result saveDeleteResult = fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, saveDataID);
+
+    if(R_FAILED(saveDeleteResult))
+    {
+        logger::log("Error deleting save data file system 0x%016lX -> 0x%08X", saveDataID, saveDeleteResult);
+    }
+
+    return R_SUCCEEDED(saveDeleteResult);
+}
+
 void fs::createTitleDirectoryByTID(uint64_t titleID)
 {
     // Get title info needed

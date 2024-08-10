@@ -10,12 +10,19 @@
 
 namespace data
 {
+    // For user type
+    typedef enum
+    {
+        TYPE_USER,
+        TYPE_SYSTEM
+    } userType;
+
     class user
     {
         public:
             //First is for accounts that actually exist, second is for fake system ones
-            user(AccountUid accountID);
-            user(AccountUid accountID, const std::string &username, const std::string &pathSafeUserName);
+            user(AccountUid accountID, data::userType userType);
+            user(AccountUid accountID, const std::string &username, const std::string &pathSafeUserName, data::userType userType);
 
             // Pushes userSaveInfo struct to m_UserSaveInfo
             void addNewUserSaveInfo(uint64_t titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats);
@@ -29,6 +36,7 @@ namespace data
             std::string getUsername(void) const;
             std::string getPathSafeUsername(void) const;
             graphics::sdlTexture getUserIcon(void) const;
+            data::userType getUserType(void) const;
             data::userSaveInfo *getUserSaveInfoAt(int index);
             int getTotalUserSaveInfo(void) const;
 
@@ -41,6 +49,8 @@ namespace data
             std::string m_PathSafeUsername;
             // User's icon
             graphics::sdlTexture m_Icon;
+            // User's type
+            data::userType m_UserType;
             // Vector of save info for user
             std::vector<data::userSaveInfo> m_UserSaveInfo;
 

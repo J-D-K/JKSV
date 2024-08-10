@@ -11,18 +11,12 @@ namespace
 {
     // Slide panel name
     const std::string SLIDE_PANEL_NAME = "userOptionPanel";
-    // Slide dimensions
-    const int SLIDE_PANEL_WIDTH = 410;
-    // Menu coordinates and dimensions
-    const int OPTION_MENU_X = 8;
-    const int OPTION_MENU_Y = 32;
-    const int OPTION_MENU_BOUNDING_WIDTH = 390;
-    const int OPTION_MENU_FONT_SIZE = 20;
-    const int OPTION_MENU_MAX_SCROLL = 6;
     // This is how many options are in the map for this menu
     const int OPTION_MENU_COUNT = 4;
     // UI Strings this state uses
     const std::string OPTION_MENU_STRING_NAME = "userOptions";
+    const std::string THREAD_STATUS_CREATING_SAVE_DATA = "threadStatusCreatingSaveData";
+    const std::string THREAD_STATUS_DELETING_SAVE_DATA = "threadStatusDeletingSaveData";
     // Enum for menu opts
     enum
     {
@@ -43,7 +37,7 @@ struct userOptionData : sys::taskData
 void dumpAllForUser(sys::task *task, sys::sharedTaskData sharedData)
 {
     // Check if args are nullptr and bail
-    if(sharedData == nullptr)
+    if (sharedData == nullptr)
     {
         task->finished();
         return;
@@ -55,7 +49,7 @@ void dumpAllForUser(sys::task *task, sys::sharedTaskData sharedData)
     // Get current user's save count
     int currentUserSaveCount = optionsData->currentUser->getTotalUserSaveInfo();
     // Loop through and make backups of all of them
-    for(int i = 0; i < currentUserSaveCount; i++)
+    for (int i = 0; i < currentUserSaveCount; i++)
     {
         // Get pointer to current save info
         data::userSaveInfo *currentSaveInfo = optionsData->currentUser->getUserSaveInfoAt(i);
@@ -65,17 +59,17 @@ void dumpAllForUser(sys::task *task, sys::sharedTaskData sharedData)
         fs::createTitleDirectoryByTID(currentSaveInfo->getTitleID());
         // Try to mount it
         bool saveIsMounted = fs::mountSaveData(currentSaveInfo->getSaveDataInfo());
-        
-        if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP))
+
+        if (saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP))
         {
-            std::string destinationPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + optionsData->currentUser->getPathSafeUsername() + \
+            std::string destinationPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + optionsData->currentUser->getPathSafeUsername() +
                                           " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD) + ".zip";
             zipFile outputZip = zipOpen64(destinationPath.c_str(), 0);
             fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, outputZip, progressTask);
         }
-        else if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE))
+        else if (saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE))
         {
-            std::string destinationPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + optionsData->currentUser->getPathSafeUsername() + \
+            std::string destinationPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + optionsData->currentUser->getPathSafeUsername() +
                                           " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD) + "/";
             std::filesystem::create_directories(destinationPath);
             fs::io::copyDirectory(fs::DEFAULT_SAVE_MOUNT_DEVICE, destinationPath, progressTask);
@@ -85,23 +79,87 @@ void dumpAllForUser(sys::task *task, sys::sharedTaskData sharedData)
     task->finished();
 }
 
-userOptionState::userOptionState(data::user *currentUser) : 
-m_CurrentUser(currentUser),
-m_UserOptionPanel(std::make_unique<ui::slidePanel>(SLIDE_PANEL_NAME, SLIDE_PANEL_WIDTH, ui::slidePanelSide::PANEL_SIDE_RIGHT)),
-m_OptionsMenu(std::make_unique<ui::menu>(OPTION_MENU_X, OPTION_MENU_Y, OPTION_MENU_BOUNDING_WIDTH, OPTION_MENU_FONT_SIZE, OPTION_MENU_MAX_SCROLL))
+void createAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
+{
+    if(sharedData == nullptr)
+    {
+        task->finished();
+        return;
+    }
+
+    // Cast to correct type
+    std::shared_ptr<userOptionData> dataIn = std::static_pointer_cast<userOptionData>(sharedData);
+
+    // Get title map reference
+    data::titleMap &titleMap = data::getTitleMap();
+
+    // Loop through map. Have to be careful though.
+    for(auto &currentTitle : titleMap)
+    {
+        if(dataIn->currentUser->getUserType() == data::userType::TYPE_USER && currentTitle.second.hasAccountSaveData())
+        {
+            // Set status string.
+            std::string threadStatus = stringUtil::getFormattedString(ui::strings::getCString(THREAD_STATUS_CREATING_SAVE_DATA, 0), currentTitle.second.getTitle().c_str());
+            task->setThreadStatus(threadStatus);
+
+            // Try to:
+            fs::createSaveDataFileSystem(FsSaveDataType_Account, currentTitle.first, dataIn->currentUser->getAccountID(), 0);
+        }
+    }
+
+    data::loadUserSaveInfo();
+
+    task->finished();
+}
+
+void deleteAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
+{
+    if(sharedData == nullptr)
+    {
+        task->finished();
+        return;
+    }
+
+    std::shared_ptr<userOptionData> dataIn = std::static_pointer_cast<userOptionData>(sharedData);
+
+    // Loop through and nuke them
+    int totalUserSaves = dataIn->currentUser->getTotalUserSaveInfo();
+    for(int i = 0; i < totalUserSaves; i++)
+    {
+        // Save info is needed first for titleID
+        data::userSaveInfo *currentUserSaveInfo = dataIn->currentUser->getUserSaveInfoAt(i);
+
+        // Need this for game title
+        data::titleInfo *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
+
+        // Status string
+        std::string threadStatus = stringUtil::getFormattedString(ui::strings::getCString(THREAD_STATUS_DELETING_SAVE_DATA, 0), currentTitleInfo->getTitle().c_str());
+        task->setThreadStatus(threadStatus);
+
+        fs::deleteSaveDataFileSystem(currentUserSaveInfo->getSaveDataInfo().save_data_id);
+    }
+
+    data::loadUserSaveInfo();
+
+    task->finished();
+}
+
+userOptionState::userOptionState(data::user *currentUser) : m_CurrentUser(currentUser),
+                                                            m_UserOptionPanel(std::make_unique<ui::slidePanel>(SLIDE_PANEL_NAME, 410, ui::slidePanelSide::PANEL_SIDE_RIGHT)),
+                                                            m_OptionsMenu(std::make_unique<ui::menu>(8, 32, 390, 20, 6))
 {
     // First option is special and needs user name
     std::string firstMenuOption = stringUtil::getFormattedString(ui::strings::getCString(OPTION_MENU_STRING_NAME, 0), m_CurrentUser->getUsername().c_str());
     // Add it
     m_OptionsMenu->addOption(firstMenuOption);
     // Add other options to menu
-    for(int i = 1; i < OPTION_MENU_COUNT; i++)
+    for (int i = 1; i < OPTION_MENU_COUNT; i++)
     {
         m_OptionsMenu->addOption(ui::strings::getString(OPTION_MENU_STRING_NAME, i));
     }
 }
 
-userOptionState::~userOptionState() { }
+userOptionState::~userOptionState() {}
 
 void userOptionState::update(void)
 {
@@ -109,9 +167,9 @@ void userOptionState::update(void)
     m_UserOptionPanel->update();
     m_OptionsMenu->update();
 
-    if(sys::input::buttonDown(HidNpadButton_A))
+    if (sys::input::buttonDown(HidNpadButton_A))
     {
-        switch(m_OptionsMenu->getSelected())
+        switch (m_OptionsMenu->getSelected())
         {
             case OPTION_BACKUP_ALL_FOR_USER:
             {
@@ -127,15 +185,15 @@ void userOptionState::update(void)
             {
                 // What save type we're working with. Using UserID to figure it out.
                 FsSaveDataType saveDataType;
-                if(m_CurrentUser->getAccountIDU128() == 2)
+                if (m_CurrentUser->getAccountIDU128() == 2)
                 {
                     saveDataType = FsSaveDataType_Bcat;
                 }
-                else if(m_CurrentUser->getAccountIDU128() == 3)
+                else if (m_CurrentUser->getAccountIDU128() == 3)
                 {
                     saveDataType = FsSaveDataType_Device;
                 }
-                else if(m_CurrentUser->getAccountIDU128() == 5)
+                else if (m_CurrentUser->getAccountIDU128() == 5)
                 {
                     saveDataType = FsSaveDataType_Cache;
                 }
@@ -149,13 +207,31 @@ void userOptionState::update(void)
                 jksv::pushNewState(saveCreationState);
             }
             break;
+
+            case OPTION_CREATE_ALL_SAVE_DATA: // This needs to be fixed up...
+            {
+                std::shared_ptr<userOptionData> userData = std::make_shared<userOptionData>();
+                userData->currentUser = m_CurrentUser;
+
+                createAndPushNewTask(createAllSaveDataForUser, userData);
+            }
+            break;
+
+            case OPTION_DELETE_ALL_SAVES_FOR_USER:
+            {
+                std::shared_ptr<userOptionData> userData = std::make_shared<userOptionData>();
+                userData->currentUser = m_CurrentUser;
+
+                createAndPushNewTask(deleteAllSaveDataForUser, userData);
+            }
+            break;
         }
     }
-    else if(sys::input::buttonDown(HidNpadButton_B))
+    else if (sys::input::buttonDown(HidNpadButton_B))
     {
         m_UserOptionPanel->closePanel();
     }
-    else if(m_UserOptionPanel->isClosed())
+    else if (m_UserOptionPanel->isClosed())
     {
         appState::deactivateState();
     }

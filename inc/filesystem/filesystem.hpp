@@ -19,6 +19,10 @@ namespace fs
     void unmountSaveData(void);
     // Commits to default save path
     void commitSaveData(void);
+    // Creates save data filesystem. Might move this elsewhere later.
+    bool createSaveDataFileSystem(FsSaveDataType saveType, uint64_t titleID, AccountUid accountID, uint16_t cacheSaveIndex);
+    // Deletes save from system
+    bool deleteSaveDataFileSystem(uint64_t saveDataID);
     // Creates directory for title using title ID
     void createTitleDirectoryByTID(uint64_t titleID);
     // Checks if folder actually contains data.

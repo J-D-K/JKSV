@@ -20,11 +20,13 @@ namespace data
             // Returns icon texture
             graphics::sdlTexture getIcon(void);
             // Returns save data size
-            uint64_t getSaveDataSize(FsSaveDataType saveType);
-            uint64_t getSaveDataSizeMax(FsSaveDataType saveType);
+            int64_t getSaveDataSize(FsSaveDataType saveType);
+            int64_t getSaveDataSizeMax(FsSaveDataType saveType);
             // Returns journal size
-            uint64_t getJournalSize(FsSaveDataType saveType);
-            uint64_t getJournalSizeMax(FsSaveDataType saveType);
+            int64_t getJournalSize(FsSaveDataType saveType);
+            int64_t getJournalSizeMax(FsSaveDataType saveType);
+            // Returns save data owner id from NACP
+            uint64_t getSaveDataOwnerID(void);
             // Return if title has data for save type
             bool hasAccountSaveData(void);
             bool hasBCATSaveData(void);

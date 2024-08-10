@@ -71,17 +71,17 @@ graphics::sdlTexture graphics::textureManager::createTextureFromMem(const std::s
         // Load according to type provided.
         switch (type)
         {
-        case IMAGE_TYPE_PNG:
-        {
-            imageSurface = IMG_LoadPNG_RW(imageMemory);
-        }
-        break;
+            case IMAGE_TYPE_PNG:
+            {
+                imageSurface = IMG_LoadPNG_RW(imageMemory);
+            }
+            break;
 
-        case IMAGE_TYPE_JPEG:
-        {
-            imageSurface = IMG_LoadJPG_RW(imageMemory);
-        }
-        break;
+            case IMAGE_TYPE_JPEG:
+            {
+                imageSurface = IMG_LoadJPG_RW(imageMemory);
+            }
+            break;
         }
         // Check just in case
         if (imageSurface == NULL)

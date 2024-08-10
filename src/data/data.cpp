@@ -25,12 +25,12 @@ namespace
     // Names of ui strings needed
     const std::string SAVE_TYPE_STRINGS = "saveDataTypeText";
     // This is to make stuff slightly easier to read. In the same order as ui::strings. 1 is account so missing here.
-    const int SYSTEM_SAVE_USER_ID = 0;
-    const int BCAT_SAVE_USER_ID = 2;
-    const int DEVICE_SAVE_USER_ID = 3;
-    const int TEMPORARY_SAVE_USER_ID = 4;
-    const int CACHE_SAVE_USER_ID = 5;
-    const int SYSTEM_BCAT_USER_ID = 6;
+    constexpr int SYSTEM_SAVE_USER_ID = 0;
+    constexpr int BCAT_SAVE_USER_ID = 2;
+    constexpr int DEVICE_SAVE_USER_ID = 3;
+    constexpr int TEMPORARY_SAVE_USER_ID = 4;
+    constexpr int CACHE_SAVE_USER_ID = 5;
+    constexpr int SYSTEM_BCAT_USER_ID = 6;
 }
 
 // Converts AccountUid to uint128
@@ -66,7 +66,7 @@ static void createAddSystemUser(int userTypeID)
     std::string systemTypeString = ui::strings::getString(SAVE_TYPE_STRINGS, userTypeID);
     // Add it to vector.
     AccountUid accountUID = u128ToAccountUID(userTypeID);
-    s_UserVector.push_back(std::make_pair(userTypeID, data::user(accountUID, systemTypeString, systemTypeString)));
+    s_UserVector.push_back(std::make_pair(userTypeID, data::user(accountUID, systemTypeString, systemTypeString, data::userType::TYPE_SYSTEM)));
 }
 
 // This is for filtering system saves that are tied to accounts
@@ -97,7 +97,7 @@ bool data::init(void)
     for (int i = 0; i < totalAccounts; i++)
     {
         u128 userID128 = accountUIDToU128(accountIDs[i]);
-        s_UserVector.push_back(std::make_pair(userID128, data::user(accountIDs[i])));
+        s_UserVector.push_back(std::make_pair(userID128, data::user(accountIDs[i], data::userType::TYPE_USER)));
     }
 
     // Add Initial system users there will probably be saves for
@@ -105,10 +105,10 @@ bool data::init(void)
     std::string bcatUserString = ui::strings::getString(SAVE_TYPE_STRINGS, BCAT_SAVE_USER_ID);
     std::string cacheUserString = ui::strings::getString(SAVE_TYPE_STRINGS, CACHE_SAVE_USER_ID);
     std::string systemUserString = ui::strings::getString(SAVE_TYPE_STRINGS, SYSTEM_SAVE_USER_ID);
-    s_UserVector.push_back(std::make_pair(DEVICE_SAVE_USER_ID, data::user(u128ToAccountUID(DEVICE_SAVE_USER_ID), deviceUserString, "Device")));
-    s_UserVector.push_back(std::make_pair(BCAT_SAVE_USER_ID, data::user(u128ToAccountUID(BCAT_SAVE_USER_ID), bcatUserString, "BCAT")));
-    s_UserVector.push_back(std::make_pair(CACHE_SAVE_USER_ID, data::user(u128ToAccountUID(CACHE_SAVE_USER_ID), cacheUserString, "Cache")));
-    s_UserVector.push_back(std::make_pair(SYSTEM_SAVE_USER_ID, data::user(u128ToAccountUID(SYSTEM_SAVE_USER_ID), systemUserString, "System")));
+    s_UserVector.push_back(std::make_pair(DEVICE_SAVE_USER_ID, data::user(u128ToAccountUID(DEVICE_SAVE_USER_ID), deviceUserString, "Device", data::userType::TYPE_SYSTEM)));
+    s_UserVector.push_back(std::make_pair(BCAT_SAVE_USER_ID, data::user(u128ToAccountUID(BCAT_SAVE_USER_ID), bcatUserString, "BCAT", data::userType::TYPE_SYSTEM)));
+    s_UserVector.push_back(std::make_pair(CACHE_SAVE_USER_ID, data::user(u128ToAccountUID(CACHE_SAVE_USER_ID), cacheUserString, "Cache", data::userType::TYPE_SYSTEM)));
+    s_UserVector.push_back(std::make_pair(SYSTEM_SAVE_USER_ID, data::user(u128ToAccountUID(SYSTEM_SAVE_USER_ID), systemUserString, "System", data::userType::TYPE_SYSTEM)));
 
     // Do the same except for title records
     NsApplicationRecord currentRecord;
