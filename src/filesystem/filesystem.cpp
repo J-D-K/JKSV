@@ -142,8 +142,8 @@ bool fs::createSaveDataFileSystem(FsSaveDataType saveType, uint64_t titleID, Acc
 
     FsSaveDataMetaInfo saveMetaInfo = 
     {
-        .size = saveType == FsSaveDataType_Bcat ? 0 : 0x40060,
-        .type = saveType == FsSaveDataType_Bcat ? 0 : FsSaveDataMetaType_Thumbnail
+        .size = saveType == FsSaveDataType_Bcat ? static_cast<uint32_t>(0) : static_cast<uint32_t>(0x40060),
+        .type = saveType == FsSaveDataType_Bcat ? static_cast<uint8_t>(0) : static_cast<uint8_t>(FsSaveDataMetaType_Thumbnail)
     };
 
     Result createSaveResult = fsCreateSaveDataFileSystem(&saveDataAttributes, &saveCreationInfo, &saveMetaInfo);

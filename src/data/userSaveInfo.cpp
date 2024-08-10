@@ -1,9 +1,8 @@
 #include "data/userSaveInfo.hpp"
 
-data::userSaveInfo::userSaveInfo(uint64_t titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats) : 
-m_TitleID(titleID), 
-m_SaveDataInfo(saveInfo), 
-m_PlayStats(playStats) { }
+data::userSaveInfo::userSaveInfo(uint64_t titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats) : m_TitleID(titleID),
+                                                                                                                         m_SaveDataInfo(saveInfo),
+                                                                                                                         m_PlayStats(playStats) {}
 
 uint64_t data::userSaveInfo::getTitleID(void) const
 {

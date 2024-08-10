@@ -5,8 +5,7 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
-fs::directoryListing::directoryListing(const std::string &directoryPath) : 
-m_DirectoryPath(directoryPath)
+fs::directoryListing::directoryListing(const std::string &directoryPath) : m_DirectoryPath(directoryPath)
 {
     loadListing();
 }
@@ -19,7 +18,7 @@ void fs::directoryListing::loadListing(void)
     // Error code
     std::error_code errorCode;
 
-    for(const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(m_DirectoryPath, errorCode))
+    for (const std::filesystem::directory_entry &entry : std::filesystem::directory_iterator(m_DirectoryPath, errorCode))
     {
         m_DirectoryList.push_back(entry);
     }

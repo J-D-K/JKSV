@@ -13,36 +13,35 @@ namespace
     constexpr int HOLD_TICKS = 1000;
     // Strings used here
     const std::string DIALOG_YES = "dialogYes";
-    const std::string DIALOG_NO  = "dialogNo";
+    const std::string DIALOG_NO = "dialogNo";
     const std::string HOLDING_TEXT = "holdingText";
 }
 
-confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, sys::sharedTaskData sharedData, sys::taskTypes taskType) : 
-m_Message(message),
-m_Yes(ui::strings::getString(DIALOG_YES, 0)),
-m_No(ui::strings::getString(DIALOG_NO, 0)),
-m_HoldTimer(std::make_unique<sys::timer>(HOLD_TICKS)), 
-m_OnConfirmation(onConfirmation), 
-m_SharedData(sharedData),
-m_TaskType(taskType) { }
+confirmState::confirmState(const std::string &message, sys::taskFunction onConfirmation, sys::sharedTaskData sharedData, sys::taskTypes taskType) : m_Message(message),
+                                                                                                                                                    m_Yes(ui::strings::getString(DIALOG_YES, 0)),
+                                                                                                                                                    m_No(ui::strings::getString(DIALOG_NO, 0)),
+                                                                                                                                                    m_HoldTimer(std::make_unique<sys::timer>(HOLD_TICKS)),
+                                                                                                                                                    m_OnConfirmation(onConfirmation),
+                                                                                                                                                    m_SharedData(sharedData),
+                                                                                                                                                    m_TaskType(taskType) {}
 
-confirmState::~confirmState() { }
+confirmState::~confirmState() {}
 
 // To do: I don't like the way this looks, but not sure if it can get much better
 void confirmState::update(void)
 {
     // If A is first pressed, and stage is 0, restart timer
-    if(sys::input::buttonDown(HidNpadButton_A) && m_HoldStage == 0)
+    if (sys::input::buttonDown(HidNpadButton_A) && m_HoldStage == 0)
     {
         m_HoldTimer->restartTimer();
     }
-    else if(sys::input::buttonHeld(HidNpadButton_A) && m_HoldStage < 3 && m_HoldTimer->triggered())
+    else if (sys::input::buttonHeld(HidNpadButton_A) && m_HoldStage < 3 && m_HoldTimer->triggered())
     {
         // Confirmed, create new task.
-        if(++m_HoldStage == 3)
+        if (++m_HoldStage == 3)
         {
             // Spawn task according to m_TaskType
-            switch(m_TaskType)
+            switch (m_TaskType)
             {
                 case sys::taskTypes::TASK_TYPE_TASK:
                 {
@@ -65,30 +64,30 @@ void confirmState::update(void)
             switch (m_HoldStage)
             {
                 case 0:
-                    {
-                        m_Yes = ui::strings::getString(HOLDING_TEXT, 0);
-                    }
-                    break;
+                {
+                    m_Yes = ui::strings::getString(HOLDING_TEXT, 0);
+                }
+                break;
 
                 case 1:
-                    {
-                        m_Yes = ui::strings::getString(HOLDING_TEXT, 1);
-                    }
-                    break;
+                {
+                    m_Yes = ui::strings::getString(HOLDING_TEXT, 1);
+                }
+                break;
 
                 case 2:
-                    {
-                        m_Yes = ui::strings::getString(HOLDING_TEXT, 2);
-                    }
-                    break;
+                {
+                    m_Yes = ui::strings::getString(HOLDING_TEXT, 2);
+                }
+                break;
             }
         }
     }
-    else if(sys::input::buttonReleased(HidNpadButton_A))
+    else if (sys::input::buttonReleased(HidNpadButton_A))
     {
         m_Yes = ui::strings::getString(DIALOG_YES, 0);
     }
-    else if(sys::input::buttonDown(HidNpadButton_B))
+    else if (sys::input::buttonDown(HidNpadButton_B))
     {
         // Party's over. Just stop
         appState::deactivateState();

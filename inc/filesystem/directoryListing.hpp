@@ -8,6 +8,7 @@ namespace fs
     class directoryListing
     {
         public:
+            directoryListing(void) = default;
             // Gets and stores a listing for directoryPath
             directoryListing(const std::string &directoryPath);
             // This is the function that actually loads the directory list. Vector is cleared at beginning.

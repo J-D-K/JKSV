@@ -41,14 +41,14 @@ static void backupAllUserSaves(sys::task *task, sys::sharedTaskData sharedData)
 
     // Loop through users
     int totalUserCount = data::getTotalUsers();
-    for(int i = 0; i < totalUserCount; i++)
+    for (int i = 0; i < totalUserCount; i++)
     {
         // Get pointer to user
         data::user *currentUser = data::getUserAtPosition(i);
 
         // Loop through titles
         int totalUserGameCount = currentUser->getTotalUserSaveInfo();
-        for(int j = 0; j < totalUserGameCount; j++)
+        for (int j = 0; j < totalUserGameCount; j++)
         {
             // Get pointer to userSaveInfo
             data::userSaveInfo *currentUserSaveInfo = currentUser->getUserSaveInfoAt(j);
@@ -60,20 +60,20 @@ static void backupAllUserSaves(sys::task *task, sys::sharedTaskData sharedData)
             bool saveIsMounted = fs::mountSaveData(currentUserSaveInfo->getSaveDataInfo());
             // Make sure full path for title exists
             fs::createTitleDirectoryByTID(currentUserSaveInfo->getTitleID());
-            if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP))
+            if (saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP))
             {
                 // Path to zip we're backing up. It's a biggin'
-                std::string outputZipPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + currentUser->getPathSafeUsername() + \
+                std::string outputZipPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + currentUser->getPathSafeUsername() +
                                             " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD) + ".zip";
                 // Open zip
                 zipFile newZip = zipOpen64(outputZipPath.c_str(), 0);
                 // Copy to it
                 fs::zip::copyDirectoryToZip(fs::DEFAULT_SAVE_MOUNT_DEVICE, newZip, progress);
             }
-            else if(saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP) == false)
+            else if (saveIsMounted && fs::directoryContainsFiles(fs::DEFAULT_SAVE_MOUNT_DEVICE) && config::getByKey(CONFIG_USE_ZIP) == false)
             {
                 // Output path
-                std::string newSaveBackupPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + currentUser->getPathSafeUsername() + \
+                std::string newSaveBackupPath = config::getWorkingDirectory() + currentTitleInfo->getPathSafeTitle() + "/" + currentUser->getPathSafeUsername() +
                                                 " - " + stringUtil::getTimeAndDateString(stringUtil::DATE_FORMAT_YMD) + "/";
                 // Make sure it exists
                 std::filesystem::create_directories(newSaveBackupPath);
@@ -86,10 +86,9 @@ static void backupAllUserSaves(sys::task *task, sys::sharedTaskData sharedData)
     progress->finished();
 }
 
-mainMenuState::mainMenuState(void) :
-m_MainControlGuide(ui::strings::getString(MAIN_MENU_CONTROL_GUIDE, 0)),
-m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, 18)),
-m_MainMenu(std::make_unique<ui::iconMenu>(50, 16, 1))
+mainMenuState::mainMenuState(void) : m_MainControlGuide(ui::strings::getString(MAIN_MENU_CONTROL_GUIDE, 0)),
+                                     m_MainControlGuideX(1220 - graphics::systemFont::getTextWidth(m_MainControlGuide, 18)),
+                                     m_MainMenu(std::make_unique<ui::iconMenu>(50, 16, 1))
 {
     // Render target
     m_RenderTarget = graphics::textureManager::createTexture(MAIN_MENU_RENDER_TARGET, 200, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
@@ -119,11 +118,11 @@ void mainMenuState::update(void)
     m_MainMenu->update();
 
     int selected = m_MainMenu->getSelected();
-    if(sys::input::buttonDown(HidNpadButton_A) && selected < m_UserEnd)
+    if (sys::input::buttonDown(HidNpadButton_A) && selected < m_UserEnd)
     {
         data::user *selectedUser = data::getUserAtPosition(selected);
         // Normally wouldn't do this
-        if(selectedUser->getTotalUserSaveInfo() > 0)
+        if (selectedUser->getTotalUserSaveInfo() > 0)
         {
             std::unique_ptr<appState> titleSelection = std::make_unique<titleSelectionState>(selectedUser);
             jksv::pushNewState(titleSelection);
@@ -134,12 +133,12 @@ void mainMenuState::update(void)
             ui::popMessage::newMessage(noSavesMessage, ui::popMessage::POPMESSAGE_DEFAULT_TICKS);
         }
     }
-    else if(sys::input::buttonDown(HidNpadButton_Y))
+    else if (sys::input::buttonDown(HidNpadButton_Y))
     {
         // This doesn't need any input
         createAndPushNewProgressState(backupAllUserSaves, nullptr);
     }
-    else if(sys::input::buttonDown(HidNpadButton_X) && selected < m_UserEnd)
+    else if (sys::input::buttonDown(HidNpadButton_X) && selected < m_UserEnd)
     {
         // Get selected user
         data::user *selectedUser = data::getUserAtPosition(selected);
@@ -159,7 +158,7 @@ void mainMenuState::render(void)
     // Render render target to framebuffer
     graphics::textureRender(m_RenderTarget.get(), NULL, 0, 91);
 
-    if(appState::hasFocus())
+    if (appState::hasFocus())
     {
         graphics::systemFont::renderText(m_MainControlGuide, NULL, m_MainControlGuideX, 673, 18, COLOR_WHITE);
     }

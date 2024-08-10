@@ -10,7 +10,6 @@ namespace graphics
         // Inits freetype2
         bool init(void);
         void exit(void);
-
         // Renders text with system font
         void renderText(const std::string &text, SDL_Texture *target, int x, int y, int fontSize, uint32_t color);
         // Renders text, but wraps to new line if maxWidth is hit or exeeded

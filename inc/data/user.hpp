@@ -53,6 +53,5 @@ namespace data
             data::userType m_UserType;
             // Vector of save info for user
             std::vector<data::userSaveInfo> m_UserSaveInfo;
-
     };
 }

@@ -31,15 +31,12 @@ namespace
     FT_Face    s_FTFaces[6];
     //Number of fonts loaded
     int s_TotalFonts;
+    // Color used for rendering. Added to prevent duplicating code.
+    uint32_t s_RenderingColor;
     // This is the glyph texture cache map
     std::map<std::pair<uint32_t, int>, glyphData> s_GlyphMap;
     // How large the word buffer is for line wrapping.
     const int WORD_WRAP_BUFFER_LENGTH = 0x1000;
-    // Masks for converting glyphs to sdl surface
-    const uint32_t s_RedMask = 0xFF000000;
-    const uint32_t s_GreenMask = 0x00FF0000;
-    const uint32_t s_BlueMask = 0x0000FF00;
-    const uint32_t s_AlphaMask = 0x000000FF;
     // Codepoints to break lines at
     const std::array<uint32_t, 7> s_BreakPoints = {L' ', L'　', L'/', L'_', L'-', L'。', L'、'};
 }
@@ -99,7 +96,7 @@ static glyphData *getGlyph(uint32_t codepoint, int fontSize)
     }
 
     // Create Temporary SDL_Surface to convert to texture
-    SDL_Surface *tempGlyphSurface = SDL_CreateRGBSurfaceFrom(glyphPixelData.data(), bitmap.width, bitmap.rows, 32, sizeof(uint32_t) * bitmap.width, s_RedMask, s_GreenMask, s_BlueMask, s_AlphaMask);
+    SDL_Surface *tempGlyphSurface = SDL_CreateRGBSurfaceFrom(glyphPixelData.data(), bitmap.width, bitmap.rows, 32, sizeof(uint32_t) * bitmap.width, 0xFF000000, 0x00FF0000, 0x0000FF00, 0x000000FF);
     // Texture manager needs name for texture.
     std::string glyphName = std::to_string(codepoint) + "_" + std::to_string(fontSize);
 
@@ -153,32 +150,33 @@ static size_t findNextBreakPoint(const char *str)
 }
 
 //Processes characters set to change text colors. Returns true if character is special
-static bool processSpecialCharacters(uint32_t codepoint, uint32_t originalColor, uint32_t &color)
+static bool processSpecialCharacters(uint32_t codepoint, uint32_t originalColor)
 {
+    // This is set to true and on default, set to false.
     bool isSpecial = true;
     switch (codepoint)
     {
         case L'#':
         {
-            color = color == COLOR_BLUE ? originalColor : COLOR_BLUE;
+            s_RenderingColor = s_RenderingColor == originalColor ? COLOR_BLUE : originalColor;
         }
         break;
 
         case L'*':
         {
-            color = color == COLOR_RED ? originalColor : COLOR_RED;
+            s_RenderingColor = s_RenderingColor == originalColor ? COLOR_RED : originalColor;
         }
         break;
 
         case L'<':
         {
-            color = color == COLOR_YELLOW ? originalColor : COLOR_YELLOW;
+            s_RenderingColor = s_RenderingColor == originalColor ? COLOR_YELLOW : originalColor;
         }
         break;
 
         case L'>':
         {
-            color = color == COLOR_GREEN ? originalColor : COLOR_GREEN;
+            s_RenderingColor = s_RenderingColor == originalColor ? COLOR_GREEN : originalColor;
         }
         break;
 
@@ -188,6 +186,7 @@ static bool processSpecialCharacters(uint32_t codepoint, uint32_t originalColor,
         }
         break;
     }
+
     return isSpecial;
 }
 
@@ -249,7 +248,7 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
     int workingY = y;
 
     //Color we're working with
-    uint32_t workingColor = color;
+    s_RenderingColor = color;
 
     //Current character/codepoint
     uint32_t codepoint = 0;
@@ -272,7 +271,7 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
         }
 
         i += unitCount;
-        if(processSpecialCharacters(codepoint, color, workingColor))
+        if(processSpecialCharacters(codepoint, color))
         {
             continue;
         }
@@ -288,7 +287,7 @@ void graphics::systemFont::renderText(const std::string &text, SDL_Texture *targ
         if(glyph)
         {
             // Set color just to be sure
-            SDL_SetTextureColorMod(glyph->glyph.get(), getRed(workingColor), getGreen(workingColor), getBlue(workingColor));
+            SDL_SetTextureColorMod(glyph->glyph.get(), getRed(s_RenderingColor), getGreen(s_RenderingColor), getBlue(s_RenderingColor));
             // Render glyph texture
             graphics::textureRender(glyph->glyph.get(), target, workingX + glyph->left, workingY + (fontSize - glyph->top));
             // X update
@@ -303,6 +302,7 @@ void graphics::systemFont::renderTextWrap(const std::string &text, SDL_Texture *
     int workingX = x;
     int workingY = y;
     int stringLength = text.length();
+
     // This buffer is used to calculate if the next word should create a line break
     std::array<char, WORD_WRAP_BUFFER_LENGTH> wordBuffer = { 0 };
 
@@ -338,7 +338,6 @@ int graphics::systemFont::getTextWidth(const std::string &text, int fontSize)
 {
     int textWidth = 0;
     uint32_t codepoint = 0;
-    uint32_t colorMod = 0; // This is just needed so we can properly count and skip special chars
     ssize_t unitCount = 0;
 
     resizeFont(fontSize);
@@ -352,7 +351,7 @@ int graphics::systemFont::getTextWidth(const std::string &text, int fontSize)
         }
 
         i += unitCount;
-        if(processSpecialCharacters(codepoint, COLOR_WHITE, colorMod))
+        if(processSpecialCharacters(codepoint, COLOR_WHITE))
         {
             continue;
         }

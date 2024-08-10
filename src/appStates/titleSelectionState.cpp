@@ -18,11 +18,10 @@ namespace
     const std::string TITLE_SELECTION_CONTROL_GUIDE = "helpTitle";
 }
 
-titleSelectionState::titleSelectionState(data::user *currentUser) :
-m_CurrentUser(currentUser),
-m_TitleSelection(std::make_unique<ui::titleSelection>(m_CurrentUser)),
-m_TitleControlGuide(ui::strings::getString(TITLE_SELECTION_CONTROL_GUIDE, 0)),
-m_TitleControlGuideX(1220 - graphics::systemFont::getTextWidth(m_TitleControlGuide, 18))
+titleSelectionState::titleSelectionState(data::user *currentUser) : m_CurrentUser(currentUser),
+                                                                    m_TitleSelection(std::make_unique<ui::titleSelection>(m_CurrentUser)),
+                                                                    m_TitleControlGuide(ui::strings::getString(TITLE_SELECTION_CONTROL_GUIDE, 0)),
+                                                                    m_TitleControlGuideX(1220 - graphics::systemFont::getTextWidth(m_TitleControlGuide, 18))
 {
     // Render target to render everything too
     m_RenderTarget = graphics::textureManager::createTexture(TITLE_SELECT_RENDER_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
@@ -34,13 +33,13 @@ void titleSelectionState::update(void)
 {
     m_TitleSelection->update();
 
-    if(sys::input::buttonDown(HidNpadButton_A))
+    if (sys::input::buttonDown(HidNpadButton_A))
     {
         int selected = m_TitleSelection->getSelected();
         data::userSaveInfo *currentUserSaveInfo = m_CurrentUser->getUserSaveInfoAt(selected);
-        if(fs::mountSaveData(currentUserSaveInfo->getSaveDataInfo()))
+        if (fs::mountSaveData(currentUserSaveInfo->getSaveDataInfo()))
         {
-            data::titleInfo    *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
+            data::titleInfo *currentTitleInfo = data::getTitleInfoByTitleID(currentUserSaveInfo->getTitleID());
             std::unique_ptr<appState> backupState = std::make_unique<backupMenuState>(m_CurrentUser, currentUserSaveInfo, currentTitleInfo);
             jksv::pushNewState(backupState);
         }
@@ -49,7 +48,7 @@ void titleSelectionState::update(void)
             logger::log("Error mounting save for %016lX", currentUserSaveInfo->getTitleID());
         }
     }
-    else if(sys::input::buttonDown(HidNpadButton_X))
+    else if (sys::input::buttonDown(HidNpadButton_X))
     {
         // Get some stuff needed
         int selected = m_TitleSelection->getSelected();
@@ -61,7 +60,7 @@ void titleSelectionState::update(void)
         // Push it
         jksv::pushNewState(optionState);
     }
-    else if(sys::input::buttonDown(HidNpadButton_B))
+    else if (sys::input::buttonDown(HidNpadButton_B))
     {
         appState::deactivateState();
     }
@@ -77,7 +76,7 @@ void titleSelectionState::render(void)
     // Render to screen
     graphics::textureRender(m_RenderTarget.get(), NULL, 201, 91);
 
-    if(appState::hasFocus())
+    if (appState::hasFocus())
     {
         graphics::systemFont::renderText(m_TitleControlGuide, NULL, m_TitleControlGuideX, 673, 18, COLOR_WHITE);
     }

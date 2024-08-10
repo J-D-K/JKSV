@@ -27,7 +27,7 @@ namespace
     const std::string POP_MESSAGE_SAVE_EMPTY = "popSaveIsEmpty";
     const std::string CONFIRM_OVERWRITE = "confirmOverwrite";
     const std::string CONFIRM_RESTORE = "confirmRestore";
-    const std::string CONFIRM_DELETE  = "confirmDelete";
+    const std::string CONFIRM_DELETE = "confirmDelete";
     const std::string BACKUP_MENU_NEW = "folderMenuNew";
     const std::string SWKBD_PROMPT_TEXT = "swkbdEnterName";
 }
@@ -66,7 +66,7 @@ static void createNewBackup(sys::task *task, sys::sharedTaskData sharedData)
 
     // Set task status, cast args to backupArgs
     std::shared_ptr<backupData> dataIn = std::static_pointer_cast<backupData>(sharedData);
-    
+
     // To do: Maybe find a better way to do this without rewriting everything
     sys::progressTask *progress = reinterpret_cast<sys::progressTask *>(task);
 
@@ -183,14 +183,14 @@ static void restoreBackup(sys::task *task, sys::sharedTaskData sharedData)
     // Get extension before we try to unzip something that isn't a zip
     std::string fileExtension = stringUtil::getExtensionFromString(dataIn->source);
 
-    if(std::filesystem::is_directory(dataIn->source))
+    if (std::filesystem::is_directory(dataIn->source))
     {
         // Add trailing slash
         std::string source = dataIn->source + "/";
         // Get a test listing first to prevent writing an empty folder to save
         fs::directoryListing testListing(source);
 
-        if(testListing.getListingCount() > 0)
+        if (testListing.getListingCount() > 0)
         {
             // Folder isn't empty, erase
             fs::io::deleteDirectoryRecursively(fs::DEFAULT_SAVE_MOUNT_DEVICE);
@@ -198,12 +198,12 @@ static void restoreBackup(sys::task *task, sys::sharedTaskData sharedData)
             fs::io::copyDirectoryCommit(source, fs::DEFAULT_SAVE_MOUNT_DEVICE, dataIn->journalSize, progress);
         }
     }
-    else if(std::filesystem::is_directory(dataIn->source) == false && fileExtension == "zip")
+    else if (std::filesystem::is_directory(dataIn->source) == false && fileExtension == "zip")
     {
         // Open zip for decompressing
         unzFile unzip = unzOpen64(dataIn->source.c_str());
         // Check if opening was successful and not empty first
-        if(unzip != NULL && fs::zip::zipFileIsNotEmpty(unzip))
+        if (unzip != NULL && fs::zip::zipFileIsNotEmpty(unzip))
         {
             fs::zip::copyZipToDirectory(unzip, fs::DEFAULT_SAVE_MOUNT_DEVICE, dataIn->journalSize, progress);
         }
@@ -244,22 +244,21 @@ static void deleteBackup(sys::task *task, sys::sharedTaskData sharedData)
     task->finished();
 }
 
-backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) :
-m_CurrentUser(currentUser), 
-m_CurrentUserSaveInfo(currentUserSaveInfo), 
-m_CurrentTitleInfo(currentTitleInfo),
-m_BackupMenuControlGuide(ui::strings::getString(FOLDER_MENU_CONTROL_GUIDE, 0)),
-m_OutputBasePath(config::getWorkingDirectory() + m_CurrentTitleInfo->getPathSafeTitle() + "/"),
-m_PanelWidth(graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18)),
-m_BackupPanel(std::make_unique<ui::slidePanel>(BACKUP_PANEL_NAME, m_PanelWidth + 64, ui::PANEL_SIDE_RIGHT)),
-m_BackupListing(std::make_unique<fs::directoryListing>(m_OutputBasePath)),
-m_SaveListing(std::make_unique<fs::directoryListing>(fs::DEFAULT_SAVE_MOUNT_DEVICE)),
-m_BackupMenu(std::make_unique<ui::menu>(10, 4, m_PanelWidth + 44, 18, 6))
+backupMenuState::backupMenuState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser),
+                                                                                                                                        m_CurrentUserSaveInfo(currentUserSaveInfo),
+                                                                                                                                        m_CurrentTitleInfo(currentTitleInfo),
+                                                                                                                                        m_BackupMenuControlGuide(ui::strings::getString(FOLDER_MENU_CONTROL_GUIDE, 0)),
+                                                                                                                                        m_OutputBasePath(config::getWorkingDirectory() + m_CurrentTitleInfo->getPathSafeTitle() + "/"),
+                                                                                                                                        m_PanelWidth(graphics::systemFont::getTextWidth(m_BackupMenuControlGuide, 18)),
+                                                                                                                                        m_BackupPanel(std::make_unique<ui::slidePanel>(BACKUP_PANEL_NAME, m_PanelWidth + 64, ui::PANEL_SIDE_RIGHT)),
+                                                                                                                                        m_BackupListing(std::make_unique<fs::directoryListing>(m_OutputBasePath)),
+                                                                                                                                        m_SaveListing(std::make_unique<fs::directoryListing>(fs::DEFAULT_SAVE_MOUNT_DEVICE)),
+                                                                                                                                        m_BackupMenu(std::make_unique<ui::menu>(10, 4, m_PanelWidth + 44, 18, 6))
 {
     // Make sure path exists
     std::filesystem::create_directories(m_OutputBasePath);
     // Render target that menu is rendered to
-    m_BackupMenuRenderTarget = graphics::textureManager::createTexture(BACKUP_MENU_TARGET_NAME, m_PanelWidth + 64, 720, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+    m_BackupMenuRenderTarget = graphics::textureManager::createTexture(BACKUP_MENU_TARGET_NAME, m_PanelWidth + 64, 647, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
     // Call this just to be sure.
     backupMenuState::loadDirectoryList();
 }
@@ -320,7 +319,7 @@ void backupMenuState::update(void)
 
         // Setup confirmation arg pointer
         std::shared_ptr<pathData> paths = std::make_shared<pathData>();
-        paths->source = m_BackupListing->getFullPathToItemAt(selected - 1); // Need to subtract one to account for 'New' option
+        paths->source = m_BackupListing->getFullPathToItemAt(selected - 1);                                                                            // Need to subtract one to account for 'New' option
         paths->journalSize = m_CurrentTitleInfo->getJournalSize(static_cast<FsSaveDataType>(m_CurrentUserSaveInfo->getSaveDataInfo().save_data_type)); // Needed to prevent commit errors
 
         // Create confirmation

@@ -30,39 +30,39 @@ bool compareTitles(const data::userSaveInfo &a, const data::userSaveInfo &b)
     data::titleInfo *titleInfoB = data::getTitleInfoByTitleID(b.getTitleID());
     switch (config::getByKey(CONFIG_TITLE_SORT_TYPE))
     {
-    case config::SORT_TYPE_ALPHA:
-    {
-        uint32_t codepointA, codepointB;
-        std::string titleA = titleInfoA->getTitle();
-        std::string titleB = titleInfoB->getTitle();
-        int titleLength = titleA.length();
-        for (int i = 0, j = 0; i < titleLength;)
+        case config::SORT_TYPE_ALPHA:
         {
-            ssize_t aCount = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA.c_str()[i]));
-            ssize_t bCount = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB.c_str()[j]));
-            codepointA = std::tolower(codepointA);
-            codepointB = std::tolower(codepointB);
-            if (codepointA != codepointB)
+            uint32_t codepointA, codepointB;
+            std::string titleA = titleInfoA->getTitle();
+            std::string titleB = titleInfoB->getTitle();
+            int titleLength = titleA.length();
+            for (int i = 0, j = 0; i < titleLength;)
             {
-                return codepointA < codepointB;
+                ssize_t aCount = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA.c_str()[i]));
+                ssize_t bCount = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB.c_str()[j]));
+                codepointA = std::tolower(codepointA);
+                codepointB = std::tolower(codepointB);
+                if (codepointA != codepointB)
+                {
+                    return codepointA < codepointB;
+                }
+                i += aCount;
+                j += bCount;
             }
-            i += aCount;
-            j += bCount;
         }
-    }
-    break;
+        break;
 
-    case config::SORT_TYPE_MOST_PLAYED:
-    {
-        return a.getPlayStatistics().playtime > b.getPlayStatistics().playtime;
-    }
-    break;
+        case config::SORT_TYPE_MOST_PLAYED:
+        {
+            return a.getPlayStatistics().playtime > b.getPlayStatistics().playtime;
+        }
+        break;
 
-    case config::SORT_TYPE_LAST_PLAYED:
-    {
-        return a.getPlayStatistics().last_timestamp_user > b.getPlayStatistics().last_timestamp_user;
-    }
-    break;
+        case config::SORT_TYPE_LAST_PLAYED:
+        {
+            return a.getPlayStatistics().last_timestamp_user > b.getPlayStatistics().last_timestamp_user;
+        }
+        break;
     }
     return false;
 }
@@ -115,10 +115,10 @@ data::user::user(AccountUid accountID, data::userType userType) : m_AccountID(ac
 }
 
 data::user::user(AccountUid accountID, const std::string &username, const std::string &pathSafeUsername, data::userType userType) : m_AccountID(accountID),
-                                                                                                           m_Username(username),
-                                                                                                           m_PathSafeUsername(pathSafeUsername),
-                                                                                                           m_Icon(graphics::createIcon(m_Username, m_Username, 42)),
-                                                                                                           m_UserType(userType) {}
+                                                                                                                                    m_Username(username),
+                                                                                                                                    m_PathSafeUsername(pathSafeUsername),
+                                                                                                                                    m_Icon(graphics::createIcon(m_Username, m_Username, 42)),
+                                                                                                                                    m_UserType(userType) {}
 
 void data::user::addNewUserSaveInfo(uint64_t titleID, const FsSaveDataInfo &saveInfo, const PdmPlayStatistics &playStats)
 {
@@ -160,7 +160,7 @@ graphics::sdlTexture data::user::getUserIcon(void) const
     return m_Icon;
 }
 
-data::userType data::user::getUserType(void) const 
+data::userType data::user::getUserType(void) const
 {
     return m_UserType;
 }

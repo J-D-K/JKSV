@@ -9,8 +9,7 @@
 #include "stringUtil.hpp"
 #include "log.hpp"
 
-data::titleInfo::titleInfo(uint64_t titleID) : 
-m_TitleID(titleID)
+data::titleInfo::titleInfo(uint64_t titleID) : m_TitleID(titleID)
 {
     // This is the size of the control data. Used for getting icon size
     uint64_t nsAppControlSize = 0;
@@ -22,7 +21,7 @@ m_TitleID(titleID)
     std::string titleIDHexString = stringUtil::getFormattedString("%016lX", m_TitleID);
 
     Result nsAppControlRes = nsGetApplicationControlData(NsApplicationControlSource_Storage, m_TitleID, nsAppConrolData.get(), sizeof(NsApplicationControlData), &nsAppControlSize);
-    if(R_SUCCEEDED(nsAppControlRes) && !(nsAppControlSize < sizeof(nsAppConrolData->nacp)))
+    if (R_SUCCEEDED(nsAppControlRes) && !(nsAppControlSize < sizeof(nsAppConrolData->nacp)))
     {
         appIconSize = nsAppControlSize - sizeof(nsAppConrolData->nacp);
 
@@ -49,7 +48,7 @@ std::string data::titleInfo::getTitle(void)
     NacpLanguageEntry *entry;
     nacpGetLanguageEntry(&m_Nacp, &entry);
     // If it fails, return title ID as hex string
-    if(entry == NULL)
+    if (entry == NULL)
     {
         return stringUtil::getFormattedString("%016lX", m_TitleID);
     }
@@ -62,7 +61,7 @@ std::string data::titleInfo::getPathSafeTitle(void)
     // Try to get a pathSafeTitle
     std::string pathSafeTitle = stringUtil::getPathSafeString(data::titleInfo::getTitle());
     // If that fails, it will be empty. Just return ID hex string
-    if(pathSafeTitle.empty())
+    if (pathSafeTitle.empty())
     {
         return stringUtil::getFormattedString("%016lX", m_TitleID);
     }
@@ -77,7 +76,7 @@ graphics::sdlTexture data::titleInfo::getIcon(void)
 int64_t data::titleInfo::getSaveDataSize(FsSaveDataType saveType)
 {
     int64_t saveDataSize = 0;
-    switch(saveType)
+    switch (saveType)
     {
         case FsSaveDataType_Account:
         {
@@ -110,7 +109,7 @@ int64_t data::titleInfo::getSaveDataSizeMax(FsSaveDataType saveType)
     int64_t saveSize = 0;
     int64_t saveSizeMax = 0;
 
-    switch(saveType)
+    switch (saveType)
     {
         case FsSaveDataType_Account:
         {
@@ -148,7 +147,7 @@ int64_t data::titleInfo::getJournalSize(FsSaveDataType saveType)
     int64_t journalSize = 0;
 
     // Different save types have different journal limits
-    switch(saveType)
+    switch (saveType)
     {
         case FsSaveDataType_Account:
         {

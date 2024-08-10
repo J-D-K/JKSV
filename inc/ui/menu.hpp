@@ -48,6 +48,8 @@ namespace ui
             bool m_ColorShift = true;
             // Amount to add/subtract from color to pulse
             int m_ColorMod = 0;
+            // Render target for menu options
+            graphics::sdlTexture m_OptionRenderTarget;
 
         private:
             // Vector of options

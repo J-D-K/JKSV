@@ -15,7 +15,7 @@ namespace
     const double PROG_BAR_WIDTH = 648.0f;
     const int PROG_BAR_X = 312;
     const int PROG_BAR_Y = 471;
-    //static const int PROG_BAR_WIDTH = 484; Where'd this come from? Try to figure it out later...
+    // static const int PROG_BAR_WIDTH = 484; Where'd this come from? Try to figure it out later...
     const int PROG_BAR_HEIGHT = 32;
     // These are for the status string
     const int STATUS_TEXT_X = PROG_DIALOG_X + 16;
@@ -27,14 +27,13 @@ namespace
     const int PROGRESS_STATUS_FONT_SIZE = 18;
 }
 
-progressState::progressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData) : 
-m_Task(std::make_unique<sys::progressTask>(threadFunction, sharedData)) { }
+progressState::progressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData) : m_Task(std::make_unique<sys::progressTask>(threadFunction, sharedData)) {}
 
-progressState::~progressState() { }
+progressState::~progressState() {}
 
 void progressState::update(void)
 {
-    if(m_Task->isRunning() == false)
+    if (m_Task->isRunning() == false)
     {
         appState::deactivateState();
     }
@@ -63,7 +62,7 @@ void progressState::render()
     graphics::renderRect(NULL, PROG_BAR_X, PROG_BAR_Y, PROG_BAR_WIDTH, PROG_BAR_HEIGHT, COLOR_BLACK);
     graphics::renderRect(NULL, PROG_BAR_X, PROG_BAR_Y, m_BarWidth, PROG_BAR_HEIGHT, COLOR_GREEN);
     graphics::systemFont::renderTextWrap(m_TaskStatus, NULL, STATUS_TEXT_X, STATUS_TEXT_Y, STATUS_TEXT_FONT_SIZE, STATUS_TEXT_MAX_WIDTH, COLOR_WHITE); // Status
-    graphics::systemFont::renderText(m_ProgressStatus, NULL, m_ProgressStatusX, PROGRESS_STATUS_Y, PROGRESS_STATUS_FONT_SIZE, COLOR_WHITE); // Actual progress
+    graphics::systemFont::renderText(m_ProgressStatus, NULL, m_ProgressStatusX, PROGRESS_STATUS_Y, PROGRESS_STATUS_FONT_SIZE, COLOR_WHITE);            // Actual progress
 }
 
 void createAndPushNewProgressState(sys::taskFunction threadFunction, sys::sharedTaskData sharedData)

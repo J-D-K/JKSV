@@ -11,7 +11,7 @@ namespace data
 {
     // Makes stuff easier to type.
     using titleMap = std::unordered_map<uint64_t, data::titleInfo>;
-
+    
     // Loads users and titles from switch records. This is the initial loading routine and can run as a task.
     bool init(void);
     // Loads save data for users

@@ -42,14 +42,15 @@ static u128 accountUIDToU128(AccountUid accountID)
 // Same as above, but reversed
 static AccountUid u128ToAccountUID(u128 accountID)
 {
-    return (AccountUid){ (uint64_t)(accountID >> 64), (uint64_t)accountID };
+    return (AccountUid){(uint64_t)(accountID >> 64), (uint64_t)accountID};
 }
 
 // Checks if user exists in vector
 static bool userExistsInVector(u128 accountID)
 {
     // This is kind of hard to follow, but search the vector and see if accountID exists
-    auto findUser = std::find_if(s_UserVector.begin(), s_UserVector.end(), [accountID] ( const userIDPair &userPair ) { return userPair.first == accountID; } );
+    auto findUser = std::find_if(s_UserVector.begin(), s_UserVector.end(), [accountID](const userIDPair &userPair)
+                                 { return userPair.first == accountID; });
     return findUser != s_UserVector.end();
 }
 
@@ -74,7 +75,7 @@ static bool isAccountSystemSave(const FsSaveDataInfo &saveDataInfo)
 {
     uint8_t saveDataType = saveDataInfo.save_data_type;
     u128 accountID = accountUIDToU128(saveDataInfo.uid);
-    if(saveDataType == FsSaveDataType_System && accountID != 0)
+    if (saveDataType == FsSaveDataType_System && accountID != 0)
     {
         return true;
     }
@@ -114,7 +115,7 @@ bool data::init(void)
     NsApplicationRecord currentRecord;
     int entryCount = 0;
     int entryOffset = 0;
-    while(R_SUCCEEDED(nsListApplicationRecord(&currentRecord, 1, entryOffset++, &entryCount)) && entryCount > 0)
+    while (R_SUCCEEDED(nsListApplicationRecord(&currentRecord, 1, entryOffset++, &entryCount)) && entryCount > 0)
     {
         // This is logged for when JKSV gets stuck on things
         logger::log("Add title 0x%016lX.", currentRecord.application_id);
@@ -127,7 +128,7 @@ bool data::init(void)
 void data::loadUserSaveInfo(void)
 {
     // Clear userSaveInfo before JIC
-    for(auto &u : s_UserVector)
+    for (auto &u : s_UserVector)
     {
         u.second.clearUserSaveInfo();
     }
@@ -138,18 +139,18 @@ void data::loadUserSaveInfo(void)
     int64_t entries = 0;
 
     Result openSaveInfoReader = fsOpenSaveDataInfoReader(&saveDataInfoReader, FsSaveDataSpaceId_All);
-    if(R_FAILED(openSaveInfoReader))
+    if (R_FAILED(openSaveInfoReader))
     {
         logger::log("fsOpenSaveDataInfoReader failed: 0x%X", openSaveInfoReader);
         return;
     }
 
     // Loop and load all saves and push them to users
-    while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&saveDataInfoReader, &saveDataInfo, 1, &entries)) && entries > 0)
+    while (R_SUCCEEDED(fsSaveDataInfoReaderRead(&saveDataInfoReader, &saveDataInfo, 1, &entries)) && entries > 0)
     {
         // Title id depends on save type
         uint64_t titleID = 0;
-        if(saveDataInfo.save_data_type == FsSaveDataType_System || saveDataInfo.save_data_type == FsSaveDataType_SystemBcat)
+        if (saveDataInfo.save_data_type == FsSaveDataType_System || saveDataInfo.save_data_type == FsSaveDataType_SystemBcat)
         {
             titleID = saveDataInfo.system_save_data_id;
         }
@@ -159,14 +160,14 @@ void data::loadUserSaveInfo(void)
         }
 
         // Just in case it doesn't have and entry
-        if(titleIsLoadedInMap(titleID) == false)
+        if (titleIsLoadedInMap(titleID) == false)
         {
             logger::log("Save found for for title not in records: 0x%016lX", titleID);
             s_TitleMap.emplace(std::make_pair(titleID, data::titleInfo(titleID)));
         }
 
         // Just skip this stuff. Comes after above JIC we need to load something.
-        if(isAccountSystemSave(saveDataInfo) && config::getByKey(CONFIG_LIST_ACCOUNT_SYSTEM_SAVES) == false)
+        if (isAccountSystemSave(saveDataInfo) && config::getByKey(CONFIG_LIST_ACCOUNT_SYSTEM_SAVES) == false)
         {
             continue;
         }
@@ -189,7 +190,7 @@ void data::loadUserSaveInfo(void)
             case FsSaveDataType_Temporary:
             {
                 // This is special for compatibility just in case.
-                if(userExistsInVector(TEMPORARY_SAVE_USER_ID) == false)
+                if (userExistsInVector(TEMPORARY_SAVE_USER_ID) == false)
                 {
                     createAddSystemUser(TEMPORARY_SAVE_USER_ID);
                 }
@@ -206,7 +207,7 @@ void data::loadUserSaveInfo(void)
             // I've never seen this used before...
             case FsSaveDataType_SystemBcat:
             {
-                if(userExistsInVector(SYSTEM_BCAT_USER_ID) == false)
+                if (userExistsInVector(SYSTEM_BCAT_USER_ID) == false)
                 {
                     createAddSystemUser(SYSTEM_BCAT_USER_ID);
                 }
@@ -217,7 +218,7 @@ void data::loadUserSaveInfo(void)
 
         // Play stats
         PdmPlayStatistics playStatistics;
-        if(saveDataInfo.save_data_type == FsSaveDataType_Account || saveDataInfo.save_data_type == FsSaveDataType_Device)
+        if (saveDataInfo.save_data_type == FsSaveDataType_Account || saveDataInfo.save_data_type == FsSaveDataType_Device)
         {
             pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(titleID, saveDataInfo.uid, false, &playStatistics);
         }
@@ -228,7 +229,7 @@ void data::loadUserSaveInfo(void)
 
         // Finally push it to user
         data::user *targetUser = data::getUserByAccountID(accountUIDToU128(saveDataInfo.uid));
-        if(targetUser != NULL)
+        if (targetUser != NULL)
         {
             targetUser->addNewUserSaveInfo(titleID, saveDataInfo, playStatistics);
         }
@@ -240,7 +241,7 @@ void data::loadUserSaveInfo(void)
 
 void data::sortUserSaveInfo(void)
 {
-    for(userIDPair &userPair : s_UserVector)
+    for (userIDPair &userPair : s_UserVector)
     {
         userPair.second.sortUserSaveInfo();
     }
@@ -253,8 +254,9 @@ int data::getTotalUsers(void)
 
 data::user *data::getUserByAccountID(u128 accountID)
 {
-    auto userPosition = std::find_if(s_UserVector.begin(), s_UserVector.end(), [accountID](const userIDPair &u){ return u.first == accountID; });
-    if(userPosition != s_UserVector.end())
+    auto userPosition = std::find_if(s_UserVector.begin(), s_UserVector.end(), [accountID](const userIDPair &u)
+                                     { return u.first == accountID; });
+    if (userPosition != s_UserVector.end())
     {
         return &userPosition->second;
     }
@@ -263,7 +265,7 @@ data::user *data::getUserByAccountID(u128 accountID)
 
 data::user *data::getUserAtPosition(int position)
 {
-    if(position >= 0 && position < static_cast<int>(s_UserVector.size()))
+    if (position >= 0 && position < static_cast<int>(s_UserVector.size()))
     {
         return &s_UserVector.at(position).second;
     }
@@ -282,7 +284,7 @@ int data::getTotalTitleCount(void)
 
 data::titleInfo *data::getTitleInfoByTitleID(uint64_t titleID)
 {
-    if(s_TitleMap.find(titleID) != s_TitleMap.end())
+    if (s_TitleMap.find(titleID) != s_TitleMap.end())
     {
         return &s_TitleMap.at(titleID);
     }

@@ -57,7 +57,7 @@ struct titleOptsData : sys::taskData
 // This was needed to debug something. Only one for now.
 void resetSaveData(sys::task *task, sys::sharedTaskData sharedData)
 {
-    if(sharedData == nullptr)
+    if (sharedData == nullptr)
     {
         task->finished();
         return;
@@ -68,11 +68,11 @@ void resetSaveData(sys::task *task, sys::sharedTaskData sharedData)
 
     // Set status
     task->setThreadStatus(ui::strings::getString(THREAD_STATUS_RESETTING_SAVE, 0));
-    
+
     // Cast args
     std::shared_ptr<titleOptsData> dataIn = std::static_pointer_cast<titleOptsData>(sharedData);
 
-    if(fs::mountSaveData(dataIn->currentUserSaveInfo->getSaveDataInfo()))
+    if (fs::mountSaveData(dataIn->currentUserSaveInfo->getSaveDataInfo()))
     {
         // Erase save data in container
         // To do: remove_all keeps failing if the folder has sub dirs. Maybe I should just stick with my own?
@@ -94,21 +94,20 @@ void resetSaveData(sys::task *task, sys::sharedTaskData sharedData)
     task->finished();
 }
 
-titleOptionState::titleOptionState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : 
-m_CurrentUser(currentUser), 
-m_CurrentUserSaveInfo(currentUserSaveInfo), 
-m_CurrentTitleInfo(currentTitleInfo),
-m_SlidePanel(std::make_unique<ui::slidePanel>(PANEL_RENDER_TARGET_NAME, PANEL_WIDTH, ui::PANEL_SIDE_RIGHT)),
-m_OptionsMenu(std::make_unique<ui::menu>(MENU_X, MENU_Y, MENU_WIDTH, MENU_FONT_SIZE, MENU_SCROLL_LENGTH))
+titleOptionState::titleOptionState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser),
+                                                                                                                                          m_CurrentUserSaveInfo(currentUserSaveInfo),
+                                                                                                                                          m_CurrentTitleInfo(currentTitleInfo),
+                                                                                                                                          m_SlidePanel(std::make_unique<ui::slidePanel>(PANEL_RENDER_TARGET_NAME, PANEL_WIDTH, ui::PANEL_SIDE_RIGHT)),
+                                                                                                                                          m_OptionsMenu(std::make_unique<ui::menu>(MENU_X, MENU_Y, MENU_WIDTH, MENU_FONT_SIZE, MENU_SCROLL_LENGTH))
 {
     // Setup menu
-    for(int i = 0; i < 9; i++)
+    for (int i = 0; i < 9; i++)
     {
         m_OptionsMenu->addOption(ui::strings::getString(TITLE_OPTIONS_MENU_STRINGS, i));
     }
 }
 
-titleOptionState::~titleOptionState() { }
+titleOptionState::~titleOptionState() {}
 
 void titleOptionState::update(void)
 {
@@ -116,9 +115,9 @@ void titleOptionState::update(void)
     m_SlidePanel->update();
     m_OptionsMenu->update();
 
-    if(sys::input::buttonDown(HidNpadButton_A))
+    if (sys::input::buttonDown(HidNpadButton_A))
     {
-        switch(m_OptionsMenu->getSelected())
+        switch (m_OptionsMenu->getSelected())
         {
             // This is needed to debug something... and itself.
             case RESET_SAVE_DATA:
@@ -142,11 +141,11 @@ void titleOptionState::update(void)
             break;
         }
     }
-    else if(sys::input::buttonDown(HidNpadButton_B))
+    else if (sys::input::buttonDown(HidNpadButton_B))
     {
         m_SlidePanel->closePanel();
     }
-    else if(m_SlidePanel->isClosed())
+    else if (m_SlidePanel->isClosed())
     {
         appState::deactivateState();
     }

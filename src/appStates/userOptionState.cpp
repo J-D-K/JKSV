@@ -1,6 +1,7 @@
 #include "appStates/userOptionState.hpp"
 #include "appStates/progressState.hpp"
 #include "appStates/saveCreateState.hpp"
+#include "appStates/confirmState.hpp"
 #include "system/progressTask.hpp"
 #include "filesystem/filesystem.hpp"
 #include "jksv.hpp"
@@ -17,6 +18,7 @@ namespace
     const std::string OPTION_MENU_STRING_NAME = "userOptions";
     const std::string THREAD_STATUS_CREATING_SAVE_DATA = "threadStatusCreatingSaveData";
     const std::string THREAD_STATUS_DELETING_SAVE_DATA = "threadStatusDeletingSaveData";
+    const std::string CONFIRM_DELETE_ALL_USER_SAVES = "saveDataDeleteAllUser";
     // Enum for menu opts
     enum
     {
@@ -81,7 +83,7 @@ void dumpAllForUser(sys::task *task, sys::sharedTaskData sharedData)
 
 void createAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
 {
-    if(sharedData == nullptr)
+    if (sharedData == nullptr)
     {
         task->finished();
         return;
@@ -94,9 +96,9 @@ void createAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
     data::titleMap &titleMap = data::getTitleMap();
 
     // Loop through map. Have to be careful though.
-    for(auto &currentTitle : titleMap)
+    for (auto &currentTitle : titleMap)
     {
-        if(dataIn->currentUser->getUserType() == data::userType::TYPE_USER && currentTitle.second.hasAccountSaveData())
+        if (dataIn->currentUser->getUserType() == data::userType::TYPE_USER && currentTitle.second.hasAccountSaveData())
         {
             // Set status string.
             std::string threadStatus = stringUtil::getFormattedString(ui::strings::getCString(THREAD_STATUS_CREATING_SAVE_DATA, 0), currentTitle.second.getTitle().c_str());
@@ -114,7 +116,7 @@ void createAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
 
 void deleteAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
 {
-    if(sharedData == nullptr)
+    if (sharedData == nullptr)
     {
         task->finished();
         return;
@@ -124,7 +126,7 @@ void deleteAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
 
     // Loop through and nuke them
     int totalUserSaves = dataIn->currentUser->getTotalUserSaveInfo();
-    for(int i = 0; i < totalUserSaves; i++)
+    for (int i = 0; i < totalUserSaves; i++)
     {
         // Save info is needed first for titleID
         data::userSaveInfo *currentUserSaveInfo = dataIn->currentUser->getUserSaveInfoAt(i);
@@ -171,60 +173,75 @@ void userOptionState::update(void)
     {
         switch (m_OptionsMenu->getSelected())
         {
-            case OPTION_BACKUP_ALL_FOR_USER:
-            {
-                // Data to send
-                std::shared_ptr<userOptionData> optionsData = std::make_shared<userOptionData>();
-                optionsData->currentUser = m_CurrentUser;
-                // Push new state/task
-                createAndPushNewProgressState(dumpAllForUser, optionsData);
-            }
-            break;
+        case OPTION_BACKUP_ALL_FOR_USER:
+        {
+            // Data to send
+            std::shared_ptr<userOptionData> optionsData = std::make_shared<userOptionData>();
+            optionsData->currentUser = m_CurrentUser;
+            // Push new state/task
+            createAndPushNewProgressState(dumpAllForUser, optionsData);
+        }
+        break;
 
-            case OPTION_CREATE_SAVE_DATA:
+        case OPTION_CREATE_SAVE_DATA:
+        {
+            // What save type we're working with. Using UserID to figure it out.
+            FsSaveDataType saveDataType;
+            switch (m_CurrentUser->getAccountIDU128())
             {
-                // What save type we're working with. Using UserID to figure it out.
-                FsSaveDataType saveDataType;
-                if (m_CurrentUser->getAccountIDU128() == 2)
+                case 2:
                 {
                     saveDataType = FsSaveDataType_Bcat;
                 }
-                else if (m_CurrentUser->getAccountIDU128() == 3)
+                break;
+
+                case 3:
                 {
                     saveDataType = FsSaveDataType_Device;
                 }
-                else if (m_CurrentUser->getAccountIDU128() == 5)
+                break;
+
+                case 5:
                 {
                     saveDataType = FsSaveDataType_Cache;
                 }
-                else
+                break;
+
+                default:
                 {
                     saveDataType = FsSaveDataType_Account;
                 }
-
-                // Push the state
-                std::unique_ptr<appState> saveCreationState = std::make_unique<saveCreateState>(m_CurrentUser, saveDataType);
-                jksv::pushNewState(saveCreationState);
+                break;
             }
-            break;
 
-            case OPTION_CREATE_ALL_SAVE_DATA: // This needs to be fixed up...
-            {
-                std::shared_ptr<userOptionData> userData = std::make_shared<userOptionData>();
-                userData->currentUser = m_CurrentUser;
+            // Push the state
+            std::unique_ptr<appState> saveCreationState = std::make_unique<saveCreateState>(m_CurrentUser, saveDataType);
+            jksv::pushNewState(saveCreationState);
+        }
+        break;
 
-                createAndPushNewTask(createAllSaveDataForUser, userData);
-            }
-            break;
+        case OPTION_CREATE_ALL_SAVE_DATA: // This needs to be fixed up...
+        {
+            std::shared_ptr<userOptionData> userData = std::make_shared<userOptionData>();
+            userData->currentUser = m_CurrentUser;
 
-            case OPTION_DELETE_ALL_SAVES_FOR_USER:
-            {
-                std::shared_ptr<userOptionData> userData = std::make_shared<userOptionData>();
-                userData->currentUser = m_CurrentUser;
+            createAndPushNewTask(createAllSaveDataForUser, userData);
+        }
+        break;
 
-                createAndPushNewTask(deleteAllSaveDataForUser, userData);
-            }
-            break;
+        case OPTION_DELETE_ALL_SAVES_FOR_USER:
+        {
+            // Create confirmation string
+            std::string confirmDeleteAll = stringUtil::getFormattedString(ui::strings::getCString(CONFIRM_DELETE_ALL_USER_SAVES, 0), m_CurrentUser->getUsername().c_str());
+
+            // Shared data
+            std::shared_ptr<userOptionData> userData = std::make_shared<userOptionData>();
+            userData->currentUser = m_CurrentUser;
+
+            // Confirm it first.
+            confirmAction(confirmDeleteAll, deleteAllSaveDataForUser, userData, sys::taskTypes::TASK_TYPE_TASK);
+        }
+        break;
         }
     }
     else if (sys::input::buttonDown(HidNpadButton_B))
