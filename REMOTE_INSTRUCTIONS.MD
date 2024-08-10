@@ -46,7 +46,7 @@
     }
     ```
    - `origin` (mandatory): protocol + serveraddress + (optional port), e.g. `https://your-webdav-server` or `http://localhost:8080` - **No trailing slash**
-   - `basepath` (optional): e.g. `dir`, `dir/subdir` must exist beforehand - **No leading AND trailing slash**
+   - `basepath` (optional): e.g. `dir`, `dir/subdir` must exist beforehand - **No leading AND trailing slash** - if your path uses special characters or spaces, they must be on URI encoding, by example `Game Saves` should be stored as `Game%20Saves`.
    - `username` (optional): username, if server uses credentials
    - `password` (optional): username, if server uses credentials
 2. Copy file to following folder on your card `SD:/config/JKSV/`
