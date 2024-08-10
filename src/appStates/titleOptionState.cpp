@@ -15,15 +15,7 @@
 namespace
 {
     // Texture/target names
-    const char *PANEL_RENDER_TARGET_NAME = "titleOptionPanel";
-
-    // Dimensions and coordinates for panel and menu
-    const int PANEL_WIDTH = 410;
-    const int MENU_X = 10;
-    const int MENU_Y = 32;
-    const int MENU_WIDTH = 390;
-    const int MENU_FONT_SIZE = 20;
-    const int MENU_SCROLL_LENGTH = 7;
+    const std::string PANEL_RENDER_TARGET_NAME = "titleOptionPanel";
     // Strings
     const std::string CONFIRM_RESET_SAVE_DATA = "confirmResetSaveData";
     const std::string THREAD_STATUS_RESETTING_SAVE = "threadStatusResettingSaveData";
@@ -97,8 +89,8 @@ void resetSaveData(sys::task *task, sys::sharedTaskData sharedData)
 titleOptionState::titleOptionState(data::user *currentUser, data::userSaveInfo *currentUserSaveInfo, data::titleInfo *currentTitleInfo) : m_CurrentUser(currentUser),
                                                                                                                                           m_CurrentUserSaveInfo(currentUserSaveInfo),
                                                                                                                                           m_CurrentTitleInfo(currentTitleInfo),
-                                                                                                                                          m_SlidePanel(std::make_unique<ui::slidePanel>(PANEL_RENDER_TARGET_NAME, PANEL_WIDTH, ui::PANEL_SIDE_RIGHT)),
-                                                                                                                                          m_OptionsMenu(std::make_unique<ui::menu>(MENU_X, MENU_Y, MENU_WIDTH, MENU_FONT_SIZE, MENU_SCROLL_LENGTH))
+                                                                                                                                          m_SlidePanel(std::make_unique<ui::slidePanel>(PANEL_RENDER_TARGET_NAME, 410, ui::PANEL_SIDE_RIGHT)),
+                                                                                                                                          m_OptionsMenu(std::make_unique<ui::menu>(8, 8, 390, 20, 7))
 {
     // Setup menu
     for (int i = 0; i < 9; i++)

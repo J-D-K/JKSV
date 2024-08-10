@@ -101,7 +101,7 @@ void createSaveData(sys::task *task, sys::sharedTaskData sharedData)
 
 saveCreateState::saveCreateState(data::user *currentUser, FsSaveDataType saveDataType) : m_CurrentUser(currentUser),
                                                                                          m_SaveCreatePanel(std::make_unique<ui::slidePanel>(PANEL_NAME, 512, ui::PANEL_SIDE_RIGHT)),
-                                                                                         m_SaveCreateMenu(std::make_unique<ui::menu>(8, 32, 492, 20, 6)),
+                                                                                         m_SaveCreateMenu(std::make_unique<ui::menu>(8, 8, 492, 20, 6)),
                                                                                          m_SaveDataType(saveDataType)
 {
     // Get title map

@@ -148,7 +148,7 @@ void deleteAllSaveDataForUser(sys::task *task, sys::sharedTaskData sharedData)
 
 userOptionState::userOptionState(data::user *currentUser) : m_CurrentUser(currentUser),
                                                             m_UserOptionPanel(std::make_unique<ui::slidePanel>(SLIDE_PANEL_NAME, 410, ui::slidePanelSide::PANEL_SIDE_RIGHT)),
-                                                            m_OptionsMenu(std::make_unique<ui::menu>(8, 32, 390, 20, 6))
+                                                            m_OptionsMenu(std::make_unique<ui::menu>(8, 8, 390, 20, 6))
 {
     // First option is special and needs user name
     std::string firstMenuOption = stringUtil::getFormattedString(ui::strings::getCString(OPTION_MENU_STRING_NAME, 0), m_CurrentUser->getUsername().c_str());

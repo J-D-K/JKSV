@@ -29,7 +29,7 @@ namespace
     std::vector<std::unique_ptr<appState>> s_AppStateVector;
     // Name of icon texture
     const std::string ICON_NAME = "appIcon";
-    const std::string ICON_PATH = "romfs:/img/icn/iconWhite.png";
+    const std::string ICON_PATH = "romfs:/img/headIcon.png";
 }
 
 // This is a special struct so I 
