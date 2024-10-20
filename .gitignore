@@ -1,7 +1,9 @@
 build/
 .vscode/
-*.cbp
-*.layout
+
+.clang-format
+.clang-tidy
+.editorconfig
 
 .idea/
 cmake-build-debug/
