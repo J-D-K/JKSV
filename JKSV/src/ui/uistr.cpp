@@ -1,25 +1,25 @@
-#include <string>
 #include <map>
+#include <string>
 
-#include "file.h"
 #include "cfg.h"
+#include "file.h"
 #include "type.h"
-#include "util.h"
 #include "uistr.h"
+#include "util.h"
 
 std::map<std::pair<std::string, int>, std::string> ui::strings;
 
-static void addUIString(const std::string& _name, int ind, const std::string& _str)
+static void addUIString(const std::string &_name, int ind, const std::string &_str)
 {
     ui::strings[std::make_pair(_name, ind)] = _str;
 }
 
-static void loadTranslationFile(const std::string& path)
+static void loadTranslationFile(const std::string &path)
 {
-    if(fs::fileExists(path))
+    if (fs::fileExists(path))
     {
         fs::dataFile lang(path);
-        while(lang.readNextLine(true))
+        while (lang.readNextLine(true))
         {
             std::string name = lang.getName();
             int ind = lang.getNextValueInt();
@@ -32,7 +32,7 @@ static void loadTranslationFile(const std::string& path)
 static std::string getFilename(int lang)
 {
     std::string filename;
-    switch(lang)
+    switch (lang)
     {
         case SetLanguage_JA:
             filename = "ja.txt";
@@ -127,9 +127,16 @@ void ui::initStrings()
     addUIString("confirmRestore", 0, "Are you sure you want to restore #%s#?");
     addUIString("confirmDelete", 0, "Are you sure you want to delete #%s#? *This is permanent*!");
     addUIString("confirmCopy", 0, "Are you sure you want to copy #%s# to #%s#?");
-    addUIString("confirmDeleteSaveData", 0, "*WARNING*: This *will* erase the save data for #%s# *from your system*. Are you sure you want to do this?");
-    addUIString("confirmResetSaveData", 0, "*WARNING*: This *will* reset the save data for this game as if it was never ran before. Are you sure you want to do this?");
-    addUIString("confirmCreateAllSaveData", 0, "Are you sure you would like to create all save data on this system for #%s#? This can take a while depending on how many titles are found.");
+    addUIString("confirmDeleteSaveData",
+                0,
+                "*WARNING*: This *will* erase the save data for #%s# *from your system*. Are you sure you want to do this?");
+    addUIString("confirmResetSaveData",
+                0,
+                "*WARNING*: This *will* reset the save data for this game as if it was never ran before. Are you sure you want to do this?");
+    addUIString("confirmCreateAllSaveData",
+                0,
+                "Are you sure you would like to create all save data on this system for #%s#? This can take a while depending on how many "
+                "titles are found.");
     addUIString("confirmDeleteBackupsTitle", 0, "Are you sure you would like to delete all save backups for #%s#?");
     addUIString("confirmDeleteBackupsAll", 0, "Are you sure you would like to delete *all* of your save backups for all of your games?");
     addUIString("confirmDriveOverwrite", 0, "Downloading this backup from drive will overwrite the one on your SD card. Continue?");
@@ -326,9 +333,9 @@ void ui::loadTrans()
     std::string transTestFile = fs::getWorkDir() + "trans.txt";
     std::string translationFile = "romfs:/lang/" + getFilename(data::sysLang);
     bool transFile = fs::fileExists(transTestFile);
-    if(!transFile && (data::sysLang == SetLanguage_ENUS || data::sysLang == SetLanguage_ENGB || cfg::config["langOverride"]))
+    if (!transFile && (data::sysLang == SetLanguage_ENUS || data::sysLang == SetLanguage_ENGB || cfg::config["langOverride"]))
         ui::initStrings();
-    else if(transFile)
+    else if (transFile)
         loadTranslationFile(transTestFile);
     else
         loadTranslationFile(translationFile);
@@ -355,18 +362,18 @@ void ui::saveTranslationFiles(void *a)
     ui::initStrings();
     outputPath = fs::getWorkDir() + "lang/" + getFilename(SetLanguage_ENUS);
     FILE *out = fopen(outputPath.c_str(), "w");
-    for(auto& s : ui::strings)
+    for (auto &s : ui::strings)
     {
         std::string stringOut = s.second;
-            util::replaceStr(stringOut, "\n", "\\n");
-            fprintf(out, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, stringOut.c_str());
+        util::replaceStr(stringOut, "\n", "\\n");
+        fprintf(out, "%s = %i, \"%s\"\n", s.first.first.c_str(), s.first.second, stringOut.c_str());
     }
     fclose(out);
 
     romfsInit();
-    for(int i = 0; i < SetLanguage_Total; i++)
+    for (int i = 0; i < SetLanguage_Total; i++)
     {
-        if(i == SetLanguage_ENUS)
+        if (i == SetLanguage_ENUS)
             continue;
 
         outputPath = fs::getWorkDir() + "lang/" + getFilename(i);
@@ -377,7 +384,7 @@ void ui::saveTranslationFiles(void *a)
         loadTranslationFile(romfsPath);
 
         out = fopen(outputPath.c_str(), "w");
-        for(auto& s : ui::strings)
+        for (auto &s : ui::strings)
         {
             std::string stringOut = s.second;
             util::replaceStr(stringOut, "\n", "\\n");

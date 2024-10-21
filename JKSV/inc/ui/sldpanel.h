@@ -17,11 +17,27 @@ namespace ui
 
             void resizePanel(int _w, int _h, int _y);
             void update();
-            void setCallback(funcPtr _cb, void *_args) { callback = _cb; cbArgs = _args; }
-            void openPanel() { open = true; }
-            void closePanel() { open = false; }
-            void setX(int _nX){ x = _nX; };
-            bool isOpen() { return open; }
+            void setCallback(funcPtr _cb, void *_args)
+            {
+                callback = _cb;
+                cbArgs = _args;
+            }
+            void openPanel()
+            {
+                open = true;
+            }
+            void closePanel()
+            {
+                open = false;
+            }
+            void setX(int _nX)
+            {
+                x = _nX;
+            };
+            bool isOpen()
+            {
+                return open;
+            }
             void draw(const SDL_Color *backCol);
 
         private:
@@ -32,4 +48,4 @@ namespace ui
             funcPtr drawFunc, callback = NULL;
             void *cbArgs = NULL;
     };
-}
+} // namespace ui

@@ -1,10 +1,10 @@
-#include <switch.h>
 #include <SDL2/SDL.h>
+#include <switch.h>
 
-#include "ui.h"
+#include "cfg.h"
 #include "file.h"
 #include "sett.h"
-#include "cfg.h"
+#include "ui.h"
 #include "util.h"
 
 ui::menu *ui::settMenu;
@@ -16,14 +16,14 @@ static const char *settMenuStr = "settingsMenu";
 
 static unsigned optHelpX = 0;
 
-static inline std::string getBoolText(const bool& b)
+static inline std::string getBoolText(const bool &b)
 {
     return b ? ui::getUIString("settingsOn", 0) : ui::getUIString("settingsOff", 0);
 }
 
-static inline void toggleBool(bool& b)
+static inline void toggleBool(bool &b)
 {
-    if(b)
+    if (b)
         b = false;
     else
         b = true;
@@ -34,7 +34,7 @@ static void blEditMenuPopulate();
 
 static void settMenuCallback(void *a)
 {
-    switch(ui::padKeysDown())
+    switch (ui::padKeysDown())
     {
         case HidNpadButton_B:
             ui::usrMenu->setActive(true);
@@ -54,9 +54,9 @@ static void settMenuDeleteAllBackups_t(void *a)
     t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
 
     fs::dirList *jksvDir = new fs::dirList(fs::getWorkDir());
-    for(unsigned i = 0; i < jksvDir->getCount(); i++)
+    for (unsigned i = 0; i < jksvDir->getCount(); i++)
     {
-        if(jksvDir->isDir(i) && jksvDir->getItem(i) != "svi")
+        if (jksvDir->isDir(i) && jksvDir->getItem(i) != "svi")
         {
             std::string delTarget = fs::getWorkDir() + jksvDir->getItem(i) + "/";
             fs::delDir(delTarget);
@@ -80,7 +80,7 @@ static void blEditDrawFunc(void *a)
 
 static void blEditMenuCallback(void *a)
 {
-    switch(ui::padKeysDown())
+    switch (ui::padKeysDown())
     {
         case HidNpadButton_B:
             ui::updateInput();
@@ -95,7 +95,7 @@ static void blEditMenuRemoveTitle(void *a)
 {
     uint64_t remTID = cfg::blacklist[blEditMenu->getSelected()];
     cfg::removeTitleFromBlacklist(remTID);
-    if(cfg::blacklist.size() > 0)
+    if (cfg::blacklist.size() > 0)
         blEditMenuPopulate();
     else
     {
@@ -108,7 +108,7 @@ static void blEditMenuRemoveTitle(void *a)
 static void blEditMenuPopulate()
 {
     blEditMenu->reset();
-    for(unsigned i = 0; i < cfg::blacklist.size(); i++)
+    for (unsigned i = 0; i < cfg::blacklist.size(); i++)
     {
         blEditMenu->addOpt(NULL, data::getTitleNameByTID(cfg::blacklist[i]));
         blEditMenu->optAddButtonEvent(i, HidNpadButton_A, blEditMenuRemoveTitle, NULL);
@@ -118,7 +118,7 @@ static void blEditMenuPopulate()
 //Todo: this different
 static void toggleOpt(void *a)
 {
-    switch(ui::settMenu->getSelected())
+    switch (ui::settMenu->getSelected())
     {
         case 0:
             fs::delDir(fs::getWorkDir() + "_TRASH_/");
@@ -131,27 +131,27 @@ static void toggleOpt(void *a)
             break;
 
         case 2:
+        {
+            std::string oldWD = fs::getWorkDir();
+            std::string getWD = util::getStringInput(SwkbdType_QWERTY, fs::getWorkDir(), ui::getUIString("swkbdSetWorkDir", 0), 64, 0, NULL);
+            if (!getWD.empty())
             {
-                std::string oldWD = fs::getWorkDir();
-                std::string getWD = util::getStringInput(SwkbdType_QWERTY, fs::getWorkDir(), ui::getUIString("swkbdSetWorkDir", 0), 64, 0, NULL);
-                if(!getWD.empty())
-                {
-                    if(getWD[getWD.length() - 1] != '/')
-                        getWD += "/";
+                if (getWD[getWD.length() - 1] != '/')
+                    getWD += "/";
 
-                    rename(oldWD.c_str(), getWD.c_str());
-                    fs::setWorkDir(getWD);
-                }
+                rename(oldWD.c_str(), getWD.c_str());
+                fs::setWorkDir(getWD);
             }
-            break;
+        }
+        break;
 
         case 3:
-            if(cfg::blacklist.size() > 0)
+            if (cfg::blacklist.size() > 0)
             {
-               blEditMenuPopulate();
-               ui::settMenu->setActive(false);
-               blEditMenu->setActive(true);
-               blEditPanel->openPanel();
+                blEditMenuPopulate();
+                ui::settMenu->setActive(false);
+                blEditMenu->setActive(true);
+                blEditPanel->openPanel();
             }
             break;
 
@@ -216,7 +216,7 @@ static void toggleOpt(void *a)
             break;
 
         case 19:
-            if(++cfg::sortType > 2)
+            if (++cfg::sortType > 2)
                 cfg::sortType = 0;
             data::loadUsersTitles(false);
             ui::ttlRefresh();
@@ -224,7 +224,7 @@ static void toggleOpt(void *a)
 
         case 20:
             ui::animScale += 0.5f;
-            if(ui::animScale > 8)
+            if (ui::animScale > 8)
                 ui::animScale = 1;
             break;
 
@@ -272,7 +272,7 @@ void ui::settInit()
 
     optHelpX = 1220 - gfx::getTextWidth(ui::getUICString("helpSettings", 0), 18);
 
-    for(unsigned i = 0; i < 22; i++)
+    for (unsigned i = 0; i < 22; i++)
     {
         ui::settMenu->addOpt(NULL, ui::getUIString("settingsMenu", i));
         ui::settMenu->optAddButtonEvent(i, HidNpadButton_A, toggleOpt, NULL);
@@ -296,6 +296,6 @@ void ui::settDraw(SDL_Texture *target)
 {
     updateMenuText();
     ui::settMenu->draw(target, &ui::txtCont, true);
-    if(ui::mstate == OPT_MNU)
+    if (ui::mstate == OPT_MNU)
         gfx::drawTextf(NULL, 18, optHelpX, 673, &ui::txtCont, ui::getUICString("helpSettings", 0));
 }

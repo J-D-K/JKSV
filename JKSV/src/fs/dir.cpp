@@ -1,114 +1,107 @@
-#include <switch.h>
-#include <algorithm>
-
-#include "fs.h"
+#include "FsLib.hpp"
 #include "cfg.h"
+#include "fs.h"
 #include "util.h"
+#include <algorithm>
+#include <switch.h>
 
-static struct
+void fs::mkDir(const std::string &_p)
 {
-    bool operator()(const fs::dirItem& a, const fs::dirItem& b)
-    {
-        if(a.isDir() != b.isDir())
-            return a.isDir();
-
-        for(unsigned i = 0; i < a.getItm().length(); i++)
-        {
-            char charA = tolower(a.getItm()[i]);
-            char charB = tolower(b.getItm()[i]);
-            if(charA != charB)
-                return charA < charB;
-        }
-        return false;
-    }
-} sortDirList;
-
-void fs::mkDir(const std::string& _p)
-{
-     if(cfg::config["directFsCmd"])
+    if (cfg::config["directFsCmd"])
         fsMkDir(_p.c_str());
     else
         mkdir(_p.c_str(), 777);
 }
 
-void fs::mkDirRec(const std::string& _p)
+void fs::mkDirRec(const std::string &_p)
 {
     //skip first slash
     size_t pos = _p.find('/', 0) + 1;
-    while((pos = _p.find('/', pos)) != _p.npos)
+    while ((pos = _p.find('/', pos)) != _p.npos)
     {
         fs::mkDir(_p.substr(0, pos).c_str());
         ++pos;
     }
 }
 
-void fs::delDir(const std::string& path)
+void fs::delDir(const std::string &path)
 {
-    dirList list(path);
-    for(unsigned i = 0; i < list.getCount(); i++)
+    FsLib::Directory List(path);
+    for (int64_t i = 0; i < List.GetEntryCount(); i++)
     {
-        if(pathIsFiltered(path + list.getItem(i)))
-            continue;
-
-        if(list.isDir(i))
+        if (pathIsFiltered(path + List.GetEntryNameAt(i)))
         {
-            std::string newPath = path + list.getItem(i) + "/";
-            delDir(newPath);
+            continue;
+        }
 
-            std::string delPath = path + list.getItem(i);
-            rmdir(delPath.c_str());
+        if (List.EntryAtIsDirectory(i))
+        {
+            std::string NewPath = path + List.GetEntryNameAt(i) + "/";
+            // Todo: FsLib needs directory deleting functions.
+            delDir(NewPath);
+            rmdir(NewPath.substr(0, NewPath.length() - 1).c_str());
         }
         else
         {
-            std::string delPath = path + list.getItem(i);
-            std::remove(delPath.c_str());
+            std::string TargetPath = path + List.GetEntryNameAt(i);
+            std::remove(TargetPath.c_str());
         }
     }
     rmdir(path.c_str());
 }
 
-bool fs::dirNotEmpty(const std::string& _dir)
+bool fs::dirNotEmpty(const std::string &_dir)
 {
-    fs::dirList tmp(_dir);
-    return tmp.getCount() > 0;
+    FsLib::Directory TestDir(_dir);
+    return TestDir.GetEntryCount() > 0;
 }
 
-bool fs::isDir(const std::string& _path)
+bool fs::isDir(const std::string &_path)
 {
+    // Todo: FsLib needs a function to perform this.
     struct stat s;
     return stat(_path.c_str(), &s) == 0 && S_ISDIR(s.st_mode);
 }
 
-void fs::copyDirToDir(const std::string& src, const std::string& dst, threadInfo *t)
+void fs::copyDirToDir(const std::string &src, const std::string &dst, threadInfo *t)
 {
-    if(t)
-        t->status->setStatus(ui::getUICString("threadStatusOpeningFolder", 0), src.c_str());
-
-    fs::dirList *list = new fs::dirList(src);
-    for(unsigned i = 0; i < list->getCount(); i++)
+    if (t)
     {
-        if(pathIsFiltered(src + list->getItem(i)))
-            continue;
+        t->status->setStatus(ui::getUICString("threadStatusOpeningFolder", 0), src.c_str());
+    }
 
-        if(list->isDir(i))
+    FsLib::Directory List(src);
+    if (!List.IsOpen() || List.GetEntryCount() <= 0)
+    {
+        return;
+    }
+
+    for (int64_t i = 0; i < List.GetEntryCount(); i++)
+    {
+        if (pathIsFiltered(src + List.GetEntryNameAt(i)))
         {
-            std::string newSrc = src + list->getItem(i) + "/";
-            std::string newDst = dst + list->getItem(i) + "/";
-            fs::mkDir(newDst.substr(0, newDst.length() - 1));
-            fs::copyDirToDir(newSrc, newDst, t);
+            continue;
+        }
+
+        if (List.EntryAtIsDirectory(i))
+        {
+            std::string NewSource = src + List.GetEntryNameAt(i) + "/";
+            std::string NewDestination = dst + List.GetEntryNameAt(i) + "/";
+            fs::mkDir(NewDestination.substr(0, NewDestination.length() - 1));
+            fs::copyDirToDir(NewSource, NewDestination, t);
         }
         else
         {
-            std::string fullSrc = src + list->getItem(i);
-            std::string fullDst = dst + list->getItem(i);
-
-            if(t)
-                t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), fullSrc.c_str());
-
-            fs::copyFile(fullSrc, fullDst, t);
+            std::string FullSource = src + List.GetEntryNameAt(i);
+            std::string FullDestination = dst + List.GetEntryNameAt(i);
+            // Update status if thread data passed. I hate my past self. This is such a mess...
+            if (t)
+            {
+                t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), FullSource.c_str());
+            }
+            fs::copyFile(FullSource, FullDestination, t);
         }
     }
-    delete list;
 }
 
 static void copyDirToDir_t(void *a)
@@ -116,47 +109,57 @@ static void copyDirToDir_t(void *a)
     threadInfo *t = (threadInfo *)a;
     fs::copyArgs *in = (fs::copyArgs *)t->argPtr;
     fs::copyDirToDir(in->src, in->dst, t);
-    if(in->cleanup)
+    if (in->cleanup)
         fs::copyArgsDestroy(in);
     t->finished = true;
 }
 
-void fs::copyDirToDirThreaded(const std::string& src, const std::string& dst)
+void fs::copyDirToDirThreaded(const std::string &src, const std::string &dst)
 {
     fs::copyArgs *send = fs::copyArgsCreate(src, dst, "", NULL, NULL, true, false, 0);
     ui::newThread(copyDirToDir_t, send, fs::fileDrawFunc);
 }
 
-void fs::copyDirToDirCommit(const std::string& src, const std::string& dst, const std::string& dev, threadInfo *t)
+void fs::copyDirToDirCommit(const std::string &src, const std::string &dst, const std::string &dev, threadInfo *t)
 {
-    if(t)
-        t->status->setStatus(ui::getUICString("threadStatusOpeningFolder", 0), src.c_str());
-
-    fs::dirList *list = new fs::dirList(src);
-    for(unsigned i = 0; i < list->getCount(); i++)
+    if (t)
     {
-        if(pathIsFiltered(src + list->getItem(i)))
-            continue;
+        // Todo: Drop this from rewrite. Opening folders is too quick for this to matter. Waste of RAM and string fetching.
+        t->status->setStatus(ui::getUICString("threadStatusOpeningFolder", 0), src.c_str());
+    }
 
-        if(list->isDir(i))
+    FsLib::Directory List(src);
+    if (!List.IsOpen() || List.GetEntryCount() <= 0)
+    {
+        return;
+    }
+
+    for (int64_t i = 0; i < List.GetEntryCount(); i++)
+    {
+        if (pathIsFiltered(src + List.GetEntryNameAt(i)))
         {
-            std::string newSrc = src + list->getItem(i) + "/";
-            std::string newDst = dst + list->getItem(i) + "/";
-            fs::mkDir(newDst.substr(0, newDst.length() - 1));
-            fs::copyDirToDirCommit(newSrc, newDst, dev, t);
+            continue;
+        }
+
+        if (List.EntryAtIsDirectory(i))
+        {
+            std::string NewSource = src + List.GetEntryNameAt(i) + "/";
+            std::string NewDestination = dst + List.GetEntryNameAt(i) + "/";
+            fs::mkDir(NewDestintion.substr(0, NewDestination.length() - 1));
+            fs::copyDirToDirCommit(NewSource, NewDestination, dev, t);
         }
         else
         {
-            std::string fullSrc = src + list->getItem(i);
-            std::string fullDst = dst + list->getItem(i);
+            std::string FullSource = src + List.GetEntryNameAt(i);
+            std::string FullDestination = dst + List.GetEntryNameAt(i);
 
-            if(t)
-                t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), fullSrc.c_str());
-
-            fs::copyFileCommit(fullSrc, fullDst, dev, t);
+            if (t)
+            {
+                t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), FullSource.c_str());
+            }
+            fs::copyFileCommit(FullSource, FullDestination, dev, t);
         }
     }
-    delete list;
 }
 
 static void copyDirToDirCommit_t(void *a)
@@ -164,107 +167,37 @@ static void copyDirToDirCommit_t(void *a)
     threadInfo *t = (threadInfo *)a;
     fs::copyArgs *in = (fs::copyArgs *)t->argPtr;
     fs::copyDirToDirCommit(in->src, in->dst, in->dev, t);
-    if(in->cleanup)
+    if (in->cleanup)
         fs::copyArgsDestroy(in);
     t->finished = true;
 }
 
-void fs::copyDirToDirCommitThreaded(const std::string& src, const std::string& dst, const std::string& dev)
+void fs::copyDirToDirCommitThreaded(const std::string &src, const std::string &dst, const std::string &dev)
 {
     fs::copyArgs *send = fs::copyArgsCreate(src, dst, dev, NULL, NULL, true, false, 0);
     ui::newThread(copyDirToDirCommit_t, send, fs::fileDrawFunc);
 }
 
-void fs::getDirProps(const std::string& path, unsigned& dirCount, unsigned& fileCount, uint64_t& totalSize)
+void fs::getDirProps(const std::string &path, unsigned &dirCount, unsigned &fileCount, uint64_t &totalSize)
 {
-    fs::dirList *d = new fs::dirList(path);
-    for(unsigned i = 0; i < d->getCount(); i++)
+    FsLib::Directory List(path);
+    if (!List.IsOpen() || List.GetEntryCount() <= 0)
     {
-        if(d->isDir(i))
+        return;
+    }
+
+    for (int64_t i = 0; i < List.GetEntryCount(); i++)
+    {
+        if (List.EntryAtIsDirectory(i))
         {
             ++dirCount;
-            std::string newPath = path + d->getItem(i) + "/";
-            fs::getDirProps(newPath, dirCount, fileCount, totalSize);
+            std::string NewPath = path + List.GetEntryNameAt(i) + "/";
+            fs::getDirProps(NewPath, dirCount, fileCount, totalSize);
         }
         else
         {
             ++fileCount;
-            std::string filePath = path + d->getItem(i);
-            totalSize += fs::fsize(filePath);
+            totalSize += List.GetEntrySizeAt(i);
         }
     }
-    delete d;
-}
-
-fs::dirItem::dirItem(const std::string& pathTo, const std::string& sItem)
-{
-    itm = sItem;
-
-    std::string fullPath = pathTo + sItem;
-    struct stat s;
-    if(stat(fullPath.c_str(), &s) == 0 && S_ISDIR(s.st_mode))
-        dir = true;
-}
-
-std::string fs::dirItem::getName() const
-{
-    size_t extPos = itm.find_last_of('.'), slPos = itm.find_last_of('/');
-    if(extPos == itm.npos)
-        return "";
-
-    return itm.substr(slPos + 1, extPos);
-}
-
-std::string fs::dirItem::getExt() const
-{
-    return util::getExtensionFromString(itm);
-}
-
-fs::dirList::dirList(const std::string& _path, bool ignoreDotFiles)
-{
-    DIR *d;
-    struct dirent *ent;
-    path = _path;
-    d = opendir(path.c_str());
-
-    while((ent = readdir(d)))
-        if (!ignoreDotFiles || ent->d_name[0] != '.')
-            item.emplace_back(path, ent->d_name);
-
-    closedir(d);
-
-    std::sort(item.begin(), item.end(), sortDirList);
-}
-
-void fs::dirList::reassign(const std::string& _path)
-{
-    DIR *d;
-    struct dirent *ent;
-    path = _path;
-
-    d = opendir(path.c_str());
-
-    item.clear();
-
-    while((ent = readdir(d)))
-        item.emplace_back(path, ent->d_name);
-
-    closedir(d);
-
-    std::sort(item.begin(), item.end(), sortDirList);
-}
-
-void fs::dirList::rescan()
-{
-    item.clear();
-    DIR *d;
-    struct dirent *ent;
-    d = opendir(path.c_str());
-
-    while((ent = readdir(d)))
-        item.emplace_back(path, ent->d_name);
-
-    closedir(d);
-
-    std::sort(item.begin(), item.end(), sortDirList);
 }

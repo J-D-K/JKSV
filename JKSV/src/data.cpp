@@ -1,20 +1,21 @@
-#include <vector>
-#include <unordered_map>
-#include <string>
-#include <cstring>
+#include "data.h"
+#include "FsLib.hpp"
+#include "cfg.h"
+#include "file.h"
+#include "type.h"
+#include "util.h"
 #include <algorithm>
 #include <cstdio>
+#include <cstring>
 #include <ctime>
+#include <memory>
+#include <string>
 #include <switch.h>
-
-#include "data.h"
-#include "file.h"
-#include "util.h"
-#include "type.h"
-#include "cfg.h"
+#include <unordered_map>
+#include <vector>
 
 //FsSaveDataSpaceId_All doesn't work for SD
-static const unsigned saveOrder [] = { 0, 1, 2, 3, 4, 100, 101 };
+static const unsigned saveOrder[] = {0, 1, 2, 3, 4, 100, 101};
 
 int selUser = 0, selData = 0;
 
@@ -31,24 +32,25 @@ std::unordered_map<uint64_t, data::titleInfo> data::titles;
 //Sorts titles by sortType
 static struct
 {
-    bool operator()(const data::userTitleInfo& a, const data::userTitleInfo& b)
-    {
-        //Favorites override EVERYTHING
-        if(cfg::isFavorite(a.tid) != cfg::isFavorite(b.tid)) return cfg::isFavorite(a.tid);
-
-        switch(cfg::sortType)
+        bool operator()(const data::userTitleInfo &a, const data::userTitleInfo &b)
         {
-            case cfg::ALPHA:
+            //Favorites override EVERYTHING
+            if (cfg::isFavorite(a.tid) != cfg::isFavorite(b.tid))
+                return cfg::isFavorite(a.tid);
+
+            switch (cfg::sortType)
+            {
+                case cfg::ALPHA:
                 {
                     std::string titleA = data::getTitleNameByTID(a.tid);
                     std::string titleB = data::getTitleNameByTID(b.tid);
                     uint32_t pointA, pointB;
-                    for(unsigned i = 0, j = 0; i < titleA.length(); )
+                    for (unsigned i = 0, j = 0; i < titleA.length();)
                     {
                         ssize_t aCnt = decode_utf8(&pointA, (const uint8_t *)&titleA.data()[i]);
                         ssize_t bCnt = decode_utf8(&pointB, (const uint8_t *)&titleB.data()[j]);
                         pointA = tolower(pointA), pointB = tolower(pointB);
-                        if(pointA != pointB)
+                        if (pointA != pointB)
                             return pointA < pointB;
 
                         i += aCnt;
@@ -57,50 +59,51 @@ static struct
                 }
                 break;
 
-            case cfg::MOST_PLAYED:
-                return a.playStats.playtime > b.playStats.playtime;
-                break;
+                case cfg::MOST_PLAYED:
+                    return a.playStats.playtime > b.playStats.playtime;
+                    break;
 
-            case cfg::LAST_PLAYED:
-                return a.playStats.last_timestamp_user> b.playStats.last_timestamp_user;
-                break;
+                case cfg::LAST_PLAYED:
+                    return a.playStats.last_timestamp_user > b.playStats.last_timestamp_user;
+                    break;
+            }
+            return false;
         }
-        return false;
-    }
 } sortTitles;
 
 //Returns -1 for new
-static int getUserIndex(const AccountUid& id)
+static int getUserIndex(const AccountUid &id)
 {
     u128 nId = util::accountUIDToU128(id);
-    for(unsigned i = 0; i < data::users.size(); i++)
-        if(data::users[i].getUID128() == nId) return i;
+    for (unsigned i = 0; i < data::users.size(); i++)
+        if (data::users[i].getUID128() == nId)
+            return i;
 
     return -1;
 }
 
-static inline bool accountSystemSaveCheck(const FsSaveDataInfo& _inf)
+static inline bool accountSystemSaveCheck(const FsSaveDataInfo &_inf)
 {
-    if(_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !cfg::config["accSysSave"])
+    if (_inf.save_data_type == FsSaveDataType_System && util::accountUIDToU128(_inf.uid) != 0 && !cfg::config["accSysSave"])
         return false;
 
     return true;
 }
 
 //Minimal init/test to avoid loading and creating things I don't need
-static bool testMount(const FsSaveDataInfo& _inf)
+static bool testMount(const FsSaveDataInfo &_inf)
 {
     bool ret = false;
-    if(!cfg::config["forceMount"])
+    if (!cfg::config["forceMount"])
         return true;
 
-    if((ret = fs::mountSave(_inf)))
+    if ((ret = fs::mountSave(_inf)))
         fs::unmountSave();
 
     return ret;
 }
 
-static inline void addTitleToList(const uint64_t& tid)
+static inline void addTitleToList(const uint64_t &tid)
 {
     uint64_t outSize = 0;
     NsApplicationControlData *ctrlData = new NsApplicationControlData;
@@ -109,7 +112,7 @@ static inline void addTitleToList(const uint64_t& tid)
     Result nacpRes = nacpGetLanguageEntry(&ctrlData->nacp, &ent);
     size_t iconSize = outSize - sizeof(ctrlData->nacp);
 
-    if(R_SUCCEEDED(ctrlRes) && !(outSize < sizeof(ctrlData->nacp)) && R_SUCCEEDED(nacpRes) && iconSize > 0)
+    if (R_SUCCEEDED(ctrlRes) && !(outSize < sizeof(ctrlData->nacp)) && R_SUCCEEDED(nacpRes) && iconSize > 0)
     {
         //Copy nacp
         memcpy(&data::titles[tid].nacp, &ctrlData->nacp, sizeof(NacpStruct));
@@ -117,21 +120,21 @@ static inline void addTitleToList(const uint64_t& tid)
         //Setup 'shortcuts' to strings
         NacpLanguageEntry *ent;
         nacpGetLanguageEntry(&data::titles[tid].nacp, &ent);
-        if(strlen(ent->name) == 0)
+        if (strlen(ent->name) == 0)
             data::titles[tid].title = ctrlData->nacp.lang[SetLanguage_ENUS].name;
         else
             data::titles[tid].title = ent->name;
         data::titles[tid].author = ent->author;
-        if(cfg::isDefined(tid))
+        if (cfg::isDefined(tid))
             data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
-        else if((data::titles[tid].safeTitle = util::safeString(ent->name)) == "")
+        else if ((data::titles[tid].safeTitle = util::safeString(ent->name)) == "")
             data::titles[tid].safeTitle = util::getIDStr(tid);
 
-        if(cfg::isFavorite(tid))
+        if (cfg::isFavorite(tid))
             data::titles[tid].fav = true;
-        
+
         data::titles[tid].icon = gfx::texMgr->textureLoadFromMem(IMG_FMT_JPG, ctrlData->icon, iconSize);
-        if(!data::titles[tid].icon)
+        if (!data::titles[tid].icon)
             data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
     }
     else
@@ -139,7 +142,7 @@ static inline void addTitleToList(const uint64_t& tid)
         memset(&data::titles[tid].nacp, 0, sizeof(NacpStruct));
         data::titles[tid].title = util::getIDStr(tid);
         data::titles[tid].author = "Someone?";
-        if(cfg::isDefined(tid))
+        if (cfg::isDefined(tid))
             data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
         else
             data::titles[tid].safeTitle = util::getIDStr(tid);
@@ -149,7 +152,7 @@ static inline void addTitleToList(const uint64_t& tid)
     delete ctrlData;
 }
 
-static inline bool titleIsLoaded(const uint64_t& tid)
+static inline bool titleIsLoaded(const uint64_t &tid)
 {
     auto findTid = data::titles.find(tid);
 
@@ -160,9 +163,9 @@ static void loadUserAccounts()
 {
     s32 total = 0;
     AccountUid *uids = new AccountUid[8];
-    if(R_SUCCEEDED(accountListAllUsers(uids, 8, &total)))
+    if (R_SUCCEEDED(accountListAllUsers(uids, 8, &total)))
     {
-        for(int i = 0; i < total; i++)
+        for (int i = 0; i < total; i++)
             data::users.emplace_back(uids[i], "", "");
     }
     delete[] uids;
@@ -173,9 +176,9 @@ static void loadTitlesFromRecords()
 {
     NsApplicationRecord nsRecord;
     int32_t entryCount = 0, recordOffset = 0;
-    while(R_SUCCEEDED(nsListApplicationRecord(&nsRecord, 1, recordOffset++, &entryCount)) && entryCount > 0)
+    while (R_SUCCEEDED(nsListApplicationRecord(&nsRecord, 1, recordOffset++, &entryCount)) && entryCount > 0)
     {
-        if(!titleIsLoaded(nsRecord.application_id))
+        if (!titleIsLoaded(nsRecord.application_id))
             addTitleToList(nsRecord.application_id);
     }
 }
@@ -183,45 +186,60 @@ static void loadTitlesFromRecords()
 static void importSVIs()
 {
     std::string sviDir = fs::getWorkDir() + "svi/";
-    fs::dirList sviList(sviDir);
-    if(sviList.getCount() > 0)
+    FsLib::Directory SVIList(sviDir);
+    if (!SVIList.IsOpen() || SVIList.GetEntryCount() <= 0)
     {
-        for(unsigned i = 0; i < sviList.getCount(); i++)
+        return;
+    }
+
+    for (int64_t i = 0; i < SVIList.GetEntryCount(); i++)
+    {
+        // Stuff we're going to need to read svi.
+        uint64_t TitleID = 0;
+        std::unique_ptr<NacpStruct> NACP(new NacpStruct);
+        NacpLanguageEntry *LanguageEntry = NULL;
+        std::string SVIPath = fs::getWorkDir() + "svi/" + SVIList.GetEntryNameAt(i);
+
+        // Icon stuff.
+        size_t IconSize = SVIList.GetEntrySizeAt(i) - (sizeof(uint64_t) + sizeof(NacpStruct));
+        std::unique_ptr<uint8_t[]> IconBuffer(new uint8_t[IconSize]);
+
+        // Open and read it.
+        FsLib::File SVIFile(SVIPath, FsOpenMode_Read);
+        SVIFile.Read(&TitleID, sizeof(uint64_t));
+        SVIFile.Read(NACP.get(), sizeof(NacpStruct));
+        SVIFile.Read(IconBuffer.get(), IconSize);
+
+        if (!titleIsLoaded(TitleID))
         {
-            uint64_t tid = 0;
-            NacpStruct *nacp = new NacpStruct;
-            NacpLanguageEntry *ent;
-            std::string sviPath = fs::getWorkDir() + "svi/" + sviList.getItem(i);
-
-            size_t iconSize = fs::fsize(sviPath) - (sizeof(uint64_t) + sizeof(NacpStruct));
-            uint8_t *iconBuffer = new uint8_t[iconSize];
-            FILE *sviIn = fopen(sviPath.c_str(), "rb");
-            fread(&tid, sizeof(uint64_t), 1, sviIn);
-            fread(nacp, sizeof(NacpStruct), 1, sviIn);
-            fread(iconBuffer, 1, iconSize, sviIn);
-
-            if(!titleIsLoaded(tid))
+            // Title stuff.
+            nacpGetLanguageEntry(NACP.get(), &LanguageEntry);
+            data::titles[TitleID].title = LanguageEntry->name;
+            data::titles[TitleID].author = LanguageEntry->author;
+            if (cfg::isDefined(TitleID))
             {
-                nacpGetLanguageEntry(nacp, &ent);
-                memcpy(&data::titles[tid].nacp, nacp, sizeof(NacpStruct));
-                data::titles[tid].title = ent->name;
-                data::titles[tid].author = ent->author;
-                if(cfg::isDefined(tid))
-                    data::titles[tid].safeTitle = cfg::getPathDefinition(tid);
-                else if((data::titles[tid].safeTitle = util::safeString(ent->name)) == "")
-                    data::titles[tid].safeTitle = util::getIDStr(tid);
-
-                if(cfg::isFavorite(tid))
-                    data::titles[tid].fav = true;
-
-                if(!data::titles[tid].icon && iconSize > 0)
-                    data::titles[tid].icon = gfx::texMgr->textureLoadFromMem(IMG_FMT_JPG, iconBuffer, iconSize);
-                else if(!data::titles[tid].icon && iconSize == 0)
-                    data::titles[tid].icon = util::createIconGeneric(util::getIDStrLower(tid).c_str(), 32, true);
+                data::titles[TitleID].safeTitle = cfg::getPathDefinition(TitleID);
             }
-            delete nacp;
-            delete[] iconBuffer;
-            fclose(sviIn);
+            else
+            {
+                std::string SafeTitle = util::safeString(data::titles[TitleID].title);
+                data::titles[TitleID].safeTitle = SafeTitle.empty() ? util::getIDStr(TitleID) : SafeTitle;
+            }
+
+            // Copy NACP. There's a better more memory efficient way to do this, but I don't want to rewrite too much.
+            std::memcpy(&data::titles.nacp, NACP.get(), sizeof(NacpStruct));
+
+            if (cfg::isFavorite(TitleID))
+            {
+                data::titles[TitleID].fav = true;
+            }
+
+            // Icon
+            if (!data::titles[TitleID].icon)
+            {
+                data::titles[TitleID].icon = IconSize > 0 ? gfx::texMgr->textureLoadFromMem(IMG_FMT_JPG, IconBuffer.get(), IconSize)
+                                                          : util::createIconGeneric(util::getIDStrLower(TitleID).c_str(), 32, true);
+            }
         }
     }
 }
@@ -237,12 +255,12 @@ bool data::loadUsersTitles(bool clearUsers)
     importSVIs();
 
     //Clear titles
-    for(data::user& u : data::users)
+    for (data::user &u : data::users)
         u.titleInfo.clear();
-    if(clearUsers)
+    if (clearUsers)
     {
         systemUserCount = 4;
-        for(data::user& u : data::users)
+        for (data::user &u : data::users)
             u.delIcon();
         data::users.clear();
 
@@ -256,27 +274,27 @@ bool data::loadUsersTitles(bool clearUsers)
         users.emplace_back(util::u128ToAccountUID(0), ui::getUIString("saveTypeMainMenu", 3), "System");
     }
 
-    for(unsigned i = 0; i < 7; i++)
+    for (unsigned i = 0; i < 7; i++)
     {
-        if(R_FAILED(fsOpenSaveDataInfoReader(&it, (FsSaveDataSpaceId)saveOrder[i])))
+        if (R_FAILED(fsOpenSaveDataInfoReader(&it, (FsSaveDataSpaceId)saveOrder[i])))
             continue;
 
-        while(R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
+        while (R_SUCCEEDED(fsSaveDataInfoReaderRead(&it, &info, 1, &total)) && total != 0)
         {
             uint64_t tid = 0;
-            if(info.save_data_type == FsSaveDataType_System || info.save_data_type == FsSaveDataType_SystemBcat)
+            if (info.save_data_type == FsSaveDataType_System || info.save_data_type == FsSaveDataType_SystemBcat)
                 tid = info.system_save_data_id;
             else
                 tid = info.application_id;
 
-            if(!titleIsLoaded(tid))
+            if (!titleIsLoaded(tid))
                 addTitleToList(tid);
 
             //Don't bother with this stuff
-            if(cfg::isBlacklisted(tid) || !accountSystemSaveCheck(info) || !testMount(info))
+            if (cfg::isBlacklisted(tid) || !accountSystemSaveCheck(info) || !testMount(info))
                 continue;
 
-            switch(info.save_data_type)
+            switch (info.save_data_type)
             {
                 case FsSaveDataType_Bcat:
                     info.uid = util::u128ToAccountUID(2);
@@ -288,7 +306,7 @@ bool data::loadUsersTitles(bool clearUsers)
 
                 case FsSaveDataType_SystemBcat:
                     info.uid = util::u128ToAccountUID(4);
-                    if(!sysBCATPushed)
+                    if (!sysBCATPushed)
                     {
                         ++systemUserCount;
                         sysBCATPushed = true;
@@ -302,7 +320,7 @@ bool data::loadUsersTitles(bool clearUsers)
 
                 case FsSaveDataType_Temporary:
                     info.uid = util::u128ToAccountUID(6);
-                    if(!tempPushed)
+                    if (!tempPushed)
                     {
                         ++systemUserCount;
                         tempPushed = true;
@@ -312,14 +330,14 @@ bool data::loadUsersTitles(bool clearUsers)
             }
 
             int u = getUserIndex(info.uid);
-            if(u == -1)
+            if (u == -1)
             {
                 users.emplace(data::users.end() - systemUserCount, info.uid, "", "");
                 u = getUserIndex(info.uid);
             }
 
             PdmPlayStatistics playStats;
-            if(info.save_data_type == FsSaveDataType_Account || info.save_data_type == FsSaveDataType_Device)
+            if (info.save_data_type == FsSaveDataType_Account || info.save_data_type == FsSaveDataType_Device)
                 pdmqryQueryPlayStatisticsByApplicationIdAndUserAccountId(info.application_id, info.uid, false, &playStats);
             else
                 memset(&playStats, 0, sizeof(PdmPlayStatistics));
@@ -328,15 +346,15 @@ bool data::loadUsersTitles(bool clearUsers)
         fsSaveDataInfoReaderClose(&it);
     }
 
-    if(cfg::config["incDev"])
+    if (cfg::config["incDev"])
     {
         //Get reference to device save user
         unsigned devPos = getUserIndex(util::u128ToAccountUID(3));
-        data::user& dev = data::users[devPos];
-        for(unsigned i = 0; i < devPos; i++)
+        data::user &dev = data::users[devPos];
+        for (unsigned i = 0; i < devPos; i++)
         {
             //Not needed but makes this easier to read
-            data::user& u = data::users[i];
+            data::user &u = data::users[i];
             u.titleInfo.insert(u.titleInfo.end(), dev.titleInfo.begin(), dev.titleInfo.end());
         }
     }
@@ -349,7 +367,7 @@ bool data::loadUsersTitles(bool clearUsers)
 void data::sortUserTitles()
 {
 
-    for(data::user& u : data::users)
+    for (data::user &u : data::users)
         std::sort(u.titleInfo.begin(), u.titleInfo.end(), sortTitles);
 }
 
@@ -393,39 +411,39 @@ unsigned data::getCurrentUserTitleInfoIndex()
     return selData;
 }
 
-data::titleInfo *data::getTitleInfoByTID(const uint64_t& tid)
+data::titleInfo *data::getTitleInfoByTID(const uint64_t &tid)
 {
-    if(titles.find(tid) != titles.end())
+    if (titles.find(tid) != titles.end())
         return &titles[tid];
     return NULL;
 }
 
-std::string data::getTitleNameByTID(const uint64_t& tid)
+std::string data::getTitleNameByTID(const uint64_t &tid)
 {
     return titles[tid].title;
 }
 
-std::string data::getTitleSafeNameByTID(const uint64_t& tid)
+std::string data::getTitleSafeNameByTID(const uint64_t &tid)
 {
     return titles[tid].safeTitle;
 }
 
-SDL_Texture *data::getTitleIconByTID(const uint64_t& tid)
+SDL_Texture *data::getTitleIconByTID(const uint64_t &tid)
 {
     return titles[tid].icon;
 }
 
-int data::getTitleIndexInUser(const data::user& u, const uint64_t& tid)
+int data::getTitleIndexInUser(const data::user &u, const uint64_t &tid)
 {
-    for(unsigned i = 0; i < u.titleInfo.size(); i++)
+    for (unsigned i = 0; i < u.titleInfo.size(); i++)
     {
-        if(u.titleInfo[i].tid == tid)
+        if (u.titleInfo[i].tid == tid)
             return i;
     }
     return -1;
 }
 
-data::user::user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName)
+data::user::user(const AccountUid &_id, const std::string &_backupName, const std::string &_safeBackupName)
 {
     userID = _id;
     uID128 = util::accountUIDToU128(_id);
@@ -433,11 +451,11 @@ data::user::user(const AccountUid& _id, const std::string& _backupName, const st
     AccountProfile prof;
     AccountProfileBase base;
 
-    if(R_SUCCEEDED(accountGetProfile(&prof, userID)) && R_SUCCEEDED(accountProfileGet(&prof, NULL, &base)))
+    if (R_SUCCEEDED(accountGetProfile(&prof, userID)) && R_SUCCEEDED(accountProfileGet(&prof, NULL, &base)))
     {
         username = base.nickname;
         userSafe = util::safeString(username);
-        if(userSafe.empty())
+        if (userSafe.empty())
         {
             char tmp[32];
             sprintf(tmp, "Acc%08X", (uint32_t)uID128);
@@ -462,20 +480,21 @@ data::user::user(const AccountUid& _id, const std::string& _backupName, const st
     titles.reserve(64);
 }
 
-data::user::user(const AccountUid& _id, const std::string& _backupName, const std::string& _safeBackupName, SDL_Texture *img) : user(_id, _backupName, _safeBackupName)
+data::user::user(const AccountUid &_id, const std::string &_backupName, const std::string &_safeBackupName, SDL_Texture *img)
+    : user(_id, _backupName, _safeBackupName)
 {
     delIcon();
     userIcon = img;
     titles.reserve(64);
 }
 
-void data::user::setUID(const AccountUid& _id)
+void data::user::setUID(const AccountUid &_id)
 {
     userID = _id;
     uID128 = util::accountUIDToU128(_id);
 }
 
-void data::user::addUserTitleInfo(const uint64_t& tid, const FsSaveDataInfo *_saveInfo, const PdmPlayStatistics *_stats)
+void data::user::addUserTitleInfo(const uint64_t &tid, const FsSaveDataInfo *_saveInfo, const PdmPlayStatistics *_stats)
 {
     data::userTitleInfo newInfo;
     newInfo.tid = tid;
@@ -493,7 +512,7 @@ void data::dispStats()
 
     //Easiest/laziest way to do this
     std::string stats = ui::getUICString("debugStatus", 0) + std::to_string(users.size()) + "\n";
-    for(data::user& u : data::users)
+    for (data::user &u : data::users)
         stats += u.getUsername() + ": " + std::to_string(u.titleInfo.size()) + "\n";
     stats += ui::getUICString("debugStatus", 1) + cu->getUsername() + "\n";
     stats += ui::getUICString("debugStatus", 2) + data::getTitleNameByTID(d->tid) + "\n";

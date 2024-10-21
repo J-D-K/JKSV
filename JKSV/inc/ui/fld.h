@@ -1,7 +1,7 @@
 #pragma once
 
-#include "ui.h"
 #include "dir.h"
+#include "ui.h"
 
 namespace ui
 {
@@ -16,4 +16,4 @@ namespace ui
     //Populate to open menu, refresh for updating after actions
     void fldPopulateMenu();
     void fldRefreshMenu();
-}
+} // namespace ui

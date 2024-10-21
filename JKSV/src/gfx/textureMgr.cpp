@@ -1,13 +1,13 @@
-#include <vector>
-#include <algorithm>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
+#include <algorithm>
+#include <vector>
 
 #include "gfx.h"
 
 gfx::textureMgr::~textureMgr()
 {
-    for(auto tex : textures)
+    for (auto tex : textures)
         SDL_DestroyTexture(tex);
 }
 
@@ -20,7 +20,7 @@ SDL_Texture *gfx::textureMgr::textureCreate(int _w, int _h)
 {
     SDL_Texture *ret = NULL;
     ret = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, _w, _h);
-    if(ret)
+    if (ret)
     {
         SDL_SetTextureBlendMode(ret, SDL_BLENDMODE_BLEND);
         textures.push_back(ret);
@@ -32,7 +32,7 @@ SDL_Texture *gfx::textureMgr::textureLoadFromFile(const char *_path)
 {
     SDL_Texture *ret = NULL;
     SDL_Surface *tmp = IMG_Load(_path);
-    if(tmp)
+    if (tmp)
     {
         ret = SDL_CreateTextureFromSurface(gfx::render, tmp);
         textures.push_back(ret);
@@ -47,7 +47,7 @@ static SDL_Texture *loadPNGMem(const void *_dat, size_t _datSize)
     SDL_Texture *ret = NULL;
     SDL_RWops *pngData = SDL_RWFromConstMem(_dat, _datSize);
     SDL_Surface *tmp = IMG_LoadPNG_RW(pngData);
-    if(tmp)
+    if (tmp)
     {
         ret = SDL_CreateTextureFromSurface(gfx::render, tmp);
         SDL_FreeSurface(tmp);
@@ -62,7 +62,7 @@ static SDL_Texture *loadJPEGMem(const void *_dat, size_t _datSize)
     SDL_Texture *ret = NULL;
     SDL_RWops *jpegData = SDL_RWFromConstMem(_dat, _datSize);
     SDL_Surface *tmp = IMG_LoadJPG_RW(jpegData);
-    if(tmp)
+    if (tmp)
     {
         ret = SDL_CreateTextureFromSurface(gfx::render, tmp);
         SDL_FreeSurface(tmp);
@@ -77,7 +77,7 @@ static SDL_Texture *loadBMPMem(const void *_dat, size_t _datSize)
     SDL_Texture *ret = NULL;
     SDL_RWops *bmpData = SDL_RWFromConstMem(_dat, _datSize);
     SDL_Surface *tmp = IMG_LoadBMP_RW(bmpData);
-    if(tmp)
+    if (tmp)
     {
         ret = SDL_CreateTextureFromSurface(gfx::render, tmp);
         SDL_FreeSurface(tmp);
@@ -105,7 +105,7 @@ SDL_Texture *gfx::textureMgr::textureLoadFromMem(imgTypes _type, const void *_da
             break;
     }
 
-    if(ret)
+    if (ret)
         textures.push_back(ret);
 
     return ret;
@@ -114,7 +114,7 @@ SDL_Texture *gfx::textureMgr::textureLoadFromMem(imgTypes _type, const void *_da
 void gfx::textureMgr::textureResize(SDL_Texture **_tex, int _w, int _h)
 {
     auto texIt = std::find(textures.begin(), textures.end(), *_tex);
-    if(texIt != textures.end())
+    if (texIt != textures.end())
     {
         SDL_DestroyTexture(*texIt);
         *_tex = SDL_CreateTexture(gfx::render, SDL_PIXELFORMAT_RGBA8888, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET, _w, _h);

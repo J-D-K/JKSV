@@ -7,4 +7,4 @@ namespace ui
     void extExit();
     void extUpdate();
     void extDraw(SDL_Texture *target);
-}
+} // namespace ui

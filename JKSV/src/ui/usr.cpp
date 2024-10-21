@@ -1,16 +1,16 @@
-#include <string>
-#include <vector>
 #include <algorithm>
+#include <string>
 #include <switch.h>
+#include <vector>
 
-#include "file.h"
 #include "data.h"
+#include "file.h"
+#include "type.h"
 #include "ui.h"
 #include "util.h"
-#include "type.h"
 
-#include "usr.h"
 #include "ttl.h"
+#include "usr.h"
 
 static const char *settText = ui::getUICString("mainMenuSettings", 0), *extText = ui::getUICString("mainMenuExtras", 0);
 
@@ -34,30 +34,30 @@ static unsigned usrHelpX = 0;
 //Sort save create tids alphabetically by title from data
 static struct
 {
-    bool operator()(const uint64_t& tid1, const uint64_t& tid2)
-    {
-        std::string tid1Title = data::getTitleNameByTID(tid1);
-        std::string tid2Title = data::getTitleNameByTID(tid2);
-
-        uint32_t pointA = 0, pointB = 0;
-        for(unsigned i = 0, j = 0; i < tid1Title.length(); )
+        bool operator()(const uint64_t &tid1, const uint64_t &tid2)
         {
-            ssize_t tid1Cnt = decode_utf8(&pointA, (const uint8_t *)&tid1Title.c_str()[i]);
-            ssize_t tid2Cnt = decode_utf8(&pointB, (const uint8_t *)&tid2Title.c_str()[j]);
+            std::string tid1Title = data::getTitleNameByTID(tid1);
+            std::string tid2Title = data::getTitleNameByTID(tid2);
 
-            pointA = tolower(pointA), pointB = tolower(pointB);
-            if(pointA != pointB)
-                return pointA < pointB;
+            uint32_t pointA = 0, pointB = 0;
+            for (unsigned i = 0, j = 0; i < tid1Title.length();)
+            {
+                ssize_t tid1Cnt = decode_utf8(&pointA, (const uint8_t *)&tid1Title.c_str()[i]);
+                ssize_t tid2Cnt = decode_utf8(&pointB, (const uint8_t *)&tid2Title.c_str()[j]);
 
-            i += tid1Cnt, j += tid2Cnt;
+                pointA = tolower(pointA), pointB = tolower(pointB);
+                if (pointA != pointB)
+                    return pointA < pointB;
+
+                i += tid1Cnt, j += tid2Cnt;
+            }
+            return false;
         }
-        return false;
-    }
 } sortCreateTIDs;
 
 static void onMainChange(void *a)
 {
-    if(ui::usrMenu->getSelected() < (int)data::users.size())
+    if (ui::usrMenu->getSelected() < (int)data::users.size())
     {
         unsigned setUser = ui::usrMenu->getSelected();
         data::setUserIndex(setUser);
@@ -87,7 +87,7 @@ static void toEXT(void *a)
 
 static void usrOptCallback(void *a)
 {
-    switch(ui::padKeysDown())
+    switch (ui::padKeysDown())
     {
         case HidNpadButton_B:
             usrOptPanel->closePanel();
@@ -99,7 +99,7 @@ static void usrOptCallback(void *a)
 
 static void saveCreateCallback(void *a)
 {
-    switch(ui::padKeysDown())
+    switch (ui::padKeysDown())
     {
         case HidNpadButton_B:
             usrOptMenu->setActive(true);
@@ -126,32 +126,32 @@ static void usrOptSaveCreate(void *a)
     ui::updateInput();
     int sel = m->getSelected();
     bool closeUsrOpt = false;
-    if(sel == devPos && deviceSaveMenu->getOptCount() > 0)
+    if (sel == devPos && deviceSaveMenu->getOptCount() > 0)
     {
         deviceSaveMenu->setActive(true);
         deviceSavePanel->openPanel();
         closeUsrOpt = true;
     }
-    else if(sel == bcatPos && bcatSaveMenu->getOptCount() > 0)
+    else if (sel == bcatPos && bcatSaveMenu->getOptCount() > 0)
     {
         bcatSaveMenu->setActive(true);
         bcatSavePanel->openPanel();
         closeUsrOpt = true;
     }
-    else if(sel == cachePos && cacheSaveMenu->getOptCount() > 0)
+    else if (sel == cachePos && cacheSaveMenu->getOptCount() > 0)
     {
         cacheSaveMenu->setActive(true);
         cacheSavePanel->openPanel();
         closeUsrOpt = true;
     }
-    else if(sel < devPos)
+    else if (sel < devPos)
     {
         saveCreateMenu->setActive(true);
         saveCreatePanel->openPanel();
         closeUsrOpt = true;
     }
 
-    if(closeUsrOpt)
+    if (closeUsrOpt)
     {
         usrOptMenu->setActive(false);
         usrOptPanel->closePanel();
@@ -166,9 +166,10 @@ static void usrOptDeleteAllUserSaves_t(void *a)
     int curUserIndex = data::getCurrentUserIndex();
     int devUser = ui::usrMenu->getOptPos(ui::getUICString("saveTypeMainMenu", 0));
 
-    for(data::userTitleInfo& tinf : u->titleInfo)
+    for (data::userTitleInfo &tinf : u->titleInfo)
     {
-        if(tinf.saveInfo.save_data_type != FsSaveDataType_System && (tinf.saveInfo.save_data_type != FsSaveDataType_Device || curUserIndex == devUser))
+        if (tinf.saveInfo.save_data_type != FsSaveDataType_System &&
+            (tinf.saveInfo.save_data_type != FsSaveDataType_Device || curUserIndex == devUser))
         {
             t->status->setStatus(ui::getUICString("threadStatusDeletingSaveData", 0), data::getTitleNameByTID(tinf.tid).c_str());
             fsDeleteSaveDataFileSystemBySaveDataSpaceId(FsSaveDataSpaceId_User, tinf.saveInfo.save_data_id);
@@ -182,7 +183,12 @@ static void usrOptDeleteAllUserSaves_t(void *a)
 static void usrOptDeleteAllUserSaves(void *a)
 {
     data::user *u = data::getCurrentUser();
-    ui::confirmArgs *conf = ui::confirmArgsCreate(true, usrOptDeleteAllUserSaves_t, NULL, NULL, ui::getUICString("saveDataDeleteAllUser", 0), u->getUsername().c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(true,
+                                                  usrOptDeleteAllUserSaves_t,
+                                                  NULL,
+                                                  NULL,
+                                                  ui::getUICString("saveDataDeleteAllUser", 0),
+                                                  u->getUsername().c_str());
     ui::confirm(conf);
 }
 
@@ -228,9 +234,9 @@ static void createSaveData(void *a)
 
     //Device, BCAT, and Cache are hardcoded user IDs in JKSV's data
     uint64_t tid = 0;
-    switch(uid)
+    switch (uid)
     {
-        case 0://This is system
+        case 0: //This is system
             break;
 
         case 2:
@@ -262,20 +268,20 @@ static void usrOptCreateAllSaves_t(void *a)
     int devPos = ui::usrMenu->getOptPos(ui::getUICString("saveTypeMainMenu", 0));
     int bcatPos = ui::usrMenu->getOptPos(ui::getUICString("saveTypeMainMenu", 1));
     int sel = ui::usrMenu->getSelected();
-    if(sel < devPos)
+    if (sel < devPos)
     {
         AccountUid uid = u->getUID();
-        for(unsigned i = 0; i < accSids.size(); i++)
+        for (unsigned i = 0; i < accSids.size(); i++)
             fs::createSaveData(FsSaveDataType_Account, accSids[i], uid, t);
     }
-    else if(sel == devPos)
+    else if (sel == devPos)
     {
-        for(unsigned i = 0; i < devSids.size(); i++)
+        for (unsigned i = 0; i < devSids.size(); i++)
             fs::createSaveData(FsSaveDataType_Device, devSids[i], util::u128ToAccountUID(0), t);
     }
-    else if(sel == bcatPos)
+    else if (sel == bcatPos)
     {
-        for(unsigned i = 0; i < bcatSids.size(); i++)
+        for (unsigned i = 0; i < bcatSids.size(); i++)
             fs::createSaveData(FsSaveDataType_Bcat, bcatSids[i], util::u128ToAccountUID(0), t);
     }
     t->finished = true;
@@ -284,7 +290,12 @@ static void usrOptCreateAllSaves_t(void *a)
 static void usrOptCreateAllSaves(void *a)
 {
     data::user *u = data::getCurrentUser();
-    ui::confirmArgs *conf = ui::confirmArgsCreate(true, usrOptCreateAllSaves_t, NULL, NULL, ui::getUICString("confirmCreateAllSaveData", 0), u->getUsername().c_str());
+    ui::confirmArgs *conf = ui::confirmArgsCreate(true,
+                                                  usrOptCreateAllSaves_t,
+                                                  NULL,
+                                                  NULL,
+                                                  ui::getUICString("confirmCreateAllSaveData", 0),
+                                                  u->getUsername().c_str());
     ui::confirm(conf);
 }
 
@@ -302,20 +313,20 @@ static void initSaveCreateMenus()
     cacheSids.clear();
 
     //Group into vectors to match
-    for(auto& t : data::titles)
+    for (auto &t : data::titles)
     {
         NacpStruct *nacp = &t.second.nacp;
 
-        if(nacp->user_account_save_data_size > 0)
+        if (nacp->user_account_save_data_size > 0)
             accSids.push_back(t.first);
 
-        if(nacp->device_save_data_size > 0)
+        if (nacp->device_save_data_size > 0)
             devSids.push_back(t.first);
 
-        if(nacp->bcat_delivery_cache_storage_size > 0)
+        if (nacp->bcat_delivery_cache_storage_size > 0)
             bcatSids.push_back(t.first);
 
-        if(nacp->cache_storage_size > 0 || nacp->cache_storage_journal_size > 0 || nacp->cache_storage_data_and_journal_size_max > 0)
+        if (nacp->cache_storage_size > 0 || nacp->cache_storage_journal_size > 0 || nacp->cache_storage_data_and_journal_size_max > 0)
             cacheSids.push_back(t.first);
     }
 
@@ -325,25 +336,25 @@ static void initSaveCreateMenus()
     std::sort(bcatSids.begin(), bcatSids.end(), sortCreateTIDs);
     std::sort(cacheSids.begin(), cacheSids.end(), sortCreateTIDs);
 
-    for(unsigned i = 0; i < accSids.size(); i++)
+    for (unsigned i = 0; i < accSids.size(); i++)
     {
         saveCreateMenu->addOpt(NULL, data::getTitleNameByTID(accSids[i]));
         saveCreateMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, NULL);
     }
 
-    for(unsigned i = 0; i < devSids.size(); i++)
+    for (unsigned i = 0; i < devSids.size(); i++)
     {
         deviceSaveMenu->addOpt(NULL, data::getTitleNameByTID(devSids[i]));
         deviceSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, NULL);
     }
 
-    for(unsigned i = 0; i < bcatSids.size(); i++)
+    for (unsigned i = 0; i < bcatSids.size(); i++)
     {
         bcatSaveMenu->addOpt(NULL, data::getTitleNameByTID(bcatSids[i]));
         bcatSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, NULL);
     }
 
-    for(unsigned i = 0; i < cacheSids.size(); i++)
+    for (unsigned i = 0; i < cacheSids.size(); i++)
     {
         cacheSaveMenu->addOpt(NULL, data::getTitleNameByTID(cacheSids[i]));
         cacheSaveMenu->optAddButtonEvent(i, HidNpadButton_A, createSaveData, NULL);
@@ -373,7 +384,7 @@ void ui::usrInit()
     cacheSaveMenu->setActive(false);
     cacheSaveMenu->setCallback(saveCreateCallback, NULL);
 
-    for(data::user u : data::users)
+    for (data::user u : data::users)
     {
         int usrPos = usrMenu->addOpt(u.getUserIcon(), u.getUsername());
         usrMenu->optAddButtonEvent(usrPos, HidNpadButton_A, toTTL, NULL);
@@ -399,7 +410,7 @@ void ui::usrInit()
     usrOptPanel = new ui::slideOutPanel(410, 720, 0, ui::SLD_RIGHT, usrOptPanelDraw);
     ui::registerPanel(usrOptPanel);
 
-    for(int i = 0; i < 4; i++)
+    for (int i = 0; i < 4; i++)
         usrOptMenu->addOpt(NULL, ui::getUIString("userOptions", i));
 
     //Dump All User Saves
@@ -453,27 +464,27 @@ void ui::usrRefresh()
 
 void ui::usrUpdate()
 {
-    if(usrMenu->getActive())
+    if (usrMenu->getActive())
     {
-        switch(ui::padKeysDown())
+        switch (ui::padKeysDown())
         {
             case HidNpadButton_Y:
                 ui::newThread(fs::dumpAllUsersAllSaves, NULL, fs::fileDrawFunc);
                 break;
 
             case HidNpadButton_X:
+            {
+                int cachePos = usrMenu->getOptPos(ui::getUIString("saveTypeMainMenu", 2));
+                if (usrMenu->getSelected() <= cachePos)
                 {
-                    int cachePos = usrMenu->getOptPos(ui::getUIString("saveTypeMainMenu", 2));
-                    if(usrMenu->getSelected() <= cachePos)
-                    {
-                        data::user *u = data::getCurrentUser();
-                        usrOptMenu->editOpt(0, NULL, ui::getUIString("userOptions", 0) + u->getUsername());
-                        usrOptMenu->setActive(true);
-                        usrMenu->setActive(false);
-                        usrOptPanel->openPanel();
-                    }
+                    data::user *u = data::getCurrentUser();
+                    usrOptMenu->editOpt(0, NULL, ui::getUIString("userOptions", 0) + u->getUsername());
+                    usrOptMenu->setActive(true);
+                    usrMenu->setActive(false);
+                    usrOptPanel->openPanel();
                 }
-                break;
+            }
+            break;
         }
     }
     usrMenu->update();
@@ -486,6 +497,6 @@ void ui::usrUpdate()
 
 void ui::usrDraw(SDL_Texture *target)
 {
-    if(ui::mstate == USR_SEL)
+    if (ui::mstate == USR_SEL)
         gfx::drawTextf(NULL, 18, usrHelpX, 673, &ui::txtCont, ui::getUICString("helpUser", 0));
 }

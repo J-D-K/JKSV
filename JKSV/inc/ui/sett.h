@@ -10,4 +10,4 @@ namespace ui
     void settDraw(SDL_Texture *target);
 
     extern ui::menu *settMenu;
-}
+} // namespace ui

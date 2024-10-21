@@ -1,9 +1,9 @@
 #pragma once
-
+#include "FsLib.hpp"
 #include "data.h"
-#include "ui.h"
 #include "file.h"
 #include "gfx.h"
+#include "ui.h"
 
 namespace util
 {
@@ -71,34 +71,39 @@ namespace util
     std::string getDateTime(int fmt);
 
     //Copys dir list to a menu with 'D: ' + 'F: '
-    void copyDirListToMenu(const fs::dirList& d, ui::menu& m);
+    void copyDirListToMenu(const FsLib::Directory &d, ui::menu &m);
 
     //Removes last folder from '_path'
-    void removeLastFolderFromString(std::string& _path);
-    size_t getTotalPlacesInPath(const std::string& _path);
-    void trimPath(std::string& _path, uint8_t _places);
+    void removeLastFolderFromString(std::string &_path);
+    size_t getTotalPlacesInPath(const std::string &_path);
+    void trimPath(std::string &_path, uint8_t _places);
 
-    inline bool isASCII(const uint32_t& t)
+    inline bool isASCII(const uint32_t &t)
     {
         return t > 30 && t < 127;
     }
 
-    std::string safeString(const std::string& s);
+    std::string safeString(const std::string &s);
 
-    std::string getStringInput(SwkbdType _type, const std::string& def, const std::string& head, size_t maxLength, unsigned dictCnt, const std::string dictWords[]);
+    std::string getStringInput(SwkbdType _type,
+                               const std::string &def,
+                               const std::string &head,
+                               size_t maxLength,
+                               unsigned dictCnt,
+                               const std::string dictWords[]);
 
-    std::string getExtensionFromString(const std::string& get);
-    std::string getFilenameFromPath(const std::string& get);
+    std::string getExtensionFromString(const std::string &get);
+    std::string getFilenameFromPath(const std::string &get);
 
-    std::string generateAbbrev(const uint64_t& tid);
+    std::string generateAbbrev(const uint64_t &tid);
 
     //removes char from C++ string
-    void stripChar(char _c, std::string& _s);
+    void stripChar(char _c, std::string &_s);
 
-    void replaceStr(std::string& _str, const std::string& _find, const std::string& _rep);
+    void replaceStr(std::string &_str, const std::string &_find, const std::string &_rep);
 
     //For future external translation support. Replaces [button] with button chars
-    void replaceButtonsInString(std::string& rep);
+    void replaceButtonsInString(std::string &rep);
 
     //Creates a basic generic icon for stuff without one
     SDL_Texture *createIconGeneric(const char *txt, int fontSize, bool clearBack);
@@ -116,28 +121,28 @@ namespace util
         return ret;
     }
 
-    inline std::string getIDStr(const uint64_t& _id)
+    inline std::string getIDStr(const uint64_t &_id)
     {
         char tmp[18];
         sprintf(tmp, "%016lX", _id);
         return std::string(tmp);
     }
 
-    inline std::string getIDStrLower(const uint64_t& _id)
+    inline std::string getIDStrLower(const uint64_t &_id)
     {
         char tmp[18];
         sprintf(tmp, "%08X", (uint32_t)_id);
         return std::string(tmp);
     }
 
-    inline std::string generatePathByTID(const uint64_t& tid)
+    inline std::string generatePathByTID(const uint64_t &tid)
     {
         return fs::getWorkDir() + data::getTitleSafeNameByTID(tid) + "/";
     }
 
-    std::string getSizeString(const uint64_t& _size);
+    std::string getSizeString(const uint64_t &_size);
 
-    inline void createTitleDirectoryByTID(const uint64_t& tid)
+    inline void createTitleDirectoryByTID(const uint64_t &tid)
     {
         std::string makePath = fs::getWorkDir() + data::getTitleSafeNameByTID(tid);
         mkdir(makePath.c_str(), 777);
@@ -155,4 +160,4 @@ namespace util
     }
 
     void checkForUpdate(void *a);
-}
+} // namespace util

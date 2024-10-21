@@ -1,24 +1,24 @@
 #pragma once
 
+#include <string>
 #include <switch.h>
 #include <vector>
-#include <string>
 
 #include "data.h"
 #include "gfx.h"
 
 //ui headers - split up to keep a bit more organized
-#include "ui/miscui.h"
-#include "ui/uistr.h"
-#include "ui/ttlview.h"
-#include "ui/thrdProc.h"
-#include "ui/sldpanel.h"
-#include "ui/usr.h"
-#include "ui/ttl.h"
-#include "ui/fld.h"
-#include "ui/sett.h"
 #include "ui/ext.h"
+#include "ui/fld.h"
 #include "ui/fm.h"
+#include "ui/miscui.h"
+#include "ui/sett.h"
+#include "ui/sldpanel.h"
+#include "ui/thrdProc.h"
+#include "ui/ttl.h"
+#include "ui/ttlview.h"
+#include "ui/uistr.h"
+#include "ui/usr.h"
 
 enum menuState
 {
@@ -44,10 +44,24 @@ namespace ui
     //pad data cause i don't know where else to put it
     extern PadState pad;
     extern HidTouchScreenState touchState;
-    static inline void updateInput() { touchState = {0}; padUpdate(&pad); hidGetTouchScreenStates(&touchState, 1); }
-    inline uint64_t padKeysDown() { return padGetButtonsDown(&pad); }
-    inline uint64_t padKeysHeld() { return padGetButtons(&pad); }
-    inline uint64_t padKeysUp() { return padGetButtonsUp(&pad); }
+    static inline void updateInput()
+    {
+        touchState = {0};
+        padUpdate(&pad);
+        hidGetTouchScreenStates(&touchState, 1);
+    }
+    inline uint64_t padKeysDown()
+    {
+        return padGetButtonsDown(&pad);
+    }
+    inline uint64_t padKeysHeld()
+    {
+        return padGetButtons(&pad);
+    }
+    inline uint64_t padKeysUp()
+    {
+        return padGetButtonsUp(&pad);
+    }
 
     inline void changeState(int newState)
     {
@@ -107,4 +121,4 @@ namespace ui
 
     //Used for multiple menu functions/callback
     void toTTL(void *);
-}
+} // namespace ui

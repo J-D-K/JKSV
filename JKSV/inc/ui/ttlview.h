@@ -2,8 +2,8 @@
 
 #include <SDL2/SDL.h>
 
-#include "type.h"
 #include "data.h"
+#include "type.h"
 
 namespace ui
 {
@@ -32,20 +32,33 @@ namespace ui
     class titleview
     {
         public:
-            titleview(const data::user& _u, int _iconW, int _iconH, int _horGap, int _vertGap, int _rowCount, funcPtr _callback);
+            titleview(const data::user &_u, int _iconW, int _iconH, int _horGap, int _vertGap, int _rowCount, funcPtr _callback);
             ~titleview();
 
             void update();
             void refresh();
 
-            void setActive(bool _set, bool _showSel) { active = _set; showSel = _showSel; }
-            bool getActive() { return active; }
-            void setSelected(int _set) { selected = _set; }
-            int getSelected() { return selected; }
+            void setActive(bool _set, bool _showSel)
+            {
+                active = _set;
+                showSel = _showSel;
+            }
+            bool getActive()
+            {
+                return active;
+            }
+            void setSelected(int _set)
+            {
+                selected = _set;
+            }
+            int getSelected()
+            {
+                return selected;
+            }
             void draw(SDL_Texture *target);
 
         private:
-            const data::user *u;//Might not be safe. Users *shouldn't* be touched after initial load
+            const data::user *u; //Might not be safe. Users *shouldn't* be touched after initial load
             bool active = false, showSel = false, clrAdd = true;
             uint8_t clrShft = 0;
             funcPtr callback = NULL;
@@ -53,4 +66,4 @@ namespace ui
             int iconW, iconH, horGap, vertGap, rowCount;
             std::vector<ui::titleTile *> tiles;
     };
-}
+} // namespace ui

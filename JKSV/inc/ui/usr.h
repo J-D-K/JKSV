@@ -11,4 +11,4 @@ namespace ui
     //A lot of stuff needs access to these
     extern ui::menu *usrMenu;
     extern ui::slideOutPanel *usrSelPanel;
-}
+} // namespace ui

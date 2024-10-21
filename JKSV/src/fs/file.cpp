@@ -1,31 +1,31 @@
-#include <cstdio>
 #include <algorithm>
-#include <cstring>
-#include <vector>
-#include <switch.h>
-#include <unistd.h>
-#include <cstdarg>
-#include <mutex>
 #include <condition_variable>
+#include <cstdarg>
+#include <cstdio>
+#include <cstring>
+#include <mutex>
+#include <switch.h>
 #include <sys/stat.h>
+#include <unistd.h>
+#include <vector>
 
-#include "fs.h"
-#include "util.h"
-#include "ui.h"
-#include "gfx.h"
-#include "data.h"
 #include "cfg.h"
+#include "data.h"
+#include "fs.h"
+#include "gfx.h"
+#include "ui.h"
+#include "util.h"
 
 static std::string wd = "sdmc:/JKSV/";
 
 typedef struct
 {
-    std::mutex bufferLock;
-    std::condition_variable cond;
-    std::vector<uint8_t> sharedBuffer;
-    std::string dst, dev;
-    bool bufferIsFull = false;
-    unsigned int filesize = 0, writeLimit = 0;
+        std::mutex bufferLock;
+        std::condition_variable cond;
+        std::vector<uint8_t> sharedBuffer;
+        std::string dst, dev;
+        bool bufferIsFull = false;
+        unsigned int filesize = 0, writeLimit = 0;
 } fileCpyThreadArgs;
 
 static void writeFile_t(void *a)
@@ -35,10 +35,10 @@ static void writeFile_t(void *a)
     std::vector<uint8_t> localBuffer;
     FILE *out = fopen(in->dst.c_str(), "wb");
 
-    while(written < in->filesize)
+    while (written < in->filesize)
     {
         std::unique_lock<std::mutex> buffLock(in->bufferLock);
-        in->cond.wait(buffLock, [in]{ return in->bufferIsFull;});
+        in->cond.wait(buffLock, [in] { return in->bufferIsFull; });
         localBuffer.clear();
         localBuffer.assign(in->sharedBuffer.begin(), in->sharedBuffer.end());
         in->sharedBuffer.clear();
@@ -57,10 +57,10 @@ static void writeFileCommit_t(void *a)
     std::vector<uint8_t> localBuffer;
     FILE *out = fopen(in->dst.c_str(), "wb");
 
-    while(written < in->filesize)
+    while (written < in->filesize)
     {
         std::unique_lock<std::mutex> buffLock(in->bufferLock);
-        in->cond.wait(buffLock, [in]{ return in->bufferIsFull; });
+        in->cond.wait(buffLock, [in] { return in->bufferIsFull; });
         localBuffer.clear();
         localBuffer.assign(in->sharedBuffer.begin(), in->sharedBuffer.end());
         in->sharedBuffer.clear();
@@ -71,7 +71,7 @@ static void writeFileCommit_t(void *a)
         written += fwrite(localBuffer.data(), 1, localBuffer.size(), out);
 
         journalCount += written;
-        if(journalCount >= in->writeLimit)
+        if (journalCount >= in->writeLimit)
         {
             journalCount = 0;
             fclose(out);
@@ -82,7 +82,14 @@ static void writeFileCommit_t(void *a)
     fclose(out);
 }
 
-fs::copyArgs *fs::copyArgsCreate(const std::string& src, const std::string& dst, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces)
+fs::copyArgs *fs::copyArgsCreate(const std::string &src,
+                                 const std::string &dst,
+                                 const std::string &dev,
+                                 zipFile z,
+                                 unzFile unz,
+                                 bool _cleanup,
+                                 bool _trimZipPath,
+                                 uint8_t _trimPlaces)
 {
     copyArgs *ret = new copyArgs;
     ret->src = src;
@@ -107,10 +114,10 @@ void fs::copyArgsDestroy(copyArgs *c)
     c = NULL;
 }
 
-fs::dataFile::dataFile(const std::string& _path)
+fs::dataFile::dataFile(const std::string &_path)
 {
     f = fopen(_path.c_str(), "r");
-    if(f != NULL)
+    if (f != NULL)
         opened = true;
 }
 
@@ -123,9 +130,9 @@ bool fs::dataFile::readNextLine(bool proc)
 {
     bool ret = false;
     char tmp[1024];
-    while(fgets(tmp, 1024, f))
+    while (fgets(tmp, 1024, f))
     {
-        if(tmp[0] != '#' && tmp[0] != '\n' && tmp[0] != '\r')
+        if (tmp[0] != '#' && tmp[0] != '\n' && tmp[0] != '\r')
         {
             line = tmp;
             ret = true;
@@ -134,7 +141,7 @@ bool fs::dataFile::readNextLine(bool proc)
     }
     util::stripChar('\n', line);
     util::stripChar('\r', line);
-    if(proc)
+    if (proc)
         procLine();
 
     return ret;
@@ -143,7 +150,7 @@ bool fs::dataFile::readNextLine(bool proc)
 void fs::dataFile::procLine()
 {
     size_t pPos = line.find_first_of("(=,");
-    if(pPos != line.npos)
+    if (pPos != line.npos)
     {
         lPos = pPos;
         name.assign(line.begin(), line.begin() + lPos);
@@ -161,10 +168,12 @@ std::string fs::dataFile::getNextValueStr()
     //Skip all spaces until we hit actual text
     size_t pos1 = line.find_first_not_of(", ", lPos);
     //If reading from quotes
-    if(line[pos1] == '"')
+    if (line[pos1] == '"')
         lPos = line.find_first_of('"', ++pos1);
     else
-        lPos = line.find_first_of(",;\n", pos1);//Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
+        lPos = line.find_first_of(
+            ",;\n",
+            pos1); //Set lPos to end of string we want. This should just set lPos to the end of the line if it fails, which is ok
 
     ret = line.substr(pos1, lPos++ - pos1);
 
@@ -177,7 +186,7 @@ int fs::dataFile::getNextValueInt()
 {
     int ret = 0;
     std::string no = getNextValueStr();
-    if(no[0] == '0' && tolower(no[1]) == 'x')
+    if (no[0] == '0' && tolower(no[1]) == 'x')
         ret = strtoul(no.c_str(), NULL, 16);
     else
         ret = strtoul(no.c_str(), NULL, 10);
@@ -185,11 +194,11 @@ int fs::dataFile::getNextValueInt()
     return ret;
 }
 
-void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
+void fs::copyFile(const std::string &src, const std::string &dst, threadInfo *t)
 {
     fs::copyArgs *c = NULL;
     size_t filesize = fs::fsize(src);
-    if(t)
+    if (t)
     {
         c = (fs::copyArgs *)t->argPtr;
         c->offset = 0;
@@ -198,7 +207,7 @@ void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
     }
 
     FILE *fsrc = fopen(src.c_str(), "rb");
-    if(!fsrc)
+    if (!fsrc)
     {
         fclose(fsrc);
         return;
@@ -215,18 +224,18 @@ void fs::copyFile(const std::string& src, const std::string& dst, threadInfo *t)
     threadStart(&writeThread);
     size_t readIn = 0;
     uint64_t readCount = 0;
-    while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
+    while ((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
     {
         transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
         readCount += readIn;
 
-        if(c)
+        if (c)
             c->offset = readCount;
 
-        if(transferBuffer.size() >= TRANSFER_BUFFER_LIMIT || readCount == filesize)
+        if (transferBuffer.size() >= TRANSFER_BUFFER_LIMIT || readCount == filesize)
         {
             std::unique_lock<std::mutex> buffLock(thrdArgs.bufferLock);
-            thrdArgs.cond.wait(buffLock, [&thrdArgs]{ return thrdArgs.bufferIsFull == false; });
+            thrdArgs.cond.wait(buffLock, [&thrdArgs] { return thrdArgs.bufferIsFull == false; });
             thrdArgs.sharedBuffer.assign(transferBuffer.begin(), transferBuffer.end());
             transferBuffer.clear();
             thrdArgs.bufferIsFull = true;
@@ -248,22 +257,22 @@ static void copyFileThreaded_t(void *a)
     t->status->setStatus(ui::getUICString("threadStatusCopyingFile", 0), in->src.c_str());
 
     fs::copyFile(in->src, in->dst, t);
-    if(in->cleanup)
+    if (in->cleanup)
         fs::copyArgsDestroy(in);
     t->finished = true;
 }
 
-void fs::copyFileThreaded(const std::string& src, const std::string& dst)
+void fs::copyFileThreaded(const std::string &src, const std::string &dst)
 {
     fs::copyArgs *send = fs::copyArgsCreate(src, dst, "", NULL, NULL, true, false, 0);
     ui::newThread(copyFileThreaded_t, send, fs::fileDrawFunc);
 }
 
-void fs::copyFileCommit(const std::string& src, const std::string& dst, const std::string& dev, threadInfo *t)
+void fs::copyFileCommit(const std::string &src, const std::string &dst, const std::string &dev, threadInfo *t)
 {
     fs::copyArgs *c = NULL;
     size_t filesize = fs::fsize(src);
-    if(t)
+    if (t)
     {
         c = (fs::copyArgs *)t->argPtr;
         c->offset = 0;
@@ -272,7 +281,7 @@ void fs::copyFileCommit(const std::string& src, const std::string& dst, const st
     }
 
     FILE *fsrc = fopen(src.c_str(), "rb");
-    if(!fsrc)
+    if (!fsrc)
     {
         fclose(fsrc);
         return;
@@ -294,17 +303,17 @@ void fs::copyFileCommit(const std::string& src, const std::string& dst, const st
     uint64_t readCount = 0;
     std::vector<uint8_t> transferBuffer;
     threadStart(&writeThread);
-    while((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
+    while ((readIn = fread(buff, 1, BUFF_SIZE, fsrc)) > 0)
     {
         transferBuffer.insert(transferBuffer.end(), buff, buff + readIn);
         readCount += readIn;
-        if(c)
+        if (c)
             c->offset = readCount;
 
-        if(transferBuffer.size() >= thrdArgs.writeLimit || readCount == filesize)
+        if (transferBuffer.size() >= thrdArgs.writeLimit || readCount == filesize)
         {
             std::unique_lock<std::mutex> buffLock(thrdArgs.bufferLock);
-            thrdArgs.cond.wait(buffLock, [&thrdArgs]{ return thrdArgs.bufferIsFull == false; });
+            thrdArgs.cond.wait(buffLock, [&thrdArgs] { return thrdArgs.bufferIsFull == false; });
             thrdArgs.sharedBuffer.assign(transferBuffer.begin(), transferBuffer.end());
             transferBuffer.clear();
             thrdArgs.bufferIsFull = true;
@@ -330,13 +339,13 @@ static void copyFileCommit_t(void *a)
     in->prog->update(0);
 
     fs::copyFileCommit(in->src, in->dst, in->dev, t);
-    if(in->cleanup)
+    if (in->cleanup)
         fs::copyArgsDestroy(in);
 
     t->finished = true;
 }
 
-void fs::copyFileCommitThreaded(const std::string& src, const std::string& dst, const std::string& dev)
+void fs::copyFileCommitThreaded(const std::string &src, const std::string &dst, const std::string &dev)
 {
     fs::copyArgs *send = fs::copyArgsCreate(src, dst, dev, NULL, NULL, true, false, 0);
     ui::newThread(copyFileCommit_t, send, fs::fileDrawFunc);
@@ -345,7 +354,7 @@ void fs::copyFileCommitThreaded(const std::string& src, const std::string& dst, 
 void fs::fileDrawFunc(void *a)
 {
     threadInfo *t = (threadInfo *)a;
-    if(!t->finished && t->argPtr)
+    if (!t->finished && t->argPtr)
     {
         copyArgs *c = (copyArgs *)t->argPtr;
         std::string tmp;
@@ -357,35 +366,35 @@ void fs::fileDrawFunc(void *a)
     }
 }
 
-void fs::delfile(const std::string& path)
+void fs::delfile(const std::string &path)
 {
-    if(cfg::config["directFsCmd"])
+    if (cfg::config["directFsCmd"])
         fsremove(path.c_str());
     else
         remove(path.c_str());
 }
 
-void fs::getShowFileProps(const std::string& _path)
+void fs::getShowFileProps(const std::string &_path)
 {
     size_t size = fs::fsize(_path);
     ui::showMessage(ui::getUICString("fileModeFileProperties", 0), _path.c_str(), util::getSizeString(size).c_str());
 }
 
-bool fs::fileExists(const std::string& path)
+bool fs::fileExists(const std::string &path)
 {
     bool ret = false;
     FILE *test = fopen(path.c_str(), "rb");
-    if(test != NULL)
+    if (test != NULL)
         ret = true;
     fclose(test);
     return ret;
 }
 
-size_t fs::fsize(const std::string& _f)
+size_t fs::fsize(const std::string &_f)
 {
     size_t ret = 0;
     FILE *get = fopen(_f.c_str(), "rb");
-    if(get != NULL)
+    if (get != NULL)
     {
         fseek(get, 0, SEEK_END);
         ret = ftell(get);

@@ -1,9 +1,9 @@
-#include "fs.h"
-#include "rfs.h"
-#include "gd.h"
-#include "webdav.h"
 #include "cfg.h"
+#include "fs.h"
+#include "gd.h"
+#include "rfs.h"
 #include "ui.h"
+#include "webdav.h"
 
 rfs::IRemoteFS *fs::rfs = NULL;
 std::string fs::rfsRootID;
@@ -17,7 +17,8 @@ void fs::remoteInit()
 
 void fs::remoteExit()
 {
-    if(rfs) {
+    if (rfs)
+    {
         delete rfs;
         rfs = NULL;
     }
@@ -29,28 +30,28 @@ void fs::driveInit()
     if (rfs)
         return;
 
-    if(cfg::driveClientID.empty() || cfg::driveClientSecret.empty())
+    if (cfg::driveClientID.empty() || cfg::driveClientSecret.empty())
         return;
 
     bool refreshed = false, exchanged = false;
     drive::gd *gDrive = new drive::gd;
     gDrive->setClientID(cfg::driveClientID);
     gDrive->setClientSecret(cfg::driveClientSecret);
-    if(!cfg::driveRefreshToken.empty())
+    if (!cfg::driveRefreshToken.empty())
     {
         gDrive->setRefreshToken(cfg::driveRefreshToken);
         refreshed = gDrive->refreshToken();
     }
 
-    if(!refreshed)
+    if (!refreshed)
     {
         std::string authCode = driveSignInGetAuthCode();
         exchanged = gDrive->exhangeAuthCode(authCode);
     }
 
-    if(gDrive->hasToken())
+    if (gDrive->hasToken())
     {
-        if(exchanged)
+        if (exchanged)
         {
             cfg::driveRefreshToken = gDrive->getRefreshToken();
             cfg::saveConfig();
@@ -58,7 +59,7 @@ void fs::driveInit()
 
         gDrive->driveListInit("");
 
-        if(!gDrive->dirExists(JKSV_DRIVE_FOLDER))
+        if (!gDrive->dirExists(JKSV_DRIVE_FOLDER))
             gDrive->createDir(JKSV_DRIVE_FOLDER, "");
 
         rfsRootID = gDrive->getDirID(JKSV_DRIVE_FOLDER);
@@ -74,19 +75,20 @@ void fs::driveInit()
 
 std::string fs::driveSignInGetAuthCode()
 {
-    std::string url = "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + cfg::driveClientID + "&redirect_uri=urn:ietf:wg:oauth:2.0:oob:auto&response_type=code&scope=https://www.googleapis.com/auth/drive";
+    std::string url = "https://accounts.google.com/o/oauth2/v2/auth?client_id=" + cfg::driveClientID +
+                      "&redirect_uri=urn:ietf:wg:oauth:2.0:oob:auto&response_type=code&scope=https://www.googleapis.com/auth/drive";
     std::string replyURL;
     WebCommonConfig webCfg;
-    WebCommonReply  webReply;
+    WebCommonReply webReply;
     webPageCreate(&webCfg, url.c_str());
     webConfigSetCallbackUrl(&webCfg, "https://accounts.google.com/o/oauth2/approval/");
     webConfigShow(&webCfg, &webReply);
-    
+
     size_t rLength = 0;
     char replyURLCstr[0x1000];
     webReplyGetLastUrl(&webReply, replyURLCstr, 0x1000, &rLength);
     //Prevent crash if empty.
-    if(strlen(replyURLCstr) == 0)
+    if (strlen(replyURLCstr) == 0)
         return "";
 
     replyURL.assign(replyURLCstr);
@@ -103,7 +105,8 @@ std::string fs::driveSignInGetAuthCode()
     return replyURL;
 }
 
-void fs::webDavInit() {
+void fs::webDavInit()
+{
     // Already initialized?
     if (rfs)
         return;
@@ -111,9 +114,7 @@ void fs::webDavInit() {
     if (cfg::webdavOrigin.empty())
         return;
 
-    rfs::WebDav *webdav = new rfs::WebDav(cfg::webdavOrigin,
-                                          cfg::webdavUser,
-                                          cfg::webdavPassword);
+    rfs::WebDav *webdav = new rfs::WebDav(cfg::webdavOrigin, cfg::webdavUser, cfg::webdavPassword);
 
     std::string baseId = "/" + cfg::webdavBasePath + (cfg::webdavBasePath.empty() ? "" : "/");
     rfsRootID = webdav->getDirID(JKSV_DRIVE_FOLDER, baseId);

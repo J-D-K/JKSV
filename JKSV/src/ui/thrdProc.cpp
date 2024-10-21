@@ -1,8 +1,8 @@
 #include <switch.h>
 #include <vector>
 
-#include "ui.h"
 #include "gfx.h"
+#include "ui.h"
 
 #include "file.h"
 
@@ -12,7 +12,7 @@ static const SDL_Color darkenBack = {0x00, 0x00, 0x00, 0xBB};
 
 ui::threadProcMngr::~threadProcMngr()
 {
-    for(threadInfo *t : threads)
+    for (threadInfo *t : threads)
     {
         threadWaitForExit(&t->thrd);
         threadClose(&t->thrd);
@@ -39,18 +39,18 @@ threadInfo *ui::threadProcMngr::newThread(ThreadFunc func, void *args, funcPtr _
 
 void ui::threadProcMngr::update()
 {
-    if(!threads.empty())
+    if (!threads.empty())
     {
         Result res = 0;
         threadInfo *t = threads[0];
-        if(!t->running && R_SUCCEEDED((res = threadCreate(&t->thrd, t->thrdFunc, t, NULL, 0x80000, 0x2B, 1))))
+        if (!t->running && R_SUCCEEDED((res = threadCreate(&t->thrd, t->thrdFunc, t, NULL, 0x80000, 0x2B, 1))))
         {
             threadStart(&t->thrd);
             t->running = true;
         }
-        else if(!t->running && R_FAILED(res))//Should kill the thread that failed.
+        else if (!t->running && R_FAILED(res)) //Should kill the thread that failed.
             t->finished = true;
-        else if(t->finished)
+        else if (t->finished)
         {
             threadWaitForExit(&t->thrd);
             threadClose(&t->thrd);
@@ -65,14 +65,14 @@ void ui::threadProcMngr::update()
 
 void ui::threadProcMngr::draw()
 {
-    if(!threads.empty())
+    if (!threads.empty())
     {
-        if(++frameCount % 4 == 0 && ++lgFrame > 7)
+        if (++frameCount % 4 == 0 && ++lgFrame > 7)
             lgFrame = 0;
 
-        if(clrAdd && (clrShft += 6) >= 0x72)
+        if (clrAdd && (clrShft += 6) >= 0x72)
             clrAdd = false;
-        else if(!clrAdd && (clrShft -= 3) <= 0x00)
+        else if (!clrAdd && (clrShft -= 3) <= 0x00)
             clrAdd = true;
 
 
@@ -82,7 +82,7 @@ void ui::threadProcMngr::draw()
         gfx::drawTextf(NULL, 32, 56, 673, &glyphCol, loadGlyphArray[lgFrame].c_str());
 
         threadInfo *t = threads[0];
-        if(t->drawFunc)
+        if (t->drawFunc)
             (*(t->drawFunc))(t);
         else
         {

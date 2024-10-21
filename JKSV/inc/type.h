@@ -10,7 +10,7 @@ class threadStatus
 {
     public:
         void setStatus(const char *fmt, ...);
-        void getStatus(std::string& statusOut);
+        void getStatus(std::string &statusOut);
 
     private:
         Mutex statusLock = 0;
@@ -19,10 +19,10 @@ class threadStatus
 
 typedef struct
 {
-    bool running = false, finished = false;
-    Thread thrd;
-    ThreadFunc thrdFunc;
-    void *argPtr = NULL;
-    funcPtr drawFunc = NULL;//Draw func is passed threadInfo pointer too
-    threadStatus *status;
+        bool running = false, finished = false;
+        Thread thrd;
+        ThreadFunc thrdFunc;
+        void *argPtr = NULL;
+        funcPtr drawFunc = NULL; //Draw func is passed threadInfo pointer too
+        threadStatus *status;
 } threadInfo;

@@ -1,14 +1,14 @@
 #pragma once
 
-#include <minizip/zip.h>
 #include <minizip/unzip.h>
+#include <minizip/zip.h>
 
-#include "fs/fstype.h"
-#include "fs/file.h"
 #include "fs/dir.h"
-#include "fs/zip.h"
+#include "fs/file.h"
 #include "fs/fsfile.h"
+#include "fs/fstype.h"
 #include "fs/remote.h"
+#include "fs/zip.h"
 #include "ui/miscui.h"
 
 #define BUFF_SIZE 0x4000
@@ -17,19 +17,29 @@
 
 namespace fs
 {
-    copyArgs *copyArgsCreate(const std::string& src, const std::string& dst, const std::string& dev, zipFile z, unzFile unz, bool _cleanup, bool _trimZipPath, uint8_t _trimPlaces);
+    copyArgs *copyArgsCreate(const std::string &src,
+                             const std::string &dst,
+                             const std::string &dev,
+                             zipFile z,
+                             unzFile unz,
+                             bool _cleanup,
+                             bool _trimZipPath,
+                             uint8_t _trimPlaces);
     void copyArgsDestroy(copyArgs *c);
 
     void init();
-    bool mountSave(const FsSaveDataInfo& _m);
-    inline bool unmountSave() { return fsdevUnmountDevice("sv") == 0; }
-    bool commitToDevice(const std::string& dev);
+    bool mountSave(const FsSaveDataInfo &_m);
+    inline bool unmountSave()
+    {
+        return fsdevUnmountDevice("sv") == 0;
+    }
+    bool commitToDevice(const std::string &dev);
     std::string getWorkDir();
-    void setWorkDir(const std::string& _w);
+    void setWorkDir(const std::string &_w);
 
     //Loads paths to filter from backup/deletion
-    void loadPathFilters(const uint64_t& tid);
-    bool pathIsFiltered(const std::string& _path);
+    void loadPathFilters(const uint64_t &tid);
+    bool pathIsFiltered(const std::string &_path);
     void freePathFilters();
 
     void createSaveData(FsSaveDataType _type, uint64_t _tid, AccountUid _uid, threadInfo *t);
@@ -52,4 +62,4 @@ namespace fs
 
     void logOpen();
     void logWrite(const char *fmt, ...);
-}
+} // namespace fs

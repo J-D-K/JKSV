@@ -1,16 +1,16 @@
-#include <switch.h>
 #include <SDL2/SDL.h>
+#include <switch.h>
 
-#include "ui.h"
-#include "file.h"
-#include "util.h"
 #include "cfg.h"
+#include "file.h"
+#include "ui.h"
+#include "util.h"
 
 ui::menu *ui::extMenu;
 
 static void extMenuCallback(void *a)
 {
-    switch(ui::padKeysDown())
+    switch (ui::padKeysDown())
     {
         case HidNpadButton_B:
             ui::extMenu->setActive(false);
@@ -93,10 +93,10 @@ static void extMenuOptRemoveUpdate(void *a)
 static void extMenuTerminateProcess(void *a)
 {
     std::string idStr = util::getStringInput(SwkbdType_QWERTY, "0100000000000000", ui::getUIString("swkbdProcessID", 0), 18, 0, NULL);
-    if(!idStr.empty())
+    if (!idStr.empty())
     {
         uint64_t termID = std::strtoull(idStr.c_str(), NULL, 16);
-        if(R_SUCCEEDED(pmshellTerminateProgram(termID)))
+        if (R_SUCCEEDED(pmshellTerminateProgram(termID)))
             ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popProcessShutdown", 0), idStr.c_str());
     }
 }
@@ -106,7 +106,7 @@ static void extMenuMountSysSave(void *a)
     FsFileSystem sys;
     std::string idStr = util::getStringInput(SwkbdType_QWERTY, "8000000000000000", ui::getUIString("swkbdSysSavID", 0), 18, 0, NULL);
     uint64_t mountID = std::strtoull(idStr.c_str(), NULL, 16);
-    if(R_SUCCEEDED(fsOpen_SystemSaveData(&sys, FsSaveDataSpaceId_System, mountID, (AccountUid) {0})))
+    if (R_SUCCEEDED(fsOpen_SystemSaveData(&sys, FsSaveDataSpaceId_System, mountID, (AccountUid){0})))
     {
         fsdevMountDevice("sv", sys);
         ui::fmPrep(FsSaveDataType_System, "sv:/", "sdmc:/", true);
@@ -126,48 +126,55 @@ static void extMenuReloadTitles(void *a)
 static void extMenuMountRomFS(void *a)
 {
     FsFileSystem tromfs;
-    if(R_SUCCEEDED(fsOpenDataFileSystemByCurrentProcess(&tromfs)))
+    if (R_SUCCEEDED(fsOpenDataFileSystemByCurrentProcess(&tromfs)))
     {
         fsdevMountDevice("tromfs", tromfs);
         ui::fmPrep(FsSaveDataType_System, "tromfs:/", "sdmc:/", false);
-        ui::usrSelPanel->closePanel(); 
+        ui::usrSelPanel->closePanel();
         ui::changeState(FIL_MDE);
     }
 }
 
 static void extMenuPackJKSVZip_t(void *a)
 {
-    threadInfo *t = (threadInfo *)a;
-    fs::copyArgs *c = (fs::copyArgs *)t->argPtr;
+    // Wew this one was a mess~ Not sure how good it'll cleanup.
+    threadInfo *t = reinterpret_cast<threadInfo *>(a);
+    fs::copyArgs *CopyArgs = reinterpret_cast<fs::copyArgs *>(t->argPtr);
+
     t->status->setStatus(ui::getUICString("threadStatusPackingJKSV", 0));
-    if(cfg::config["ovrClk"])
+
+    // Screw the overclocking from the old code. It barely made a difference.
+
+    std::string WorkingDirectory = fs::getWorkDir();
+    uint8_t PathTrimPlaces = util::getTotalPlacesInPath(WorkingDirectory);
+    FsLib::Directory JKSVDir(WorkingDirectory);
+    if (!JKSVDir.IsOpen() || JKSVDir.GetEntryCount() <= 0)
     {
-        util::sysBoost();
-        ui::showPopMessage(POP_FRAME_DEFAULT, ui::getUICString("popCPUBoostEnabled", 0));
+        // To do: Eradicate all new and delete from code.
+        delete CopyArgs;
+        t->finished = true;
+        return;
     }
 
-    fs::dirList *jksv = new fs::dirList(fs::getWorkDir());
-    uint8_t pathTrimPlaces = util::getTotalPlacesInPath(fs::getWorkDir());
-    size_t dirCount = jksv->getCount();
-    if(dirCount > 0)
+    std::string ZipPath = WorkingDirectory + "JKSV - " + util::getDateTime(util::DATE_FMT_ASC) + ".zip";
+    zipFile JKSVOut = zipOpen64(ZipPath.c_str(), 0);
+    if (!JKSVOut)
     {
-        std::string zipPath = fs::getWorkDir() + "JKSV - " + util::getDateTime(util::DATE_FMT_ASC) + ".zip";
-        zipFile zip = zipOpen64(zipPath.c_str(), 0);
-        for(unsigned i = 0; i < jksv->getCount(); i++)
+        delete CopyArgs;
+        t->finished = true;
+        return;
+    }
+
+    for (int64_t i = 0; i < JKSVDir.GetEntryCount(); i++)
+    {
+        if (JKSVDir.EntryAtIsDirectory(i) && JKSVDir.GetEntryNameAt(i) != "_TRASH_")
         {
-            if(jksv->isDir(i) && jksv->getItem(i) != "_TRASH_")
-            {
-                std::string srcPath = fs::getWorkDir() + jksv->getItem(i) + "/";
-                fs::copyDirToZip(srcPath, zip, true, pathTrimPlaces, t);
-            }
+            std::string SourcePath = WorkingDirectory + JKSVDir.GetEntryNameAt(i) + "/";
+            fs::copyDirToZip(SourcePath, JKSVOut, true, PathTrimPlaces, t);
         }
-        zipClose(zip, NULL);
     }
-    if(cfg::config["ovrClk"])
-        util::sysNormal();
-
-    delete jksv;
-    delete c;
+    zipClose(JKSVOut, NULL);
+    delete CopyArgs;
     t->finished = true;
 }
 
@@ -188,7 +195,7 @@ void ui::extInit()
     ui::extMenu = new ui::menu(200, 24, 1002, 24, 4);
     ui::extMenu->setCallback(extMenuCallback, NULL);
     ui::extMenu->setActive(false);
-    for(unsigned i = 0; i < 12; i++)
+    for (unsigned i = 0; i < 12; i++)
         ui::extMenu->addOpt(NULL, ui::getUIString("extrasMenu", i));
 
     //SD to SD

@@ -14,4 +14,4 @@ namespace ui
 
     //File mode needs access to this.
     extern ui::slideOutPanel *ttlOptsPanel;
-}
+} // namespace ui

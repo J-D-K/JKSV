@@ -34,7 +34,7 @@ TARGET		:=	JKSV
 BUILD		:=	build
 SOURCES		:=	src src/ui src/fs src/gfx
 DATA		:=	data
-INCLUDES	:=	inc inc/ui inc/fs inc/gfx
+INCLUDES	:=	inc inc/ui inc/fs inc/gfx ../FsLib/Switch/include
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
@@ -51,12 +51,12 @@ override CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 override CFLAGS += 	`sdl2-config --cflags` `freetype-config --cflags` `curl-config --cflags`
 override CFLAGS	+=	-g -Wall -O2 -ffunction-sections -ffast-math $(ARCH) $(DEFINES)
 
-CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
+CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=c++23
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx
+LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` ../FsLib/Switch/lib/libFsLib.a -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing

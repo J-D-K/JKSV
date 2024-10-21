@@ -12,7 +12,10 @@ namespace ui
             threadInfo *newThread(ThreadFunc func, void *args, funcPtr _drawFunc);
             void update();
             void draw();
-            bool empty() { return threads.empty(); }
+            bool empty()
+            {
+                return threads.empty();
+            }
 
         private:
             std::vector<threadInfo *> threads;
@@ -21,4 +24,4 @@ namespace ui
             unsigned frameCount = 0;
             Mutex threadLock = 0;
     };
-}
+} // namespace ui
