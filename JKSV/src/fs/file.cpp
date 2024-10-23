@@ -1,3 +1,10 @@
+#include "FsLib.hpp"
+#include "cfg.h"
+#include "data.h"
+#include "fs.h"
+#include "gfx.h"
+#include "ui.h"
+#include "util.h"
 #include <algorithm>
 #include <condition_variable>
 #include <cstdarg>
@@ -8,13 +15,6 @@
 #include <sys/stat.h>
 #include <unistd.h>
 #include <vector>
-
-#include "cfg.h"
-#include "data.h"
-#include "fs.h"
-#include "gfx.h"
-#include "ui.h"
-#include "util.h"
 
 static std::string wd = "sdmc:/JKSV/";
 

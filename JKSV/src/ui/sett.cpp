@@ -1,11 +1,11 @@
-#include <SDL2/SDL.h>
-#include <switch.h>
-
+#include "sett.h"
+#include "FsLib.hpp"
 #include "cfg.h"
 #include "file.h"
-#include "sett.h"
 #include "ui.h"
 #include "util.h"
+#include <SDL2/SDL.h>
+#include <switch.h>
 
 ui::menu *ui::settMenu;
 static ui::slideOutPanel *blEditPanel;
@@ -53,16 +53,16 @@ static void settMenuDeleteAllBackups_t(void *a)
     threadInfo *t = (threadInfo *)a;
     t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
 
-    fs::dirList *jksvDir = new fs::dirList(fs::getWorkDir());
-    for (unsigned i = 0; i < jksvDir->getCount(); i++)
+    std::string WorkingDirectory = fs::getWorkDir();
+    FsLib::Directory JKSVDir(fs::getWorkDir());
+    for (int64_t i = 0; i < JKSVDir.GetEntryCount(); i++)
     {
-        if (jksvDir->isDir(i) && jksvDir->getItem(i) != "svi")
+        if (JKSVDir.EntryAtIsDirectory(i) && JKSVDir.GetEntryNameAt(i) != "svi")
         {
-            std::string delTarget = fs::getWorkDir() + jksvDir->getItem(i) + "/";
-            fs::delDir(delTarget);
+            std::string DeletionTarget = WorkingDirectory + JKSVDir.GetEntryNameAt(i) + "/";
+            FsLib::DeleteDirectoryRecursively(DeletionTarget);
         }
     }
-    delete jksvDir;
     t->finished = true;
 }
 

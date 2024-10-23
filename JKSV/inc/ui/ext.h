@@ -2,6 +2,7 @@
 
 namespace ui
 {
+    class menu;
     extern ui::menu *extMenu;
     void extInit();
     void extExit();

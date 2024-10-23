@@ -1,12 +1,12 @@
-#include <switch.h>
-#include <curl/curl.h>
-
-#include "gfx.h"
-#include "file.h"
+#include "FsLib.hpp"
+#include "cfg.h"
 #include "data.h"
+#include "file.h"
+#include "gfx.h"
 #include "ui.h"
 #include "util.h"
-#include "cfg.h"
+#include <curl/curl.h>
+#include <switch.h>
 
 extern "C"
 {
@@ -42,6 +42,7 @@ int main(int argc, const char *argv[])
     romfsInit();
     cfg::resetConfig();
     cfg::loadConfig();
+    FsLib::Initialize();
     fs::init();
     gfx::init();
     ui::initTheme();
@@ -52,15 +53,18 @@ int main(int argc, const char *argv[])
 
     curl_global_init(CURL_GLOBAL_ALL);
     //Drive needs config read
-    if(!util::isApplet())
+    if (!util::isApplet())
         fs::remoteInit();
     else
         ui::showMessage(ui::getUICString("appletModeWarning", 0));
-        
-    while(ui::runApp()){ }
+
+    while (ui::runApp())
+    {
+    }
 
     fs::remoteExit();
     curl_global_cleanup();
+    FsLib::Exit();
     cfg::saveConfig();
     ui::exit();
     data::exit();

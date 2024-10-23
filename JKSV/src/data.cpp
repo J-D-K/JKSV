@@ -227,7 +227,7 @@ static void importSVIs()
             }
 
             // Copy NACP. There's a better more memory efficient way to do this, but I don't want to rewrite too much.
-            std::memcpy(&data::titles.nacp, NACP.get(), sizeof(NacpStruct));
+            std::memcpy(&data::titles[TitleID].nacp, NACP.get(), sizeof(NacpStruct));
 
             if (cfg::isFavorite(TitleID))
             {

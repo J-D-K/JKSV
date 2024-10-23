@@ -1,4 +1,4 @@
-.PHONY	: all FsLib JKSV clean
+.PHONY: all FsLib JKSV clean
 
 all:	FsLib JKSV
 

@@ -1,10 +1,10 @@
-#include <vector>
-
+#include "ttl.h"
+#include "FsLib.hpp"
 #include "cfg.h"
 #include "file.h"
-#include "ttl.h"
 #include "ui.h"
 #include "util.h"
+#include <vector>
 
 static int ttlHelpX = 0;
 static std::vector<ui::titleview *> ttlViews;
@@ -143,19 +143,20 @@ static void ttlOptsDeleteAllBackups_t(void *a)
     t->status->setStatus(ui::getUICString("threadStatusDeletingFile", 0));
     data::userTitleInfo *d = data::getCurrentUserTitleInfo();
     std::string targetPath = util::generatePathByTID(d->tid);
-    fs::dirList *backupList = new fs::dirList(targetPath);
-    for (unsigned i = 0; i < backupList->getCount(); i++)
+
+    FsLib::Directory BackupList(targetPath);
+    for (int64_t i = 0; i < BackupList.GetEntryCount(); i++)
     {
-        std::string delPath = targetPath + backupList->getItem(i);
-        if (backupList->isDir(i))
+        std::string DeletionTarget = targetPath + BackupList.GetEntryNameAt(i) + "/";
+        if (BackupList.EntryAtIsDirectory(i))
         {
-            delPath += "/";
-            fs::delDir(delPath);
+            FsLib::DeleteDirectoryRecursively(DeletionTarget);
         }
         else
-            fs::delfile(delPath);
+        {
+            FsLib::DeleteFile(DeletionTarget.substr(0, DeletionTarget.length() - 1));
+        }
     }
-    delete backupList;
     t->finished = true;
 }
 

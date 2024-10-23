@@ -306,7 +306,7 @@ static void loadDriveConfig()
 {
     // Start Google Drive
     // Rewriting this was unintentional. First, I removed the old directory code, but couldn't stop myself.
-    std::unique_ptr<json_object> DriveJSON(json_object_from_file(DriveConfigPath), json_object_put);
+    std::unique_ptr<json_object, decltype(&json_object_put)> DriveJSON(json_object_from_file(DriveConfigPath), json_object_put);
     if (DriveJSON)
     {
         json_object *Installed, *ClientID, *ClientSecret;
@@ -327,7 +327,7 @@ static void loadDriveConfig()
     // End Google Drive
 
     // Webdav
-    std::unique_ptr<json_object> WebDavJSON(WebDavConfigPath, json_object_put);
+    std::unique_ptr<json_object, decltype(&json_object_put)> WebDavJSON(json_object_from_file(WebDavConfigPath), json_object_put);
     if (WebDavJSON)
     {
         json_object *origin, *basepath, *username, *password;
@@ -360,121 +360,119 @@ void cfg::loadConfig()
     loadTitleDefsLegacy();
     loadTitleDefs();
 
-    if (fs::fileExists(cfgPath))
+    if (!FsLib::FileExists(cfgPath))
     {
-        fs::dataFile cfgRead(cfgPath);
-        while (cfgRead.readNextLine(true))
+        return;
+    }
+
+    fs::dataFile ConfigReader(cfgPath);
+    while (ConfigReader.readNextLine(true))
+    {
+        switch (cfgStrings[ConfigReader.getNextValueStr()])
         {
-            std::string varName = cfgRead.getName();
-            if (cfgStrings.find(varName) != cfgStrings.end())
+            case 0:
+                fs::setWorkDir(ConfigReader.getNextValueStr());
+                break;
+
+            case 1:
+                cfg::config["incDev"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 2:
+                cfg::config["autoBack"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 3:
+                cfg::config["ovrClk"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 4:
+                cfg::config["holdDel"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 5:
+                cfg::config["holdRest"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 6:
+                cfg::config["holdOver"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 7:
+                cfg::config["forceMount"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 8:
+                cfg::config["accSysSave"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 9:
+                cfg::config["sysSaveWrite"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 10:
+                cfg::config["directFsCmd"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 11:
+                cfg::config["zip"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 12:
+                cfg::config["langOverride"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 13:
+                cfg::config["trashBin"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 14:
             {
-                switch (cfgStrings[varName])
-                {
-                    case 0:
-                        fs::setWorkDir(cfgRead.getNextValueStr());
-                        break;
-
-                    case 1:
-                        cfg::config["incDev"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 2:
-                        cfg::config["autoBack"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 3:
-                        cfg::config["ovrClk"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 4:
-                        cfg::config["holdDel"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 5:
-                        cfg::config["holdRest"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 6:
-                        cfg::config["holdOver"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 7:
-                        cfg::config["forceMount"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 8:
-                        cfg::config["accSysSave"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 9:
-                        cfg::config["sysSaveWrite"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 10:
-                        cfg::config["directFsCmd"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 11:
-                        cfg::config["zip"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 12:
-                        cfg::config["langOverride"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 13:
-                        cfg::config["trashBin"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 14:
-                    {
-                        std::string getSort = cfgRead.getNextValueStr();
-                        if (getSort == "ALPHA")
-                            cfg::sortType = cfg::ALPHA;
-                        else if (getSort == "MOST_PLAYED")
-                            cfg::sortType = cfg::MOST_PLAYED;
-                        else
-                            cfg::sortType = cfg::LAST_PLAYED;
-                    }
-                    break;
-
-                    case 15:
-                    {
-                        std::string animFloat = cfgRead.getNextValueStr();
-                        ui::animScale = strtof(animFloat.c_str(), NULL);
-                    }
-                    break;
-
-                    case 16:
-                    {
-                        std::string tid = cfgRead.getNextValueStr();
-                        cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
-                    }
-                    break;
-
-                    case 17:
-                    {
-                        std::string tid = cfgRead.getNextValueStr();
-                        cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
-                    }
-                    break;
-
-                    case 18:
-                        cfg::config["autoName"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    case 19:
-                        cfg::driveRefreshToken = cfgRead.getNextValueStr();
-                        break;
-
-                    case 20:
-                        cfg::config["autoUpload"] = textToBool(cfgRead.getNextValueStr());
-                        break;
-
-                    default:
-                        break;
-                }
+                std::string getSort = ConfigReader.getNextValueStr();
+                if (getSort == "ALPHA")
+                    cfg::sortType = cfg::ALPHA;
+                else if (getSort == "MOST_PLAYED")
+                    cfg::sortType = cfg::MOST_PLAYED;
+                else
+                    cfg::sortType = cfg::LAST_PLAYED;
             }
+            break;
+
+            case 15:
+            {
+                std::string animFloat = ConfigReader.getNextValueStr();
+                ui::animScale = strtof(animFloat.c_str(), NULL);
+            }
+            break;
+
+            case 16:
+            {
+                std::string tid = ConfigReader.getNextValueStr();
+                cfg::favorites.push_back(strtoul(tid.c_str(), NULL, 16));
+            }
+            break;
+
+            case 17:
+            {
+                std::string tid = ConfigReader.getNextValueStr();
+                cfg::blacklist.push_back(strtoul(tid.c_str(), NULL, 16));
+            }
+            break;
+
+            case 18:
+                cfg::config["autoName"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            case 19:
+                cfg::driveRefreshToken = ConfigReader.getNextValueStr();
+                break;
+
+            case 20:
+                cfg::config["autoUpload"] = textToBool(ConfigReader.getNextValueStr());
+                break;
+
+            default:
+                break;
         }
     }
     loadDriveConfig();

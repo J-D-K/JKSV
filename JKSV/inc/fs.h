@@ -5,7 +5,6 @@
 
 #include "fs/dir.h"
 #include "fs/file.h"
-#include "fs/fsfile.h"
 #include "fs/fstype.h"
 #include "fs/remote.h"
 #include "fs/zip.h"

@@ -1,11 +1,11 @@
-#include <string>
-
+#include "fm.h"
+#include "FsLib.hpp"
 #include "cfg.h"
 #include "file.h"
-#include "fm.h"
 #include "type.h"
 #include "ui.h"
 #include "util.h"
+#include <string>
 
 //This is going to be a mess but the old one was too.
 //It gets more complicated because of system saves and committing.
@@ -23,7 +23,7 @@ typedef struct
 
 static ui::slideOutPanel *devPanel, *sdPanel;
 static ui::menu *devMenu, *sdMenu, *devCopyMenu, *sdCopyMenu;
-static fs::dirList *devList, *sdList;
+static FsLib::Directory DeviceList, SDList;
 static std::string devPath, sdPath, dev;
 static menuFuncArgs *devArgs, *sdmcArgs;
 static FsSaveDataType type;
@@ -499,10 +499,8 @@ void ui::fmInit()
     sdCopyMenu->optAddButtonEvent(5, HidNpadButton_A, _copyMenuClose, sdmcArgs);
     ui::registerPanel(sdPanel);
 
-    devList = new fs::dirList;
-    sdList = new fs::dirList;
-    devArgs->d = devList;
-    sdmcArgs->d = sdList;
+    devArgs->d = &DeviceList;
+    sdmcArgs->d = &SDList;
 }
 
 void ui::fmExit()

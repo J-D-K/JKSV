@@ -6,6 +6,8 @@
 namespace ui
 {
     //extern ui::menu *fldMenu;
+    // I was tired of this conflict holding shit up.
+    class slideOutPanel;
     extern ui::slideOutPanel *fldPanel;
     //extern fs::dirList *fldList;
 
