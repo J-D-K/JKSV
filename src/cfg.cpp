@@ -51,6 +51,7 @@ void cfg::addTitleToBlacklist(void *a)
             if(u.titleInfo[i].tid == tid) u.titleInfo.erase(u.titleInfo.begin() + i);
     }
     ui::ttlRefresh();
+    cfg::saveConfig();
     t->finished = true;
 }
 
@@ -63,6 +64,7 @@ void cfg::removeTitleFromBlacklist(const uint64_t& tid)
     }
     data::loadUsersTitles(false);
     ui::ttlRefresh();
+    cfg::saveConfig();
 }
 
 bool cfg::isFavorite(const uint64_t& tid)
@@ -95,6 +97,7 @@ void cfg::addTitleToFavorites(const uint64_t& tid)
 
     data::sortUserTitles();
     ui::ttlRefresh();
+    cfg::saveConfig();
 }
 
 bool cfg::isDefined(const uint64_t& tid)
