@@ -15,7 +15,7 @@
 
 8. **Auto Name backups**: Automatically names backups and skips the keyboard entirely.
 
-9. **Overclock/CPU Boost**: Overclocks the CPU when exporting ZIP archives. 
+9. **Overclock/CPU Boost**: Overclocks the CPU when exporting ZIP archives. This has little effect on the speed of compression so it's recommended to leave it off. It's being removed in the rewrite anyway for having almost no impact.
 
 10. **Hold to Delete**: Whether or not you would like JKSV to force you to hold A to delete a backup.
 
@@ -40,4 +40,3 @@
 20. **Title Sorting Type**: Changes the way titles are sorted and displayed.
 
 22. **Animation Scale**: Changes the transition speed for animated parts of the UI. One being instant, 8.0 being the slowest _I normally allow_.
-
