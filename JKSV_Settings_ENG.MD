@@ -1,5 +1,5 @@
 # JKSV's Settings menu options and what they do:
-1. **Empty Trash Bin**: Empties the trash folder of all backups moved to it. Running this now and then is important if you choose to use the trash bin option, which is enabled by default.
+1. **Empty Trash Bin**: Empties the trash folder of all backups moved to it. Running this now and then is important if you choose to use the trash bin option. It is enabled by default.
 
 2. **Check for Updates**: Checks JKSV's Github release page for any new updates and downloads it for you.
 
@@ -23,11 +23,11 @@
 
 12. **Hold to Overwrite**: Whether or not you would like JKSV to force you to hold A to overwrite a backup on your SD card.
 
-13. **Force Mount**: This controls whether or not JKSV displays everything it finds on your Switch, or only the save it can successfully open and mount.
+13. **Force Mount**: This controls whether or not JKSV displays everything it finds on your Switch or only the saves it can successfully open and mount on boot.
 
 14. **Account System Saves**: This controls whether or not JKSV displays system save data that has an account user ID associated with it or not. This is different than normal system save data because that does not have an account user ID associated with it.
 
-15. **Enable Writing to System Saves**: This enables writing and restoring to system save data and the NAND partitions in the filebrowser mode. This is **dangerous** and should normally be left off. Any damage incurred with this option on is your own fault. 
+15. **Enable Writing to System Saves**: This enables writing and restoring to system save data and the NAND partitions in the filebrowser mode. This is **dangerous** and should normally be left off. **Any damage incurred with this option on is your own fault.** 
 
 16. **Use FS Commands Directly**: Uses the Switch's FS file functions instead of LibNX's fs_dev and stdio. This can _sometimes_ resolve some issues.
 
@@ -35,7 +35,7 @@
 
 18. **Force English to be Used**: Overrides the detected language and uses the default English strings.
 
-19. **Enable Trash Bin**: Enables moving backups deleted the `_TRASH_` folder instead of deleting them permanently. Just in case.
+19. **Enable Trash Bin**: Enables moving backups deleted the `_TRASH_` folder instead of deleting them permanently.
 
 20. **Title Sorting Type**: Changes the way titles are sorted and displayed.
 
