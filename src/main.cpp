@@ -61,7 +61,6 @@ int main(int argc, const char *argv[])
 
     fs::remoteExit();
     curl_global_cleanup();
-    cfg::saveConfig();
     ui::exit();
     data::exit();
     gfx::exit();

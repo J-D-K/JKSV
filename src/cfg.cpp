@@ -151,7 +151,7 @@ void cfg::resetConfig()
     cfg::config["accSysSave"] = false;
     cfg::config["sysSaveWrite"] = false;
     cfg::config["directFsCmd"] = false;
-    cfg::config["zip"] = false;
+    cfg::config["zip"] = true;
     cfg::config["langOverride"] = false;
     cfg::config["trashBin"] = true;
     cfg::config["autoName"] = false;
@@ -345,6 +345,7 @@ static void loadDriveConfig()
         if (json_object_object_get_ex(webdavJSON, "password", &password)) {
             cfg::webdavPassword = json_object_get_string(password);
         }
+        json_object_put(webdavJSON);
     }
 }
 
@@ -506,7 +507,6 @@ void cfg::saveConfig()
     fprintf(cfgOut, "enableTrashBin = %s\n", boolToText(cfg::config["trashBin"]).c_str());
     fprintf(cfgOut, "titleSortType = %s\n", sortTypeText().c_str());
     fprintf(cfgOut, "animationScale = %f\n", ui::animScale);
-    fprintf(cfgOut, "autoUpload = %s\n", boolToText(cfg::config["autoUpload"]).c_str());
 
     if(!cfg::driveRefreshToken.empty())
         fprintf(cfgOut, "driveRefreshToken = %s\n", cfg::driveRefreshToken.c_str());
