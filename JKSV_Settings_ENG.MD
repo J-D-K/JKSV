@@ -27,15 +27,15 @@
 
 14. **Account System Saves**: This controls whether or not JKSV displays system save data that has an account user ID associated with it or not. This is different than normal system save data because that does not have an account user ID associated with it.
 
-15. **Enable Writing to System Saves**: This enables writing and restoring to system save data and the NAND partitions in the filebrowser mode. This is **dangerous** and should normally be left off. **Any damage incurred with this option on is your own fault.** 
+15. **Enable Writing to System Saves**: This enables writing and restoring to system save data and writing to the BIS partitions in the file browser mode. This is **dangerous** and should normally be left off. **Any damage incurred with this option on is your own fault.** 
 
-16. **Use FS Commands Directly**: Uses the Switch's FS file functions instead of LibNX's fs_dev and stdio. This can _sometimes_ resolve some issues.
+16. **Use FS Commands Directly**: Uses the Switch's FS file functions instead of LibNX's fs_dev and stdio. This can _sometimes_ resolve odd issues.
 
 17. **Export Saves to Zip**: Uses ZIP files for backing up saves instead of unpacked files in folders. This has the benefit of higher compatibility with various edge-case saves with non-ASCII filenames which the SD card can't handle.
 
 18. **Force English to be Used**: Overrides the detected language and uses the default English strings.
 
-19. **Enable Trash Bin**: Enables moving backups deleted the `_TRASH_` folder instead of deleting them permanently.
+19. **Enable Trash Bin**: Enables moving backups deleted to the `_TRASH_` folder instead of deleting them permanently.
 
 20. **Title Sorting Type**: Changes the way titles are sorted and displayed.
 
