@@ -116,7 +116,7 @@ void Remote::Storage::CurlPreparePatch(void)
 
 void Remote::Storage::CurlPrepareDelete(void)
 {
-    curl_easy_recv(m_CurlHandle);
+    curl_easy_reset(m_CurlHandle);
     curl_easy_setopt(m_CurlHandle, CURLOPT_CUSTOMREQUEST, "DELETE");
     curl_easy_setopt(m_CurlHandle, CURLOPT_USERAGENT, USER_AGENT_STRING);
 }
