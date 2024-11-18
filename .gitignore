@@ -6,6 +6,11 @@ build/
 .idea/
 cmake-build-debug/
 
+# Formatting stuff.
+.clang-format
+.clang-tidy
+.editorconfig
+
 # build artifacts
 JKSV.elf
 JKSV.lst
