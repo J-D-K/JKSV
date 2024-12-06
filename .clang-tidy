@@ -1,0 +1,9 @@
+---
+Checks: 'clang-analyzer-*,cppcoreguidelines-*,modernize-*,bugprone-*,performance-*,readability-*,readability-non-const-parameter,misc-const-correctness,misc-use-anonymous-namespace,google-explicit-constructor,-modernize-use-trailing-return-type,-bugprone-exception-escape,-cppcoreguidelines-pro-bounds-constant-array-index,-cppcoreguidelines-avoid-magic-numbers,-bugprone-easily-swappable-parameters,-cppcoreguidelines-non-private-member-variables-in-classes'
+WarningsAsErrors: ''
+HeaderFilterRegex: ''
+CheckOptions:
+  - key:             readability-magic-numbers.IgnoredFloatingPointValues
+    value:           '0.0;1.0;100.0;'
+  - key:             readability-magic-numbers.IgnoredIntegerValues
+    value:           '0;1;2;3;4;5;6;7;8;9;'

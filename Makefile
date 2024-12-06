@@ -32,14 +32,14 @@ include $(DEVKITPRO)/libnx/switch_rules
 #---------------------------------------------------------------------------------
 TARGET		:=	JKSV
 BUILD		:=	build
-SOURCES		:=	src src/ui src/fs src/gfx
+SOURCES		:=	Source Source/AppStates Source/UI
 DATA		:=	data
-INCLUDES	:=	inc inc/ui inc/fs inc/gfx
+INCLUDES	:=	Include ./Libraries/FsLib/Switch/FsLib/include ./Libraries/SDLLib/SDL/include
 EXEFS_SRC	:=	exefs_src
 APP_TITLE   :=  JKSV
 APP_AUTHOR  :=  JK
-APP_VERSION :=  11.5.2024
-ROMFS	    :=	romfs
+APP_VERSION :=  12.05.2024
+ROMFS	    :=	RomFS
 ICON		:=	icon.jpg
 
 #---------------------------------------------------------------------------------
@@ -51,12 +51,14 @@ override CFLAGS	+=	$(INCLUDE) -D__SWITCH__
 override CFLAGS += 	`sdl2-config --cflags` `freetype-config --cflags` `curl-config --cflags`
 override CFLAGS	+=	-g -Wall -O2 -ffunction-sections -ffast-math $(ARCH) $(DEFINES)
 
-CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++17
+CXXFLAGS:= $(CFLAGS) -fno-rtti -fno-exceptions -std=gnu++23
 
 ASFLAGS	:=	-g $(ARCH)
 LDFLAGS	=	-specs=$(DEVKITPRO)/libnx/switch.specs -g $(ARCH) -Wl,-Map,$(notdir $*.map)
 
-LIBS	:= `sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image -lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx
+LIBS	:=	../Libraries/FsLib/Switch/FsLib/lib/libFsLib.a ../Libraries/SDLLib/SDL/lib/libSDL.a \
+			`sdl2-config --libs` `freetype-config --libs` `curl-config --libs` -lSDL2_image  \
+			-lwebp -lpng -ljpeg -lz -lminizip -ljson-c -ltinyxml2 -lnx
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
@@ -141,18 +143,30 @@ ifneq ($(ROMFS),)
 	export NROFLAGS += --romfsdir=$(CURDIR)/$(ROMFS)
 endif
 
-.PHONY: $(BUILD) clean all
+.PHONY: $(BUILD) FsLib SDLLib clean all
 
 #---------------------------------------------------------------------------------
-all: $(BUILD)
+all: FsLib SDLLib $(BUILD)
 
-$(BUILD):
+$(BUILD): FsLib SDLLib
 	@[ -d $@ ] || mkdir -p $@
 	@$(MAKE) --no-print-directory -C $(BUILD) -f $(CURDIR)/Makefile
 
 #---------------------------------------------------------------------------------
+
+FsLib:
+	@$(MAKE) -C ./Libraries/FsLib/Switch/FsLib/
+
+#---------------------------------------------------------------------------------
+
+SDLLib:
+	@$(MAKE) -C ./Libraries/SDLLib/SDL/
+
+#---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
+	@$(MAKE) -C ./Libraries/FsLib clean
+	@$(MAKE) -C ./Libraries/SDLLib clean
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
 
 

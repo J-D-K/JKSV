@@ -1,0 +1,6 @@
+[submodule "Libraries/FsLib"]
+	path = Libraries/FsLib
+	url = https://github.com/J-D-K/FsLib.git
+[submodule "Libraries/SDLLib"]
+	path = Libraries/SDLLib
+	url = https://github.com/J-D-K/SDLLib.git
