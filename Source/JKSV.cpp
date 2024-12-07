@@ -1,13 +1,14 @@
 #include "JKSV.hpp"
+#include "AppStates/MainMenuState.hpp"
 #include "Colors.hpp"
+#include "Config.hpp"
+#include "Data/Data.hpp"
 #include "FsLib.hpp"
 #include "Input.hpp"
 #include "Logger.hpp"
 #include "SDL.hpp"
 #include "Strings.hpp"
 #include <switch.h>
-
-#include "UI/RenderFunctions.hpp"
 
 #define ABORT_ON_FAILURE(x)                                                                                                                    \
     if (!x)                                                                                                                                    \
@@ -36,11 +37,15 @@ static bool InitializeService(Result (*Function)(Args...), const char *ServiceNa
 
 JKSV::JKSV(void)
 {
+    // FsLib
     ABORT_ON_FAILURE(FsLib::Initialize());
+    // This doesn't really on stdio or anything.
+    Logger::Initialize();
     // Need to init RomFS here for now until I update FsLib to take care of this.
     ABORT_ON_FAILURE(InitializeService(romfsInit, "RomFS"));
     // Let FsLib take care of calls to SDMC instead of fs_dev
     ABORT_ON_FAILURE(FsLib::Dev::InitializeSDMC());
+
     // SDL
     ABORT_ON_FAILURE(SDL::Initialize("JKSV", 1280, 720));
     ABORT_ON_FAILURE(SDL::Text::Initialize());
@@ -56,8 +61,19 @@ JKSV::JKSV(void)
     ABORT_ON_FAILURE(InitializeService(setsysInitialize, "SetSys"));
     ABORT_ON_FAILURE(InitializeService(socketInitializeDefault, "Socket"));
 
-    // This needs Set. JKSV also has no internal strings anymore. This is FATAL now.
+    // Input doesn't have anything to return.
+    Input::Initialize();
+
+    // Neither does config.
+    Config::Initialize();
+
+    // JKSV also has no internal strings anymore. This is FATAL now.
     ABORT_ON_FAILURE(Strings::Initialize());
+
+    if (!Data::Initialize())
+    {
+        return;
+    }
 
     // Install/setup our color changing characters.
     SDL::Text::AddColorCharacter(L'#', Colors::Blue);
@@ -71,7 +87,8 @@ JKSV::JKSV(void)
     // This can't be in an initializer list because it needs SDL initialized.
     m_HeaderIcon = SDL::TextureManager::CreateLoadTexture("HeaderIcon", "romfs:/Textures/HeaderIcon.png");
 
-    Input::Initialize();
+    // Push initial main menu state.
+    JKSV::PushState(std::make_shared<MainMenuState>());
 
     m_IsRunning = true;
 }
@@ -104,6 +121,16 @@ void JKSV::Update(void)
     {
         m_IsRunning = false;
     }
+
+    if (!m_StateVector.empty())
+    {
+        while (!m_StateVector.back()->IsActive())
+        {
+            m_StateVector.pop_back();
+            m_StateVector.back()->GiveFocus();
+        }
+        m_StateVector.back()->Update();
+    }
 }
 
 void JKSV::Render(void)
@@ -121,21 +148,33 @@ void JKSV::Render(void)
     {
         SDL::Text::Render(NULL,
                           8,
-                          682,
-                          12,
+                          680,
+                          14,
                           SDL::Text::NO_TEXT_WRAP,
                           Colors::White,
                           Strings::GetByName(Strings::Names::TranslationInfo, 0),
                           Strings::GetByName(Strings::Names::TranslationInfo, 1));
     }
-    SDL::Text::Render(NULL, 8, 700, 12, SDL::Text::NO_TEXT_WRAP, Colors::White, "v %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
 
-    UI::RenderDialogBox(NULL, 320, 240, 320, 240);
+    if (!m_StateVector.empty())
+    {
+        for (auto &CurrentState : m_StateVector)
+        {
+            CurrentState->Render();
+        }
+    }
+
+    SDL::Text::Render(NULL, 8, 700, 14, SDL::Text::NO_TEXT_WRAP, Colors::White, "v. %02d.%02d.%04d", BUILD_MON, BUILD_DAY, BUILD_YEAR);
 
     SDL::FrameEnd();
 }
 
 void JKSV::PushState(std::shared_ptr<AppState> NewState)
 {
+    if (!m_StateVector.empty())
+    {
+        m_StateVector.back()->TakeFocus();
+    }
+    NewState->GiveFocus();
     m_StateVector.push_back(NewState);
 }

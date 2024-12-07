@@ -13,4 +13,5 @@ namespace Colors
     static constexpr SDL::Color ClearColor = {0x2D2D2DFF};
     static constexpr SDL::Color DialogBox = {0x505050FF};
     static constexpr SDL::Color BackgroundDim = {0x00000088};
+    static constexpr SDL::Color Transparent = {0x00000000};
 } // namespace Colors

@@ -5,5 +5,5 @@
 namespace UI
 {
     void RenderDialogBox(SDL_Texture *Target, int X, int Y, int Width, int Height);
-    void RenderBoundingBox(SDL_Texture *Target, int X, int Y, int Width, int Height);
+    void RenderBoundingBox(SDL_Texture *Target, int X, int Y, int Width, int Height, uint8_t ColorMod);
 } // namespace UI

@@ -11,5 +11,7 @@ namespace Strings
     namespace Names
     {
         static constexpr std::string_view TranslationInfo = "TranslationInfo";
+        static constexpr std::string_view ControlGuides = "ControlGuides";
+        static constexpr std::string_view SaveDataTypes = "SaveDataTypes";
     } // namespace Names
 } // namespace Strings

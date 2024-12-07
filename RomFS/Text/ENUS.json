@@ -2,5 +2,20 @@
     "TranslationInfo" : [
         "Translated By: %s",
         "NULL"
+    ],
+    "ControlGuides" : [
+        "[A] Select   [Y] Dump All Saves   [X] User Options",
+        "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back",
+        "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close",
+        "[A] Toggle   [X] Defaults   [B] Back"
+    ],
+    "SaveDataTypes" : [
+        "System",
+        "Account",
+        "BCAT",
+        "Device",
+        "Temporary",
+        "Cache",
+        "System BCAT"
     ]
 }

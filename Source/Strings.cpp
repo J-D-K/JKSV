@@ -1,6 +1,7 @@
 #include "Strings.hpp"
 #include "FsLib.hpp"
 #include "JSON.hpp"
+#include "StringUtil.hpp"
 #include <map>
 #include <string>
 #include <unordered_map>
@@ -30,6 +31,7 @@ namespace
                                                                    {SetLanguage_PTBR, "PTBR.json"}};
 } // namespace
 
+// This returns the language file to use depending on the system's language.
 static FsLib::Path GetStringFilePath(void)
 {
     FsLib::Path ReturnPath = "romfs:/Text";
@@ -48,6 +50,27 @@ static FsLib::Path GetStringFilePath(void)
         return ReturnPath / s_FileMap.at(SetLanguage_ENUS);
     }
     return ReturnPath / s_FileMap.at(Language);
+}
+
+static void ReplaceButtonsInString(std::string &Target)
+{
+    StringUtil::ReplaceInString(Target, "[A]", "\ue0e0");
+    StringUtil::ReplaceInString(Target, "[B]", "\ue0e1");
+    StringUtil::ReplaceInString(Target, "[X]", "\ue0e2");
+    StringUtil::ReplaceInString(Target, "[Y]", "\ue0e3");
+    StringUtil::ReplaceInString(Target, "[L]", "\ue0e4");
+    StringUtil::ReplaceInString(Target, "[R]", "\ue0e5");
+    StringUtil::ReplaceInString(Target, "[ZL]", "\ue0e6");
+    StringUtil::ReplaceInString(Target, "[ZR]", "\ue0e7");
+    StringUtil::ReplaceInString(Target, "[SL]", "\ue0e8");
+    StringUtil::ReplaceInString(Target, "[SR]", "\ue0e9");
+    StringUtil::ReplaceInString(Target, "[DPAD]", "\ue0ea");
+    StringUtil::ReplaceInString(Target, "[DUP]", "\ue0eb");
+    StringUtil::ReplaceInString(Target, "[DDOWN]", "\ue0ec");
+    StringUtil::ReplaceInString(Target, "[DLEFT]", "\ue0ed");
+    StringUtil::ReplaceInString(Target, "[DRIGHT]", "\ue0ee");
+    StringUtil::ReplaceInString(Target, "[+]", "\ue0ef");
+    StringUtil::ReplaceInString(Target, "[-]", "\ue0f0");
 }
 
 bool Strings::Initialize()
@@ -77,6 +100,13 @@ bool Strings::Initialize()
         }
         json_object_iter_next(&StringIterator);
     }
+
+    // Loop through entire map and replace the buttons.
+    for (auto &[Key, String] : s_StringMap)
+    {
+        ReplaceButtonsInString(String);
+    }
+
     return true;
 }
 
