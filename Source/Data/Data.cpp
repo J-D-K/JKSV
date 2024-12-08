@@ -53,14 +53,10 @@ bool Data::Initialize(void)
     AccountUid CacheID = {FsSaveDataType_Cache};
     AccountUid SystemID = {FsSaveDataType_System};
 
-    s_UserVector.push_back(
-        std::make_pair(DeviceID, Data::User({FsSaveDataType_Device}, Strings::GetByName(Strings::Names::SaveDataTypes, 3), "Device")));
-    s_UserVector.push_back(
-        std::make_pair(BCATID, Data::User({FsSaveDataType_Bcat}, Strings::GetByName(Strings::Names::SaveDataTypes, 2), "BCAT")));
-    s_UserVector.push_back(
-        std::make_pair(CacheID, Data::User({FsSaveDataType_Cache}, Strings::GetByName(Strings::Names::SaveDataTypes, 5), "Cache")));
-    s_UserVector.push_back(
-        std::make_pair(SystemID, Data::User({FsSaveDataType_System}, Strings::GetByName(Strings::Names::SaveDataTypes, 0), "System")));
+    s_UserVector.push_back(std::make_pair(DeviceID, Data::User(DeviceID, "Device", "romfs:/Textures/SystemSaves.png")));
+    s_UserVector.push_back(std::make_pair(BCATID, Data::User(BCATID, "BCAT", "romfs:/Textures/BCAT.png")));
+    s_UserVector.push_back(std::make_pair(CacheID, Data::User(CacheID, "Cache", "romfs:/Textures/Cache.png")));
+    s_UserVector.push_back(std::make_pair(SystemID, Data::User(SystemID, "System", "romfs:/Textures/SystemSaves.png")));
 
     NsApplicationRecord CurrentRecord = {0};
     int EntryCount = 0, EntryOffset = 0;
@@ -78,7 +74,7 @@ bool Data::Initialize(void)
         Result FsError = fsOpenSaveDataInfoReader(&SaveInfoReader, s_SaveDataSpaceOrder[i]);
         if (R_FAILED(FsError))
         {
-            Logger::Log("Error opening save data reader with space ID %i.", i);
+            Logger::Log("Error opening save data reader with space ID %u.", s_SaveDataSpaceOrder[i]);
             continue;
         }
 
@@ -112,9 +108,32 @@ bool Data::Initialize(void)
                 // Logged, but not fatal.
                 Logger::Log("Error getting play stats for %016llX: 0x%X", ApplicationID, PDMError);
             }
-
-            FindUser->second.AddToMap(SaveInfo, PlayStats);
+            FindUser->second.AddData(SaveInfo, PlayStats);
         }
     }
+
+    for (auto &[AccountID, CurrentUser] : s_UserVector)
+    {
+        CurrentUser.SortData();
+    }
+
     return true;
+}
+
+void Data::GetUsers(std::vector<Data::User *> &VectorOut)
+{
+    VectorOut.clear();
+    for (auto &[AccountID, UserData] : s_UserVector)
+    {
+        VectorOut.push_back(&UserData);
+    }
+}
+
+Data::TitleInfo *Data::GetTitleInfoByID(uint64_t ApplicationID)
+{
+    if (s_TitleInfoMap.find(ApplicationID) == s_TitleInfoMap.end())
+    {
+        return nullptr;
+    }
+    return &s_TitleInfoMap.at(ApplicationID);
 }

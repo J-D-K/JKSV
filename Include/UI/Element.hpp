@@ -10,6 +10,6 @@ namespace UI
             virtual ~Element() {};
 
             virtual void Update(void) = 0;
-            virtual void Render(SDL_Texture *Target);
+            virtual void Render(SDL_Texture *Target, bool HasFocus) = 0;
     };
 } // namespace UI

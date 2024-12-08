@@ -4,15 +4,15 @@
 #include "Input.hpp"
 #include "UI/RenderFunctions.hpp"
 
-UI::Menu::Menu(int X, int Y, int Width, int FontSize, int ScrollLength)
+UI::Menu::Menu(int X, int Y, int Width, int FontSize, int ScrollLength, int RenderTargetHeight)
     : m_X(X), m_Y(Y), m_OriginalY(Y), m_FontSize(FontSize), m_ScrollLength(ScrollLength), m_MenuRenderLength(ScrollLength * 2), m_Width(Width),
-      m_Height(FontSize + 32)
+      m_OptionHeight(FontSize + 16), m_TargetY(Y), m_RenderTargetHeight(RenderTargetHeight)
 {
     static int MenuID = 0;
     // Create target for menu option
     std::string MenuTargetName = "Menu_" + std::to_string(MenuID++);
     m_OptionTarget =
-        SDL::TextureManager::CreateLoadTexture(MenuTargetName, m_Width, m_Height, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
+        SDL::TextureManager::CreateLoadTexture(MenuTargetName, m_Width, m_OptionHeight, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 }
 
 void UI::Menu::Update(void)
@@ -23,6 +23,7 @@ void UI::Menu::Update(void)
         return;
     }
 
+    int PreviousSelected = m_Selected;
     if (Input::ButtonPressed(HidNpadButton_AnyUp) && --m_Selected < 0)
     {
         m_Selected = m_OptionsLength;
@@ -40,19 +41,16 @@ void UI::Menu::Update(void)
         m_Selected = m_OptionsLength;
     }
 
-    // Calculate scrolling
-    if (m_Selected < m_ScrollLength)
+    // To do: Refine this further. It's so close.
+    if (PreviousSelected != m_Selected && m_Selected < m_ScrollLength)
     {
         m_TargetY = m_OriginalY;
     }
-    else if (m_Selected >= m_ScrollLength && m_OptionsLength > m_MenuRenderLength)
+    else if (PreviousSelected != m_Selected && m_Selected >= m_ScrollLength && (m_Selected > PreviousSelected || m_Selected < PreviousSelected))
     {
-        m_TargetY = m_OriginalY + -(m_Height * (m_OptionsLength * m_MenuRenderLength));
+        m_TargetY = m_OriginalY - ((m_Selected - m_ScrollLength) * m_OptionHeight);
     }
-    else if (m_Selected > m_MenuRenderLength && m_Selected < (m_OptionsLength - m_MenuRenderLength))
-    {
-        m_TargetY = -(m_Height * (m_Selected - m_MenuRenderLength));
-    }
+
 
     if (m_Y != m_TargetY)
     {
@@ -60,7 +58,7 @@ void UI::Menu::Update(void)
     }
 }
 
-void UI::Menu::Render(SDL_Texture *Target)
+void UI::Menu::Render(SDL_Texture *Target, bool HasFocus)
 {
     if (m_Options.empty())
     {
@@ -72,7 +70,7 @@ void UI::Menu::Render(SDL_Texture *Target)
     // I hate doing this.
     int TargetHeight = 0;
     SDL_QueryTexture(Target, NULL, NULL, NULL, &TargetHeight);
-    for (int i = 0, TempY = m_Y; i < m_OptionsLength; i++, TempY += m_Height)
+    for (int i = 0, TempY = m_Y; i <= m_OptionsLength; i++, TempY += m_OptionHeight)
     {
         if (TempY < 0 || TempY > TargetHeight)
         {
@@ -84,14 +82,14 @@ void UI::Menu::Render(SDL_Texture *Target)
         if (i == m_Selected)
         {
             // Render the bounding box
-            UI::RenderBoundingBox(Target, m_X - 4, m_Y - 4, m_Width + 8, m_Height + 8, m_ColorMod);
+            UI::RenderBoundingBox(Target, m_X - 4, m_Y - 4, m_Width + 8, m_OptionHeight + 8, m_ColorMod);
             // Render the little rectangle.
-            SDL::RenderRectFill(m_OptionTarget->Get(), 8, 2, 4, m_Height - 4, {0x00FFC5FF});
+            SDL::RenderRectFill(m_OptionTarget->Get(), 8, 2, 4, m_OptionHeight - 4, {0x00FFC5FF});
         }
         // Render text to target.
         SDL::Text::Render(m_OptionTarget->Get(),
                           14,
-                          (m_Height / 2) - (m_FontSize / 2),
+                          (m_OptionHeight / 2) - (m_FontSize / 2),
                           m_FontSize,
                           SDL::Text::NO_TEXT_WRAP,
                           i == m_Selected ? Colors::Blue : Colors::White,
@@ -105,6 +103,7 @@ void UI::Menu::AddOption(std::string_view NewOption)
 {
     m_Options.push_back(NewOption.data());
     ++m_OptionsLength;
+    m_MenuHeight += m_OptionHeight;
 }
 
 int UI::Menu::GetSelected(void) const

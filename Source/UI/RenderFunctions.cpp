@@ -34,7 +34,7 @@ void UI::RenderBoundingBox(SDL_Texture *Target, int X, int Y, int Width, int Hei
     }
 
     // Setup color.
-    SDL::Color RenderMod = {(0x88 + ColorMod) << 16 | (0xC5 + (ColorMod / 2) << 8) | 0xFF};
+    SDL::Color RenderMod = {(0x88 + ColorMod) << 16 | (0xC5 + (ColorMod / 2)) << 8 | 0xFF};
 
     // This shouldn't fail, but I don't really care if it does.
     SDL_SetTextureColorMod(s_MenuBoundingCorners->Get(), RenderMod.RGBA[3], RenderMod.RGBA[2], RenderMod.RGBA[1]);

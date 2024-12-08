@@ -1,5 +1,6 @@
 #include "Data/TitleInfo.hpp"
 #include "Colors.hpp"
+#include "Logger.hpp"
 #include "StringUtil.hpp"
 #include <cstring>
 
@@ -8,7 +9,7 @@ Data::TitleInfo::TitleInfo(uint64_t ApplicationID)
     // Used to calculate icon size.
     uint64_t NsAppControlSize = 0;
     // Actual control data.
-    NsApplicationControlData NsControlData = {0};
+    NsApplicationControlData NsControlData;
     // Language entry
     NacpLanguageEntry *LanguageEntry = nullptr;
 
@@ -23,6 +24,11 @@ Data::TitleInfo::TitleInfo(uint64_t ApplicationID)
         std::string ApplicationIDHex = StringUtil::GetFormattedString("%04X", ApplicationID & 0xFFFF);
         // Blank the nacp just to be sure.
         std::memset(&m_NACP, 0x00, sizeof(NacpStruct));
+
+        // Sprintf title ids to language entries for safety.
+        sprintf(m_NACP.lang[SetLanguage_ENUS].name, "%016llX", ApplicationID);
+        sprintf(m_PathSafeTitle, "%016llX", ApplicationID);
+
         // Create a place holder icon.
         int TextX = 128 - (SDL::Text::GetWidth(32, ApplicationIDHex.c_str()) / 2);
         m_Icon = SDL::TextureManager::CreateLoadTexture(ApplicationIDHex, 256, 256, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
@@ -32,6 +38,11 @@ Data::TitleInfo::TitleInfo(uint64_t ApplicationID)
     {
         // Memcpy the NACP since it has all the good stuff.
         std::memcpy(&m_NACP, &NsControlData.nacp, sizeof(NacpStruct));
+        // Get a path safe version of the title.
+        if (!StringUtil::SanitizeStringForPath(LanguageEntry->name, m_PathSafeTitle, 0x200))
+        {
+            std::sprintf(m_PathSafeTitle, "%016llX", ApplicationID);
+        }
         // Load the icon.
         m_Icon = SDL::TextureManager::CreateLoadTexture(LanguageEntry->name, NsControlData.icon, NsAppControlSize - sizeof(NacpStruct));
     }
@@ -45,6 +56,11 @@ const char *Data::TitleInfo::GetTitle(void)
         return nullptr;
     }
     return Entry->name;
+}
+
+const char *Data::TitleInfo::GetPathSafeTitle(void)
+{
+    return m_PathSafeTitle;
 }
 
 const char *Data::TitleInfo::GetPublisher(void)

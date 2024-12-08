@@ -11,12 +11,12 @@ namespace UI
     {
         public:
             // Coordinates to render to and dimensions of menu.
-            Menu(int X, int Y, int Width, int FontSize, int ScrollLength);
+            Menu(int X, int Y, int Width, int FontSize, int ScrollLength, int RenderTargetHeight);
             ~Menu() {};
 
             // Required functions from Element.
             void Update(void);
-            void Render(SDL_Texture *Target);
+            void Render(SDL_Texture *Target, bool HasFocus);
 
             // Adds an option to the menu.
             void AddOption(std::string_view NewOption);
@@ -28,25 +28,33 @@ namespace UI
             // Resets the menu.
             void Reset(void);
 
-        private:
+        protected:
             // X and Y coordinates.
             double m_X, m_Y;
-            // These are used for the scrolling effect.
-            double m_OriginalY, m_TargetY;
             // Font size
             int m_FontSize;
-            // How many options before scrolling starts happening.
-            int m_ScrollLength, m_MenuRenderLength;
-            // Width. Height is calculated on construction.
-            int m_Width, m_Height;
             // Selected option.
             int m_Selected = 0;
-            // Actual length of the menu.
-            int m_OptionsLength = -1;
             // Color mod for rendering bounding box.
             UI::ColorMod m_ColorMod;
+            // Actual length of the menu.
+            int m_OptionsLength = -1;
+            // Height of options.
+            int m_OptionHeight;
+            // Total height of menu in pixels.
+            int m_MenuHeight = 0;
             // A small target to render the option to so it can't draw text outside of the bounding area.
             SDL::SharedTexture m_OptionTarget = nullptr;
+
+        private:
+            // These are used for the scrolling effect.
+            double m_OriginalY, m_TargetY;
+            // How many options before scrolling starts happening.
+            int m_ScrollLength, m_MenuRenderLength;
+            // The height of the render target for scrolling calculations.
+            int m_RenderTargetHeight = 0;
+            // Width.
+            int m_Width;
             // Vector of options.
             std::vector<std::string> m_Options;
     };
