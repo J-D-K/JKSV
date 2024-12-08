@@ -1,6 +1,7 @@
 #include "Config.hpp"
 #include "JSON.hpp"
 #include "Logger.hpp"
+#include "StringUtil.hpp"
 #include <algorithm>
 #include <cstdint>
 #include <cstring>
@@ -38,7 +39,7 @@ static void ReadArrayToVector(std::vector<uint64_t> &Vector, json_object *Array)
         {
             continue;
         }
-        Vector.push_back(json_object_get_uint64(ArrayEntry));
+        Vector.push_back(std::strtoull(json_object_get_string(ArrayEntry), NULL, 16));
     }
 }
 
@@ -134,7 +135,8 @@ void Config::Save(void)
     json_object *FavoritesArray = json_object_new_array();
     for (uint64_t &TitleID : s_Favorites)
     {
-        json_object *NewFavorite = json_object_new_uint64(TitleID);
+        // Need to do it like this or json-c does decimal instead of hex.
+        json_object *NewFavorite = json_object_new_string(StringUtil::GetFormattedString("%016llX", TitleID).c_str());
         json_object_array_add(FavoritesArray, NewFavorite);
     }
     json_object_object_add(ConfigJSON.get(), Config::Keys::Favorites.data(), FavoritesArray);
@@ -143,7 +145,7 @@ void Config::Save(void)
     json_object *BlacklistArray = json_object_new_array();
     for (uint64_t &TitleID : s_Blacklist)
     {
-        json_object *NewBlacklist = json_object_new_uint64(TitleID);
+        json_object *NewBlacklist = json_object_new_string(StringUtil::GetFormattedString("%016llX", TitleID).c_str());
         json_object_array_add(BlacklistArray, NewBlacklist);
     }
     json_object_object_add(ConfigJSON.get(), Config::Keys::BlackList.data(), BlacklistArray);

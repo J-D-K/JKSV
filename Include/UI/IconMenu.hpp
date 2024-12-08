@@ -10,7 +10,7 @@ namespace UI
             IconMenu(int X, int Y, int ScrollLength, int RenderTargetHeight);
             ~IconMenu() {};
 
-            void Update(void);
+            void Update(bool HasFocus);
             void Render(SDL_Texture *Target, bool HasFocus);
 
             // Adds icon to menu.

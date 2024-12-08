@@ -30,9 +30,10 @@ Data::TitleInfo::TitleInfo(uint64_t ApplicationID)
         sprintf(m_PathSafeTitle, "%016llX", ApplicationID);
 
         // Create a place holder icon.
-        int TextX = 128 - (SDL::Text::GetWidth(32, ApplicationIDHex.c_str()) / 2);
+        int TextX = 128 - (SDL::Text::GetWidth(48, ApplicationIDHex.c_str()) / 2);
         m_Icon = SDL::TextureManager::CreateLoadTexture(ApplicationIDHex, 256, 256, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
-        SDL::Text::Render(m_Icon->Get(), TextX, 112, 32, SDL::Text::NO_TEXT_WRAP, Colors::White, ApplicationIDHex.c_str());
+        m_Icon->Clear(Colors::DialogBox);
+        SDL::Text::Render(m_Icon->Get(), TextX, 104, 48, SDL::Text::NO_TEXT_WRAP, Colors::White, ApplicationIDHex.c_str());
     }
     else if (R_SUCCEEDED(NsError) && R_SUCCEEDED(nacpGetLanguageEntry(&NsControlData.nacp, &LanguageEntry)))
     {

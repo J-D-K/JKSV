@@ -3,10 +3,11 @@
 #include "Config.hpp"
 #include "Input.hpp"
 #include "UI/RenderFunctions.hpp"
+#include <cmath>
 
 UI::Menu::Menu(int X, int Y, int Width, int FontSize, int ScrollLength, int RenderTargetHeight)
     : m_X(X), m_Y(Y), m_OriginalY(Y), m_FontSize(FontSize), m_ScrollLength(ScrollLength), m_MenuRenderLength(ScrollLength * 2), m_Width(Width),
-      m_OptionHeight(FontSize + 16), m_TargetY(Y), m_RenderTargetHeight(RenderTargetHeight)
+      m_OptionHeight(std::ceil(static_cast<double>(FontSize) * 1.8f)), m_TargetY(Y), m_RenderTargetHeight(RenderTargetHeight)
 {
     static int MenuID = 0;
     // Create target for menu option
@@ -15,7 +16,7 @@ UI::Menu::Menu(int X, int Y, int Width, int FontSize, int ScrollLength, int Rend
         SDL::TextureManager::CreateLoadTexture(MenuTargetName, m_Width, m_OptionHeight, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET);
 }
 
-void UI::Menu::Update(void)
+void UI::Menu::Update(bool HasFocus)
 {
     // Bail if there's nothing to update.
     if (m_Options.empty())
@@ -46,7 +47,8 @@ void UI::Menu::Update(void)
     {
         m_TargetY = m_OriginalY;
     }
-    else if (PreviousSelected != m_Selected && m_Selected >= m_ScrollLength && (m_Selected > PreviousSelected || m_Selected < PreviousSelected))
+    else if (PreviousSelected != m_Selected && m_Selected >= m_ScrollLength &&
+             (m_Selected > PreviousSelected || m_Selected < PreviousSelected) && m_Selected < (m_OptionsLength - m_ScrollLength))
     {
         m_TargetY = m_OriginalY - ((m_Selected - m_ScrollLength) * m_OptionHeight);
     }
@@ -81,18 +83,21 @@ void UI::Menu::Render(SDL_Texture *Target, bool HasFocus)
 
         if (i == m_Selected)
         {
-            // Render the bounding box
-            UI::RenderBoundingBox(Target, m_X - 4, m_Y - 4, m_Width + 8, m_OptionHeight + 8, m_ColorMod);
+            if (HasFocus)
+            {
+                // Render the bounding box
+                UI::RenderBoundingBox(Target, m_X - 4, TempY - 4, m_Width + 8, m_OptionHeight + 8, m_ColorMod);
+            }
             // Render the little rectangle.
-            SDL::RenderRectFill(m_OptionTarget->Get(), 8, 2, 4, m_OptionHeight - 4, {0x00FFC5FF});
+            SDL::RenderRectFill(m_OptionTarget->Get(), 8, 8, 6, m_OptionHeight - 16, Colors::BlueGreen);
         }
         // Render text to target.
         SDL::Text::Render(m_OptionTarget->Get(),
-                          14,
+                          20,
                           (m_OptionHeight / 2) - (m_FontSize / 2),
                           m_FontSize,
                           SDL::Text::NO_TEXT_WRAP,
-                          i == m_Selected ? Colors::Blue : Colors::White,
+                          i == m_Selected ? Colors::BlueGreen : Colors::White,
                           m_Options.at(i).c_str());
         // Render target to target
         m_OptionTarget->Render(Target, m_X, TempY);

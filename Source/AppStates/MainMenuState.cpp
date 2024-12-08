@@ -1,6 +1,10 @@
 #include "AppStates/MainMenuState.hpp"
+#include "AppStates/SettingsState.hpp"
+#include "AppStates/TitleSelectState.hpp"
 #include "Colors.hpp"
 #include "Config.hpp"
+#include "Input.hpp"
+#include "JKSV.hpp"
 #include "Logger.hpp"
 #include "SDL.hpp"
 #include "Strings.hpp"
@@ -15,7 +19,7 @@ MainMenuState::MainMenuState(void)
     : m_RenderTarget(SDL::TextureManager::CreateLoadTexture("MainMenuTarget", 200, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
       m_Background(SDL::TextureManager::CreateLoadTexture("MainMenuBackground", "romfs:/Textures/MenuBackground.png")),
       m_MainMenu(50, 15, 1, 555), m_ControlGuide(Strings::GetByName(Strings::Names::ControlGuides, 0)),
-      m_ControlGuideX(1220 - SDL::Text::GetWidth(20, m_ControlGuide))
+      m_ControlGuideX(1220 - SDL::Text::GetWidth(22, m_ControlGuide))
 {
     // Fetch user list.
     Data::GetUsers(m_Users);
@@ -24,10 +28,13 @@ MainMenuState::MainMenuState(void)
     for (size_t i = 0; i < m_Users.size(); i++)
     {
         m_MainMenu.AddOption(m_Users.at(i)->GetSharedIcon());
+        m_States.push_back(std::make_shared<TitleSelectState>(m_Users.at(i)));
     }
+    m_States.push_back(std::make_shared<SettingsState>());
 
     // Create icons for the other two.
     m_SettingsIcon = SDL::TextureManager::CreateLoadTexture("SettingsIcon", "romfs:/Textures/SettingsIcon.png");
+    m_ExtrasIcon = SDL::TextureManager::CreateLoadTexture("ExtrasIcon", 256, 256, 0);
 
     // Finally add them to the end.
     m_MainMenu.AddOption(m_SettingsIcon);
@@ -36,7 +43,19 @@ MainMenuState::MainMenuState(void)
 
 void MainMenuState::Update(void)
 {
-    m_MainMenu.Update();
+    m_MainMenu.Update(AppState::HasFocus());
+
+    if (Input::ButtonPressed(HidNpadButton_A) && m_MainMenu.GetSelected() < m_Users.size() &&
+        m_Users.at(m_MainMenu.GetSelected())->GetTotalDataEntries() > 0)
+    {
+        m_States.at(m_MainMenu.GetSelected())->Reactivate();
+        JKSV::PushState(m_States.at(m_MainMenu.GetSelected()));
+    }
+    else if (Input::ButtonPressed(HidNpadButton_A) && m_MainMenu.GetSelected() >= m_Users.size())
+    {
+        m_States.at(m_MainMenu.GetSelected())->Reactivate();
+        JKSV::PushState(m_States.at(m_MainMenu.GetSelected()));
+    }
 }
 
 void MainMenuState::Render(void)
@@ -48,9 +67,10 @@ void MainMenuState::Render(void)
     // Render target to screen.
     m_RenderTarget->Render(NULL, 0, 91);
 
-    // Control Guide.
+    // Render next state for current user and control guide if this state has focus.
     if (AppState::HasFocus())
     {
-        SDL::Text::Render(NULL, m_ControlGuideX, 673, 20, SDL::Text::NO_TEXT_WRAP, Colors::White, m_ControlGuide);
+        m_States.at(m_MainMenu.GetSelected())->Render();
+        SDL::Text::Render(NULL, m_ControlGuideX, 673, 22, SDL::Text::NO_TEXT_WRAP, Colors::White, m_ControlGuide);
     }
 }

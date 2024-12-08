@@ -126,6 +126,7 @@ void JKSV::Update(void)
     {
         while (!m_StateVector.back()->IsActive())
         {
+            m_StateVector.back()->TakeFocus();
             m_StateVector.pop_back();
             m_StateVector.back()->GiveFocus();
         }

@@ -15,7 +15,7 @@ namespace UI
             ~Menu() {};
 
             // Required functions from Element.
-            void Update(void);
+            void Update(bool HasFocus);
             void Render(SDL_Texture *Target, bool HasFocus);
 
             // Adds an option to the menu.

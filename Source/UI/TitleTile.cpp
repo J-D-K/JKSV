@@ -26,6 +26,22 @@ void UI::TitleTile::Render(SDL_Texture *Target, int X, int Y)
     m_Icon->RenderStretched(Target, RenderX, RenderY, m_RenderWidth, m_RenderHeight);
     if (m_IsFavorite)
     {
-        SDL::Text::Render(Target, RenderX + 8, RenderY + 8, 20, SDL::Text::NO_TEXT_WRAP, Colors::Pink, "\uE017");
+        SDL::Text::Render(Target, RenderX + 4, RenderY + 2, 28, SDL::Text::NO_TEXT_WRAP, Colors::Pink, "\uE017");
     }
+}
+
+void UI::TitleTile::Reset(void)
+{
+    m_RenderWidth = 128;
+    m_RenderHeight = 128;
+}
+
+int UI::TitleTile::GetWidth(void) const
+{
+    return m_RenderWidth;
+}
+
+int UI::TitleTile::GetHeight(void) const
+{
+    return m_RenderHeight;
 }

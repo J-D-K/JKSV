@@ -9,7 +9,7 @@ namespace UI
             Element(void) = default;
             virtual ~Element() {};
 
-            virtual void Update(void) = 0;
+            virtual void Update(bool HasFocus) = 0;
             virtual void Render(SDL_Texture *Target, bool HasFocus) = 0;
     };
 } // namespace UI

@@ -10,6 +10,7 @@ namespace Colors
     static constexpr SDL::Color Blue = {0x0099EEFF};
     static constexpr SDL::Color Yellow = {0xF8FC00FF};
     static constexpr SDL::Color Pink = {0xFF4444FF};
+    static constexpr SDL::Color BlueGreen = {0x00FFC5FF};
     static constexpr SDL::Color ClearColor = {0x2D2D2DFF};
     static constexpr SDL::Color DialogBox = {0x505050FF};
     static constexpr SDL::Color BackgroundDim = {0x00000088};

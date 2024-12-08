@@ -25,6 +25,8 @@ class MainMenuState : public AppState
         UI::IconMenu m_MainMenu;
         // Vector of pointers to users.
         std::vector<Data::User *> m_Users;
+        // Vector of view states for each user, settings, and extras
+        std::vector<std::shared_ptr<AppState>> m_States;
         // Pointer to control guide string so I don't need to call and fetch it every loop.
         const char *m_ControlGuide = nullptr;
         // X coordinate to render controls at.

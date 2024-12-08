@@ -5,7 +5,7 @@
     ],
     "ControlGuides" : [
         "[A] Select   [Y] Dump All Saves   [X] User Options",
-        "[A] Select   [L][R] Jump   [Y] Favorite   [X] Title Options  [B] Back",
+        "[A] Select   [L] [R] Jump   [Y] Favorite   [X] Title Options  [B] Back",
         "[A] Select  [Y] Restore  [X] Delete   [ZR] Upload  [B] Close",
         "[A] Toggle   [X] Defaults   [B] Back"
     ],
@@ -17,5 +17,26 @@
         "Temporary",
         "Cache",
         "System BCAT"
+    ],
+    "SettingsMenu" : [
+        "Set JKSV output folder.",
+        "Edit Blacklist",
+        "Include Device Saves with users: %s",
+        "Auto-backup on restore: %s",
+        "Auto-name backups: %s",
+        "Hold to delete backups: %s",
+        "Hold to restore backups: %s",
+        "Hold to overwrite backups: %s",
+        "Only list mountable titles: %s",
+        "Show account system saves: %s",
+        "Enable writing to system saves and NAND: %s",
+        "Export saves to ZIP: %s",
+        "Force English: %s",
+        "Enable trash bin: %s",
+        "Animation scaling: %s"
+    ],
+    "OnOff" : [
+        "Off",
+        ">On>"
     ]
 }
