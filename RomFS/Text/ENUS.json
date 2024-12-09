@@ -24,6 +24,7 @@
         "Include Device Saves with users: %s",
         "Auto-backup on restore: %s",
         "Auto-name backups: %s",
+        "Auto-upload backups to remote storage: %s",
         "Hold to delete backups: %s",
         "Hold to restore backups: %s",
         "Hold to overwrite backups: %s",
@@ -31,9 +32,21 @@
         "Show account system saves: %s",
         "Enable writing to system saves and NAND: %s",
         "Export saves to ZIP: %s",
+        "Title sort type: %s",
+        "Text menu (JKSM) mode: %s",
         "Force English: %s",
         "Enable trash bin: %s",
-        "Animation scaling: %s"
+        "Animation scaling: %.02f"
+    ],
+    "ExtrasMenu" : [
+        "Reload Titles",
+        "SD to SD Browser",
+        "BIS: ProfInfoF",
+        "BIS: Safe",
+        "BIS: System",
+        "BIS: User",
+        "Terminate Process",
+        "Mount System Save"
     ],
     "OnOff" : [
         "Off",

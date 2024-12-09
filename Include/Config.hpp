@@ -12,6 +12,8 @@ namespace Config
     void Save(void);
     // Retrieves a value with its key.
     uint8_t GetByKey(std::string_view Key);
+    // Retrieves value by index.
+    uint8_t GetByIndex(int Index);
     // Gets the working directory.
     FsLib::Path GetWorkingDirectory(void);
     // Gets the UI's transition scaling
@@ -33,6 +35,8 @@ namespace Config
         static constexpr std::string_view WorkingDirectory = "WorkingDirectory";
         static constexpr std::string_view IncludeDeviceSaves = "IncludeDeviceSaves";
         static constexpr std::string_view AutoBackupOnRestore = "AutoBackupOnRestore";
+        static constexpr std::string_view AutoNameBackups = "AutoNameBackups";
+        static constexpr std::string_view AutoUpload = "AutoUploadToRemote";
         static constexpr std::string_view HoldForDeletion = "HoldForDeletion";
         static constexpr std::string_view HoldForRestoration = "HoldForRestoration";
         static constexpr std::string_view HoldForOverwrite = "HoldForOverWrite";
@@ -40,13 +44,12 @@ namespace Config
         static constexpr std::string_view ListAccountSystemSaves = "ListAccountSystemSaves";
         static constexpr std::string_view AllowSystemSaveWriting = "AllowSystemSaveWriting";
         static constexpr std::string_view ExportToZip = "ExportToZip";
+        static constexpr std::string_view TitleSortType = "TitleSortType";
+        static constexpr std::string_view JKSMTextMode = "JKSMTextMode";
         static constexpr std::string_view ForceEnglish = "ForceEnglish";
         static constexpr std::string_view EnableTrashBin = "EnableTrash";
-        static constexpr std::string_view AutoNameBackups = "AutoNameBackups";
-        static constexpr std::string_view TitleSortType = "TitleSortType";
+        static constexpr std::string_view UIAnimationScaling = "UIAnimationScaling";
         static constexpr std::string_view Favorites = "Favorites";
         static constexpr std::string_view BlackList = "BlackList";
-        static constexpr std::string_view AutoUpload = "AutoUploadToRemote";
-        static constexpr std::string_view UIAnimationScaling = "UIAnimationScaling";
     } // namespace Keys
 } // namespace Config

@@ -2,7 +2,7 @@
 #include "Colors.hpp"
 #include "UI/RenderFunctions.hpp"
 
-UI::IconMenu::IconMenu(int X, int Y, int ScrollLength, int RenderTargetHeight) : Menu(X, Y, 152, 88, ScrollLength, RenderTargetHeight) {};
+UI::IconMenu::IconMenu(int X, int Y, int RenderTargetHeight) : Menu(X, Y, 152, 80, RenderTargetHeight) {};
 
 void UI::IconMenu::Update(bool HasFocus)
 {
@@ -16,7 +16,7 @@ void UI::IconMenu::Render(SDL_Texture *Target, bool HasFocus)
         m_ColorMod.Update();
     }
 
-    for (int i = 0, TempY = m_Y; i <= m_OptionsLength; i++, TempY += m_OptionHeight)
+    for (int i = 0, TempY = m_Y; i < static_cast<int>(m_Options.size()); i++, TempY += m_OptionHeight)
     {
         // Clear target.
         m_OptionTarget->Clear(Colors::Transparent);

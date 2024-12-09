@@ -6,7 +6,6 @@
 #include <cstdint>
 #include <cstring>
 #include <string>
-#include <unordered_map>
 #include <vector>
 
 namespace
@@ -14,8 +13,8 @@ namespace
     // Config path(s)
     const char *CONFIG_FOLDER = "sdmc:/config/JKSV";
     const char *CONFIG_PATH = "sdmc:/config/JKSV/JKSV.json";
-    // Map of config values
-    std::unordered_map<std::string, uint8_t> s_ConfigMap;
+    // Vector to preserve order now.
+    std::vector<std::pair<std::string, uint8_t>> s_ConfigVector;
     // Working directory
     FsLib::Path s_WorkingDirectory;
     // UI animation scaling.
@@ -86,7 +85,7 @@ void Config::Initialize(void)
         }
         else
         {
-            s_ConfigMap[KeyName] = json_object_get_uint64(ConfigValue);
+            s_ConfigVector.push_back(std::make_pair(KeyName, json_object_get_uint64(ConfigValue)));
         }
         json_object_iter_next(&ConfigIterator);
     }
@@ -95,20 +94,21 @@ void Config::Initialize(void)
 void Config::ResetToDefault(void)
 {
     s_WorkingDirectory = "sdmc:/JKSV";
-    s_ConfigMap[Config::Keys::IncludeDeviceSaves.data()] = 1;
-    s_ConfigMap[Config::Keys::AutoBackupOnRestore.data()] = 1;
-    s_ConfigMap[Config::Keys::HoldForDeletion.data()] = 1;
-    s_ConfigMap[Config::Keys::HoldForRestoration.data()] = 1;
-    s_ConfigMap[Config::Keys::HoldForOverwrite.data()] = 1;
-    s_ConfigMap[Config::Keys::OnlyListMountable.data()] = 1;
-    s_ConfigMap[Config::Keys::ListAccountSystemSaves.data()] = 0;
-    s_ConfigMap[Config::Keys::AllowSystemSaveWriting.data()] = 0;
-    s_ConfigMap[Config::Keys::ExportToZip.data()] = 1;
-    s_ConfigMap[Config::Keys::ForceEnglish.data()] = 0;
-    s_ConfigMap[Config::Keys::EnableTrashBin.data()] = 1;
-    s_ConfigMap[Config::Keys::AutoNameBackups.data()] = 0;
-    s_ConfigMap[Config::Keys::TitleSortType.data()] = 0;
-    s_ConfigMap[Config::Keys::AutoUpload.data()] = 0;
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::IncludeDeviceSaves.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::AutoBackupOnRestore.data(), 1));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::AutoNameBackups.data(), 1));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::AutoUpload.data(), 1));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::HoldForDeletion.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::HoldForRestoration.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::HoldForOverwrite.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::OnlyListMountable.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::ListAccountSystemSaves.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::AllowSystemSaveWriting.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::ExportToZip.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::TitleSortType.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::JKSMTextMode.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::ForceEnglish.data(), 0));
+    s_ConfigVector.push_back(std::make_pair(Config::Keys::EnableTrashBin.data(), 0));
     s_UIAnimationScaling = 2.5f;
 }
 
@@ -121,7 +121,7 @@ void Config::Save(void)
     json_object_object_add(ConfigJSON.get(), Config::Keys::WorkingDirectory.data(), WorkingDirectory);
 
     // Loop through map and add it.
-    for (auto &[Key, Value] : s_ConfigMap)
+    for (auto &[Key, Value] : s_ConfigVector)
     {
         json_object *JsonValue = json_object_new_uint64(Value);
         json_object_object_add(ConfigJSON.get(), Key.c_str(), JsonValue);
@@ -157,11 +157,23 @@ void Config::Save(void)
 
 uint8_t Config::GetByKey(std::string_view Key)
 {
-    if (s_ConfigMap.find(Key.data()) == s_ConfigMap.end())
+    auto FindKey = std::find_if(s_ConfigVector.begin(), s_ConfigVector.end(), [Key](const std::pair<std::string, uint8_t> &ConfigPair) {
+        return Key == ConfigPair.first;
+    });
+    if (FindKey == s_ConfigVector.end())
     {
         return 0;
     }
-    return s_ConfigMap.at(Key.data());
+    return FindKey->second;
+}
+
+uint8_t Config::GetByIndex(int Index)
+{
+    if (Index < 0 || Index >= static_cast<int>(s_ConfigVector.size()))
+    {
+        return 0;
+    }
+    return s_ConfigVector.at(Index).second;
 }
 
 FsLib::Path Config::GetWorkingDirectory(void)

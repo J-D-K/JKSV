@@ -23,11 +23,11 @@ namespace UI
             // Saves pointer to the user passed.
             Data::User *m_User = nullptr;
             // Y coordinate.
-            double m_Y = 38;
+            double m_Y = 28.0f;
             // Currently highlighted/selected title.
             int m_Selected = 0;
             // This is to save the X and Y coordinates so the selected icon can be drawn last.
-            double m_SelectedX, m_SelectedY = 38.0f;
+            double m_SelectedX, m_SelectedY = 28.0f;
             // Color mod for pulse.
             UI::ColorMod m_ColorMod;
             // Vector of tiles.

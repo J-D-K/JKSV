@@ -13,15 +13,9 @@ namespace
 } // namespace
 
 TitleSelectState::TitleSelectState(Data::User *User)
-    : m_User(User),
+    : TitleSelectCommon(), m_User(User),
       m_RenderTarget(SDL::TextureManager::CreateLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET)),
-      m_TitleView(m_User)
-{
-    if (m_TitleControlsX == 0)
-    {
-        m_TitleControlsX = 1220 - SDL::Text::GetWidth(22, Strings::GetByName(Strings::Names::ControlGuides, 1));
-    }
-}
+      m_TitleView(m_User) {};
 
 void TitleSelectState::Update(void)
 {
@@ -44,16 +38,10 @@ void TitleSelectState::Render(void)
 {
     m_RenderTarget->Clear(Colors::Transparent);
     m_TitleView.Render(m_RenderTarget->Get(), AppState::HasFocus());
-
-    if (AppState::HasFocus())
-    {
-        SDL::Text::Render(NULL,
-                          m_TitleControlsX,
-                          673,
-                          22,
-                          SDL::Text::NO_TEXT_WRAP,
-                          Colors::White,
-                          Strings::GetByName(Strings::Names::ControlGuides, 1));
-    }
+    TitleSelectCommon::RenderControlGuide();
     m_RenderTarget->Render(NULL, 201, 91);
+}
+
+void TitleSelectState::Refresh(void)
+{
 }

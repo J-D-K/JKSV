@@ -1,10 +1,10 @@
 #pragma once
-#include "AppStates/AppState.hpp"
+#include "AppStates/TitleSelectCommon.hpp"
 #include "Data/Data.hpp"
 #include "SDL.hpp"
 #include "UI/TitleView.hpp"
 
-class TitleSelectState : public AppState
+class TitleSelectState : public TitleSelectCommon
 {
     public:
         TitleSelectState(Data::User *User);
@@ -13,6 +13,8 @@ class TitleSelectState : public AppState
         void Update(void);
         void Render(void);
 
+        void Refresh(void);
+
     private:
         // Save pointer to user
         Data::User *m_User = nullptr;
@@ -20,6 +22,4 @@ class TitleSelectState : public AppState
         SDL::SharedTexture m_RenderTarget = nullptr;
         // Title select view
         UI::TitleView m_TitleView;
-        // X coordinate for control guide. Shared between all instances. Only should be calculated once.
-        static inline int m_TitleControlsX = 0;
 };

@@ -1,6 +1,8 @@
 #include "AppStates/SettingsState.hpp"
 #include "Colors.hpp"
+#include "Config.hpp"
 #include "Input.hpp"
+#include "StringUtil.hpp"
 #include "Strings.hpp"
 
 namespace
@@ -9,17 +11,28 @@ namespace
     constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
 } // namespace
 
+static inline const char *GetValueText(uint8_t Value)
+{
+    return Value == 1 ? Strings::GetByName(Strings::Names::OnOff, 0) : Strings::GetByName(Strings::Names::OnOff, 1);
+}
+
 SettingsState::SettingsState(void)
-    : m_SettingsMenu(32, 18, 1002, 32, 4, 555),
+    : m_SettingsMenu(32, 8, 1000, 32, 555),
       m_RenderTarget(SDL::TextureManager::CreateLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
 {
-    // Loop through strings and add them until nullptr.
-    int CurrentString = 0;
+    // Add the first two, because they don't have values to display.
+    m_SettingsMenu.AddOption(Strings::GetByName(Strings::Names::SettingsMenu, 0));
+    m_SettingsMenu.AddOption(Strings::GetByName(Strings::Names::SettingsMenu, 1));
+
+    int CurrentString = 2;
     const char *SettingsString = nullptr;
-    while ((SettingsString = Strings::GetByName(Strings::Names::SettingsMenu, CurrentString++)) != nullptr)
+    while (CurrentString < 16 && (SettingsString = Strings::GetByName(Strings::Names::SettingsMenu, CurrentString++)) != nullptr)
     {
-        m_SettingsMenu.AddOption(SettingsString);
+        m_SettingsMenu.AddOption(StringUtil::GetFormattedString(SettingsString, GetValueText(Config::GetByIndex(CurrentString - 1))));
     }
+    // Add the scaling
+    m_SettingsMenu.AddOption(
+        StringUtil::GetFormattedString(Strings::GetByName(Strings::Names::SettingsMenu, 17), Config::GetAnimationScaling()));
 }
 
 void SettingsState::Update(void)

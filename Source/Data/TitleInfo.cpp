@@ -26,8 +26,8 @@ Data::TitleInfo::TitleInfo(uint64_t ApplicationID)
         std::memset(&m_NACP, 0x00, sizeof(NacpStruct));
 
         // Sprintf title ids to language entries for safety.
-        sprintf(m_NACP.lang[SetLanguage_ENUS].name, "%016llX", ApplicationID);
-        sprintf(m_PathSafeTitle, "%016llX", ApplicationID);
+        sprintf(m_NACP.lang[SetLanguage_ENUS].name, "%016lX", ApplicationID);
+        sprintf(m_PathSafeTitle, "%016lX", ApplicationID);
 
         // Create a place holder icon.
         int TextX = 128 - (SDL::Text::GetWidth(48, ApplicationIDHex.c_str()) / 2);
@@ -42,7 +42,7 @@ Data::TitleInfo::TitleInfo(uint64_t ApplicationID)
         // Get a path safe version of the title.
         if (!StringUtil::SanitizeStringForPath(LanguageEntry->name, m_PathSafeTitle, 0x200))
         {
-            std::sprintf(m_PathSafeTitle, "%016llX", ApplicationID);
+            std::sprintf(m_PathSafeTitle, "%016lX", ApplicationID);
         }
         // Load the icon.
         m_Icon = SDL::TextureManager::CreateLoadTexture(LanguageEntry->name, NsControlData.icon, NsAppControlSize - sizeof(NacpStruct));

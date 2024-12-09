@@ -55,18 +55,18 @@ void UI::TitleView::Update(bool HasFocus)
     }
 
     double Scaling = Config::GetAnimationScaling();
-    if (m_SelectedY > 280.0f)
+    if (m_SelectedY > 388.0f)
     {
-        m_Y += std::ceil((280.0f - m_SelectedY) / Scaling);
+        m_Y += std::ceil((388.0f - m_SelectedY) / Scaling);
     }
-    else if (m_SelectedY < 38.0f)
+    else if (m_SelectedY < 28.0f)
     {
-        m_Y += std::ceil((38.0f - m_SelectedY) / Scaling);
+        m_Y += std::ceil((28.0f - m_SelectedY) / Scaling);
     }
 
     for (size_t i = 0; i < m_TitleTiles.size(); i++)
     {
-        m_TitleTiles.at(i).Update(m_Selected == i ? true : false);
+        m_TitleTiles.at(i).Update(m_Selected == static_cast<int>(i) ? true : false);
     }
 }
 

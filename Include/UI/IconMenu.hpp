@@ -7,7 +7,7 @@ namespace UI
     class IconMenu : public UI::Menu
     {
         public:
-            IconMenu(int X, int Y, int ScrollLength, int RenderTargetHeight);
+            IconMenu(int X, int Y, int RenderTargetHeight);
             ~IconMenu() {};
 
             void Update(bool HasFocus);

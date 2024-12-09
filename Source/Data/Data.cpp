@@ -80,6 +80,38 @@ bool Data::Initialize(void)
 
         while (R_SUCCEEDED(fsSaveDataInfoReaderRead(&SaveInfoReader, &SaveInfo, 1, &TotalEntries)) && TotalEntries > 0)
         {
+            // Skip this stuff
+            if (!Config::GetByKey(Config::Keys::ListAccountSystemSaves) && SaveInfo.save_data_type == FsSaveDataType_System &&
+                SaveInfo.uid != 0)
+            {
+                continue;
+            }
+
+            switch (SaveInfo.save_data_type)
+            {
+                case FsSaveDataType_Bcat:
+                {
+                    SaveInfo.uid = {FsSaveDataType_Bcat};
+                }
+                break;
+
+                case FsSaveDataType_Device:
+                {
+                    SaveInfo.uid = {FsSaveDataType_Device};
+                }
+                break;
+
+                case FsSaveDataType_Cache:
+                {
+                    SaveInfo.uid = {FsSaveDataType_Cache};
+                }
+                break;
+
+                default:
+                    break;
+            }
+
+
             auto FindUser = std::find_if(s_UserVector.begin(), s_UserVector.end(), [&SaveInfo](UserIDPair &IDPair) {
                 return IDPair.first == SaveInfo.uid;
             });

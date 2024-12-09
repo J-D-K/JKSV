@@ -17,4 +17,6 @@ class SettingsState : public AppState
         UI::Menu m_SettingsMenu;
         // Render target.
         SDL::SharedTexture m_RenderTarget = nullptr;
+        // Control guide X coordinate.
+        int m_ControlGuideX = 0;
 };
