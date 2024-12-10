@@ -1,4 +1,5 @@
 #include "AppStates/TitleSelectState.hpp"
+#include "AppStates/MainMenuState.hpp"
 #include "Colors.hpp"
 #include "Config.hpp"
 #include "Input.hpp"
@@ -29,8 +30,9 @@ void TitleSelectState::Update(void)
     }
     else if (Input::ButtonPressed(HidNpadButton_Y))
     {
-        uint64_t ApplicationID = m_User->GetApplicationIDAt(m_TitleView.GetSelected());
-        Config::AddRemoveFavorite(ApplicationID);
+        Config::AddRemoveFavorite(m_User->GetApplicationIDAt(m_TitleView.GetSelected()));
+        // MainMenuState has all the Users and views, so have it refresh.
+        MainMenuState::RefreshViewStates();
     }
 }
 
@@ -44,4 +46,5 @@ void TitleSelectState::Render(void)
 
 void TitleSelectState::Refresh(void)
 {
+    m_TitleView.Refresh();
 }

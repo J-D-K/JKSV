@@ -80,6 +80,7 @@ JKSV::JKSV(void)
     SDL::Text::AddColorCharacter(L'*', Colors::Red);
     SDL::Text::AddColorCharacter(L'<', Colors::Yellow);
     SDL::Text::AddColorCharacter(L'>', Colors::Green);
+    SDL::Text::AddColorCharacter(L'^', Colors::Pink);
 
     // This is to check whether the author wanted credit for their work.
     m_ShowTranslationInfo = std::char_traits<char>::compare(Strings::GetByName(Strings::Names::TranslationInfo, 1), "NULL", 4) != 0;

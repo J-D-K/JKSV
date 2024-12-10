@@ -16,6 +16,8 @@ namespace UI
             void Render(SDL_Texture *Target, bool HasFocus);
             // Returns index of selected title.
             int GetSelected(void) const;
+            // Refreshes the view using m_User
+            void Refresh(void);
             // Resets all tiles to 128x128
             void Reset(void);
 

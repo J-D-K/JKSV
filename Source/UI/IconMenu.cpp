@@ -26,7 +26,7 @@ void UI::IconMenu::Render(SDL_Texture *Target, bool HasFocus)
             {
                 UI::RenderBoundingBox(Target, m_X - 8, TempY - 8, 152, 146, m_ColorMod);
             }
-            SDL::RenderRectFill(m_OptionTarget->Get(), 0, 0, 6, 130, {0x00FFC5FF});
+            SDL::RenderRectFill(m_OptionTarget->Get(), 0, 0, 4, 130, {0x00FFC5FF});
         }
         //m_Options.at(i)->Render(m_OptionTarget->Get(), 0, 0);
         m_Options.at(i)->RenderStretched(m_OptionTarget->Get(), 8, 1, 128, 128);

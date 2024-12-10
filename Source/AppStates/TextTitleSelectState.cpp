@@ -1,5 +1,8 @@
 #include "AppStates/TextTitleSelectState.hpp"
+#include "AppStates/MainMenuState.hpp"
 #include "Colors.hpp"
+#include "Config.hpp"
+#include "Input.hpp"
 #include "SDL.hpp"
 #include <string_view>
 
@@ -18,6 +21,16 @@ TextTitleSelectState::TextTitleSelectState(Data::User *User)
 void TextTitleSelectState::Update(void)
 {
     m_TitleSelectMenu.Update(AppState::HasFocus());
+
+    if (Input::ButtonPressed(HidNpadButton_Y))
+    {
+        Config::AddRemoveFavorite(m_User->GetApplicationIDAt(m_TitleSelectMenu.GetSelected()));
+        MainMenuState::RefreshViewStates();
+    }
+    else if (Input::ButtonPressed(HidNpadButton_B))
+    {
+        AppState::Deactivate();
+    }
 }
 
 void TextTitleSelectState::Render(void)
@@ -33,6 +46,17 @@ void TextTitleSelectState::Refresh(void)
     m_TitleSelectMenu.Reset();
     for (size_t i = 0; i < m_User->GetTotalDataEntries(); i++)
     {
-        m_TitleSelectMenu.AddOption(Data::GetTitleInfoByID(m_User->GetApplicationIDAt(i))->GetTitle());
+        std::string Option;
+        uint64_t ApplicationID = m_User->GetApplicationIDAt(i);
+        const char *Title = Data::GetTitleInfoByID(ApplicationID)->GetTitle();
+        if (Config::IsFavorite(ApplicationID))
+        {
+            Option = std::string("^\uE017^ ") + Title;
+        }
+        else
+        {
+            Option = Title;
+        }
+        m_TitleSelectMenu.AddOption(Option.c_str());
     }
 }

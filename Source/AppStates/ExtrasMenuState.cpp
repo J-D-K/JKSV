@@ -10,7 +10,7 @@ namespace
 }
 
 ExtrasMenuState::ExtrasMenuState(void)
-    : m_ExtrasMenu(32, 8, 1000, 32, 555),
+    : m_ExtrasMenu(32, 8, 1000, 24, 555),
       m_RenderTarget(SDL::TextureManager::CreateLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
 {
     const char *ExtrasString = nullptr;

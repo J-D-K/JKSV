@@ -1,6 +1,8 @@
 #include "AppStates/MainMenuState.hpp"
 #include "AppStates/ExtrasMenuState.hpp"
 #include "AppStates/SettingsState.hpp"
+#include "AppStates/TextTitleSelectState.hpp"
+#include "AppStates/TitleSelectCommon.hpp"
 #include "AppStates/TitleSelectState.hpp"
 #include "Colors.hpp"
 #include "Config.hpp"
@@ -22,7 +24,15 @@ MainMenuState::MainMenuState(void)
     for (size_t i = 0; i < m_Users.size(); i++)
     {
         m_MainMenu.AddOption(m_Users.at(i)->GetSharedIcon());
-        m_States.push_back(std::make_shared<TitleSelectState>(m_Users.at(i)));
+
+        if (Config::GetByKey(Config::Keys::JKSMTextMode))
+        {
+            m_States.push_back(std::make_shared<TextTitleSelectState>(m_Users.at(i)));
+        }
+        else
+        {
+            m_States.push_back(std::make_shared<TitleSelectState>(m_Users.at(i)));
+        }
     }
     // Add the settings and extras.
     m_States.push_back(std::make_shared<SettingsState>());
@@ -68,5 +78,14 @@ void MainMenuState::Render(void)
     {
         m_States.at(m_MainMenu.GetSelected())->Render();
         SDL::Text::Render(NULL, m_ControlGuideX, 673, 22, SDL::Text::NO_TEXT_WRAP, Colors::White, m_ControlGuide);
+    }
+}
+
+void MainMenuState::RefreshViewStates(void)
+{
+    for (size_t i = 0; i < m_Users.size(); i++)
+    {
+        m_Users.at(i)->SortData();
+        std::static_pointer_cast<TitleSelectCommon>(m_States.at(i))->Refresh();
     }
 }

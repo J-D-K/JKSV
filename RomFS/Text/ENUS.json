@@ -51,5 +51,9 @@
     "OnOff" : [
         "Off",
         ">On>"
+    ],
+    "BackupMenu" : [
+        "Current Backups:",
+        "New Backup"
     ]
 }

@@ -13,13 +13,7 @@ namespace
 
 UI::TitleView::TitleView(Data::User *User) : m_User(User)
 {
-    for (size_t i = 0; i < m_User->GetTotalDataEntries(); i++)
-    {
-        // Get pointer to data from user save index I.
-        Data::TitleInfo *CurrentTitleInfo = Data::GetTitleInfoByID(m_User->GetApplicationIDAt(i));
-        // Emplace is faster than push
-        m_TitleTiles.emplace_back(Config::IsFavorite(m_User->GetApplicationIDAt(i)), CurrentTitleInfo->GetIcon());
-    }
+    TitleView::Refresh();
 }
 
 void UI::TitleView::Update(bool HasFocus)
@@ -52,6 +46,14 @@ void UI::TitleView::Update(bool HasFocus)
     else if (Input::ButtonPressed(HidNpadButton_AnyRight) && m_Selected < TotalTiles)
     {
         ++m_Selected;
+    }
+    else if (Input::ButtonPressed(HidNpadButton_L) && (m_Selected -= 21) < 0)
+    {
+        m_Selected = 0;
+    }
+    else if (Input::ButtonPressed(HidNpadButton_R) && (m_Selected += 21) > TotalTiles)
+    {
+        m_Selected = TotalTiles;
     }
 
     double Scaling = Config::GetAnimationScaling();
@@ -110,6 +112,18 @@ void UI::TitleView::Render(SDL_Texture *Target, bool HasFocus)
 int UI::TitleView::GetSelected(void) const
 {
     return m_Selected;
+}
+
+void UI::TitleView::Refresh(void)
+{
+    m_TitleTiles.clear();
+    for (size_t i = 0; i < m_User->GetTotalDataEntries(); i++)
+    {
+        // Get pointer to data from user save index I.
+        Data::TitleInfo *CurrentTitleInfo = Data::GetTitleInfoByID(m_User->GetApplicationIDAt(i));
+        // Emplace is faster than push
+        m_TitleTiles.emplace_back(Config::IsFavorite(m_User->GetApplicationIDAt(i)), CurrentTitleInfo->GetIcon());
+    }
 }
 
 void UI::TitleView::Reset(void)

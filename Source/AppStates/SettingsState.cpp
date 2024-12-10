@@ -17,7 +17,7 @@ static inline const char *GetValueText(uint8_t Value)
 }
 
 SettingsState::SettingsState(void)
-    : m_SettingsMenu(32, 8, 1000, 32, 555),
+    : m_SettingsMenu(32, 8, 1000, 24, 555),
       m_RenderTarget(SDL::TextureManager::CreateLoadTexture(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_STATIC | SDL_TEXTUREACCESS_TARGET))
 {
     // Add the first two, because they don't have values to display.

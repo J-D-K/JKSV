@@ -33,7 +33,7 @@ void UI::Menu::Update(bool HasFocus)
     {
         m_Selected = OptionsSize - 1;
     }
-    else if (Input::ButtonPressed(HidNpadButton_AnyDown) && ++m_Selected >= static_cast<int>(m_Options.size()))
+    else if (Input::ButtonPressed(HidNpadButton_AnyDown) && ++m_Selected >= OptionsSize)
     {
         m_Selected = 0;
     }
@@ -41,7 +41,15 @@ void UI::Menu::Update(bool HasFocus)
     {
         m_Selected = 0;
     }
-    else if (Input::ButtonPressed(HidNpadButton_AnyRight) && (m_Selected += m_ScrollLength) >= static_cast<int>(m_Options.size()))
+    else if (Input::ButtonPressed(HidNpadButton_AnyRight) && (m_Selected += m_ScrollLength) >= OptionsSize)
+    {
+        m_Selected = OptionsSize - 1;
+    }
+    else if (Input::ButtonPressed(HidNpadButton_L) && (m_Selected -= m_ScrollLength * 3) < 0)
+    {
+        m_Selected = 0;
+    }
+    else if (Input::ButtonPressed(HidNpadButton_R) && (m_Selected += m_ScrollLength * 3) >= OptionsSize)
     {
         m_Selected = OptionsSize - 1;
     }
@@ -101,11 +109,11 @@ void UI::Menu::Render(SDL_Texture *Target, bool HasFocus)
                 UI::RenderBoundingBox(Target, m_X - 4, TempY - 4, m_Width + 8, m_OptionHeight + 8, m_ColorMod);
             }
             // Render the little rectangle.
-            SDL::RenderRectFill(m_OptionTarget->Get(), 8, 8, 6, m_OptionHeight - 16, Colors::BlueGreen);
+            SDL::RenderRectFill(m_OptionTarget->Get(), 8, 8, 4, m_OptionHeight - 16, Colors::BlueGreen);
         }
         // Render text to target.
         SDL::Text::Render(m_OptionTarget->Get(),
-                          28,
+                          24,
                           (m_OptionHeight / 2) - (m_FontSize / 2),
                           m_FontSize,
                           SDL::Text::NO_TEXT_WRAP,
