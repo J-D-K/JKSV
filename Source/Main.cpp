@@ -13,3 +13,20 @@ int main(void)
     Config::Save();
     return 0;
 }
+
+extern "C" {
+
+// constructor thats called before main
+void userAppInit(void) {
+    Result rc;
+
+    if (R_FAILED(rc = appletLockExit()))
+        diagAbortWithResult(rc);
+}
+
+// destructor thats called after main
+void userAppExit(void) {
+    appletUnlockExit();
+}
+
+} // extern "C"

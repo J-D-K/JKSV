@@ -117,8 +117,11 @@ JKSV::~JKSV()
     FsLib::Exit();
 }
 
-bool JKSV::IsRunning(void) const
+bool JKSV::IsRunning(void)
 {
+    if (m_IsRunning) {
+        m_IsRunning = appletMainLoop();
+    }
     return m_IsRunning;
 }
 

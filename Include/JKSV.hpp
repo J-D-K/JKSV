@@ -12,7 +12,7 @@ class JKSV
         // Exits JKSV
         ~JKSV();
         // Returns whether or not JKSV is actually running.
-        bool IsRunning(void) const;
+        bool IsRunning(void);
         // Updates input and back of state vector.
         void Update(void);
         // Renders base of app and states of vector.
