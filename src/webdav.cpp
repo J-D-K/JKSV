@@ -102,6 +102,17 @@ void rfs::WebDav::updateFile(const std::string& _fileID, curlFuncs::curlUpArgs *
 
     std::string fullUrl = origin + _fileID;
 
+    // Some WebDAV servers or network drives mounted via Alist
+    // do not recognize 'Transfer-Encoding: chunked' and 'Expect: 100-continue'.
+    if (_upload->f) {
+        fseek(_upload->f, 0, SEEK_END);
+        curl_off_t file_size = ftell(_upload->f);
+        fseek(_upload->f, 0, SEEK_SET);
+        curl_easy_setopt(local_curl, CURLOPT_INFILESIZE_LARGE, file_size);
+    }
+    struct curl_slist *headers = NULL;
+    headers = curl_slist_append(headers, "Expect:");
+
     curl_easy_setopt(local_curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(local_curl, CURLOPT_UPLOAD, 1L); // implicit PUT
     curl_easy_setopt(local_curl, CURLOPT_READFUNCTION, curlFuncs::readDataFile);
@@ -118,13 +129,12 @@ void rfs::WebDav::updateFile(const std::string& _fileID, curlFuncs::curlUpArgs *
     curl_easy_cleanup(local_curl); // Clean up the CURL handle
 }
 void rfs::WebDav::downloadFile(const std::string& _fileID, curlFuncs::curlDlArgs *_download) {
-    //Downloading is threaded because it's too slow otherwise
     dlWriteThreadStruct dlWrite;
     dlWrite.cfa = _download;
 
     Thread writeThread;
     threadCreate(&writeThread, writeThread_t, &dlWrite, NULL, 0x8000, 0x2B, 2);
-
+    threadStart(&writeThread);
 
     CURL* local_curl = curl_easy_duphandle(curl);
 
@@ -132,12 +142,27 @@ void rfs::WebDav::downloadFile(const std::string& _fileID, curlFuncs::curlDlArgs
     curl_easy_setopt(local_curl, CURLOPT_URL, fullUrl.c_str());
     curl_easy_setopt(local_curl, CURLOPT_WRITEFUNCTION, writeDataBufferThreaded);
     curl_easy_setopt(local_curl, CURLOPT_WRITEDATA, &dlWrite);
-    threadStart(&writeThread);
+
+    curl_easy_setopt(local_curl, CURLOPT_TIMEOUT, 30L);
+    curl_easy_setopt(local_curl, CURLOPT_LOW_SPEED_LIMIT, 1024);
+    curl_easy_setopt(local_curl, CURLOPT_LOW_SPEED_TIME, 10);
 
     CURLcode res = curl_easy_perform(local_curl);
+    // to ensure the final data block is written.
+    // some network drives mounted via Alist may download in segments.
+    {
+        std::unique_lock<std::mutex> lock(dlWrite.dataLock);
+        if (!rfs::downloadBuffer.empty()) {
+            dlWrite.cond.wait(lock, [&dlWrite]{ return !dlWrite.bufferFull; });
+            
+            dlWrite.sharedBuffer.swap(rfs::downloadBuffer);
+            dlWrite.bufferFull = true;
+            
+            lock.unlock();
+            dlWrite.cond.notify_one();
+        }
+    }
 
-    // Copied from gd.cpp implementation.
-    // TODO: Not sure how a thread helps if this parent waits here.
     threadWaitForExit(&writeThread);
     threadClose(&writeThread);
 
