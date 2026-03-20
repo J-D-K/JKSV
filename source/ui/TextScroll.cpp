@@ -1,6 +1,8 @@
 #include "ui/TextScroll.hpp"
 
+#include "graphics/ScopedRender.hpp"
 #include "sdl.hpp"
+#include "stringutil.hpp"
 
 namespace
 {
@@ -9,8 +11,6 @@ namespace
 
     /// @brief This is the number of pixels between the two renderings of the text.
     constexpr int SIZE_TEXT_GAP = 0;
-
-    int TARGET_ID{};
 } // namespace
 
 //                      ---- Construction ----
@@ -21,12 +21,10 @@ ui::TextScroll::TextScroll(std::string_view text,
                            int width,
                            int height,
                            int fontSize,
-                           sdl::Color textColor,
-                           sdl::Color clearColor,
+                           SDL_Color textColor,
+                           SDL_Color clearColor,
                            bool center)
-{
-    TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center);
-}
+{ TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center); }
 
 ui::TextScroll::TextScroll(std::string &text,
                            int x,
@@ -34,12 +32,10 @@ ui::TextScroll::TextScroll(std::string &text,
                            int width,
                            int height,
                            int fontSize,
-                           sdl::Color textColor,
-                           sdl::Color clearColor,
+                           SDL_Color textColor,
+                           SDL_Color clearColor,
                            bool center)
-{
-    TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center);
-}
+{ TextScroll::initialize(text, x, y, width, height, fontSize, textColor, clearColor, center); }
 
 //                      ---- Public functions ----
 
@@ -49,24 +45,24 @@ void ui::TextScroll::initialize(std::string_view text,
                                 int width,
                                 int height,
                                 int fontSize,
-                                sdl::Color textColor,
-                                sdl::Color clearColor,
+                                SDL_Color textColor,
+                                SDL_Color clearColor,
                                 bool center)
 {
-    m_renderX      = x;
-    m_renderY      = y;
-    m_fontSize     = fontSize;
-    m_textColor    = textColor;
+    m_renderX   = x;
+    m_renderY   = y;
+    m_fontSize  = fontSize;
+    m_font      = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(TextScroll::generate_font_name(fontSize), fontSize);
+    m_textColor = textColor;
     m_clearColor   = clearColor;
     m_targetWidth  = width;
     m_targetHeight = height;
     m_textY        = (m_targetHeight / 2) - (m_fontSize / 2);
     m_scrollTimer.start(TICKS_SCROLL_TRIGGER);
-
-    {
-        const std::string targetName = "textScroll_" + std::to_string(TARGET_ID++);
-        m_renderTarget = sdl::TextureManager::load(targetName, m_targetWidth, m_targetHeight, SDL_TEXTUREACCESS_TARGET);
-    }
+    m_renderTarget = sdl2::TextureManager::create_load_resource(TextScroll::generate_target_name(),
+                                                                m_targetWidth,
+                                                                m_targetHeight,
+                                                                SDL_TEXTUREACCESS_TARGET);
 
     TextScroll::set_text(text, center);
 }
@@ -77,24 +73,24 @@ void ui::TextScroll::initialize(std::string &text,
                                 int width,
                                 int height,
                                 int fontSize,
-                                sdl::Color textColor,
-                                sdl::Color clearColor,
+                                SDL_Color textColor,
+                                SDL_Color clearColor,
                                 bool center)
 {
-    m_renderX      = x;
-    m_renderY      = y;
-    m_fontSize     = fontSize;
-    m_textColor    = textColor;
+    m_renderX   = x;
+    m_renderY   = y;
+    m_fontSize  = fontSize;
+    m_font      = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(TextScroll::generate_font_name(fontSize), fontSize);
+    m_textColor = textColor;
     m_clearColor   = clearColor;
     m_targetWidth  = width;
     m_targetHeight = height;
     m_textY        = (m_targetHeight / 2) - (m_fontSize / 2);
     m_scrollTimer.start(TICKS_SCROLL_TRIGGER);
-
-    {
-        const std::string targetName = "textScroll_" + std::to_string(TARGET_ID++);
-        m_renderTarget = sdl::TextureManager::load(targetName, m_targetWidth, m_targetHeight, SDL_TEXTUREACCESS_TARGET);
-    }
+    m_renderTarget = sdl2::TextureManager::create_load_resource(TextScroll::generate_target_name(),
+                                                                m_targetWidth,
+                                                                m_targetHeight,
+                                                                SDL_TEXTUREACCESS_TARGET);
 
     TextScroll::set_text(text, center);
 }
@@ -104,7 +100,7 @@ std::string_view ui::TextScroll::get_text() const noexcept { return m_text; }
 void ui::TextScroll::set_text(std::string_view text, bool center)
 {
     m_text                = text;
-    m_textWidth           = sdl::text::get_width(m_fontSize, m_text.c_str());
+    m_textWidth           = m_font->get_text_width(m_text);
     m_textScrollTriggered = false;
 
     if (m_textWidth > m_targetWidth - 16)
@@ -128,7 +124,7 @@ void ui::TextScroll::set_text(std::string_view text, bool center)
 void ui::TextScroll::set_text(std::string &text, bool center)
 {
     m_text                = std::move(text);
-    m_textWidth           = sdl::text::get_width(m_fontSize, m_text.c_str());
+    m_textWidth           = m_font->get_text_width(m_text);
     m_textScrollTriggered = false;
 
     if (m_textWidth > m_targetWidth - 16)
@@ -149,7 +145,7 @@ void ui::TextScroll::set_text(std::string &text, bool center)
     }
 }
 
-void ui::TextScroll::update(bool hasFocus)
+void ui::TextScroll::update(const sdl2::Input &input, bool hasFocus)
 {
     // I don't think this needs to care about having focus.
     const int invertedWidth    = -(m_textWidth + SIZE_TEXT_GAP);
@@ -172,25 +168,34 @@ void ui::TextScroll::update(bool hasFocus)
     }
 }
 
-void ui::TextScroll::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::TextScroll::render(sdl2::Renderer &renderer, bool hasFocus)
 {
-    m_renderTarget->clear(m_clearColor);
+    // Gap between scrolling text rendering.
+    static constexpr int TEXT_GAP = 8;
 
-    if (!m_textScrolling)
     {
-        sdl::text::render(m_renderTarget, m_textX, m_textY, m_fontSize, sdl::text::NO_WRAP, m_textColor, m_text);
+        // Scoped render to the target.
+        graphics::ScopedRender scopedRender{renderer, m_renderTarget};
+        renderer.frame_begin(m_clearColor);
+
+        if (!m_textScrolling) { m_font->render_text(m_textX, m_textY, m_textColor, m_text); }
+        else
+        {
+            // We're going to render text twice so it looks like it's scrolling and doesn't end. Ever.
+            m_font->render_text(m_textX, m_textY, m_textColor, m_text);
+            m_font->render_text(m_textX + m_textWidth + TEXT_GAP, m_textY, m_textColor, m_text);
+        }
     }
-    else
-    {
-        // We're going to render text twice so it looks like it's scrolling and doesn't end. Ever.
-        sdl::text::render(m_renderTarget, m_textX, m_textY, m_fontSize, sdl::text::NO_WRAP, m_textColor, m_text);
-        sdl::text::render(m_renderTarget,
-                          m_textX + m_textWidth + 8,
-                          m_textY,
-                          m_fontSize,
-                          sdl::text::NO_WRAP,
-                          m_textColor,
-                          m_text);
-    }
-    m_renderTarget->render(target, m_renderX, m_renderY);
+    m_renderTarget->render(m_renderX, m_renderY);
 }
+
+//                      ---- Private Functions ----
+
+std::string ui::TextScroll::generate_target_name()
+{
+    static int targetID{};
+    return stringutil::get_formatted_string("TextScroll_%i", targetID++);
+}
+
+std::string ui::TextScroll::generate_font_name(int fontSize)
+{ return stringutil::get_formatted_string("TextScrollFont_%i", fontSize); }

@@ -30,6 +30,21 @@ class JKSV
         static void request_quit() noexcept;
 
     private:
+        /// @brief SDL2 instance.
+        sdl2::SDL2 m_sdl2{};
+
+        /// @brief SDL2 Window.
+        sdl2::Window m_window{};
+
+        /// @brief SDL2 Renderer.
+        sdl2::Renderer m_renderer{};
+
+        /// @brief SDL2 Audio.
+        sdl2::Audio m_audio{};
+
+        /// @brief Not really a part of SDL2, but...
+        sdl2::Input m_input{};
+
         /// @brief Whether or not initialization was successful and JKSV is still running.
         static inline std::atomic_bool sm_isRunning{};
 
@@ -37,7 +52,13 @@ class JKSV
         bool m_showTranslationInfo{};
 
         /// @brief JKSV icon in upper left corner.
-        sdl::SharedTexture m_headerIcon{};
+        sdl2::SharedTexture m_headerIcon{};
+
+        /// @brief This is used for rendering JKSV.
+        sdl2::SharedFont m_titleFont{};
+
+        /// @brief This is used to render the build date.
+        sdl2::SharedFont m_buildFont{};
 
         /// @brief Stores the translation string.
         std::string m_translationInfo{};
@@ -59,9 +80,6 @@ class JKSV
 
         // Creates the needed directories on SD.
         bool create_directories();
-
-        /// @brief Adds the text color changing characters.
-        void add_color_chars();
 
         /// @brief Retrieves the strings from the map and sets them up for printing.
         void setup_translation_info_strings();

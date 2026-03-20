@@ -11,7 +11,7 @@ namespace
 
 //                      ---- Construction ----
 
-ui::TitleTile::TitleTile(bool isFavorite, int index, sdl::SharedTexture icon)
+ui::TitleTile::TitleTile(bool isFavorite, int index, sdl2::SharedTexture &icon)
     : m_transition(0,
                    0,
                    UNSELECTED_WIDTH_HEIGHT,
@@ -22,15 +22,12 @@ ui::TitleTile::TitleTile(bool isFavorite, int index, sdl::SharedTexture icon)
                    UNSELECTED_WIDTH_HEIGHT,
                    m_transition.DEFAULT_THRESHOLD)
     , m_isFavorite(isFavorite)
-    , m_index(index)
     , m_icon(icon) {};
 
 //                      ---- Public functions ----
 
-void ui::TitleTile::update(int selected)
+void ui::TitleTile::update(bool isSelected)
 {
-    const bool isSelected = selected == m_index;
-
     if (isSelected)
     {
         m_transition.set_target_width(SELECTED_WIDTH_HEIGHT);
@@ -45,7 +42,7 @@ void ui::TitleTile::update(int selected)
     m_transition.update_width_height();
 }
 
-void ui::TitleTile::render(sdl::SharedTexture &target, int x, int y)
+void ui::TitleTile::render(int x, int y)
 {
     static constexpr std::string_view HEART_CHAR = "\uE017";
 
@@ -54,8 +51,9 @@ void ui::TitleTile::render(sdl::SharedTexture &target, int x, int y)
     const int renderX = x - ((width - 128) / 2);
     const int renderY = y - ((width - 128) / 2);
 
-    m_icon->render_stretched(target, renderX, renderY, width, height);
-    if (m_isFavorite) { sdl::text::render(target, renderX + 2, renderY + 2, 28, sdl::text::NO_WRAP, colors::PINK, HEART_CHAR); }
+    m_icon->render_stretched(renderX, renderY, width, height);
+
+    if (m_isFavorite) { sm_heartFont->render_text(renderX + 2, renderY + 2, colors::PINK, HEART_CHAR); }
 }
 
 void ui::TitleTile::reset() noexcept
@@ -69,3 +67,16 @@ void ui::TitleTile::reset() noexcept
 int ui::TitleTile::get_width() const noexcept { return m_transition.get_width(); }
 
 int ui::TitleTile::get_height() const noexcept { return m_transition.get_height(); }
+
+//                          ---- Private Functions ----
+
+void ui::TitleTile::initialize_static_members()
+{
+    // Font name for the manager.
+    static constexpr std::string_view FONT_NAME = "HeartFont";
+    static constexpr int FONT_SIZE              = 28;
+
+    if (sm_heartFont) { return; }
+
+    sm_heartFont = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(FONT_NAME, FONT_SIZE);
+}

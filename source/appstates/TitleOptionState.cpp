@@ -10,7 +10,6 @@
 #include "fs/fs.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
 #include "keyboard/keyboard.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
@@ -58,16 +57,16 @@ TitleOptionState::TitleOptionState(data::User *user,
 
 //                      ---- Public functions ----
 
-void TitleOptionState::update()
+void TitleOptionState::update(const sdl2::Input &input)
 {
     const bool hasFocus = BaseState::has_focus();
 
     sm_slidePanel->unhide_on_focus(hasFocus);
-    sm_slidePanel->update(hasFocus);
+    sm_slidePanel->update(input, hasFocus);
 
     const bool isOpen   = sm_slidePanel->is_open();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
     const int selected  = sm_titleOptionMenu->get_selected();
 
     if (m_refreshRequired)
@@ -103,12 +102,13 @@ void TitleOptionState::update()
 
 void TitleOptionState::sub_update() { sm_slidePanel->sub_update(); }
 
-void TitleOptionState::render()
+void TitleOptionState::render(sdl2::Renderer &renderer)
 {
+    // Grab focus.
     const bool hasFocus = BaseState::has_focus();
 
-    sm_slidePanel->clear_target();
-    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
+    // Render panel.
+    sm_slidePanel->render(renderer, hasFocus);
 }
 
 void TitleOptionState::close_on_update() { m_exitRequired = true; }

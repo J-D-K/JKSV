@@ -4,7 +4,6 @@
 #include "error.hpp"
 #include "fs/save_data_functions.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -36,8 +35,8 @@ namespace
 } // namespace
 
 // Defined at bottom
-static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int x, int y, sdl::Color clear);
-static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string &text, int x, int y, sdl::Color clear);
+static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int x, int y, SDL_Color clear);
+static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string &text, int x, int y, SDL_Color clear);
 static bool is_a_best_game(uint64_t applicationID) noexcept;
 
 //                      ---- Construction ----
@@ -65,35 +64,34 @@ TitleInfoState::TitleInfoState(data::User *user, data::TitleInfo *titleInfo, con
 
 //                      ---- Public functions ----
 
-void TitleInfoState::update()
+void TitleInfoState::update(const sdl2::Input &input)
 {
     switch (m_state)
     {
         case State::Opening:
         case State::Closing:    TitleInfoState::update_dimensions(); break;
-        case State::Displaying: TitleInfoState::update_handle_input(); break;
+        case State::Displaying: TitleInfoState::update_handle_input(input); break;
     }
 }
 
-void TitleInfoState::render()
+void TitleInfoState::render(sdl2::Renderer &renderer)
 {
     // Grab cause needed everywhere.
     const bool hasFocus = BaseState::has_focus();
 
     // Render the frame. Only continue further if we're currently displaying.
-    sm_frame->render(sdl::Texture::Null, hasFocus);
+    sm_frame->render(renderer, hasFocus);
     if (m_state != State::Displaying) { return; }
 
     // We only want to render what's been triggered so far for the tiling in effect.
-    for (int i = 0; i < m_fieldDisplayCount; i++) { m_infoFields[i]->render(sdl::Texture::Null, hasFocus); }
+    for (int i = 0; i < m_fieldDisplayCount; i++) { m_infoFields[i]->render(renderer, hasFocus); }
 }
 
 //                      ---- Private functions ----
 
 void TitleInfoState::initialize_static_members()
 {
-    static constexpr std::string_view CHIME_NAME = "TitleInfoChime";
-    static constexpr const char *CHIME_PATH      = "romfs:/Sound/TitleInfo.wav";
+    static constexpr std::string_view CHIME_PATH = "romfs:/Sound/TitleInfo.wav";
 
     if (sm_frame && sm_openChime)
     {
@@ -106,7 +104,7 @@ void TitleInfoState::initialize_static_members()
     const int width  = m_transition.get_width();
     const int height = m_transition.get_height();
     sm_frame         = ui::Frame::create(x, y, width, height);
-    sm_openChime     = sdl::SoundManager::load(CHIME_NAME, CHIME_PATH);
+    sm_openChime     = sdl2::SoundManager::create_load_resource(CHIME_PATH, CHIME_PATH);
 }
 
 void TitleInfoState::initialize_info_fields()
@@ -166,13 +164,13 @@ void TitleInfoState::create_title(int y)
     {
         std::string bestTitle = BESTEST_STAR + " " + title + " " + BESTEST_STAR;
         field                 = ui::TextScroll::create(bestTitle,
-                                       X,
-                                       y,
-                                       WIDTH,
-                                       TITLE_FIELD_HEIGHT,
-                                       TITLE_FONT_SIZE,
-                                       colors::WHITE,
-                                       colors::TRANSPARENT);
+                                                       X,
+                                                       y,
+                                                       WIDTH,
+                                                       TITLE_FIELD_HEIGHT,
+                                                       TITLE_FONT_SIZE,
+                                                       colors::WHITE,
+                                                       colors::TRANSPARENT);
     }
     else
     {
@@ -377,7 +375,7 @@ void TitleInfoState::update_dimensions() noexcept
     else if (closed) { TitleInfoState::deactivate_state(); }
 }
 
-void TitleInfoState::update_handle_input() noexcept
+void TitleInfoState::update_handle_input(const sdl2::Input &input) noexcept
 {
     // Grab a cache this since it's needed a lot.
     const bool hasFocus = BaseState::has_focus();
@@ -387,14 +385,14 @@ void TitleInfoState::update_handle_input() noexcept
     if (m_fieldDisplayCount < currentCount && m_timer.is_triggered()) { ++m_fieldDisplayCount; }
 
     // Update the actually displayed fields so the text scrolls if need be.
-    for (int i = 0; i < m_fieldDisplayCount; i++) { m_infoFields[i]->update(hasFocus); }
+    for (int i = 0; i < m_fieldDisplayCount; i++) { m_infoFields[i]->update(input, hasFocus); }
 
     // Input bools.
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
     if (bPressed) { TitleInfoState::close(); }
 }
 
-inline sdl::Color TitleInfoState::get_field_color() noexcept
+inline SDL_Color TitleInfoState::get_field_color() noexcept
 {
     m_fieldClearSwitch = m_fieldClearSwitch ? false : true;
     return m_fieldClearSwitch ? colors::DIALOG_DARK : colors::CLEAR_COLOR;
@@ -411,15 +409,11 @@ void TitleInfoState::deactivate_state() { BaseState::deactivate(); }
 
 //                      ---- Static functions ----
 
-static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int x, int y, sdl::Color clear)
-{
-    return ui::TextScroll::create(text, x, y, SIZE_FIELD_WIDTH, SIZE_FIELD_HEIGHT, SIZE_FONT, colors::WHITE, clear, false);
-}
+static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string_view text, int x, int y, SDL_Color clear)
+{ return ui::TextScroll::create(text, x, y, SIZE_FIELD_WIDTH, SIZE_FIELD_HEIGHT, SIZE_FONT, colors::WHITE, clear, false); }
 
-static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string &text, int x, int y, sdl::Color clear)
-{
-    return ui::TextScroll::create(text, x, y, SIZE_FIELD_WIDTH, SIZE_FIELD_HEIGHT, SIZE_FONT, colors::WHITE, clear, false);
-}
+static inline std::shared_ptr<ui::TextScroll> create_new_field(std::string &text, int x, int y, SDL_Color clear)
+{ return ui::TextScroll::create(text, x, y, SIZE_FIELD_WIDTH, SIZE_FIELD_HEIGHT, SIZE_FONT, colors::WHITE, clear, false); }
 
 static bool is_a_best_game(uint64_t applicationID) noexcept
 {

@@ -1,8 +1,8 @@
 #include "ui/Menu.hpp"
 
 #include "config/config.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
 #include "mathutil.hpp"
 #include "ui/BoundingBox.hpp"
 
@@ -27,20 +27,20 @@ ui::Menu::Menu(int x, int y, int width, int fontSize, int renderTargetHeight)
 
 //                      ---- Public functions ----
 
-void ui::Menu::update(bool hasFocus)
+void ui::Menu::update(const sdl2::Input &input, bool hasFocus)
 {
     if (m_options.empty()) { return; }
 
-    m_boundingBox->update(hasFocus);
-    m_optionScroll->update(hasFocus);
+    m_boundingBox->update(input, hasFocus);
+    m_optionScroll->update(input, hasFocus);
 
-    Menu::handle_input();
+    Menu::handle_input(input);
     Menu::update_scrolling();
     Menu::update_scroll_text();
     m_transition.update();
 }
 
-void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::Menu::render(sdl2::Renderer &renderer, bool hasFocus)
 {
     if (m_options.empty()) { return; }
 
@@ -52,22 +52,29 @@ void ui::Menu::render(sdl::SharedTexture &target, bool hasFocus)
         if (tempY < -m_fontSize) { continue; }
         else if (tempY > m_renderTargetHeight) { break; }
 
-        m_optionTarget->clear(colors::TRANSPARENT);
-
-        if (i == m_selected)
         {
-            if (hasFocus)
+            graphics::ScopedRender optionScoped{renderer, m_optionTarget};
+            renderer.frame_begin(colors::TRANSPARENT);
+
+            if (i == m_selected)
             {
-                m_boundingBox->set_x(m_x - 4);
-                m_boundingBox->set_y(tempY - 4);
-                m_boundingBox->render(target, hasFocus);
+                if (hasFocus)
+                {
+                    m_boundingBox->set_x(m_x - 4);
+                    m_boundingBox->set_y(tempY - 4);
+                    m_boundingBox->render(renderer, hasFocus);
+                }
+                renderer.render_rectangle(8, 8, 4, m_optionHeight - 12, colors::BLUE_GREEN);
+                m_optionScroll->render(renderer, hasFocus);
             }
-            sdl::render_rect_fill(m_optionTarget, 8, 8, 4, m_optionHeight - 12, colors::BLUE_GREEN);
-            m_optionScroll->render(m_optionTarget, hasFocus);
+            else
+            {
+                m_font->render_text(24, m_textY, colors::WHITE, m_options[i]);
+            }
         }
-        else { sdl::text::render(m_optionTarget, 24, m_textY, m_fontSize, sdl::text::NO_WRAP, colors::WHITE, m_options[i]); }
+
         // render target to target
-        m_optionTarget->render(target, m_x, tempY);
+        m_optionTarget->render(m_x, tempY);
     }
 }
 
@@ -144,7 +151,8 @@ void ui::Menu::initialize_option_target()
     static int MENU_ID{};
 
     const std::string optionTargetName = "MENU_TARGET_" + std::to_string(MENU_ID++);
-    m_optionTarget = sdl::TextureManager::load(optionTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
+    m_optionTarget =
+        sdl2::TextureManager::create_load_resource(optionTargetName, m_width, m_optionHeight, SDL_TEXTUREACCESS_TARGET);
 }
 
 void ui::Menu::initialize_ui_elements()
@@ -166,11 +174,10 @@ void ui::Menu::initialize_ui_elements()
 
 void ui::Menu::initialize_sounds()
 {
-    static constexpr std::string_view CURSOR_NAME = "MenuCursor";
-    static constexpr const char *CURSOR_PATH      = "romfs:/Sound/MenuCursor.wav";
+    static constexpr std::string_view CURSOR_PATH = "romfs:/Sound/MenuCursor.wav";
 
     if (sm_cursor) { return; }
-    sm_cursor = sdl::SoundManager::load(CURSOR_NAME, CURSOR_PATH);
+    sm_cursor = sdl2::SoundManager::create_load_resource(CURSOR_PATH, CURSOR_PATH);
 }
 
 void ui::Menu::update_scroll_text()
@@ -180,18 +187,18 @@ void ui::Menu::update_scroll_text()
     if (text != option) { m_optionScroll->set_text(std::string_view{option}, false); }
 }
 
-void ui::Menu::handle_input()
+void ui::Menu::handle_input(const sdl2::Input &input)
 {
     // Get the length of the menu.
     const int optionsSize = m_options.size();
 
     // Control bools.
-    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
-    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
-    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
-    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
-    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
-    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
+    const bool upPressed        = input.button_pressed(HidNpadButton_AnyUp);
+    const bool downPressed      = input.button_pressed(HidNpadButton_AnyDown);
+    const bool leftPressed      = input.button_pressed(HidNpadButton_AnyLeft);
+    const bool rightPressed     = input.button_pressed(HidNpadButton_AnyRight);
+    const bool lShoulderPressed = input.button_pressed(HidNpadButton_L);
+    const bool rShoulderPressed = input.button_pressed(HidNpadButton_R);
 
     // Wrapping conditions.
     const bool wrapEnd   = upPressed && m_selected - 1 < 0;

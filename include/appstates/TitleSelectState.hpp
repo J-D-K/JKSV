@@ -15,9 +15,7 @@ class TitleSelectState final : public TitleSelectCommon
 
         /// @brief Returns a new TitleSelect state.
         static inline std::shared_ptr<TitleSelectState> create(data::User *user)
-        {
-            return std::make_shared<TitleSelectState>(user);
-        }
+        { return std::make_shared<TitleSelectState>(user); }
 
         /// @brief Creates, pushes, and returns a new TitleSelectState.
         static inline std::shared_ptr<TitleSelectState> create_and_push(data::User *user)
@@ -28,10 +26,10 @@ class TitleSelectState final : public TitleSelectCommon
         }
 
         /// @brief Runs the update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Runs the render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief Refreshes the view.
         void refresh() override;
@@ -41,7 +39,7 @@ class TitleSelectState final : public TitleSelectCommon
         data::User *m_user{};
 
         /// @brief Target to render to.
-        sdl::SharedTexture m_renderTarget{};
+        sdl2::SharedTexture m_renderTarget{};
 
         /// @brief Tiled title selection view.
         std::shared_ptr<ui::TitleView> m_titleView{};

@@ -14,18 +14,16 @@ namespace ui
 
             /// @brief Factory function to return a control guide.
             static inline std::shared_ptr<ControlGuide> create(const char *guide)
-            {
-                return std::make_shared<ControlGuide>(guide);
-            }
+            { return std::make_shared<ControlGuide>(guide); }
 
             /// @brief Update routine. Opens the guide.
-            void update(bool hasFocus) override;
+            void update(const sdl2::Input &input, bool hasFocus) override;
 
             /// @brief Sub update routine. Handles hiding the control guide.
             void sub_update();
 
             /// @brief Renders the control guide. Both arguments are ignored in this case.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief This is a workaround for states where the guide can't really be hidden correctly. Ex: FileMode.
             void reset() noexcept;
@@ -59,7 +57,10 @@ namespace ui
             ControlGuide::State m_state{};
 
             /// @brief This is shared by all instances.
-            static inline sdl::SharedTexture sm_controlCap{};
+            static inline sdl2::SharedTexture sm_controlCap{};
+
+            /// @brief Font used to render text.
+            static inline sdl2::SharedFont sm_font{};
 
             /// @brief Ensures the control guide cap is loaded for all instances.
             void initialize_static_members();

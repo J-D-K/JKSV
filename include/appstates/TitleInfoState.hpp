@@ -21,9 +21,7 @@ class TitleInfoState final : public BaseState
         static inline std::shared_ptr<TitleInfoState> create(data::User *user,
                                                              data::TitleInfo *titleInfo,
                                                              const FsSaveDataInfo *saveInfo)
-        {
-            return std::make_shared<TitleInfoState>(user, titleInfo, saveInfo);
-        }
+        { return std::make_shared<TitleInfoState>(user, titleInfo, saveInfo); }
 
         /// @brief Creates, pushes, and returns a new TitleInfoState.
         static inline std::shared_ptr<TitleInfoState> create_and_push(data::User *user,
@@ -36,10 +34,10 @@ class TitleInfoState final : public BaseState
         }
 
         /// @brief Runs update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Runs render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
         /// @brief States this state can be in.
@@ -60,7 +58,7 @@ class TitleInfoState final : public BaseState
         const FsSaveDataInfo *m_saveInfo{};
 
         /// @brief This is a pointer to the title's icon.
-        sdl::SharedTexture m_icon{};
+        sdl2::SharedTexture m_icon{};
 
         /// @brief Transition for the open/close effect.
         ui::Transition m_transition{};
@@ -84,7 +82,7 @@ class TitleInfoState final : public BaseState
         static inline std::shared_ptr<ui::Frame> sm_frame{};
 
         /// @brief This is the little chime that plays when this is opened.
-        static inline sdl::SharedSound sm_openChime{};
+        static inline sdl2::SharedSound sm_openChime{};
 
         /// @brief Initializes the static members if they haven't been already.
         void initialize_static_members();
@@ -126,10 +124,10 @@ class TitleInfoState final : public BaseState
         void update_dimensions() noexcept;
 
         /// @brief Handles input and updating.
-        void update_handle_input() noexcept;
+        void update_handle_input(const sdl2::Input &input) noexcept;
 
         /// @brief Returns the color to clear the field with.
-        inline sdl::Color get_field_color() noexcept;
+        inline SDL_Color get_field_color() noexcept;
 
         /// @brief Signals to close the state.
         void close() noexcept;

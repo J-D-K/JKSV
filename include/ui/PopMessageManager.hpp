@@ -23,7 +23,7 @@ namespace ui
             static void update();
 
             /// @brief Renders messages to screen.
-            static void render();
+            static void render(sdl2::Renderer &renderer);
 
             /// @brief Pushes a new message to the queue for processing.
             static void push_message(int displayTicks, std::string_view message);
@@ -57,7 +57,7 @@ namespace ui
             std::mutex m_queueMutex{};
 
             /// @brief The little chirp that's played when messages pop.
-            sdl::SharedSound m_popSound{};
+            sdl2::SharedSound m_popSound{};
 
             /// @brief Loads the pop message sound into memory.
             void initialize_pop_sound();

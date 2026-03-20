@@ -25,21 +25,19 @@ namespace
 /// @brief The main routine for the task to load data.
 static void data_initialize_task(sys::threadpool::JobData taskData);
 
-void data::launch_initialization(bool clearCache, std::function<void()> onDestruction)
+void data::launch_initialization(bool clearCache, sdl2::Renderer &renderer, std::function<void()> onDestruction)
 {
     auto taskData        = std::make_shared<StateDataStruct>();
     taskData->clearCache = clearCache;
 
-    auto loadingState = DataLoadingState::create(s_context, onDestruction, data_initialize_task, taskData);
+    auto loadingState = DataLoadingState::create(s_context, renderer, onDestruction, data_initialize_task, taskData);
     StateManager::push_state(loadingState);
 }
 
 void data::get_users(data::UserList &userList) { s_context.get_users(userList); }
 
 data::TitleInfo *data::get_title_info_by_id(uint64_t applicationID) noexcept
-{
-    return s_context.get_title_by_id(applicationID);
-}
+{ return s_context.get_title_by_id(applicationID); }
 
 void data::load_title_to_map(uint64_t applicationID) { s_context.load_title(applicationID); }
 
@@ -48,9 +46,7 @@ bool data::title_exists_in_map(uint64_t applicationID) noexcept { return s_conte
 void data::get_title_info_list(data::TitleInfoList &listOut) { s_context.get_title_info_list(listOut); }
 
 void data::get_title_info_by_type(FsSaveDataType saveType, data::TitleInfoList &listOut)
-{
-    s_context.get_title_info_list_by_type(saveType, listOut);
-}
+{ s_context.get_title_info_list_by_type(saveType, listOut); }
 
 static void data_initialize_task(sys::threadpool::JobData taskData)
 {

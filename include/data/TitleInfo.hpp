@@ -83,16 +83,12 @@ namespace data
             /// @return True on success. False on failure.
             bool has_save_data_type(uint8_t saveType) const noexcept;
 
-            /// @brief Returns a pointer to the icon texture.
-            /// @return Icon
-            sdl::SharedTexture get_icon() const noexcept;
-
             /// @brief Allows the path safe title to be set to a new path.
             /// @param newPathSafe Buffer containing the new safe path to use.
             void set_path_safe_title(const char *newPathSafe) noexcept;
 
             /// @brief Loads the icon from the nacp.
-            void load_icon() override;
+            void load_icon(sdl2::Renderer &renderer) override;
 
         private:
             /// @brief This defines how long the buffer is for the path safe version of the title.
@@ -114,7 +110,7 @@ namespace data
             char m_pathSafeTitle[TitleInfo::SIZE_PATH_SAFE]{};
 
             /// @brief Shared icon texture.
-            sdl::SharedTexture m_icon{};
+            sdl2::SharedTexture m_icon{};
 
             /// @brief Private function to get/create the path safe title.
             void get_create_path_safe_title() noexcept;

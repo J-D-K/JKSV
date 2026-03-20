@@ -1,6 +1,8 @@
 #pragma once
 #include "appstates/BaseState.hpp"
+#include "sdl.hpp"
 
+#include <concepts>
 #include <memory>
 #include <vector>
 
@@ -14,10 +16,10 @@ class StateManager
         StateManager &operator=(StateManager &&)      = delete;
 
         /// @brief Runs the state update routine.
-        static void update();
+        static void update(const sdl2::Input &input);
 
         /// @brief Runs the state rendering routine(s);
-        static void render() noexcept;
+        static void render(sdl2::Renderer &renderer) noexcept;
 
         /// @brief Returns whether the back of the vector is a closable state.
         static bool back_is_closable() noexcept;

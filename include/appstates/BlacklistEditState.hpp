@@ -1,6 +1,7 @@
 #pragma once
 #include "StateManager.hpp"
 #include "appstates/BaseState.hpp"
+#include "sdl.hpp"
 #include "ui/ui.hpp"
 
 #include <memory>
@@ -24,10 +25,10 @@ class BlacklistEditState final : public BaseState
         }
 
         /// @brief Update override.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Render override.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
         /// @brief Local copy of the blacklist.

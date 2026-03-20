@@ -17,9 +17,7 @@ class FileOptionState final : public BaseState
 
         /// @brief Inline creation function.
         static inline std::shared_ptr<FileOptionState> create(FileModeState *spawningState)
-        {
-            return std::make_shared<FileOptionState>(spawningState);
-        }
+        { return std::make_shared<FileOptionState>(spawningState); }
 
         /// @brief Same as above. Pushes state before returning it.
         static inline std::shared_ptr<FileOptionState> create_and_push(FileModeState *spawningState)
@@ -30,10 +28,10 @@ class FileOptionState final : public BaseState
         }
 
         /// @brief Update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief Signals to this state to update the source/target menu on the next update() call.
         void update_source();
@@ -95,7 +93,7 @@ class FileOptionState final : public BaseState
         void update_dimensions() noexcept;
 
         /// @brief Updates and handles input.
-        void update_handle_input() noexcept;
+        void update_handle_input(const sdl2::Input &input) noexcept;
 
         /// @brief Updates the FileModeState's source data.
         void update_filemode_source();

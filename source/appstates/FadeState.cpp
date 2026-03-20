@@ -12,7 +12,7 @@ namespace
 }
 
 //                          ---- Construction ----
-FadeState::FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha, std::shared_ptr<BaseState> nextState)
+FadeState::FadeState(SDL_Color baseColor, uint8_t startAlpha, uint8_t endAlpha, std::shared_ptr<BaseState> nextState)
     : m_baseColor(baseColor)
     , m_alpha(startAlpha)
     , m_endAlpha(endAlpha)
@@ -23,7 +23,7 @@ FadeState::FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha,
     m_fadeTimer.start(TICKS_TIMER_TRIGGER);
 }
 
-void FadeState::update()
+void FadeState::update(const sdl2::Input &input)
 {
     if (m_alpha == m_endAlpha)
     {
@@ -38,12 +38,13 @@ void FadeState::update()
     }
 }
 
-void FadeState::render()
+void FadeState::render(sdl2::Renderer &renderer)
 {
-    const uint32_t rawColor = (m_baseColor.raw & 0xFFFFFF00) | m_alpha;
-    const sdl::Color fadeColor{rawColor};
+    // Update alpha.
+    m_baseColor.a = m_alpha;
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, fadeColor);
+    // Render overtop of everything.
+    renderer.render_rectangle(0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, m_baseColor);
 }
 
 //                      ---- Private functions ----

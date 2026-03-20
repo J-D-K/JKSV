@@ -9,26 +9,30 @@ class ExtrasMenuState final : public BaseState
 {
     public:
         /// @brief Constructor.
-        ExtrasMenuState();
+        ExtrasMenuState(sdl2::Renderer &renderer);
 
         /// @brief Returns a new ExtrasMenuState
-        static inline std::shared_ptr<ExtrasMenuState> create() { return std::make_shared<ExtrasMenuState>(); }
+        static inline std::shared_ptr<ExtrasMenuState> create(sdl2::Renderer &renderer)
+        { return std::make_shared<ExtrasMenuState>(renderer); }
 
         /// @brief Updates the menu.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Sub-update routine.
         void sub_update() override;
 
         /// @brief Renders the menu to screen.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
+        /// @brief Reference to renderer for launching refresh.
+        sdl2::Renderer &m_renderer;
+
         /// @brief Menu
         std::shared_ptr<ui::Menu> m_extrasMenu{};
 
         /// @brief Render target for menu.
-        sdl::SharedTexture m_renderTarget{};
+        sdl2::SharedTexture m_renderTarget{};
 
         /// @brief Control guider for bottom right corner.
         std::shared_ptr<ui::ControlGuide> m_controlGuide{};

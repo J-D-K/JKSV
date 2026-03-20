@@ -20,18 +20,16 @@ namespace ui
             TitleView(data::User *user);
 
             static inline std::shared_ptr<ui::TitleView> create(data::User *user)
-            {
-                return std::make_shared<ui::TitleView>(user);
-            }
+            { return std::make_shared<ui::TitleView>(user); }
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether the calling state has focus.
-            void update(bool hasFocus) override;
+            void update(const sdl2::Input &input, bool hasFocus) override;
 
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the calling state has focus.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Returns index of the currently selected tile.
             /// @return Index of currently selected tile.
@@ -75,13 +73,13 @@ namespace ui
             std::shared_ptr<ui::BoundingBox> m_bounding{};
 
             /// @brief Sound that is played when the selected title changes. This is shared with the menu code.
-            static inline sdl::SharedSound sm_cursor{};
+            static inline sdl2::SharedSound sm_cursor{};
 
             /// @brief Ensures static members are initialized properly.
             void initialize_static_members();
 
             /// @brief Performs the input routine.
-            void handle_input();
+            void handle_input(const sdl2::Input &input);
 
             /// @brief Performs the "scrolling" routine.
             void handle_scrolling();

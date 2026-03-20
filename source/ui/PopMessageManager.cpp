@@ -54,14 +54,14 @@ void ui::PopMessageManager::update()
     }
 }
 
-void ui::PopMessageManager::render()
+void ui::PopMessageManager::render(sdl2::Renderer &renderer)
 {
     PopMessageManager &manager = PopMessageManager::get_instance();
     auto &messages             = manager.m_messages;
     std::mutex &messageMutex   = manager.m_messageMutex;
 
     std::lock_guard<std::mutex> messageGuard{messageMutex};
-    for (auto &message : messages) { message.render(); }
+    for (auto &message : messages) { message.render(renderer); }
 }
 
 void ui::PopMessageManager::push_message(int displayTicks, std::string_view message)
@@ -118,10 +118,9 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
 
 void ui::PopMessageManager::initialize_pop_sound()
 {
-    static constexpr std::string_view POP_NAME = "PopSound";
-    static constexpr const char *POP_PATH      = "romfs:/Sound/PopMessage.wav";
+    static constexpr std::string_view POP_PATH = "romfs:/Sound/PopMessage.wav";
 
     if (m_popSound) { return; }
 
-    m_popSound = sdl::SoundManager::load(POP_NAME, POP_PATH);
+    m_popSound = sdl2::SoundManager::create_load_resource(POP_PATH, POP_PATH);
 }

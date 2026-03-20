@@ -4,8 +4,9 @@
 #include "appstates/MainMenuState.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
+#include "graphics/targets.hpp"
 #include "keyboard/keyboard.hpp"
 #include "strings/strings.hpp"
 #include "ui/PopMessageManager.hpp"
@@ -14,9 +15,6 @@
 
 namespace
 {
-    // This target is shared be a lot of states.
-    constexpr std::string_view SECONDARY_TARGET = "SecondaryTarget";
-
     // Enum for switch case readability.
     enum
     {
@@ -35,23 +33,25 @@ static void finish_reinitialization();
 
 //                      ---- Construction ----
 
-ExtrasMenuState::ExtrasMenuState()
-    : m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+ExtrasMenuState::ExtrasMenuState(sdl2::Renderer &renderer)
+    : m_renderer(renderer)
+    , m_renderTarget(sdl2::TextureManager::create_load_resource(graphics::targets::names::SECONDARY,
+                                                                graphics::targets::dims::SECONDARY_WIDTH,
+                                                                graphics::targets::dims::SECONDARY_HEIGHT,
+                                                                SDL_TEXTUREACCESS_TARGET))
     , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 5)))
-{
-    ExtrasMenuState::initialize_menu();
-}
+{ ExtrasMenuState::initialize_menu(); }
 
 //                      ---- Public functions ----
 
-void ExtrasMenuState::update()
+void ExtrasMenuState::update(const sdl2::Input &input)
 {
     const bool hasFocus = BaseState::has_focus();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
 
-    m_extrasMenu->update(hasFocus);
-    m_controlGuide->update(hasFocus);
+    m_extrasMenu->update(input, hasFocus);
+    m_controlGuide->update(input, hasFocus);
 
     if (aPressed)
     {
@@ -71,14 +71,20 @@ void ExtrasMenuState::update()
 
 void ExtrasMenuState::sub_update() { m_controlGuide->sub_update(); }
 
-void ExtrasMenuState::render()
+void ExtrasMenuState::render(sdl2::Renderer &renderer)
 {
     const bool hasFocus = BaseState::has_focus();
 
-    m_renderTarget->clear(colors::TRANSPARENT);
-    m_extrasMenu->render(m_renderTarget, hasFocus);
-    m_renderTarget->render(sdl::Texture::Null, 201, 91);
-    m_controlGuide->render(sdl::Texture::Null, hasFocus);
+    { // Set the render target.
+        graphics::ScopedRender scopedRender{renderer, m_renderTarget};
+        renderer.frame_begin(colors::TRANSPARENT);
+
+        // Render the menu to it.
+        m_extrasMenu->render(renderer, hasFocus);
+    }
+
+    m_renderTarget->render(201, 91);
+    m_controlGuide->render(renderer, hasFocus);
 }
 
 //                      ---- Private functions ----
@@ -93,7 +99,7 @@ void ExtrasMenuState::initialize_menu()
     }
 }
 
-void ExtrasMenuState::reinitialize_data() { data::launch_initialization(true, finish_reinitialization); }
+void ExtrasMenuState::reinitialize_data() { data::launch_initialization(true, m_renderer, finish_reinitialization); }
 
 void ExtrasMenuState::sd_to_sd_browser() { FileModeState::create_and_push("sdmc", "sdmc", false); }
 

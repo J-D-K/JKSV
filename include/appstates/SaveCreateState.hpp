@@ -19,9 +19,7 @@ class SaveCreateState final : public BaseState
 
         /// @brief Returns a new SaveCreate state. See constructor for arguments.
         static inline std::shared_ptr<SaveCreateState> create(data::User *user, TitleSelectCommon *titleSelect)
-        {
-            return std::make_shared<SaveCreateState>(user, titleSelect);
-        }
+        { return std::make_shared<SaveCreateState>(user, titleSelect); }
 
         /// @brief Creates, pushes, returns and new SaveCreateState.
         static inline std::shared_ptr<SaveCreateState> create_and_push(data::User *user, TitleSelectCommon *titleSelect)
@@ -32,10 +30,10 @@ class SaveCreateState final : public BaseState
         }
 
         /// @brief Runs the update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Runs the render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief This signals so data and the view can be refreshed on the next update() to avoid threading shenanigans.
         void refresh_required();

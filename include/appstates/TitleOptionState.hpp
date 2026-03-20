@@ -23,9 +23,7 @@ class TitleOptionState final : public BaseState
                                                                data::TitleInfo *titleInfo,
                                                                const FsSaveDataInfo *saveInfo,
                                                                TitleSelectCommon *titleSelect)
-        {
-            return std::make_shared<TitleOptionState>(user, titleInfo, saveInfo, titleSelect);
-        }
+        { return std::make_shared<TitleOptionState>(user, titleInfo, saveInfo, titleSelect); }
 
         /// @brief Creates, pushes, and returns a new TitleOptionState
         static std::shared_ptr<TitleOptionState> create_and_push(data::User *user,
@@ -39,13 +37,13 @@ class TitleOptionState final : public BaseState
         }
 
         /// @brief Runs update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Handles hiding the panel.
         void sub_update() override;
 
         /// @brief Runs the render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief This function allows tasks to signal to the spawning state to close itself on the next update() call.
         void close_on_update();

@@ -12,5 +12,9 @@ namespace gfxutil
     /// @param background Background color to use.
     /// @param foreground Color to use to render the text.
     /// @return sdl::SharedTexture of the icon.
-    sdl::SharedTexture create_generic_icon(std::string_view text, int fontSize, sdl::Color background, sdl::Color foreground);
+    sdl2::SharedTexture create_generic_icon(sdl2::Renderer &renderer,
+                                            std::string_view text,
+                                            int fontSize,
+                                            SDL_Color background,
+                                            SDL_Color textColor);
 } // namespace gfxutil

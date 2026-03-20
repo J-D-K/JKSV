@@ -20,9 +20,7 @@ class ProgressState final : public BaseTask
 
         /// @brief Creates and returns a new ProgressState
         static inline std::shared_ptr<ProgressState> create(sys::threadpool::JobFunction function, sys::Task::TaskData taskData)
-        {
-            return std::make_shared<ProgressState>(function, taskData);
-        }
+        { return std::make_shared<ProgressState>(function, taskData); }
 
         /// @brief Creates, pushes, then returns a new ProgressState.
         static inline std::shared_ptr<ProgressState> create_and_push(sys::threadpool::JobFunction function,
@@ -42,10 +40,10 @@ class ProgressState final : public BaseTask
         }
 
         /// @brief Checks if the thread is finished and deactivates this state.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Renders the current progress to screen.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
         /// @brief States this state can be in.
@@ -84,7 +82,10 @@ class ProgressState final : public BaseTask
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
         /// @brief This is rendered over the edges of the bar to give it a slightly rounded look.
-        static inline sdl::SharedTexture sm_barEdges{};
+        static inline sdl2::SharedTexture sm_barEdges{};
+
+        /// @brief Font used for rendering text.
+        static inline sdl2::SharedFont sm_font{};
 
         /// @brief Initializes the shared dialog box.
         void initialize_static_members();

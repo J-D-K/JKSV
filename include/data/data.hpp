@@ -2,6 +2,7 @@
 #include "data/TitleInfo.hpp"
 #include "data/User.hpp"
 #include "data/accountUID.hpp"
+#include "sdl.hpp"
 #include "sys/sys.hpp"
 
 #include <unordered_map>
@@ -13,7 +14,7 @@ namespace data
     /// @brief Launches the data loading/initialization state.
     /// @param clear Whether or not the cache should be cleared.
     /// @param onDestruction Function that is executed upon destruction of the data loading screen.
-    void launch_initialization(bool clear, std::function<void()> onDestruction);
+    void launch_initialization(bool clear, sdl2::Renderer &renderer, std::function<void()> onDestruction);
 
     /// @brief Writes pointers to users to vectorOut
     /// @param userList List to push the pointers to.

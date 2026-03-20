@@ -14,13 +14,13 @@ class TitleSelectCommon : public BaseState
         virtual ~TitleSelectCommon() {};
 
         /// @brief Required, inherited.
-        virtual void update() = 0;
+        virtual void update(const sdl2::Input &input) = 0;
 
         /// @brief Sub-update routine. Normally in a file, but I didn't feel like it really needed one.
         void sub_update() override;
 
         /// @brief Required, inherited.
-        virtual void render() = 0;
+        virtual void render(sdl2::Renderer &renderer) = 0;
 
         /// @brief Both derived classes need this function.
         virtual void refresh() = 0;

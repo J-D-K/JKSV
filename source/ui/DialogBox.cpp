@@ -16,36 +16,32 @@ ui::DialogBox::DialogBox(int x, int y, int width, int height, ui::DialogBox::Typ
     , m_width(width)
     , m_height(height)
     , m_type(type)
-{
-    ui::DialogBox::initialize_static_members();
-}
+{ ui::DialogBox::initialize_static_members(); }
 
 //                      ---- Public functions ----
 
-void ui::DialogBox::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::DialogBox::render(sdl2::Renderer &renderer, bool hasFocus)
 {
-    const bool darkDialog       = m_type == DialogBox::Type::Dark;
-    sdl::SharedTexture &corners = darkDialog ? sm_darkCorners : sm_lightCorners;
-    const sdl::Color rectColor  = darkDialog ? colors::DIALOG_DARK : colors::DIALOG_LIGHT;
+    const bool darkDialog        = m_type == DialogBox::Type::Dark;
+    sdl2::SharedTexture &corners = darkDialog ? sm_darkCorners : sm_lightCorners;
+    const SDL_Color rectColor    = darkDialog ? colors::DIALOG_DARK : colors::DIALOG_LIGHT;
 
     // Top
-    corners->render_part(target, m_x, m_y, 0, 0, CORNER_WIDTH, CORNER_HEIGHT);
-    sdl::render_rect_fill(target, m_x + CORNER_WIDTH, m_y, m_width - (CORNER_WIDTH * 2), CORNER_HEIGHT, rectColor);
-    corners->render_part(target, (m_x + m_width) - CORNER_WIDTH, m_y, CORNER_WIDTH, 0, CORNER_WIDTH, CORNER_HEIGHT);
+    corners->render_part(m_x, m_y, 0, 0, CORNER_WIDTH, CORNER_HEIGHT);
+    renderer.render_rectangle(m_x + CORNER_WIDTH, m_y, m_width - (CORNER_WIDTH * 2), CORNER_HEIGHT, rectColor);
+    corners->render_part((m_x + m_width) - CORNER_WIDTH, m_y, CORNER_WIDTH, 0, CORNER_WIDTH, CORNER_HEIGHT);
 
     // Middle
-    sdl::render_rect_fill(target, m_x, m_y + CORNER_HEIGHT, m_width, m_height - (CORNER_HEIGHT * 2), rectColor);
+    renderer.render_rectangle(m_x, m_y + CORNER_HEIGHT, m_width, m_height - (CORNER_HEIGHT * 2), rectColor);
 
     // Bottom
-    corners->render_part(target, m_x, (m_y + m_height) - CORNER_HEIGHT, 0, CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT);
-    sdl::render_rect_fill(target,
-                          m_x + CORNER_WIDTH,
-                          (m_y + m_height) - CORNER_HEIGHT,
-                          m_width - (CORNER_WIDTH * 2),
-                          CORNER_HEIGHT,
-                          rectColor);
-    corners->render_part(target,
-                         (m_x + m_width) - CORNER_WIDTH,
+    corners->render_part(m_x, (m_y + m_height) - CORNER_HEIGHT, 0, CORNER_HEIGHT, CORNER_WIDTH, CORNER_HEIGHT);
+    renderer.render_rectangle(m_x + CORNER_WIDTH,
+                              (m_y + m_height) - CORNER_HEIGHT,
+                              m_width - (CORNER_WIDTH * 2),
+                              CORNER_HEIGHT,
+                              rectColor);
+    corners->render_part((m_x + m_width) - CORNER_WIDTH,
                          (m_y + m_height) - CORNER_HEIGHT,
                          CORNER_WIDTH,
                          CORNER_HEIGHT,
@@ -78,8 +74,11 @@ void ui::DialogBox::set_from_transition(ui::Transition &transition, bool centere
 
 void ui::DialogBox::initialize_static_members()
 {
+    static constexpr std::string_view DARK_PATH  = "romfs:/Textures/DialogCornersDark.png";
+    static constexpr std::string_view LIGHT_PATH = "romfs:/Textures/DialogCornersLight.png";
+
     if (sm_darkCorners && sm_lightCorners) { return; }
 
-    sm_darkCorners  = sdl::TextureManager::load("darkCorners", "romfs:/Textures/DialogCornersDark.png");
-    sm_lightCorners = sdl::TextureManager::load("lightCorners", "romfs:/Textures/DialogCornersLight.png");
+    sm_darkCorners  = sdl2::TextureManager::create_load_resource(DARK_PATH, DARK_PATH);
+    sm_lightCorners = sdl2::TextureManager::create_load_resource(LIGHT_PATH, LIGHT_PATH);
 }

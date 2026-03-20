@@ -28,8 +28,8 @@ namespace ui
                        int width,
                        int height,
                        int fontSize,
-                       sdl::Color textColor,
-                       sdl::Color clearColor,
+                       SDL_Color textColor,
+                       SDL_Color clearColor,
                        bool center = true);
 
             TextScroll(std::string &text,
@@ -38,8 +38,8 @@ namespace ui
                        int width,
                        int height,
                        int fontSize,
-                       sdl::Color textColor,
-                       sdl::Color clearColor,
+                       SDL_Color textColor,
+                       SDL_Color clearColor,
                        bool center = true);
 
             /// @brief Creates and returns a new TextScroll. See constructor.
@@ -49,12 +49,10 @@ namespace ui
                                                                  int width,
                                                                  int height,
                                                                  int fontSize,
-                                                                 sdl::Color textColor,
-                                                                 sdl::Color clearColor,
+                                                                 SDL_Color textColor,
+                                                                 SDL_Color clearColor,
                                                                  bool center = true)
-            {
-                return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center);
-            }
+            { return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center); }
 
             static inline std::shared_ptr<ui::TextScroll> create(std::string &text,
                                                                  int x,
@@ -62,12 +60,10 @@ namespace ui
                                                                  int width,
                                                                  int height,
                                                                  int fontSize,
-                                                                 sdl::Color textColor,
-                                                                 sdl::Color clearColor,
+                                                                 SDL_Color textColor,
+                                                                 SDL_Color clearColor,
                                                                  bool center = true)
-            {
-                return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center);
-            }
+            { return std::make_shared<ui::TextScroll>(text, x, y, width, height, fontSize, textColor, clearColor, center); }
 
             /// @brief Creates/sets the text and parameters for TextScroll.
             /// @param text Text to display/scroll.
@@ -82,8 +78,8 @@ namespace ui
                             int width,
                             int height,
                             int fontSize,
-                            sdl::Color textColor,
-                            sdl::Color clearColor,
+                            SDL_Color textColor,
+                            SDL_Color clearColor,
                             bool center = true);
 
             void initialize(std::string &text,
@@ -92,18 +88,18 @@ namespace ui
                             int width,
                             int height,
                             int fontSize,
-                            sdl::Color textColor,
-                            sdl::Color clearColor,
+                            SDL_Color textColor,
+                            SDL_Color clearColor,
                             bool center = true);
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
-            void update(bool hasFocus) override;
+            void update(const sdl2::Input &input, bool hasFocus) override;
 
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the calling state has focus.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Returns the current text being used for scrolling.
             std::string_view get_text() const noexcept;
@@ -133,11 +129,14 @@ namespace ui
             /// @brief Font size used to calculate and render text.
             int m_fontSize{};
 
+            /// @brief Font used to render text.
+            sdl2::SharedFont m_font{};
+
             /// @brief Color used to render the text.
-            sdl::Color m_textColor{};
+            SDL_Color m_textColor{};
 
             /// @brief Color used to clear the render target.
-            sdl::Color m_clearColor{};
+            SDL_Color m_clearColor{};
 
             /// @brief Width of text in pixels.
             int m_textWidth{};
@@ -155,9 +154,16 @@ namespace ui
             bool m_textScrollTriggered{};
 
             /// @brief Render target for the text so it can't be rendered outside of it.
-            sdl::SharedTexture m_renderTarget{};
+            sdl2::SharedTexture m_renderTarget{};
 
             /// @brief Timer for scrolling text.
             sys::Timer m_scrollTimer;
+
+            /// @brief Generates and returns the name of the render target for the text scroll.
+            std::string generate_target_name();
+
+            /// @brief Generates a font name using the font size passed.
+            /// @param fontSize Size of the font.
+            std::string generate_font_name(int fontSize);
     };
 } // namespace ui

@@ -29,17 +29,15 @@ namespace ui
                                                                 int width,
                                                                 int height,
                                                                 DialogBox::Type type = DialogBox::Type::Dark)
-            {
-                return std::make_shared<ui::DialogBox>(x, y, width, height, type);
-            }
+            { return std::make_shared<ui::DialogBox>(x, y, width, height, type); }
 
             /// @brief Update override. This does NOTHING!
-            void update(bool hasFocus) override {};
+            void update(const sdl2::Input &input, bool hasFocus) override {};
 
             /// @brief Renders the dialog box to screen.
             /// @param target Render target to render to.
             /// @param hasFocus This is ignored.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Sets the X render coord.
             void set_x(int x) noexcept;
@@ -75,10 +73,10 @@ namespace ui
             DialogBox::Type m_type{};
 
             /// @brief All instances shared this and the other.
-            static inline sdl::SharedTexture sm_darkCorners{};
+            static inline sdl2::SharedTexture sm_darkCorners{};
 
             /// @brief This is the light cer
-            static inline sdl::SharedTexture sm_lightCorners{};
+            static inline sdl2::SharedTexture sm_lightCorners{};
 
             /// @brief Initializes and loads the corners texture.
             void initialize_static_members();

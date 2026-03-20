@@ -3,7 +3,6 @@
 #include "StateManager.hpp"
 #include "appstates/TaskState.hpp"
 #include "error.hpp"
-#include "input.hpp"
 #include "logging/logger.hpp"
 #include "remote/GoogleDrive.hpp"
 #include "remote/WebDav.hpp"
@@ -136,10 +135,6 @@ static void drive_sign_in(sys::threadpool::JobData taskData)
 
     while (std::time(NULL) < expiration && !drive->poll_sign_in(deviceCode))
     {
-        const bool bPressed = input::button_pressed(HidNpadButton_B);
-        const bool bHeld    = input::button_held(HidNpadButton_B);
-        if (bPressed || bHeld) { break; }
-
         std::this_thread::sleep_for(std::chrono::seconds(pollingInterval));
     }
 

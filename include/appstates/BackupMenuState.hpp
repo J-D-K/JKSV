@@ -26,9 +26,7 @@ class BackupMenuState final : public BaseState
         static inline std::shared_ptr<BackupMenuState> create(data::User *user,
                                                               data::TitleInfo *titleInfo,
                                                               const FsSaveDataInfo *saveInfo)
-        {
-            return std::make_shared<BackupMenuState>(user, titleInfo, saveInfo);
-        }
+        { return std::make_shared<BackupMenuState>(user, titleInfo, saveInfo); }
 
         /// @brief Creates and pushes a new BackupMenuState to the vector.
         static inline std::shared_ptr<BackupMenuState> create_and_push(data::User *user,
@@ -41,10 +39,10 @@ class BackupMenuState final : public BaseState
         }
 
         /// @brief Required. Inherited virtual function from AppState.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Required. Inherited virtual function from AppState.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief Refreshes the directory listing and menu.
         void refresh();
@@ -153,7 +151,10 @@ class BackupMenuState final : public BaseState
         static inline std::shared_ptr<ui::SlideOutPanel> sm_slidePanel{};
 
         /// @brief Inner render target so the menu only renders to a certain area.
-        static inline sdl::SharedTexture sm_menuRenderTarget{};
+        static inline sdl2::SharedTexture sm_menuRenderTarget{};
+
+        /// @brief Font used for rendering text.
+        static inline sdl2::SharedFont sm_font{};
 
         /// @brief Initializes the static members all instances share if they haven't been already.
         void initialize_static_members();
@@ -174,7 +175,7 @@ class BackupMenuState final : public BaseState
         void initialize_remote_storage();
 
         /// @brief This is the function called when New Backup is selected.
-        void name_and_create_backup();
+        void name_and_create_backup(const sdl2::Input &input);
 
         /// @brief This is the function called when a backup is selected to be overwritten.
         void confirm_overwrite();

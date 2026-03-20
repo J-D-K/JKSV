@@ -1,22 +1,21 @@
 #include "appstates/DataLoadingState.hpp"
 
 #include "graphics/colors.hpp"
+#include "graphics/fonts.hpp"
 #include "graphics/screen.hpp"
 #include "logging/logger.hpp"
-
-namespace
-{
-    constexpr int SCREEN_CENTER = 640;
-}
+#include "mathutil.hpp"
 
 //                      ---- Construction ----
 
 DataLoadingState::DataLoadingState(data::DataContext &context,
+                                   sdl2::Renderer &renderer,
                                    DestructFunction destructFunction,
                                    sys::threadpool::JobFunction function,
                                    sys::Task::TaskData taskData)
     : BaseTask()
     , m_context(context)
+    , m_renderer(renderer)
     , m_destructFunction(destructFunction)
 {
     DataLoadingState::initialize_static_members();
@@ -25,27 +24,34 @@ DataLoadingState::DataLoadingState(data::DataContext &context,
 
 //                      ---- Public functions ----
 
-void DataLoadingState::update()
+void DataLoadingState::update(const sdl2::Input &input)
 {
     BaseTask::update_loading_glyph();
     if (!m_task->is_running()) { DataLoadingState::deactivate_state(); }
-    m_context.process_icon_queue();
+    m_context.process_icon_queue(m_renderer);
 }
 
 void DataLoadingState::sub_update() { BaseTask::update_loading_glyph(); }
 
-void DataLoadingState::render()
+void DataLoadingState::render(sdl2::Renderer &renderer)
 {
-    static constexpr int ICON_X_COORD = SCREEN_CENTER - 128;
-    static constexpr int ICON_Y_COORD = 226;
-    const std::string status          = m_task->get_status();
+    // These are the dimensions of the icon loaded.
+    static constexpr int ICON_WIDTH  = 256;
+    static constexpr int ICON_HEIGHT = 259;
+    static constexpr int ICON_X      = math::Util<int>::center_within(graphics::SCREEN_WIDTH, ICON_WIDTH);
+    static constexpr int ICON_Y      = math::Util<int>::center_within(graphics::SCREEN_HEIGHT, ICON_HEIGHT);
 
-    const int statusWidth = sdl::text::get_width(BaseTask::FONT_SIZE, status);
-    m_statusX             = SCREEN_CENTER - (statusWidth / 2);
+    // Grab the status from the task and center it.
+    const std::string status = m_task->get_status();
+    const int statusWidth    = sm_font->get_text_width(status);
+    m_statusX                = math::Util<int>::center_within(graphics::SCREEN_WIDTH, statusWidth);
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::CLEAR_COLOR);
-    sm_jksvIcon->render(sdl::Texture::Null, ICON_X_COORD, ICON_Y_COORD);
-    sdl::text::render(sdl::Texture::Null, m_statusX, 673, BaseTask::FONT_SIZE, sdl::text::NO_WRAP, colors::WHITE, status);
+    // This is to cover up the base rendering.
+    renderer.render_rectangle(0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::CLEAR_COLOR);
+
+    // Render the icon, status and loading glyph.
+    sm_jksvIcon->render(ICON_X, ICON_Y);
+    sm_font->render_text(m_statusX, 673, colors::WHITE, status);
     BaseTask::render_loading_glyph();
 }
 
@@ -53,15 +59,21 @@ void DataLoadingState::render()
 
 void DataLoadingState::initialize_static_members()
 {
-    if (sm_jksvIcon) { return; }
+    // Path for the loading icon.
+    static constexpr std::string_view ICON_PATH = "romfs:/Textures/LoadingIcon.png";
 
-    sm_jksvIcon = sdl::TextureManager::load("LoadingIcon", "romfs:/Textures/LoadingIcon.png");
+    if (sm_jksvIcon && sm_font) { return; }
+
+    // Load icon and font.
+    sm_jksvIcon = sdl2::TextureManager::create_load_resource(ICON_PATH, ICON_PATH);
+    sm_font     = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_PIXEL,
+                                                                            graphics::fonts::sizes::TWENTY_PIXEL);
 }
 
 void DataLoadingState::deactivate_state()
 {
     // This is to catch any stragglers.
-    m_context.process_icon_queue();
+    m_context.process_icon_queue(m_renderer);
     if (m_destructFunction) { m_destructFunction(); }
     BaseState::deactivate();
 }

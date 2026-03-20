@@ -2,6 +2,7 @@
 #include "data/DataCommon.hpp"
 #include "data/TitleInfo.hpp"
 #include "data/User.hpp"
+#include "sdl.hpp"
 #include "sys/Task.hpp"
 
 #include <mutex>
@@ -56,7 +57,7 @@ namespace data
             bool write_cache(sys::Task *task);
 
             /// @brief Processes the icon queue.
-            void process_icon_queue();
+            void process_icon_queue(sdl2::Renderer &renderer);
 
         private:
             /// @brief User vector.

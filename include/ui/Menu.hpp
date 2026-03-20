@@ -26,18 +26,16 @@ namespace ui
 
             /// @brief Creates and returns a new ui::Menu instance.
             static inline std::shared_ptr<ui::Menu> create(int x, int y, int width, int fontSize, int renderTargetHeight)
-            {
-                return std::make_shared<ui::Menu>(x, y, width, fontSize, renderTargetHeight);
-            }
+            { return std::make_shared<ui::Menu>(x, y, width, fontSize, renderTargetHeight); }
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
-            void update(bool HasFocus) override;
+            void update(const sdl2::Input &input, bool HasFocus) override;
 
             /// @brief Renders the menu.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the calling state has focus.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Adds an option to the menu.
             /// @param newOption Option to add to menu.
@@ -94,7 +92,7 @@ namespace ui
             int m_optionHeight{};
 
             /// @brief Target options are rendered to.
-            sdl::SharedTexture m_optionTarget{};
+            sdl2::SharedTexture m_optionTarget{};
 
             /// @brief Bounding box for the selected option.
             std::shared_ptr<ui::BoundingBox> m_boundingBox{};
@@ -127,8 +125,11 @@ namespace ui
             /// @brief Text scroll for when the current option is too long to on screen.
             std::shared_ptr<ui::TextScroll> m_optionScroll{};
 
+            /// @brief Font used to render the text.
+            sdl2::SharedFont m_font{};
+
             /// @brief The sound played when the selected/cursor moves.
-            static inline sdl::SharedSound sm_cursor{};
+            static inline sdl2::SharedSound sm_cursor{};
 
             /// @brief Calculates the alignment variables.
             void calculate_alignments() noexcept;
@@ -152,6 +153,6 @@ namespace ui
             void update_scrolling();
 
             /// @brief Handles the menu's input routine.
-            void handle_input();
+            void handle_input(const sdl2::Input &input);
     };
 } // namespace ui

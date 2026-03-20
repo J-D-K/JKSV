@@ -17,9 +17,7 @@ class FileModeState final : public BaseState
                                                             std::string_view mountB,
                                                             int64_t journalSize = 0,
                                                             bool isSystem       = false)
-        {
-            return std::make_shared<FileModeState>(mountA, mountB, journalSize, isSystem);
-        }
+        { return std::make_shared<FileModeState>(mountA, mountB, journalSize, isSystem); }
 
         static inline std::shared_ptr<FileModeState> create_and_push(std::string_view mountA,
                                                                      std::string_view mountB,
@@ -32,10 +30,10 @@ class FileModeState final : public BaseState
         }
 
         /// @brief Update override.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Render override.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief This thing is a headache without this.
         friend class FileOptionState;
@@ -95,7 +93,7 @@ class FileModeState final : public BaseState
         static inline std::shared_ptr<ui::Frame> sm_frame{};
 
         /// @brief This is the render target the browsers are rendered to.
-        static inline sdl::SharedTexture sm_renderTarget{};
+        static inline sdl2::SharedTexture sm_renderTarget{};
 
         /// @brief Control guide shared by all instances.
         static inline std::shared_ptr<ui::ControlGuide> sm_controlGuide{};
@@ -116,7 +114,7 @@ class FileModeState final : public BaseState
         void update_y() noexcept;
 
         /// @brief Handles input.
-        void update_handle_input() noexcept;
+        void update_handle_input(const sdl2::Input &input) noexcept;
 
         /// @brief Handles changing the current directory or opening the options.
         void enter_selected(fslib::Path &path, fslib::Directory &directory, ui::Menu &menu);

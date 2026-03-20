@@ -10,11 +10,5 @@ void ui::ColorMod::update() noexcept
     else if (changeUp) { m_direction = true; }
 }
 
-ui::ColorMod::operator sdl::Color() const noexcept
-{
-    uint32_t color{};
-    color |= static_cast<uint32_t>((0x88 + m_colorMod) << 16);
-    color |= static_cast<uint64_t>((0xC5 + (m_colorMod / 2)) << 8);
-    color |= 0xFF;
-    return sdl::Color{color};
-}
+ui::ColorMod::operator SDL_Color() const noexcept
+{ return SDL_Color{0x00, static_cast<uint8_t>(0x88 + m_colorMod), static_cast<uint8_t>(0xC5 + m_colorMod * 0.5), 0xFF}; }

@@ -11,8 +11,8 @@
 #include "error.hpp"
 #include "fslib.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/fonts.hpp"
 #include "graphics/screen.hpp"
-#include "input.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "sdl.hpp"
@@ -46,9 +46,9 @@ namespace
 
 // This function allows any service init to be logged with its name without repeating the code.
 template <typename... Args>
-static bool initialize_service(Result (*function)(Args...), const char *serviceName, Args... args)
+static bool initialize_service(Result (*function)(Args...), const char *serviceName, Args &&...args)
 {
-    Result error = (*function)(args...);
+    Result error = (*function)(std::forward<Args>(args)...);
     if (R_FAILED(error))
     {
         logger::log("Error initializing %s: 0x%X.", serviceName, error);
@@ -60,7 +60,15 @@ static bool initialize_service(Result (*function)(Args...), const char *serviceN
 //                      ---- Construction ----
 
 JKSV::JKSV()
+    : m_sdl2()
+    , m_window(graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT)
+    , m_renderer(m_window)
+    , m_audio()
+    , m_input()
 {
+    // Ensure SDL initialized correctly. If not, return.
+    if (!m_sdl2.is_initialized() || !m_window.is_initialized() || !m_renderer.is_initialized()) { return; }
+
     // Set boost mode first.
     JKSV::set_boost_mode();
 
@@ -78,7 +86,6 @@ JKSV::JKSV()
     ABORT_ON_FAILURE(curl::initialize());
 
     // Config and input.
-    input::initialize();
     config::initialize();
 
     // These are the strings used in the UI.
@@ -94,8 +101,8 @@ JKSV::JKSV()
     sys::threadpool::push_job(remote::initialize, nullptr);
 
     // Launch the loading init. Finish init is called afterwards.
-    auto init_finish = []() { MainMenuState::create_and_push(); }; // Lambda that's exec'd after state is finished.
-    data::launch_initialization(false, init_finish);
+    auto init_finish = [&]() { MainMenuState::create_and_push(m_renderer); }; // Lambda that's exec'd after state is finished.
+    data::launch_initialization(false, m_renderer, init_finish);
 
     // This isn't required, but why not?
     FadeState::create_and_push(colors::BLACK, 0xFF, 0x00, nullptr);
@@ -115,8 +122,6 @@ JKSV::~JKSV()
     config::save();
     curl::exit();
     JKSV::exit_services();
-    sdl::text::SystemFont::exit();
-    sdl::exit();
 
     appletSetCpuBoostMode(ApmCpuBoostMode_Normal);
     appletUnlockExit();
@@ -128,25 +133,35 @@ bool JKSV::is_running() const noexcept { return sm_isRunning && appletMainLoop()
 
 void JKSV::update()
 {
-    input::update();
+    // Update the input instance.
+    m_input.update();
 
-    const bool plusPressed = input::button_pressed(HidNpadButton_Plus);
+    // Check if we should close.
+    const bool plusPressed = m_input.button_pressed(HidNpadButton_Plus);
     const bool isClosable  = StateManager::back_is_closable();
     if (plusPressed && isClosable) { sm_isRunning = false; }
 
-    StateManager::update();
+    // Update states and pop-ups.
+    StateManager::update(m_input);
     ui::PopMessageManager::update();
 }
 
 void JKSV::render()
 {
-    sdl::frame_begin(colors::CLEAR_COLOR);
+    // Set target to frame buffer and clear.
+    m_renderer.frame_begin(colors::CLEAR_COLOR);
 
+    // Render the base.
     JKSV::render_base();
-    StateManager::render();
-    ui::PopMessageManager::render();
 
-    sdl::frame_end();
+    // Render the states.
+    StateManager::render(m_renderer);
+
+    // Render pop-ups.
+    ui::PopMessageManager::render(m_renderer);
+
+    // Present to screen.
+    m_renderer.frame_end();
 }
 
 void JKSV::request_quit() noexcept { sm_isRunning = false; }
@@ -188,17 +203,38 @@ bool JKSV::initialize_services()
 
 bool JKSV::initialize_sdl()
 {
-    // Initialize SDL, freetype and the system font.
-    bool sdlInit = sdl::initialize("JKSV", graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT);
-    sdlInit      = sdlInit && sdl::text::SystemFont::initialize();
-    if (!sdlInit) { return false; }
+    // These are for loading the header icon.
+    static constexpr std::string_view HEADER_PATH = "romfs:/Textures/HeaderIcon.png";
+
+    // These are our breakpoints for wrapping lines.
+    static constexpr std::array<uint32_t, 7> BREAKPOINTS = {L' ', L'　', L'/', L'_', L'-', L'。', L'、'};
+
+    // These are our color changing points.
+    static constexpr std::array<std::pair<uint32_t, SDL_Color>, 7> COLOR_POINTS = {{{L'#', colors::BLUE},
+                                                                                    {L'*', colors::DARK_RED},
+                                                                                    {L'<', colors::YELLOW},
+                                                                                    {L'>', colors::GREEN},
+                                                                                    {L'`', colors::BLUE_GREEN},
+                                                                                    {L'^', colors::PINK},
+                                                                                    {L'$', colors::GOLD}}};
+
+    // Ensure SDL2 textures and sounds are ready to use.
+    sdl2::Texture::initialize(m_renderer);
+    sdl2::Sound::initialize(m_audio);
+
+    // Register break and color points.
+    sdl2::Font::add_break_points(BREAKPOINTS);
+    sdl2::Font::add_color_points(COLOR_POINTS);
+
+    // Load our fonts.
+    m_titleFont = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::THIRTY_FOUR_PIXEL,
+                                                                            graphics::fonts::sizes::THIRTY_FOUR_PIXEL);
+    m_buildFont = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::FOURTEEN_PIXEL,
+                                                                            graphics::fonts::sizes::FOURTEEN_PIXEL);
 
     // Load the icon in the top left.
-    m_headerIcon = sdl::TextureManager::load("headerIcon", "romfs:/Textures/HeaderIcon.png");
+    m_headerIcon = sdl2::TextureManager::create_load_resource(HEADER_PATH, HEADER_PATH);
     if (!m_headerIcon) { return false; }
-
-    // Push the color changing characters.
-    JKSV::add_color_chars();
 
     return true;
 }
@@ -218,17 +254,6 @@ bool JKSV::create_directories()
     if (needsTash) { error::fslib(fslib::create_directory(trashDir)); }
 
     return true;
-}
-
-void JKSV::add_color_chars()
-{
-    sdl::text::add_color_character(L'#', colors::BLUE);
-    sdl::text::add_color_character(L'*', colors::DARK_RED);
-    sdl::text::add_color_character(L'<', colors::YELLOW);
-    sdl::text::add_color_character(L'>', colors::GREEN);
-    sdl::text::add_color_character(L'`', colors::BLUE_GREEN);
-    sdl::text::add_color_character(L'^', colors::PINK);
-    sdl::text::add_color_character(L'$', colors::GOLD);
 }
 
 void JKSV::setup_translation_info_strings()
@@ -269,43 +294,32 @@ void JKSV::render_base()
     static constexpr int HEADER_Y = 27;
 
     // Coordinates for the title text.
-    static constexpr int TITLE_X    = 130;
-    static constexpr int TITLE_Y    = 32;
-    static constexpr int TITLE_SIZE = 34;
+    static constexpr int TITLE_X = 130;
+    static constexpr int TITLE_Y = 32;
 
     // Coordinates for the translation info and build date.
-    static constexpr int BUILD_X    = 8;
-    static constexpr int BUILD_Y    = 700;
-    static constexpr int TRANS_Y    = 680;
-    static constexpr int BUILD_SIZE = 14;
+    static constexpr int BUILD_X = 8;
+    static constexpr int BUILD_Y = 700;
+    static constexpr int TRANS_Y = 680;
 
     // This is just the JKSV string.
     static constexpr std::string_view TITLE_TEXT = "JKSV";
 
     // Top and bottom framing lines.
-    sdl::render_line(sdl::Texture::Null, LINE_X_BEGIN, LINE_A_Y, LINE_X_END, LINE_A_Y, colors::WHITE);
-    sdl::render_line(sdl::Texture::Null, LINE_X_BEGIN, LINE_B_Y, LINE_X_END, LINE_B_Y, colors::WHITE);
+    m_renderer.render_line(LINE_X_BEGIN, LINE_A_Y, LINE_X_END, LINE_A_Y, colors::WHITE);
+    m_renderer.render_line(LINE_X_BEGIN, LINE_B_Y, LINE_X_END, LINE_B_Y, colors::WHITE);
 
     // Icon
-    m_headerIcon->render(sdl::Texture::Null, HEADER_X, HEADER_Y);
+    m_headerIcon->render(HEADER_X, HEADER_Y);
 
     // "JKSV"
-    sdl::text::render(sdl::Texture::Null, TITLE_X, TITLE_Y, TITLE_SIZE, sdl::text::NO_WRAP, colors::WHITE, TITLE_TEXT);
+    m_titleFont->render_text(TITLE_X, TITLE_Y, colors::WHITE, TITLE_TEXT);
 
     // Translation info in bottom left.
-    if (m_showTranslationInfo)
-    {
-        sdl::text::render(sdl::Texture::Null,
-                          BUILD_X,
-                          TRANS_Y,
-                          BUILD_SIZE,
-                          sdl::text::NO_WRAP,
-                          colors::WHITE,
-                          m_translationInfo);
-    }
+    if (m_showTranslationInfo) { m_buildFont->render_text(BUILD_X, TRANS_Y, colors::WHITE, m_translationInfo); }
 
     // Build date
-    sdl::text::render(sdl::Texture::Null, BUILD_X, BUILD_Y, BUILD_SIZE, sdl::text::NO_WRAP, colors::WHITE, m_buildString);
+    m_buildFont->render_text(BUILD_X, BUILD_Y, colors::WHITE, m_buildString);
 }
 
 void JKSV::exit_services()

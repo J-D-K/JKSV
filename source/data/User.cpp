@@ -45,7 +45,10 @@ data::User::User(AccountUid accountID, FsSaveDataType saveType) noexcept
     const bool profileError = error::libnx(accountGetProfile(&profile, m_accountID));
     const bool baseError    = !profileError && error::libnx(accountProfileGet(&profile, nullptr, &profileBase));
     if (profileError || baseError) { User::create_account(); }
-    else { User::load_account(profile, profileBase); }
+    else
+    {
+        User::load_account(profile, profileBase);
+    }
     accountProfileClose(&profile);
 }
 
@@ -174,7 +177,10 @@ void data::User::load_user_data()
         {
             infoReader.open(SAVE_DATA_SPACE_ORDER[i], m_accountID, SIZE_SAVE_INFO_BUFFER);
         }
-        else { infoReader.open(SAVE_DATA_SPACE_ORDER[i], m_saveType, SIZE_SAVE_INFO_BUFFER); }
+        else
+        {
+            infoReader.open(SAVE_DATA_SPACE_ORDER[i], m_saveType, SIZE_SAVE_INFO_BUFFER);
+        }
         if (!infoReader.is_open()) { continue; }
 
         while (infoReader.read())
@@ -218,7 +224,7 @@ void data::User::load_user_data()
     User::sort_data();
 }
 
-void data::User::load_icon()
+void data::User::load_icon(sdl2::Renderer &renderer)
 {
     const std::string iconName =
         stringutil::get_formatted_string("%016llX%016llX", m_nickname, m_accountID.uid[0], m_accountID.uid[1]);
@@ -230,7 +236,7 @@ void data::User::load_icon()
         const bool sizeError    = !profileError && error::libnx(accountProfileGetImageSize(&profile, &iconSize));
         if (profileError || sizeError)
         {
-            m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE);
+            m_icon = gfxutil::create_generic_icon(renderer, m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE);
             return;
         }
 
@@ -239,9 +245,12 @@ void data::User::load_icon()
         if (loadError) { return; }
 
         accountProfileClose(&profile);
-        m_icon = sdl::TextureManager::load(iconName, iconBuffer.get(), iconSize);
+        m_icon = sdl2::TextureManager::create_load_resource(iconName, iconBuffer.get(), iconSize);
     }
-    else { m_icon = gfxutil::create_generic_icon(m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE); }
+    else
+    {
+        m_icon = gfxutil::create_generic_icon(renderer, m_nickname, SIZE_ICON_FONT, colors::DIALOG_DARK, colors::WHITE);
+    }
 }
 
 void data::User::load_account(AccountProfile &profile, AccountProfileBase &profileBase)

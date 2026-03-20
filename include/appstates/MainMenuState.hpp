@@ -13,27 +13,28 @@ class MainMenuState final : public BaseState
 {
     public:
         /// @brief Creates and initializes the main menu.
-        MainMenuState();
+        MainMenuState(sdl2::Renderer &renderer);
 
         /// @brief Returns a new MainMenuState
-        static inline std::shared_ptr<MainMenuState> create() { return std::make_shared<MainMenuState>(); }
+        static inline std::shared_ptr<MainMenuState> create(sdl2::Renderer &renderer)
+        { return std::make_shared<MainMenuState>(renderer); }
 
         /// @brief Creates and returns a new MainMenuState. Pushes it automatically.
-        static inline std::shared_ptr<MainMenuState> create_and_push()
+        static inline std::shared_ptr<MainMenuState> create_and_push(sdl2::Renderer &renderer)
         {
-            auto newState = MainMenuState::create();
+            auto newState = MainMenuState::create(renderer);
             StateManager::push_state(newState);
             return newState;
         }
 
         /// @brief Runs update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Runs the sub-update routine.
         void sub_update() override;
 
         /// @brief Renders menu to screen.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief Allows the update task to signal it found an update.
         void signal_update_found();
@@ -54,16 +55,16 @@ class MainMenuState final : public BaseState
 
     private:
         /// @brief Render target this state renders to.
-        sdl::SharedTexture m_renderTarget{};
+        sdl2::SharedTexture m_renderTarget{};
 
         /// @brief The background gradient.
-        sdl::SharedTexture m_background{};
+        sdl2::SharedTexture m_background{};
 
         /// @brief Icon for the settings option,
-        sdl::SharedTexture m_settingsIcon{};
+        sdl2::SharedTexture m_settingsIcon{};
 
         /// @brief Icon for the extras option.
-        sdl::SharedTexture m_extrasIcon{};
+        sdl2::SharedTexture m_extrasIcon{};
 
         /// @brief Special menu type that uses icons.
         std::shared_ptr<ui::IconMenu> m_mainMenu{};
@@ -93,7 +94,7 @@ class MainMenuState final : public BaseState
         static inline std::vector<std::shared_ptr<BaseState>> sm_states{};
 
         /// @brief Creates the settings and extras.
-        void initialize_settings_extras();
+        void initialize_settings_extras(sdl2::Renderer &renderer);
 
         /// @brief Pushes the icons to the main menu.
         void initialize_menu();

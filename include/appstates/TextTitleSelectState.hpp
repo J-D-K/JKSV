@@ -15,9 +15,7 @@ class TextTitleSelectState final : public TitleSelectCommon
 
         /// @brief Creates and returns a new TextTitleSelect. See constructor.
         static inline std::shared_ptr<TextTitleSelectState> create(data::User *user)
-        {
-            return std::make_shared<TextTitleSelectState>(user);
-        }
+        { return std::make_shared<TextTitleSelectState>(user); }
 
         /// @brief Creates, pushes, and returns a new TextTitleSelect.
         static std::shared_ptr<TextTitleSelectState> create_and_push(data::User *user)
@@ -28,10 +26,10 @@ class TextTitleSelectState final : public TitleSelectCommon
         }
 
         /// @brief Runs update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Runs render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief Refreshes view for changes.
         void refresh() override;
@@ -44,7 +42,7 @@ class TextTitleSelectState final : public TitleSelectCommon
         std::shared_ptr<ui::Menu> m_titleSelectMenu{};
 
         /// @brief Target to render to.
-        sdl::SharedTexture m_renderTarget{};
+        sdl2::SharedTexture m_renderTarget{};
 
         /// @brief Creates a new backup menu instance.
         void create_backup_menu();

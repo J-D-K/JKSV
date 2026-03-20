@@ -104,7 +104,8 @@ void data::DataContext::load_application_records(sys::Task *task)
     NsApplicationRecord record{};
 
     bool listError{};
-    do {
+    do
+    {
         listError = error::libnx(nsListApplicationRecord(&record, 1, offset++, &count)) || count <= 0;
         if (listError) { break; }
         if (DataContext::title_is_loaded(record.application_id)) { continue; }
@@ -217,7 +218,8 @@ bool data::DataContext::read_cache(sys::Task *task)
     task->set_status(statusLoadingCache);
 
     NsApplicationControlData controlData{};
-    do {
+    do
+    {
         const bool dataRead = cacheZip.read(&controlData, SIZE_CTRL_DATA) == SIZE_CTRL_DATA;
         if (!dataRead) { continue; }
 
@@ -270,9 +272,9 @@ bool data::DataContext::write_cache(sys::Task *task)
     return true;
 }
 
-void data::DataContext::process_icon_queue()
+void data::DataContext::process_icon_queue(sdl2::Renderer &renderer)
 {
     std::lock_guard multiGuard{m_iconQueueMutex};
-    for (data::DataCommon *common : m_iconQueue) { common->load_icon(); }
+    for (data::DataCommon *common : m_iconQueue) { common->load_icon(renderer); }
     m_iconQueue.clear();
 }

@@ -3,7 +3,6 @@
 #include "appstates/BackupMenuState.hpp"
 #include "appstates/ConfirmState.hpp"
 #include "config/config.hpp"
-#include "input.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
 #include "tasks/saveimport.hpp"
@@ -20,27 +19,26 @@ SaveImportState::SaveImportState(data::User *user)
 
 //                      ---- Public functions ----
 
-void SaveImportState::update()
+void SaveImportState::update(const sdl2::Input &input)
 {
     const bool hasFocus = BaseState::has_focus();
 
-    sm_slidePanel->update(hasFocus);
+    sm_slidePanel->update(input, hasFocus);
     if (!sm_slidePanel->is_open()) { return; }
 
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
 
     if (aPressed) { SaveImportState::import_backup(); }
     else if (bPressed) { sm_slidePanel->close(); }
     else if (sm_slidePanel->is_closed()) { SaveImportState::deactivate_state(); }
 }
 
-void SaveImportState::render()
+void SaveImportState::render(sdl2::Renderer &renderer)
 {
     const bool hasFocus = BaseState::has_focus();
 
-    sm_slidePanel->clear_target();
-    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
+    sm_slidePanel->render(renderer, hasFocus);
 }
 
 //                      ---- Private functions ----

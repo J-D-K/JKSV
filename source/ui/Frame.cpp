@@ -9,13 +9,11 @@ ui::Frame::Frame(int x, int y, int width, int height)
     , m_y(y)
     , m_width(width)
     , m_height(height)
-{
-    Frame::initialize_static_members();
-}
+{ Frame::initialize_static_members(); }
 
 //                      ---- Public functions ----
 
-void ui::Frame::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::Frame::render(sdl2::Renderer &renderer, bool hasFocus)
 {
     // This is the size of one of the "tiles" of the frame.
     static constexpr int TILE = 16;
@@ -27,19 +25,19 @@ void ui::Frame::render(sdl::SharedTexture &target, bool hasFocus)
     const int textureCorner = TILE * 2;
 
     // Top.
-    sm_frameCorners->render_part(target, m_x, m_y, 0, 0, TILE, TILE);
-    sm_frameCorners->render_part_stretched(target, TILE, 0, TILE, TILE, m_x + TILE, m_y, midWidth, TILE);
-    sm_frameCorners->render_part(target, rightEdge, m_y, 32, 0, TILE, TILE);
+    sm_frameCorners->render_part(m_x, m_y, 0, 0, TILE, TILE);
+    sm_frameCorners->render_part_stretched(TILE, 0, TILE, TILE, m_x + TILE, m_y, midWidth, TILE);
+    sm_frameCorners->render_part(rightEdge, m_y, 32, 0, TILE, TILE);
 
     // Middle
-    sm_frameCorners->render_part_stretched(target, 0, TILE, TILE, TILE, m_x, m_y + TILE, TILE, midHeight);
-    sdl::render_rect_fill(target, m_x + TILE, m_y + TILE, midWidth, midHeight, colors::SLIDE_PANEL_CLEAR);
-    sm_frameCorners->render_part_stretched(target, textureCorner, TILE, TILE, TILE, rightEdge, m_y + TILE, TILE, midHeight);
+    sm_frameCorners->render_part_stretched(0, TILE, TILE, TILE, m_x, m_y + TILE, TILE, midHeight);
+    renderer.render_rectangle(m_x + TILE, m_y + TILE, midWidth, midHeight, colors::SLIDE_PANEL_CLEAR);
+    sm_frameCorners->render_part_stretched(textureCorner, TILE, TILE, TILE, rightEdge, m_y + TILE, TILE, midHeight);
 
     // Bottom
-    sm_frameCorners->render_part(target, m_x, bottomEdge, 0, textureCorner, TILE, TILE);
-    sm_frameCorners->render_part_stretched(target, TILE, textureCorner, TILE, TILE, m_x + TILE, bottomEdge, midWidth, TILE);
-    sm_frameCorners->render_part(target, rightEdge, bottomEdge, textureCorner, textureCorner, TILE, TILE);
+    sm_frameCorners->render_part(m_x, bottomEdge, 0, textureCorner, TILE, TILE);
+    sm_frameCorners->render_part_stretched(TILE, textureCorner, TILE, TILE, m_x + TILE, bottomEdge, midWidth, TILE);
+    sm_frameCorners->render_part(rightEdge, bottomEdge, textureCorner, textureCorner, TILE, TILE);
 }
 
 void ui::Frame::set_x(int x) noexcept { m_x = x; }
@@ -67,9 +65,8 @@ void ui::Frame::set_from_transition(const ui::Transition &transition, bool cente
 
 void ui::Frame::initialize_static_members()
 {
-    static constexpr std::string_view FRAME_NAME = "FrameCorners";
-    static constexpr const char *FRAME_PATH      = "romfs:/Textures/Frame.png";
+    static constexpr std::string_view FRAME = "romfs:/Textures/Frame.png";
 
     if (sm_frameCorners) { return; }
-    sm_frameCorners = sdl::TextureManager::load(FRAME_NAME, FRAME_PATH);
+    sm_frameCorners = sdl2::TextureManager::create_load_resource(FRAME, FRAME);
 }

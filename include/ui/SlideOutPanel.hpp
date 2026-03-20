@@ -29,13 +29,11 @@ namespace ui
 
             /// @brief Creates and returns and new ui::SlideOutPanel instance.
             static inline std::shared_ptr<ui::SlideOutPanel> create(int width, SlideOutPanel::Side side)
-            {
-                return std::make_shared<ui::SlideOutPanel>(width, side);
-            }
+            { return std::make_shared<ui::SlideOutPanel>(width, side); }
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the calling state has focus.
-            void update(bool hasFocus) override;
+            void update(const sdl2::Input &input, bool hasFocus) override;
 
             /// @brief Sub update routine. Allows the panel to hide and unhide itself even when not in focus.
             void sub_update();
@@ -43,10 +41,10 @@ namespace ui
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or the the calling state has focus.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Clears the target to a semi-transparent black. To do: Maybe not hard coded color.
-            void clear_target();
+            void clear_target(sdl2::Renderer &renderer);
 
             /// @brief Resets the panel back to its default state.
             void reset() noexcept;
@@ -83,7 +81,7 @@ namespace ui
 
             /// @brief Returns a pointer to the render target of the panel.
             /// @return Raw SDL_Texture pointer to target.
-            sdl::SharedTexture &get_target() noexcept;
+            sdl2::SharedTexture &get_target() noexcept;
 
         private:
             /// @brief States the panel can be in.
@@ -113,7 +111,7 @@ namespace ui
             SlideOutPanel::State m_state{};
 
             /// @brief Render target if panel.
-            sdl::SharedTexture m_renderTarget{};
+            sdl2::SharedTexture m_renderTarget{};
 
             /// @brief Vector of elements.
             std::vector<std::shared_ptr<ui::Element>> m_elements{};
@@ -131,6 +129,6 @@ namespace ui
             void update_position_state() noexcept;
 
             /// @brief Updates sub-elements.
-            void update_sub_elements(bool hasFocus) noexcept;
+            void update_sub_elements(const sdl2::Input &input, bool hasFocus) noexcept;
     };
 } // namespace ui

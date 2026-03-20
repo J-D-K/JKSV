@@ -21,15 +21,11 @@ class MessageState final : public BaseState
 
         /// @brief Creates and returns a new MessageState. See constructor.
         static inline std::shared_ptr<MessageState> create(std::string_view message)
-        {
-            return std::make_shared<MessageState>(message);
-        }
+        { return std::make_shared<MessageState>(message); }
 
         /// @brief Creates and returns a new MessageState. See constructor.
         static inline std::shared_ptr<MessageState> create(std::string &message)
-        {
-            return std::make_shared<MessageState>(message);
-        }
+        { return std::make_shared<MessageState>(message); }
 
         /// @brief Same as above, only pushed to the StateManager before return.
         static inline std::shared_ptr<MessageState> create_and_push(std::string_view message)
@@ -66,10 +62,10 @@ class MessageState final : public BaseState
         }
 
         /// @brief Update override.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Render override
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
         /// @brief States this state can be in.
@@ -102,7 +98,13 @@ class MessageState final : public BaseState
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
         /// @brief This is the same sound that the confirmation uses.
-        static inline sdl::SharedSound sm_dialogPop{};
+        static inline sdl2::SharedSound sm_dialogPop{};
+
+        /// @brief Font used to render the message.
+        static inline sdl2::SharedFont sm_textFont{};
+
+        /// @brief Font used to render the OK.
+        static inline sdl2::SharedFont sm_optionFont{};
 
         /// @brief Allocates and ensures ^
         void initialize_static_members();
@@ -111,7 +113,7 @@ class MessageState final : public BaseState
         void update_dimensions() noexcept;
 
         /// @brief Updates and handles the input.
-        void update_handle_input() noexcept;
+        void update_handle_input(const sdl2::Input &input) noexcept;
 
         /// @brief Closes and "hides" the dialog.
         void close_dialog();

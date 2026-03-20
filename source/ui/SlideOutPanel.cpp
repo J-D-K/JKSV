@@ -1,10 +1,12 @@
 #include "ui/SlideOutPanel.hpp"
 
 #include "config/config.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
 #include "graphics/screen.hpp"
 #include "logging/logger.hpp"
 #include "mathutil.hpp"
+#include "stringutil.hpp"
 
 #include <cmath>
 #include <utility>
@@ -25,38 +27,47 @@ ui::SlideOutPanel::SlideOutPanel(int width, Side side)
                    0,
                    ui::Transition::DEFAULT_THRESHOLD)
     , m_state(State::Opening)
-    , m_renderTarget(sdl::TextureManager::load("PANEL_" + std::to_string(sm_targetID++),
-                                               m_width,
-                                               graphics::SCREEN_HEIGHT,
-                                               SDL_TEXTUREACCESS_TARGET)) {};
+    , m_renderTarget(sdl2::TextureManager::create_load_resource(stringutil::get_formatted_string("PANEL_%i", sm_targetID++),
+                                                                m_width,
+                                                                graphics::SCREEN_HEIGHT,
+                                                                SDL_TEXTUREACCESS_TARGET)) {};
 
 //                      ---- Public functions ----
 
-void ui::SlideOutPanel::update(bool hasFocus)
+void ui::SlideOutPanel::update(const sdl2::Input &input, bool hasFocus)
 {
     switch (m_state)
     {
         case State::Opening:
         case State::Closing:
         case State::Hiding:  SlideOutPanel::update_position_state(); break;
-        case State::Opened:  SlideOutPanel::update_sub_elements(hasFocus); break;
+        case State::Opened:  SlideOutPanel::update_sub_elements(input, hasFocus); break;
         default:             return; // Nothing should take place in any other state.
     }
 }
 
 void ui::SlideOutPanel::sub_update() { m_transition.update(); }
 
-void ui::SlideOutPanel::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::SlideOutPanel::render(sdl2::Renderer &renderer, bool hasFocus)
 {
-    // Loop and render all sub-elements to the target.
-    for (auto &currentElement : m_elements) { currentElement->render(m_renderTarget, hasFocus); }
+    {
+        // Set target.
+        graphics::ScopedRender scopedRender{renderer, m_renderTarget};
+
+        // Loop and render all sub-elements to the target.
+        for (auto &currentElement : m_elements) { currentElement->render(renderer, hasFocus); }
+    }
 
     // Render the main target to the target passed (most likely the screen);
     const int x = m_transition.get_x();
-    m_renderTarget->render(target, x, 0);
+    m_renderTarget->render(x, 0);
 }
 
-void ui::SlideOutPanel::clear_target() { m_renderTarget->clear(colors::SLIDE_PANEL_CLEAR); }
+void ui::SlideOutPanel::clear_target(sdl2::Renderer &renderer)
+{
+    graphics::ScopedRender scopedRender{renderer, m_renderTarget};
+    renderer.frame_begin(colors::SLIDE_PANEL_CLEAR);
+}
 
 void ui::SlideOutPanel::reset() noexcept
 {
@@ -132,7 +143,7 @@ void ui::SlideOutPanel::push_new_element(std::shared_ptr<ui::Element> newElement
 
 void ui::SlideOutPanel::clear_elements() { m_elements.clear(); }
 
-sdl::SharedTexture &ui::SlideOutPanel::get_target() noexcept { return m_renderTarget; }
+sdl2::SharedTexture &ui::SlideOutPanel::get_target() noexcept { return m_renderTarget; }
 
 //                      ---- Private functions ----
 
@@ -150,7 +161,7 @@ void ui::SlideOutPanel::update_position_state() noexcept
     else if (hidden) { m_state = State::Hidden; }
 }
 
-void ui::SlideOutPanel::update_sub_elements(bool hasFocus) noexcept
+void ui::SlideOutPanel::update_sub_elements(const sdl2::Input &input, bool hasFocus) noexcept
 {
-    for (auto &element : m_elements) { element->update(hasFocus); }
+    for (auto &element : m_elements) { element->update(input, hasFocus); }
 }

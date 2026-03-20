@@ -8,8 +8,9 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
+#include "graphics/fonts.hpp"
 #include "keyboard/keyboard.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
@@ -43,13 +44,13 @@ BackupMenuState::BackupMenuState(data::User *user, data::TitleInfo *titleInfo, c
 
 //                      ---- Public functions ----
 
-void BackupMenuState::update()
+void BackupMenuState::update(const sdl2::Input &input)
 {
     // Grab focus once and only once.
     const bool hasFocus = BaseState::has_focus();
 
     // Update the panel first.
-    sm_slidePanel->update(hasFocus);
+    sm_slidePanel->update(input, hasFocus);
 
     // Grab these.
     const bool isOpen   = sm_slidePanel->is_open();
@@ -67,11 +68,11 @@ void BackupMenuState::update()
     }
 
     // Input bools.
-    const bool aPressed  = input::button_pressed(HidNpadButton_A);
-    const bool bPressed  = input::button_pressed(HidNpadButton_B);
-    const bool xPressed  = input::button_pressed(HidNpadButton_X);
-    const bool yPressed  = input::button_pressed(HidNpadButton_Y);
-    const bool zrPressed = input::button_pressed(HidNpadButton_ZR);
+    const bool aPressed  = input.button_pressed(HidNpadButton_A);
+    const bool bPressed  = input.button_pressed(HidNpadButton_B);
+    const bool xPressed  = input.button_pressed(HidNpadButton_B);
+    const bool yPressed  = input.button_pressed(HidNpadButton_Y);
+    const bool zrPressed = input.button_pressed(HidNpadButton_ZR);
 
     // Conditions.
     const bool newSelected     = selected == 0;
@@ -82,7 +83,7 @@ void BackupMenuState::update()
     const bool uploadBackup    = zrPressed && !newSelected;
     const bool popEmpty        = aPressed && !m_saveHasData;
 
-    if (newBackup) { BackupMenuState::name_and_create_backup(); }
+    if (newBackup) { BackupMenuState::name_and_create_backup(input); }
     else if (overwriteBackup) { BackupMenuState::confirm_overwrite(); }
     else if (restoreBackup) { BackupMenuState::confirm_restore(); }
     else if (deleteBackup) { BackupMenuState::confirm_delete(); }
@@ -93,10 +94,10 @@ void BackupMenuState::update()
 
     // Lock and update the menu.
     std::lock_guard menuGuard{sm_menuMutex};
-    sm_backupMenu->update(hasFocus);
+    sm_backupMenu->update(input, hasFocus);
 }
 
-void BackupMenuState::render()
+void BackupMenuState::render(sdl2::Renderer &renderer)
 {
     // Line render coords.
     static constexpr int LINE_X   = 10;
@@ -106,32 +107,37 @@ void BackupMenuState::render()
     static constexpr int CONTROL_X = 32;
     static constexpr int CONTROL_Y = 673;
 
-    // Clear the render target.
-    sm_slidePanel->clear_target();
-
     // Grab whether or not the state has focus and the render target for the panel.
-    const bool hasFocus        = BaseState::has_focus();
-    sdl::SharedTexture &target = sm_slidePanel->get_target();
-
-    // Render the top, bottom lines. Control guide string.
-    sdl::render_line(target, LINE_X, LINE_A_Y, sm_panelWidth - LINE_X, LINE_A_Y, colors::WHITE);
-    sdl::render_line(target, LINE_X, LINE_B_Y, sm_panelWidth - LINE_X, LINE_B_Y, colors::WHITE);
-    sdl::text::render(target, CONTROL_X, CONTROL_Y, 22, sdl::text::NO_WRAP, colors::WHITE, m_controlGuide);
+    const bool hasFocus = BaseState::has_focus();
 
     // This is the target for the menu so it can't render outside of the lines above.
-    sm_menuRenderTarget->clear(colors::TRANSPARENT);
-
-    // Lock and render the menu.
     {
-        std::lock_guard menuGuard{sm_menuMutex};
-        sm_backupMenu->render(sm_menuRenderTarget, hasFocus);
+        graphics::ScopedRender menuRender{renderer, sm_menuRenderTarget};
+        renderer.frame_begin(colors::TRANSPARENT);
+
+        // Lock and render the menu.
+        {
+            std::lock_guard menuGuard{sm_menuMutex};
+            sm_backupMenu->render(renderer, hasFocus);
+        }
+
+        // Get target and change target.
+        {
+            graphics::ScopedRender slideRender{renderer, sm_slidePanel->get_target()};
+            renderer.frame_begin(colors::SLIDE_PANEL_CLEAR);
+
+            // Render the top, bottom lines. Control guide string.
+            renderer.render_line(LINE_X, LINE_A_Y, sm_panelWidth - LINE_X, LINE_A_Y, colors::WHITE);
+            renderer.render_line(LINE_X, LINE_B_Y, sm_panelWidth - LINE_X, LINE_B_Y, colors::WHITE);
+            sm_font->render_text(CONTROL_X, CONTROL_Y, colors::WHITE, m_controlGuide);
+
+            // Render the menu target to the slide panel target.
+            sm_menuRenderTarget->render(0, 43);
+        }
     }
 
-    // Render the menu target to the slide panel target.
-    sm_menuRenderTarget->render(target, 0, 43);
-
     // Finally, render the target to the screen.
-    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
+    sm_slidePanel->render(renderer, hasFocus);
 }
 
 void BackupMenuState::refresh()
@@ -196,12 +202,18 @@ void BackupMenuState::save_data_written()
 
 void BackupMenuState::initialize_static_members()
 {
-    if (sm_backupMenu && sm_slidePanel && sm_menuRenderTarget && sm_panelWidth) { return; }
+    // Name of the render target for the backup menu.
+    static constexpr std::string_view BACKUP_TARGET = "BackupMenuTarget";
 
-    sm_panelWidth       = sdl::text::get_width(22, m_controlGuide) + 64;
-    sm_backupMenu       = ui::Menu::create(8, 8, sm_panelWidth - 16, 22, 600);
-    sm_slidePanel       = ui::SlideOutPanel::create(sm_panelWidth, ui::SlideOutPanel::Side::Right);
-    sm_menuRenderTarget = sdl::TextureManager::load("backupMenuTarget", sm_panelWidth, 600, SDL_TEXTUREACCESS_TARGET);
+    if (sm_backupMenu && sm_slidePanel && sm_menuRenderTarget && sm_panelWidth && sm_font) { return; }
+
+    sm_font       = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_TWO_PIXEL,
+                                                                              graphics::fonts::sizes::TWENTY_TWO_PIXEL);
+    sm_panelWidth = sm_font->get_text_width(m_controlGuide) + 64;
+    sm_backupMenu = ui::Menu::create(8, 8, sm_panelWidth - 16, 22, 600);
+    sm_slidePanel = ui::SlideOutPanel::create(sm_panelWidth, ui::SlideOutPanel::Side::Right);
+    sm_menuRenderTarget =
+        sdl2::TextureManager::create_load_resource(BACKUP_TARGET, sm_panelWidth, 600, SDL_TEXTUREACCESS_TARGET);
 }
 
 void BackupMenuState::ensure_target_directory()
@@ -262,7 +274,7 @@ void BackupMenuState::initialize_remote_storage()
     remote->change_directory(remoteDir);
 }
 
-void BackupMenuState::name_and_create_backup()
+void BackupMenuState::name_and_create_backup(const sdl2::Input &input)
 {
     // Size of the buffer for naming backups.
     static constexpr size_t SIZE_NAME_LENGTH = 0x80;
@@ -279,7 +291,7 @@ void BackupMenuState::name_and_create_backup()
     const bool exportZip  = autoUpload || config::get_by_key(config::keys::EXPORT_TO_ZIP);
 
     // Input.
-    const bool zrHeld = input::button_held(HidNpadButton_ZR);
+    const bool zrHeld = input.button_held(HidNpadButton_ZR);
 
     // Whether or not we should skip the keyboard.
     const bool autoNamed = (autoName || zrHeld); // This can be eval'd here.
@@ -525,7 +537,10 @@ void BackupMenuState::upload_backup()
         // Push the confirmation.
         ConfirmProgress::create_push_fade(query, holdRequired, tasks::backup::patch_backup, nullptr, m_dataStruct);
     }
-    else { ProgressState::create_push_fade(tasks::backup::upload_backup, m_dataStruct); }
+    else
+    {
+        ProgressState::create_push_fade(tasks::backup::upload_backup, m_dataStruct);
+    }
 }
 
 void BackupMenuState::pop_save_empty()

@@ -3,8 +3,9 @@
 #include "StateManager.hpp"
 #include "appstates/FadeState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/fonts.hpp"
 #include "graphics/screen.hpp"
-#include "input.hpp"
+#include "mathutil.hpp"
 #include "strings/strings.hpp"
 
 namespace
@@ -55,45 +56,57 @@ MessageState::MessageState(std::string &message)
 
 //                      ---- Public functions ----
 
-void MessageState::update()
+void MessageState::update(const sdl2::Input &input)
 {
     switch (m_state)
     {
         case State::Opening:
         case State::Closing:    MessageState::update_dimensions(); break;
-        case State::Displaying: MessageState::update_handle_input(); break;
+        case State::Displaying: MessageState::update_handle_input(input); break;
     }
 }
 
-void MessageState::render()
+void MessageState::render(sdl2::Renderer &renderer)
 {
+    // This is were to render
     static constexpr int y = 229;
-    const bool hasFocus    = BaseState::has_focus();
 
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
-    sm_dialog->render(sdl::Texture::Null, hasFocus);
+    const bool hasFocus = BaseState::has_focus();
+
+    // Dim the background and render the dialog. Only continue if we're fully open.
+    renderer.render_rectangle(0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
+    sm_dialog->render(renderer, hasFocus);
     if (!m_transition.in_place()) { return; }
 
-    sdl::text::render(sdl::Texture::Null, 312, y + 24, 20, 656, colors::WHITE, m_message);
-    sdl::render_line(sdl::Texture::Null, 280, y + 192, 999, y + 192, colors::DIV_COLOR);
-    sdl::text::render(sdl::Texture::Null, sm_okX, y + 214, 22, sdl::text::NO_WRAP, colors::WHITE, sm_okText);
+    sm_textFont->render_text_wrapped(312, y + 24, colors::WHITE, 656, m_message);
+    renderer.render_line(280, y + 192, 999, y + 192, colors::DIV_COLOR);
+    sm_optionFont->render_text(sm_okX, y + 214, colors::WHITE, sm_okText);
 }
 
 //                      ---- Private functions ----
 
 void MessageState::initialize_static_members()
 {
-    static constexpr int HALF_WIDTH             = 640;
-    static constexpr std::string_view POP_SOUND = "ConfirmPop";
-    static constexpr const char *POP_PATH       = "romfs:/Sound/ConfirmPop.wav";
+    static constexpr std::string_view CONFIRM_POP = "romfs:/Sound/ConfirmPop.wav";
 
-    if (sm_okText && sm_dialog && sm_dialogPop) { return; }
+    if (sm_okText && sm_dialog && sm_dialogPop && sm_textFont && sm_optionFont) { return; }
 
-    sm_okText    = strings::get_by_name(strings::names::YES_NO_OK, 2);
-    sm_okX       = HALF_WIDTH - (sdl::text::get_width(22, sm_okText) / 2);
-    sm_dialog    = ui::DialogBox::create(0, 0, 0, 0);
-    sm_dialogPop = sdl::SoundManager::load(POP_SOUND, POP_PATH);
+    // This is needed later, so it comes first.
+    sm_textFont   = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_PIXEL,
+                                                                              graphics::fonts::sizes::TWENTY_PIXEL);
+    sm_optionFont = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::THIRTY_TWO_PIXEL,
+                                                                              graphics::fonts::sizes::TWENTY_TWO_PIXEL);
+
+    // OK text and X coord.
+    sm_okText = strings::get_by_name(strings::names::YES_NO_OK, 2);
+    sm_okX    = math::Util<int>::center_within(graphics::SCREEN_WIDTH, sm_textFont->get_text_width(sm_okText));
+
+    // Dialog.
+    sm_dialog = ui::DialogBox::create(0, 0, 0, 0);
     sm_dialog->set_from_transition(m_transition, true);
+
+    // Sound to play.
+    sm_dialogPop = sdl2::SoundManager::create_load_resource(CONFIRM_POP, CONFIRM_POP);
 }
 
 void MessageState::update_dimensions() noexcept
@@ -109,10 +122,10 @@ void MessageState::update_dimensions() noexcept
     else if (closed) { MessageState::deactivate_state(); }
 }
 
-void MessageState::update_handle_input() noexcept
+void MessageState::update_handle_input(const sdl2::Input &input) noexcept
 {
     // Input bools.
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
 
     // Handle the triggerguard.
     m_triggerGuard = m_triggerGuard || (aPressed && !m_triggerGuard);

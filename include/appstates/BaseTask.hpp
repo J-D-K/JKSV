@@ -1,5 +1,6 @@
 #pragma once
 #include "appstates/BaseState.hpp"
+#include "sdl.hpp"
 #include "sys/sys.hpp"
 #include "ui/ColorMod.hpp"
 
@@ -15,10 +16,10 @@ class BaseTask : public BaseState
 
         /// @brief Runs the update routine for rendering the loading glyph animation.
         /// @param
-        virtual void update() = 0;
+        virtual void update(const sdl2::Input &input) = 0;
 
         /// @brief Virtual render function.
-        virtual void render() = 0;
+        virtual void render(sdl2::Renderer &renderer) = 0;
 
     protected:
         /// @brief Underlying system task. This needs to be allocated by the derived classes.
@@ -28,14 +29,11 @@ class BaseTask : public BaseState
         void update_loading_glyph();
 
         /// @brief Displays the "can't quit JKSV" when plus is pressed.
-        void pop_on_plus();
+        void pop_on_plus(const sdl2::Input &input);
 
         /// @brief This function renders the loading glyph in the bottom left corner.
         /// @note This is mostly just so users don't think JKSV has frozen when operations take a long time.
         void render_loading_glyph();
-
-        /// @brief This is the font size used for displaying text during tasks.
-        static inline constexpr int FONT_SIZE = 20;
 
     private:
         /// @brief This is the current frame of the loading glyph animation.
@@ -53,4 +51,10 @@ class BaseTask : public BaseState
         /// @brief This array holds the glyphs of the loading sequence. I think it's from the Wii?
         static inline constexpr std::array<std::string_view, 8> sm_glyphArray =
             {"\ue020", "\ue021", "\ue022", "\ue023", "\ue024", "\ue025", "\ue026", "\ue027"};
+
+        /// @brief Font for rendering the glyph.
+        static inline sdl2::SharedFont sm_font{};
+
+        /// @brief Ensures the font is loaded.
+        void initialize_static_members();
 };

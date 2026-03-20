@@ -19,15 +19,13 @@ namespace ui
 
             /// @brief Creates a returns a new BoundingBox. See constructor.
             static inline std::shared_ptr<ui::BoundingBox> create(int x, int y, int width, int height)
-            {
-                return std::make_shared<ui::BoundingBox>(x, y, width, height);
-            }
+            { return std::make_shared<ui::BoundingBox>(x, y, width, height); }
 
             /// @brief Update override.
-            void update(bool hasFocus) override;
+            void update(const sdl2::Input &input, bool hasFocus) override;
 
             /// @brief Render override.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Sets the X coord.
             void set_x(int x) noexcept;
@@ -58,7 +56,7 @@ namespace ui
             ui::ColorMod m_colorMod{};
 
             /// @brief This is shared by all instances.
-            static inline sdl::SharedTexture sm_corners{};
+            static inline sdl2::SharedTexture sm_corners{};
 
             /// @brief Loads ^
             void initialize_static_members();

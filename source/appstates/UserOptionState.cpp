@@ -12,7 +12,6 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
-#include "input.hpp"
 #include "logging/logger.hpp"
 #include "remote/remote.hpp"
 #include "strings/strings.hpp"
@@ -49,15 +48,15 @@ UserOptionState::UserOptionState(data::User *user, TitleSelectCommon *titleSelec
 
 //                      ---- Public functions ----
 
-void UserOptionState::update()
+void UserOptionState::update(const sdl2::Input &input)
 {
     const bool hasFocus = BaseState::has_focus();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
 
     // Start by running the unhide check routine and then update the panel.
     sm_menuPanel->unhide_on_focus(hasFocus);
-    sm_menuPanel->update(hasFocus);
+    sm_menuPanel->update(input, hasFocus);
 
     // Refresh here if needed to avoid threading issues.
     if (m_refreshRequired)
@@ -86,14 +85,13 @@ void UserOptionState::update()
 
 void UserOptionState::sub_update() { sm_menuPanel->sub_update(); }
 
-void UserOptionState::render()
+void UserOptionState::render(sdl2::Renderer &renderer)
 {
     // Render target user's title selection screen.
-    m_titleSelect->render();
+    m_titleSelect->render(renderer);
 
     // Render panel.
-    sm_menuPanel->clear_target();
-    sm_menuPanel->render(sdl::Texture::Null, BaseState::has_focus());
+    sm_menuPanel->render(renderer, BaseState::has_focus());
 }
 
 void UserOptionState::refresh_required() { m_refreshRequired = true; }

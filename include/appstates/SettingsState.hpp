@@ -15,13 +15,13 @@ class SettingsState final : public BaseState
         static inline std::shared_ptr<SettingsState> create() { return std::make_shared<SettingsState>(); }
 
         /// @brief Runs the update routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Sub update routine.
         void sub_update() override;
 
         /// @brief Runs the render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
         /// @brief Menu for selecting and toggling settings.
@@ -35,7 +35,7 @@ class SettingsState final : public BaseState
         std::shared_ptr<ui::ControlGuide> m_controlGuide{};
 
         /// @brief Render target to render to.
-        sdl::SharedTexture m_renderTarget{};
+        sdl2::SharedTexture m_renderTarget{};
 
         /// @brief Loads the settings menu strings.
         void load_settings_menu();

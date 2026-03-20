@@ -5,8 +5,9 @@
 #include "appstates/MainMenuState.hpp"
 #include "appstates/TitleOptionState.hpp"
 #include "config/config.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
+#include "graphics/targets.hpp"
 #include "logging/logger.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
@@ -24,21 +25,23 @@ namespace
 TitleSelectState::TitleSelectState(data::User *user)
     : TitleSelectCommon()
     , m_user(user)
-    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_renderTarget(sdl2::TextureManager::create_load_resource(graphics::targets::names::SECONDARY,
+                                                                graphics::targets::dims::SECONDARY_WIDTH,
+                                                                graphics::targets::dims::SECONDARY_HEIGHT,
+                                                                SDL_TEXTUREACCESS_TARGET))
     , m_titleView(ui::TitleView::create(m_user)) {};
-
 
 //                      ---- Public functions ----
 
-void TitleSelectState::update()
+void TitleSelectState::update(const sdl2::Input &input)
 {
     if (!TitleSelectState::title_count_check()) { return; }
 
     const bool hasFocus = BaseState::has_focus();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
-    const bool xPressed = input::button_pressed(HidNpadButton_X);
-    const bool yPressed = input::button_pressed(HidNpadButton_Y);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
+    const bool xPressed = input.button_pressed(HidNpadButton_X);
+    const bool yPressed = input.button_pressed(HidNpadButton_Y);
 
     if (aPressed) { TitleSelectState::create_backup_menu(); }
     else if (xPressed) { TitleSelectState::create_title_option_menu(); }
@@ -49,18 +52,26 @@ void TitleSelectState::update()
         return;
     }
 
-    m_titleView->update(hasFocus);
-    sm_controlGuide->update(hasFocus);
+    m_titleView->update(input, hasFocus);
+    sm_controlGuide->update(input, hasFocus);
 }
 
-void TitleSelectState::render()
+void TitleSelectState::render(sdl2::Renderer &renderer)
 {
+    // Grab focus status.
     const bool hasFocus = BaseState::has_focus();
 
-    m_renderTarget->clear(colors::TRANSPARENT);
-    m_titleView->render(m_renderTarget, hasFocus);
-    sm_controlGuide->render(sdl::Texture::Null, hasFocus);
-    m_renderTarget->render(sdl::Texture::Null, 201, 91);
+    {
+        // Set target, clear.
+        graphics::ScopedRender scopedRender{renderer, m_renderTarget};
+        renderer.frame_begin(colors::TRANSPARENT);
+
+        // Render view.
+        m_titleView->render(renderer, hasFocus);
+    }
+
+    m_renderTarget->render(201, 91);
+    sm_controlGuide->render(renderer, hasFocus);
 }
 
 void TitleSelectState::refresh() { m_titleView->refresh(); }

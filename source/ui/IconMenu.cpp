@@ -1,5 +1,6 @@
 #include "ui/IconMenu.hpp"
 
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
 
 namespace
@@ -24,33 +25,38 @@ ui::IconMenu::IconMenu(int x, int y, int renderTargetHeight)
 
 //                      ---- Public functions ----
 
-void ui::IconMenu::update(bool hasFocus) { Menu::update(hasFocus); }
+void ui::IconMenu::update(const sdl2::Input &input, bool hasFocus) { Menu::update(input, hasFocus); }
 
-void ui::IconMenu::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::IconMenu::render(sdl2::Renderer &renderer, bool hasFocus)
 {
     const int optionCount = m_options.size();
     const int y           = m_transition.get_y();
     for (int i = 0, tempY = y; i < optionCount; i++, tempY += m_optionHeight)
     {
-        // Clear target.
-        m_optionTarget->clear(colors::TRANSPARENT);
-        if (i == m_selected)
+        // Set target, clear.
         {
-            if (hasFocus)
+            graphics::ScopedRender optionScope{renderer, m_optionTarget};
+            renderer.frame_begin(colors::TRANSPARENT);
+            if (i == m_selected)
             {
-                m_boundingBox->set_x(m_x - 8);
-                m_boundingBox->set_y(tempY - 8);
-                m_boundingBox->render(target, hasFocus);
+                if (hasFocus)
+                {
+                    m_boundingBox->set_x(m_x - 8);
+                    m_boundingBox->set_y(tempY - 8);
+                    m_boundingBox->render(renderer, hasFocus);
+                }
+                // This is always rendered.
+                renderer.render_rectangle(0, 0, 4, 130, colors::BLUE_GREEN);
             }
-            // This is always rendered.
-            sdl::render_rect_fill(m_optionTarget, 0, 0, 4, 130, colors::BLUE_GREEN);
+
+            m_options[i]->render_stretched(8, 1, ICON_RENDER_WIDTH, ICON_RENDER_HEIGHT);
         }
-        m_options[i]->render_stretched(m_optionTarget, 8, 1, ICON_RENDER_WIDTH, ICON_RENDER_HEIGHT);
-        m_optionTarget->render(target, m_x, tempY);
+
+        m_optionTarget->render(m_x, tempY);
     }
 }
 
-void ui::IconMenu::add_option(sdl::SharedTexture newOption)
+void ui::IconMenu::add_option(sdl2::SharedTexture newOption)
 {
     Menu::add_option("ICON"); // Parent class needs text for this to work correctly.
     m_options.push_back(newOption);

@@ -7,7 +7,7 @@
 
 namespace ui
 {
-    class PopMessage
+    class PopMessage final
     {
         public:
             /// @brief PopMessage constructor.
@@ -20,7 +20,7 @@ namespace ui
             void update(double targetY);
 
             /// @brief Renders the dialog and text.
-            void render();
+            void render(sdl2::Renderer &renderer);
 
             /// @brief Returns whether or not the message can be purged.
             bool finished() const noexcept;
@@ -65,7 +65,10 @@ namespace ui
             sys::Timer m_typeTimer{};
 
             /// @brief This is the texture used for the ends of the messages.
-            static inline sdl::SharedTexture sm_endCaps{};
+            static inline sdl2::SharedTexture sm_endCaps{};
+
+            /// @brief Font used to render text.
+            static inline sdl2::SharedFont sm_font{};
 
             /// @brief Ensures ^ is loaded and ready to go.
             void initialize_static_members();
@@ -83,6 +86,6 @@ namespace ui
             void update_display_timer() noexcept;
 
             /// @brief Renders the container around the message.
-            void render_container() noexcept;
+            void render_container(sdl2::Renderer &renderer) noexcept;
     };
 }

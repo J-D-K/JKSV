@@ -2,9 +2,9 @@
 
 #include "appstates/FileOptionState.hpp"
 #include "config/config.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
 #include "graphics/screen.hpp"
-#include "input.hpp"
 #include "logging/logger.hpp"
 #include "mathutil.hpp"
 #include "strings/strings.hpp"
@@ -39,17 +39,17 @@ FileModeState::FileModeState(std::string_view mountA, std::string_view mountB, i
 
 //                      ---- Public functions ----
 
-void FileModeState::update()
+void FileModeState::update(const sdl2::Input &input)
 {
     switch (m_state)
     {
         case State::Rising:
         case State::Dropping: FileModeState::update_y(); break;
-        case State::Open:     FileModeState::update_handle_input(); break;
+        case State::Open:     FileModeState::update_handle_input(input); break;
     }
 }
 
-void FileModeState::render()
+void FileModeState::render(sdl2::Renderer &renderer)
 {
     // Coords for divider lines.
     static constexpr int LINE_A_X = 617;
@@ -59,27 +59,25 @@ void FileModeState::render()
     static constexpr int LINE_Y_A = 0;
     static constexpr int LINE_Y_B = 538;
 
+    // Grab focus.
     const bool hasFocus = BaseState::has_focus();
 
-    sm_renderTarget->clear(colors::TRANSPARENT);
+    // Switch targets, clear.
+    {
+        graphics::ScopedRender scopedRender{renderer, sm_renderTarget};
+        renderer.frame_begin(colors::TRANSPARENT);
 
-    // This is here so it's rendered underneath the pop-up frame.
-    sm_controlGuide->render(sdl::Texture::Null, hasFocus);
+        // Divider lines & menus.
+        renderer.render_line(LINE_A_X, LINE_Y_A, LINE_A_X, LINE_Y_B, colors::WHITE);
+        renderer.render_line(LINE_B_X, LINE_Y_A, LINE_B_X, LINE_Y_B, colors::DIALOG_DARK);
+        m_dirMenuA->render(renderer, hasFocus && m_target == Target::MountA);
+        m_dirMenuB->render(renderer, hasFocus && m_target == Target::MountB);
+    }
 
-    // Center divider lines.
-    sdl::render_line(sm_renderTarget, LINE_A_X, LINE_Y_A, LINE_A_X, LINE_Y_B, colors::WHITE);
-    sdl::render_line(sm_renderTarget, LINE_B_X, LINE_Y_A, LINE_B_X, LINE_Y_B, colors::DIALOG_DARK);
-
-    // Menus
-    m_dirMenuA->render(sm_renderTarget, hasFocus && m_target == Target::MountA);
-    m_dirMenuB->render(sm_renderTarget, hasFocus && m_target == Target::MountB);
-
-    // Frame.
-    sm_frame->render(sdl::Texture::Null, true);
-
-    // Main target.
-    const int y = m_transition.get_y();
-    sm_renderTarget->render(sdl::Texture::Null, 23, y + 12);
+    // This needs to be in this specific order to look right.
+    sm_controlGuide->render(renderer, hasFocus);
+    sm_frame->render(renderer, hasFocus);
+    sm_renderTarget->render(23, m_transition.get_y() + 12);
 }
 
 //                      ---- Private functions ----
@@ -99,8 +97,9 @@ void FileModeState::initialize_static_members()
 
     if (sm_frame && sm_renderTarget && sm_controlGuide) { return; }
 
-    sm_frame        = ui::Frame::create(PERMA_X, graphics::SCREEN_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT);
-    sm_renderTarget = sdl::TextureManager::load(RENDER_TARGET_NAME, INNER_WIDTH, INNER_HEIGHT, SDL_TEXTUREACCESS_TARGET);
+    sm_frame = ui::Frame::create(PERMA_X, graphics::SCREEN_HEIGHT, FRAME_WIDTH, FRAME_HEIGHT);
+    sm_renderTarget =
+        sdl2::TextureManager::create_load_resource(RENDER_TARGET_NAME, INNER_WIDTH, INNER_HEIGHT, SDL_TEXTUREACCESS_TARGET);
     sm_controlGuide = ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 4));
 }
 
@@ -147,7 +146,10 @@ void FileModeState::initialize_directory_menu(const fslib::Path &path, fslib::Di
     {
         std::string option{};
         if (entry.is_directory()) { option = DIR_PREFIX; }
-        else { option = FILE_PREFIX; }
+        else
+        {
+            option = FILE_PREFIX;
+        }
 
         option += entry.get_filename();
         menu.add_option(option);
@@ -170,7 +172,7 @@ void FileModeState::update_y() noexcept
     else if (finishedDropping) { FileModeState::deactivate_state(); }
 }
 
-void FileModeState::update_handle_input() noexcept
+void FileModeState::update_handle_input(const sdl2::Input &input) noexcept
 {
     // Get whether or not the state has focus.
     const bool hasFocus = BaseState::has_focus();
@@ -181,11 +183,11 @@ void FileModeState::update_handle_input() noexcept
     fslib::Directory &directory = FileModeState::get_source_directory();
 
     // Input bools.
-    const bool aPressed     = input::button_pressed(HidNpadButton_A);
-    const bool bPressed     = input::button_pressed(HidNpadButton_B);
-    const bool xPressed     = input::button_pressed(HidNpadButton_X);
-    const bool zlZRPressed  = input::button_pressed(HidNpadButton_ZL) || input::button_pressed(HidNpadButton_ZR);
-    const bool minusPressed = input::button_pressed(HidNpadButton_Minus);
+    const bool aPressed     = input.button_pressed(HidNpadButton_A);
+    const bool bPressed     = input.button_pressed(HidNpadButton_B);
+    const bool xPressed     = input.button_pressed(HidNpadButton_X);
+    const bool zlZRPressed  = input.button_pressed(HidNpadButton_ZL) || input.button_pressed(HidNpadButton_ZR);
+    const bool minusPressed = input.button_pressed(HidNpadButton_Minus);
 
     // Conditions
     if (aPressed) { FileModeState::enter_selected(path, directory, menu); }
@@ -199,8 +201,8 @@ void FileModeState::update_handle_input() noexcept
     }
 
     // Update the menu and control guide.
-    menu.update(hasFocus);
-    sm_controlGuide->update(hasFocus);
+    menu.update(input, hasFocus);
+    sm_controlGuide->update(input, hasFocus);
 }
 
 void FileModeState::enter_selected(fslib::Path &path, fslib::Directory &directory, ui::Menu &menu)
@@ -256,14 +258,10 @@ void FileModeState::enter_directory(fslib::Path &path,
 }
 
 ui::Menu &FileModeState::get_source_menu() noexcept
-{
-    return m_target == Target::MountA ? *m_dirMenuA.get() : *m_dirMenuB.get();
-}
+{ return m_target == Target::MountA ? *m_dirMenuA.get() : *m_dirMenuB.get(); }
 
 ui::Menu &FileModeState::get_destination_menu() noexcept
-{
-    return m_target == Target::MountA ? *m_dirMenuB.get() : *m_dirMenuA.get();
-}
+{ return m_target == Target::MountA ? *m_dirMenuB.get() : *m_dirMenuA.get(); }
 
 fslib::Path &FileModeState::get_source_path() noexcept { return m_target == Target::MountA ? m_pathA : m_pathB; }
 

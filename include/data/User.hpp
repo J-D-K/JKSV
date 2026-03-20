@@ -109,7 +109,7 @@ namespace data
             void load_user_data();
 
             /// @brief Loads the icon from the system and converts it to a texture.
-            void load_icon() override;
+            void load_icon(sdl2::Renderer &renderer) override;
 
         private:
             /// @brief Account's ID

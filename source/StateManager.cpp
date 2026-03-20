@@ -1,6 +1,6 @@
 #include "StateManager.hpp"
 
-void StateManager::update()
+void StateManager::update(const sdl2::Input &input)
 {
     // Grab the instance.
     StateManager &instance = StateManager::get_instance();
@@ -10,7 +10,7 @@ void StateManager::update()
 
     {
         auto &back = stateVector.back();
-        if (back->is_active() && back->has_focus()) { back->update(); }
+        if (back->is_active() && back->has_focus()) { back->update(input); }
     }
 
     // Purge uneeded states.
@@ -39,12 +39,12 @@ void StateManager::update()
     }
 }
 
-void StateManager::render() noexcept
+void StateManager::render(sdl2::Renderer &renderer) noexcept
 {
     StateManager &instance = StateManager::get_instance();
     auto &stateVector      = instance.m_stateVector;
 
-    for (std::shared_ptr<BaseState> &state : stateVector) { state->render(); }
+    for (std::shared_ptr<BaseState> &state : stateVector) { state->render(renderer); }
 }
 
 bool StateManager::back_is_closable() noexcept

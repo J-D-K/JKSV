@@ -5,8 +5,8 @@
 #include "appstates/ProgressState.hpp"
 #include "appstates/TaskState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/fonts.hpp"
 #include "graphics/screen.hpp"
-#include "input.hpp"
 #include "logging/logger.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
@@ -108,9 +108,7 @@ class ConfirmState final : public BaseState
                                                            sys::threadpool::JobFunction onConfirm,
                                                            sys::threadpool::JobFunction onCancel,
                                                            sys::Task::TaskData taskData)
-        {
-            return std::make_shared<ConfirmState>(query, holdRequired, onConfirm, onCancel, taskData);
-        }
+        { return std::make_shared<ConfirmState>(query, holdRequired, onConfirm, onCancel, taskData); }
 
         /// @brief Returns a new ConfirmState. See constructor.
         static inline std::shared_ptr<ConfirmState> create(std::string &query,
@@ -118,9 +116,7 @@ class ConfirmState final : public BaseState
                                                            sys::threadpool::JobFunction onConfirm,
                                                            sys::threadpool::JobFunction onCancel,
                                                            sys::Task::TaskData taskData)
-        {
-            return std::make_shared<ConfirmState>(query, holdRequired, onConfirm, onCancel, taskData);
-        }
+        { return std::make_shared<ConfirmState>(query, holdRequired, onConfirm, onCancel, taskData); }
 
         /// @brief Creates and returns a new ConfirmState and pushes it.
         static inline std::shared_ptr<ConfirmState> create_and_push(std::string_view query,
@@ -173,23 +169,22 @@ class ConfirmState final : public BaseState
         }
 
         /// @brief Just updates the ConfirmState.
-        void update() override
+        void update(const sdl2::Input &input) override
         {
             switch (m_state)
             {
                 case State::Opening:    ConfirmState::update_dimensions(); break;
-                case State::Displaying: ConfirmState::update_handle_input(); break;
+                case State::Displaying: ConfirmState::update_handle_input(input); break;
                 case State::Closing:    ConfirmState::update_dimensions(); break;
             }
         }
 
         /// @brief Renders the state to screen.
-        void render() override
+        void render(sdl2::Renderer &renderer) override
         {
             // These are the rendering coordinates that aren't affected by the transition.
             static constexpr int TEXT_X          = 312;
             static constexpr int TEXT_Y_OFFSET   = 24;
-            static constexpr int TEXT_FONT_SIZE  = 20;
             static constexpr int TEXT_WRAP_WIDTH = 656;
 
             // Divider line A.
@@ -204,59 +199,28 @@ class ConfirmState final : public BaseState
             static constexpr int LINE_Y_OFFSET = 192;
 
             // Yes/NO
-            static constexpr int OPTION_Y_OFFSET  = 214;
-            static constexpr int OPTION_FONT_SIZE = 22;
+            static constexpr int OPTION_Y_OFFSET = 214;
 
             const bool hasFocus = BaseState::has_focus();
             const int y         = m_transition.get_y();
 
             // This is the dimming rectangle.
-            sdl::render_rect_fill(sdl::Texture::Null,
-                                  0,
-                                  0,
-                                  graphics::SCREEN_WIDTH,
-                                  graphics::SCREEN_HEIGHT,
-                                  colors::DIM_BACKGROUND);
+            renderer.render_rectangle(0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
 
             // Render the dialog. Only render the rest if we're in the display state.
-            sm_dialog->render(sdl::Texture::Null, hasFocus);
+            sm_dialog->render(renderer, hasFocus);
             if (!m_transition.in_place() || m_state != State::Displaying) { return; }
 
             // Main string.
-            sdl::text::render(sdl::Texture::Null,
-                              TEXT_X,
-                              y + TEXT_Y_OFFSET,
-                              TEXT_FONT_SIZE,
-                              TEXT_WRAP_WIDTH,
-                              colors::WHITE,
-                              m_query);
+            sm_textFont->render_text_wrapped(TEXT_X, y + TEXT_Y_OFFSET, colors::WHITE, TEXT_WRAP_WIDTH, m_query);
 
             // Divider lines.
-            sdl::render_line(sdl::Texture::Null,
-                             LINE_A_X_A,
-                             y + LINE_Y_OFFSET,
-                             LINE_A_X_B,
-                             y + LINE_Y_OFFSET,
-                             colors::DIV_COLOR);
-            sdl::render_line(sdl::Texture::Null, LINE_B_X, y + LINE_Y_OFFSET, LINE_B_X, y + LINE_B_Y_B, colors::DIV_COLOR);
+            renderer.render_line(LINE_A_X_A, y + LINE_Y_OFFSET, LINE_A_X_B, y + LINE_Y_OFFSET, colors::DIV_COLOR);
+            renderer.render_line(LINE_B_X, y + LINE_Y_OFFSET, LINE_B_X, y + LINE_B_Y_B, colors::DIV_COLOR);
 
             // Yes
-            sdl::text::render(sdl::Texture::Null,
-                              m_yesX,
-                              y + OPTION_Y_OFFSET,
-                              OPTION_FONT_SIZE,
-                              sdl::text::NO_WRAP,
-                              colors::WHITE,
-                              sm_yes);
-
-            // No
-            sdl::text::render(sdl::Texture::Null,
-                              m_noX,
-                              y + OPTION_Y_OFFSET,
-                              OPTION_FONT_SIZE,
-                              sdl::text::NO_WRAP,
-                              colors::WHITE,
-                              sm_no);
+            sm_optionFont->render_text(m_yesX, y + OPTION_Y_OFFSET, colors::WHITE, sm_yes);
+            sm_optionFont->render_text(m_noX, y + OPTION_Y_OFFSET, colors::WHITE, sm_no);
         }
 
     private:
@@ -313,20 +277,26 @@ class ConfirmState final : public BaseState
         /// @brief This dialog is shared between all instances.
         static inline std::shared_ptr<ui::DialogBox> sm_dialog{};
 
+        /// @brief This is the font used to render the actual text.
+        static inline sdl2::SharedFont sm_textFont{};
+
+        /// @brief This is the font used to render the Yes or No options.
+        static inline sdl2::SharedFont sm_optionFont{};
+
         /// @brief This sound is shared.
-        static inline sdl::SharedSound sm_dialogPop{};
+        static inline sdl2::SharedSound sm_dialogPop{};
 
         void initialize_static_members()
         {
             // Name and path to the sound used.
-            static constexpr std::string_view POP_SOUND = "ConfirmPop";
-            static constexpr const char *POP_PATH       = "romfs:/Sound/ConfirmPop.wav";
+            static constexpr std::string_view POP_PATH = "romfs:/Sound/ConfirmPop.wav";
 
             // To do: Not sure about checking the holding text.
-            if (sm_dialog && sm_dialogPop && sm_yes && sm_no) { return; }
+            if (sm_dialog && sm_dialogPop && sm_yes && sm_no && sm_textFont && sm_optionFont) { return; }
 
+            // Init dialog and get it started.
             sm_dialog    = ui::DialogBox::create(0, 0, 0, 0);
-            sm_dialogPop = sdl::SoundManager::load(POP_SOUND, POP_PATH);
+            sm_dialogPop = sdl2::SoundManager::create_load_resource(POP_PATH, POP_PATH);
             sm_dialog->set_from_transition(m_transition, true);
 
             // Load yes and no.
@@ -336,6 +306,13 @@ class ConfirmState final : public BaseState
             // Loop load the holding strings.
             const char *hold{};
             for (int i = 0; (hold = strings::get_by_name(strings::names::HOLDING_STRINGS, i)); i++) { sm_hold[i] = hold; }
+
+            // Fonts for rendering text.
+            sm_textFont = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_FOUR_PIXEL,
+                                                                                    graphics::fonts::sizes::TWENTY_PIXEL);
+            sm_optionFont =
+                sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_FOUR_PIXEL,
+                                                                          graphics::fonts::sizes::TWENTY_FOUR_PIXEL);
         }
 
         /// @brief Updates the dimensions of the dialog.
@@ -353,13 +330,13 @@ class ConfirmState final : public BaseState
         }
 
         /// @brief Handles the input and updating.
-        void update_handle_input() noexcept
+        void update_handle_input(const sdl2::Input &input) noexcept
         {
             // Grab our input bools.
-            const bool aPressed  = input::button_pressed(HidNpadButton_A);
-            const bool bPressed  = input::button_pressed(HidNpadButton_B);
-            const bool aHeld     = input::button_held(HidNpadButton_A);
-            const bool aReleased = input::button_released(HidNpadButton_A);
+            const bool aPressed  = input.button_pressed(HidNpadButton_A);
+            const bool bPressed  = input.button_pressed(HidNpadButton_B);
+            const bool aHeld     = input.button_held(HidNpadButton_A);
+            const bool aReleased = input.button_released(HidNpadButton_A);
 
             // This is to prevent A from auto triggering the dialog.
             m_triggerGuard = m_triggerGuard || (aPressed && !m_triggerGuard);
@@ -379,13 +356,13 @@ class ConfirmState final : public BaseState
         // This just centers the Yes or holding text.
         void center_yes()
         {
-            const int yesWidth = sdl::text::get_width(22, sm_yes);
+            const int yesWidth = sm_optionFont->get_text_width(sm_yes);
             m_yesX             = COORD_YES_X - (yesWidth / 2);
         }
 
         void center_no()
         {
-            const int noWidth = sdl::text::get_width(22, sm_no);
+            const int noWidth = sm_optionFont->get_text_width(sm_no);
             m_noX             = COORD_NO_X - (noWidth / 2);
         }
 

@@ -18,9 +18,7 @@ class UserOptionState final : public BaseState
 
         /// @brief Returns a new UserOptionState. See constructor.
         static inline std::shared_ptr<UserOptionState> create(data::User *user, TitleSelectCommon *titleSelect)
-        {
-            return std::make_shared<UserOptionState>(user, titleSelect);
-        }
+        { return std::make_shared<UserOptionState>(user, titleSelect); }
 
         /// @brief Creates, pushes, and returns a new UserOptionState.
         static inline std::shared_ptr<UserOptionState> create_and_push(data::User *user, TitleSelectCommon *titleSelect)
@@ -31,13 +29,13 @@ class UserOptionState final : public BaseState
         }
 
         /// @brief Runs the render routine.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Handles hiding the panel.
         void sub_update() override;
 
         /// @brief Runs the render routine.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         /// @brief Signals to the main update() function that a refresh is needed.
         /// @note Like this to prevent threading headaches.

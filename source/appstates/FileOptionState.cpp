@@ -8,7 +8,6 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
-#include "input.hpp"
 #include "keyboard/keyboard.hpp"
 #include "logging/logger.hpp"
 #include "mathutil.hpp"
@@ -70,23 +69,26 @@ FileOptionState::FileOptionState(FileModeState *spawningState)
 
 //                      ---- Public functions ----
 
-void FileOptionState::update()
+void FileOptionState::update(const sdl2::Input &input)
 {
     switch (m_state)
     {
         case State::Opening:
         case State::Closing: FileOptionState::update_dimensions(); break;
-        case State::Opened:  FileOptionState::update_handle_input(); break;
+        case State::Opened:  FileOptionState::update_handle_input(input); break;
     }
 }
 
-void FileOptionState::render()
+void FileOptionState::render(sdl2::Renderer &renderer)
 {
+    // Grab focus.
     const bool hasFocus = BaseState::has_focus();
-    sm_dialog->render(sdl::Texture::Null, hasFocus);
+
+    // Render the dialog and bail if we're not read for the menu.
+    sm_dialog->render(renderer, hasFocus);
     if (!m_transition.in_place()) { return; }
 
-    sm_copyMenu->render(sdl::Texture::Null, hasFocus);
+    sm_copyMenu->render(renderer, hasFocus);
 }
 
 void FileOptionState::update_source() { m_updateSource = true; }
@@ -156,7 +158,7 @@ void FileOptionState::update_dimensions() noexcept
     else if (isClosed) { FileOptionState::deactivate_state(); }
 }
 
-void FileOptionState::update_handle_input() noexcept
+void FileOptionState::update_handle_input(const sdl2::Input &input) noexcept
 {
     // Grab whether or not the state has focus since this is actually used a lot.
     const bool hasFocus = BaseState::has_focus();
@@ -166,12 +168,12 @@ void FileOptionState::update_handle_input() noexcept
     else if (m_updateDest) { FileOptionState::update_filemode_dest(); }
 
     // Update the menu input.
-    sm_copyMenu->update(hasFocus);
+    sm_copyMenu->update(input, hasFocus);
 
     // Local input handling.
     const int selected  = sm_copyMenu->get_selected();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
 
     if (aPressed)
     {
@@ -398,7 +400,10 @@ void FileOptionState::get_show_target_properties()
 
     const bool isDir = fslib::directory_exists(targetPath);
     if (isDir) { FileOptionState::get_show_directory_properties(targetPath); }
-    else { FileOptionState::get_show_file_properties(targetPath); }
+    else
+    {
+        FileOptionState::get_show_file_properties(targetPath);
+    }
 }
 
 void FileOptionState::close_dialog() noexcept
@@ -460,11 +465,11 @@ void FileOptionState::get_show_file_properties(const fslib::Path &path)
     const std::string pathString = path.string();
     const std::string sizeString = get_size_string(fileSize);
     const std::string message    = stringutil::get_formatted_string(messageFormat,
-                                                                 pathString.c_str(),
-                                                                 sizeString.c_str(),
-                                                                 createdBuffer,
-                                                                 lastModified,
-                                                                 lastAccessed);
+                                                                    pathString.c_str(),
+                                                                    sizeString.c_str(),
+                                                                    createdBuffer,
+                                                                    lastModified,
+                                                                    lastAccessed);
 
     MessageState::create_and_push(message);
 }

@@ -6,7 +6,6 @@
 #include "data/data.hpp"
 #include "error.hpp"
 #include "graphics/screen.hpp"
-#include "input.hpp"
 
 //                      ---- Construction ----
 
@@ -21,24 +20,24 @@ BlacklistEditState::BlacklistEditState()
 
 //                      ---- Public functions ----
 
-void BlacklistEditState::update()
+void BlacklistEditState::update(const sdl2::Input &input)
 {
     const bool hasFocus = BaseState::has_focus();
-    const bool aPressed = input::button_pressed(HidNpadButton_A);
-    const bool bPressed = input::button_pressed(HidNpadButton_B);
+    const bool aPressed = input.button_pressed(HidNpadButton_A);
+    const bool bPressed = input.button_pressed(HidNpadButton_B);
 
-    sm_slidePanel->update(hasFocus);
+    sm_slidePanel->update(input, hasFocus);
 
     if (aPressed) { BlacklistEditState::remove_from_blacklist(); }
     else if (sm_slidePanel->is_closed()) { BlacklistEditState::deactivate_state(); }
     else if (bPressed || m_blacklist.empty()) { sm_slidePanel->close(); }
 }
 
-void BlacklistEditState::render()
+void BlacklistEditState::render(sdl2::Renderer &renderer)
 {
     const bool hasFocus = BaseState::has_focus();
-    sm_slidePanel->clear_target();
-    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
+
+    sm_slidePanel->render(renderer, hasFocus);
 }
 
 //                      ---- Private functions ----

@@ -21,10 +21,10 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
     // This will filter from even trying to fetch control data for system titles.
     const bool isSystem   = applicationID & 0x8000000000000000;
     const bool getError   = !isSystem && error::libnx(nsGetApplicationControlData(NsApplicationControlSource_Storage,
-                                                                                m_applicationID,
-                                                                                &m_data,
-                                                                                SIZE_CTRL_DATA,
-                                                                                &controlSize));
+                                                                                  m_applicationID,
+                                                                                  &m_data,
+                                                                                  SIZE_CTRL_DATA,
+                                                                                  &controlSize));
     const bool entryError = !getError && error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
     if (isSystem || getError)
     {
@@ -149,8 +149,6 @@ bool data::TitleInfo::has_save_data_type(uint8_t saveType) const noexcept
     return false;
 }
 
-sdl::SharedTexture data::TitleInfo::get_icon() const noexcept { return m_icon; }
-
 void data::TitleInfo::set_path_safe_title(const char *newPathSafe) noexcept
 {
     const size_t length = std::char_traits<char>::length(newPathSafe);
@@ -160,20 +158,16 @@ void data::TitleInfo::set_path_safe_title(const char *newPathSafe) noexcept
     std::memcpy(m_pathSafeTitle, newPathSafe, length);
 }
 
-void data::TitleInfo::load_icon()
+void data::TitleInfo::load_icon(sdl2::Renderer &renderer)
 {
     // This is taken from the NacpStruct.
     static constexpr size_t SIZE_ICON = 0x20000;
+    const std::string textureName     = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
 
-    if (m_hasData)
-    {
-        const std::string textureName = stringutil::get_formatted_string("%016llX", m_applicationID);
-        m_icon                        = sdl::TextureManager::load(textureName, m_data.icon, SIZE_ICON);
-    }
+    if (m_hasData) { m_icon = sdl2::TextureManager::create_load_resource(textureName, m_data.icon, SIZE_ICON); }
     else
     {
-        const std::string text = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
-        m_icon                 = gfxutil::create_generic_icon(text, 48, colors::DIALOG_DARK, colors::WHITE);
+        m_icon = gfxutil::create_generic_icon(renderer, textureName, 48, colors::DIALOG_DARK, colors::WHITE);
     }
 }
 

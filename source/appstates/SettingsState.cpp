@@ -8,8 +8,9 @@
 #include "error.hpp"
 #include "fs/fs.hpp"
 #include "fslib.hpp"
+#include "graphics/ScopedRender.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
+#include "graphics/targets.hpp"
 #include "keyboard/keyboard.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
@@ -72,7 +73,10 @@ namespace
 SettingsState::SettingsState()
     : m_settingsMenu(ui::Menu::create(32, 10, 1000, 23, 555))
     , m_controlGuide(ui::ControlGuide::create(strings::get_by_name(strings::names::CONTROL_GUIDES, 3)))
-    , m_renderTarget(sdl::TextureManager::load(SECONDARY_TARGET, 1080, 555, SDL_TEXTUREACCESS_TARGET))
+    , m_renderTarget(sdl2::TextureManager::create_load_resource(graphics::targets::names::SECONDARY,
+                                                                graphics::targets::dims::SECONDARY_WIDTH,
+                                                                graphics::targets::dims::SECONDARY_HEIGHT,
+                                                                SDL_TEXTUREACCESS_TARGET))
 {
     SettingsState::load_settings_menu();
     SettingsState::load_extra_strings();
@@ -81,33 +85,44 @@ SettingsState::SettingsState()
 
 //                      ---- Public functions ----
 
-void SettingsState::update()
+void SettingsState::update(const sdl2::Input &input)
 {
     const bool hasFocus     = BaseState::has_focus();
-    const bool aPressed     = input::button_pressed(HidNpadButton_A);
-    const bool bPressed     = input::button_pressed(HidNpadButton_B);
-    const bool xPressed     = input::button_pressed(HidNpadButton_X);
-    const bool minusPressed = input::button_pressed(HidNpadButton_Minus);
+    const bool aPressed     = input.button_pressed(HidNpadButton_A);
+    const bool bPressed     = input.button_pressed(HidNpadButton_B);
+    const bool xPressed     = input.button_pressed(HidNpadButton_X);
+    const bool minusPressed = input.button_pressed(HidNpadButton_Minus);
 
-    m_settingsMenu->update(hasFocus);
+    m_settingsMenu->update(input, hasFocus);
     if (aPressed) { SettingsState::toggle_options(); }
     else if (xPressed) { SettingsState::reset_settings(); }
     else if (minusPressed) { SettingsState::create_push_description_message(); }
     else if (bPressed) { BaseState::deactivate(); }
 
-    m_controlGuide->update(hasFocus);
+    m_controlGuide->update(input, hasFocus);
 }
 
 void SettingsState::sub_update() { m_controlGuide->sub_update(); }
 
-void SettingsState::render()
+void SettingsState::render(sdl2::Renderer &renderer)
 {
+    // Grab focus state.
     const bool hasFocus = BaseState::has_focus();
 
-    m_renderTarget->clear(colors::TRANSPARENT);
-    m_settingsMenu->render(m_renderTarget, hasFocus);
-    m_renderTarget->render(sdl::Texture::Null, 201, 91);
-    m_controlGuide->render(sdl::Texture::Null, hasFocus);
+    {
+        // Set target and clear.
+        graphics::ScopedRender scopedRender{renderer, m_renderTarget};
+        renderer.frame_begin(colors::TRANSPARENT);
+
+        // Render what we need to.
+        m_settingsMenu->render(renderer, hasFocus);
+    }
+
+    // Render the target to the screen.
+    m_renderTarget->render(201, 91);
+
+    // Control guide.
+    m_controlGuide->render(renderer, hasFocus);
 }
 
 //                      ---- Private functions ----
@@ -194,7 +209,10 @@ void SettingsState::change_working_directory()
         moved = fs::move_directory_recursively(oldPath, newPath);
         error::fslib(fslib::delete_directory_recursively(oldPath));
     }
-    else { moved = fslib::rename_directory(oldPath, newPath); }
+    else
+    {
+        moved = fslib::rename_directory(oldPath, newPath);
+    }
 
     if (!moved)
     {
@@ -292,7 +310,10 @@ void SettingsState::toggle_trash_folder()
     config::toggle_by_key(config::keys::ENABLE_TRASH_BIN);
 
     if (trashEnabled) { error::fslib(fslib::delete_directory_recursively(trashPath)); }
-    else { error::fslib(fslib::create_directory(trashPath)); }
+    else
+    {
+        error::fslib(fslib::create_directory(trashPath));
+    }
 }
 
 void SettingsState::cycle_anim_scaling()

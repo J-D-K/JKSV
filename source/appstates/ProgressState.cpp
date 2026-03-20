@@ -2,8 +2,9 @@
 
 #include "appstates/FadeState.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/fonts.hpp"
 #include "graphics/screen.hpp"
-#include "input.hpp"
+#include "mathutil.hpp"
 #include "sdl.hpp"
 #include "strings/strings.hpp"
 #include "stringutil.hpp"
@@ -43,17 +44,15 @@ ProgressState::ProgressState(sys::threadpool::JobFunction function, sys::Task::T
                    TARGET_WIDTH,
                    TARGET_HEIGHT,
                    ui::Transition::DEFAULT_THRESHOLD)
-{
-    initialize_static_members();
-}
+{ initialize_static_members(); }
 
 //                      ---- Public functions ----
 
-void ProgressState::update()
+void ProgressState::update(const sdl2::Input &input)
 {
     // These are always updated and aren't conditional.
     BaseTask::update_loading_glyph();
-    BaseTask::pop_on_plus();
+    BaseTask::pop_on_plus(input);
 
     switch (m_state)
     {
@@ -63,7 +62,7 @@ void ProgressState::update()
     }
 }
 
-void ProgressState::render()
+void ProgressState::render(sdl2::Renderer &renderer)
 {
     static constexpr int RIGHT_EDGE_X = (COORD_BAR_X + SIZE_BAR_WIDTH) - 16;
 
@@ -71,51 +70,44 @@ void ProgressState::render()
     const bool hasFocus = BaseState::has_focus();
 
     // This will dim the background.
-    sdl::render_rect_fill(sdl::Texture::Null, 0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
+    renderer.render_rectangle(0, 0, graphics::SCREEN_WIDTH, graphics::SCREEN_HEIGHT, colors::DIM_BACKGROUND);
 
     // Render the glyph and dialog. Don't render anything else unless the task is running.
     BaseTask::render_loading_glyph();
-    sm_dialog->render(sdl::Texture::Null, hasFocus);
+    sm_dialog->render(renderer, hasFocus);
     if (m_state != State::Running) { return; }
-
-    // This just makes this easier to work with.
-    const int barWidth = static_cast<int>(SIZE_BAR_WIDTH);
 
     // Grab and render the status.
     const std::string status = m_task->get_status();
-    sdl::text::render(sdl::Texture::Null, 312, 255, BaseTask::FONT_SIZE, 656, colors::WHITE, status);
+    sm_font->render_text(312, 255, colors::WHITE, status);
 
     // This is the divider line.
-    sdl::render_line(sdl::Texture::Null, 280, 421, 999, 421, colors::DIV_COLOR);
+    renderer.render_line(280, 421, 999, 421, colors::DIV_COLOR);
 
     // Progress showing bar.
-    sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, barWidth, 32, colors::BLACK);
-    sdl::render_rect_fill(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::BAR_GREEN);
+    renderer.render_rectangle(COORD_BAR_X, COORD_BAR_Y, static_cast<int>(SIZE_BAR_WIDTH), 32, colors::BLACK);
+    renderer.render_rectangle(COORD_BAR_X, COORD_BAR_Y, m_progressBarWidth, 32, colors::BAR_GREEN);
 
     // These are the "caps" to round the edges of the bar.
-    sm_barEdges->render_part(sdl::Texture::Null, COORD_BAR_X, COORD_BAR_Y, 0, 0, 16, 32);
-    sm_barEdges->render_part(sdl::Texture::Null, RIGHT_EDGE_X, COORD_BAR_Y, 16, 0, 16, 32);
+    sm_barEdges->render_part(COORD_BAR_X, COORD_BAR_Y, 0, 0, 16, 32);
+    sm_barEdges->render_part(RIGHT_EDGE_X, COORD_BAR_Y, 16, 0, 16, 32);
 
     // Progress string.
-    sdl::text::render(sdl::Texture::Null,
-                      m_percentageX,
-                      COORD_TEXT_Y,
-                      BaseTask::FONT_SIZE,
-                      sdl::text::NO_WRAP,
-                      colors::WHITE,
-                      m_percentageString);
+    sm_font->render_text(m_percentageX, COORD_TEXT_Y, colors::WHITE, m_percentageString);
 }
 
 //                      ---- Private functions ----
 
 void ProgressState::initialize_static_members()
 {
-    static constexpr std::string_view BAR_EDGE_NAME = "BarEdges";
+    static constexpr std::string_view BAR_EDGES = "romfs:/Textures/BarEdges/png";
 
-    if (sm_dialog && sm_barEdges) { return; }
+    if (sm_dialog && sm_barEdges && sm_font) { return; }
 
     sm_dialog   = ui::DialogBox::create(0, 0, 0, 0);
-    sm_barEdges = sdl::TextureManager::load(BAR_EDGE_NAME, "romfs:/Textures/BarEdges.png");
+    sm_barEdges = sdl2::TextureManager::create_load_resource(BAR_EDGES, BAR_EDGES);
+    sm_font     = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_PIXEL,
+                                                                            graphics::fonts::sizes::TWENTY_PIXEL);
     sm_dialog->set_from_transition(m_transition, true);
 }
 
@@ -152,9 +144,8 @@ void ProgressState::update_progress() noexcept
     // This is the actual string that's displayed.
     m_percentageString = stringutil::get_formatted_string("%u%%", m_progress);
 
-    const int stringWidth = sdl::text::get_width(BaseTask::FONT_SIZE, m_percentageString);
-    // Center the string above.
-    m_percentageX = COORD_DISPLAY_CENTER - (stringWidth / 2);
+    const int stringWidth = sm_font->get_text_width(m_percentageString);
+    m_percentageX         = math::Util<int>::center_within(graphics::SCREEN_WIDTH, stringWidth);
 
     // Handle closing and updating.
     const bool taskRunning = m_task->is_running();

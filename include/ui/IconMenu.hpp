@@ -20,9 +20,7 @@ namespace ui
 
             /// @brief Creates and returns a new IconMenu instance.
             static inline std::shared_ptr<ui::IconMenu> create(int x, int y, int renderTargetHeight)
-            {
-                return std::make_shared<ui::IconMenu>(x, y, renderTargetHeight);
-            }
+            { return std::make_shared<ui::IconMenu>(x, y, renderTargetHeight); }
 
             /// @brief Initializes the menu.
             /// @param x X coordinate to render the menu to.
@@ -33,19 +31,19 @@ namespace ui
 
             /// @brief Runs the update routine.
             /// @param hasFocus Whether or not the containing state has focus.
-            void update(bool hasFocus) override;
+            void update(const sdl2::Input &input, bool hasFocus) override;
 
             /// @brief Runs the render routine.
             /// @param target Target to render to.
             /// @param hasFocus Whether or not the containing state has focus.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Adds a new icon to the menu.
             /// @param newOption Icon to add.
-            void add_option(sdl::SharedTexture newOption);
+            void add_option(sdl2::SharedTexture newOption);
 
         private:
             /// @brief Vector of shared texture pointers to textures used.
-            std::vector<sdl::SharedTexture> m_options;
+            std::vector<sdl2::SharedTexture> m_options;
     };
 } // namespace ui

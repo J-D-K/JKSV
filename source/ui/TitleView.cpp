@@ -3,7 +3,6 @@
 #include "config/config.hpp"
 #include "error.hpp"
 #include "graphics/colors.hpp"
-#include "input.hpp"
 #include "logging/logger.hpp"
 
 #include <cmath>
@@ -26,19 +25,19 @@ ui::TitleView::TitleView(data::User *user)
     TitleView::refresh();
 }
 
-void ui::TitleView::update(bool hasFocus)
+void ui::TitleView::update(const sdl2::Input &input, bool hasFocus)
 {
     if (m_titleTiles.empty()) { return; }
 
-    m_bounding->update(hasFocus);
-    TitleView::handle_input();
+    m_bounding->update(input, hasFocus);
+    TitleView::handle_input(input);
     TitleView::handle_scrolling();
     TitleView::update_tiles();
 
     m_transition.update();
 }
 
-void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
+void ui::TitleView::render(sdl2::Renderer &renderer, bool hasFocus)
 {
     static constexpr int TILE_SPACE_VERT = 144;
     static constexpr int TILE_SPACE_HOR  = 144;
@@ -59,8 +58,7 @@ void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
                 continue;
             }
 
-            ui::TitleTile &tile = m_titleTiles[j];
-            tile.render(target, tempX, tempY);
+            m_titleTiles[i].render(tempX, tempY);
         }
     }
 
@@ -69,12 +67,11 @@ void ui::TitleView::render(sdl::SharedTexture &target, bool hasFocus)
         m_bounding->set_x(m_selectedX - 30);
         m_bounding->set_y(m_selectedY - 30);
 
-        sdl::render_rect_fill(target, m_selectedX - 28, m_selectedY - 28, 184, 184, colors::CLEAR_COLOR);
-        m_bounding->render(target, hasFocus);
+        renderer.render_rectangle(m_selectedX - 28, m_selectedY - 28, 184, 184, colors::CLEAR_COLOR);
+        m_bounding->render(renderer, hasFocus);
     }
 
-    ui::TitleTile &selectedTile = m_titleTiles[m_selected];
-    selectedTile.render(target, m_selectedX, m_selectedY);
+    m_titleTiles[m_selected].render(m_selectedX, m_selectedY);
 }
 
 int ui::TitleView::get_selected() const noexcept { return m_selected; }
@@ -83,6 +80,7 @@ void ui::TitleView::set_selected(int selected) noexcept
 {
     const int tilesCount = m_titleTiles.size();
     if (selected < 0 || selected >= tilesCount) { return; }
+
     m_selected = selected;
 }
 
@@ -98,8 +96,8 @@ void ui::TitleView::refresh()
         data::TitleInfo *titleInfo   = data::get_title_info_by_id(applicationID);
         if (error::is_null(titleInfo)) { continue; }
 
-        const bool isFavorite   = config::is_favorite(applicationID);
-        sdl::SharedTexture icon = titleInfo->get_icon(); // I don't like this but w/e.
+        const bool isFavorite     = config::is_favorite(applicationID);
+        sdl2::SharedTexture &icon = titleInfo->get_icon();
 
         m_titleTiles.emplace_back(isFavorite, i, icon);
     }
@@ -120,23 +118,22 @@ void ui::TitleView::play_sound() noexcept { sm_cursor->play(); }
 
 void ui::TitleView::initialize_static_members()
 {
-    static constexpr std::string_view CURSOR_NAME = "MenuCursor";
-    static constexpr const char *CURSOR_PATH      = "romfs:/Sound/MenuCursor.wav";
+    static constexpr std::string_view CURSOR_PATH = "romfs:/Sound/MenuCursor.wav";
 
     if (sm_cursor) { return; }
 
-    sm_cursor = sdl::SoundManager::load(CURSOR_NAME, CURSOR_PATH);
+    sm_cursor = sdl2::SoundManager::create_load_resource(CURSOR_PATH, CURSOR_PATH);
 }
 
-void ui::TitleView::handle_input()
+void ui::TitleView::handle_input(const sdl2::Input &input)
 {
     const int totalTiles        = m_titleTiles.size() - 1;
-    const bool upPressed        = input::button_pressed(HidNpadButton_AnyUp);
-    const bool downPressed      = input::button_pressed(HidNpadButton_AnyDown);
-    const bool leftPressed      = input::button_pressed(HidNpadButton_AnyLeft);
-    const bool rightPressed     = input::button_pressed(HidNpadButton_AnyRight);
-    const bool lShoulderPressed = input::button_pressed(HidNpadButton_L);
-    const bool rShoulderPressed = input::button_pressed(HidNpadButton_R);
+    const bool upPressed        = input.button_pressed(HidNpadButton_AnyUp);
+    const bool downPressed      = input.button_pressed(HidNpadButton_AnyDown);
+    const bool leftPressed      = input.button_pressed(HidNpadButton_AnyLeft);
+    const bool rightPressed     = input.button_pressed(HidNpadButton_AnyRight);
+    const bool lShoulderPressed = input.button_pressed(HidNpadButton_L);
+    const bool rShoulderPressed = input.button_pressed(HidNpadButton_R);
 
     const int previousSelected = m_selected;
 

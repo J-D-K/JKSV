@@ -18,19 +18,17 @@ class FadeState final : public BaseState
 
         /// @brief Creates a new fade in state.
         /// @param nextState The next state to push after the the fade is finished.
-        FadeState(sdl::Color baseColor, uint8_t startAlpha, uint8_t endAlpha, std::shared_ptr<BaseState> nextState);
+        FadeState(SDL_Color baseColor, uint8_t startAlpha, uint8_t endAlpha, std::shared_ptr<BaseState> nextState);
 
         /// @brief Returns a new fade in state. See constructor.
-        static inline std::shared_ptr<FadeState> create(sdl::Color baseColor,
+        static inline std::shared_ptr<FadeState> create(SDL_Color baseColor,
                                                         uint8_t startAlpha,
                                                         uint8_t endAlpha,
                                                         std::shared_ptr<BaseState> nextState)
-        {
-            return std::make_shared<FadeState>(baseColor, startAlpha, endAlpha, nextState);
-        }
+        { return std::make_shared<FadeState>(baseColor, startAlpha, endAlpha, nextState); }
 
         /// @brief Creates, returns and pushes a new FadeInState to the statemanager.
-        static std::shared_ptr<FadeState> create_and_push(sdl::Color baseColor,
+        static std::shared_ptr<FadeState> create_and_push(SDL_Color baseColor,
                                                           uint8_t startAlpha,
                                                           uint8_t endAlpha,
                                                           std::shared_ptr<BaseState> nextState)
@@ -41,13 +39,14 @@ class FadeState final : public BaseState
         }
 
         /// @brief Update override.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Render override.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
-        sdl::Color m_baseColor{};
+        /// @brief Base color of the fade.
+        SDL_Color m_baseColor{};
 
         /// @brief Alpha value.
         uint8_t m_alpha{};

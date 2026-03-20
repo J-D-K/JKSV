@@ -1,28 +1,41 @@
 #include "graphics/gfxutil.hpp"
 
-namespace
+#include "graphics/ScopedRender.hpp"
+#include "mathutil.hpp"
+#include "stringutil.hpp"
+
+sdl2::SharedTexture gfxutil::create_generic_icon(sdl2::Renderer &renderer,
+                                                 std::string_view text,
+                                                 int fontSize,
+                                                 SDL_Color background,
+                                                 SDL_Color textColor)
 {
-    /// @brief Width of generic icons in pixels.
-    constexpr int SIZE_ICON_WIDTH = 256;
+    // Icon dimensions.
+    static constexpr int ICON_WIDTH  = 256;
+    static constexpr int ICON_HEIGHT = 256;
 
-    /// @brief Height of generic icons in pixels.
-    constexpr int SIZE_ICON_HEIGHT = 256;
-} // namespace
+    // Create a new font to render with.
+    const std::string fontName = stringutil::get_formatted_string("IconFont%i", fontSize);
+    sdl2::SharedFont font      = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(fontName, fontSize);
 
-sdl::SharedTexture gfxutil::create_generic_icon(std::string_view text,
-                                                int fontSize,
-                                                sdl::Color background,
-                                                sdl::Color foreground)
-{
-    // Create base icon texture.
-    sdl::SharedTexture icon = sdl::TextureManager::load(text, SIZE_ICON_WIDTH, SIZE_ICON_HEIGHT, SDL_TEXTUREACCESS_TARGET);
+    // Center our text.
+    const int textWidth = font->get_text_width(text);
+    const int textX     = math::Util<int>::center_within(ICON_WIDTH, textWidth);
+    const int textY     = math::Util<int>::center_within(ICON_HEIGHT, fontSize);
 
-    // Get the centered X and Y coordinates.
-    const int textX = (SIZE_ICON_WIDTH / 2) - (sdl::text::get_width(fontSize, text) / 2);
-    const int textY = (SIZE_ICON_HEIGHT / 2) - (fontSize / 2);
+    // Create the icon.
+    sdl2::SharedTexture icon =
+        sdl2::TextureManager::create_load_resource(text, ICON_WIDTH, ICON_HEIGHT, SDL_TEXTUREACCESS_TARGET);
 
-    icon->clear(background);
-    sdl::text::render(icon, textX, textY, fontSize, sdl::text::NO_WRAP, foreground, text);
+    {
+        // Target the icon we just created.
+        graphics::ScopedRender scopedRender(renderer, icon);
 
+        // Render.
+        renderer.frame_begin(background);
+        font->render_text(textX, textY, textColor, text);
+    }
+
+    // Return.
     return icon;
 }

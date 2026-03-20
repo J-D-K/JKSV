@@ -5,7 +5,6 @@
 #include "data/data.hpp"
 #include "error.hpp"
 #include "fs/fs.hpp"
-#include "input.hpp"
 #include "keyboard/keyboard.hpp"
 #include "logging/logger.hpp"
 #include "strings/strings.hpp"
@@ -38,14 +37,14 @@ SaveCreateState::SaveCreateState(data::User *user, TitleSelectCommon *titleSelec
 
 //                      ---- Public functions ----
 
-void SaveCreateState::update()
+void SaveCreateState::update(const sdl2::Input &input)
 {
     const bool hasFocus = BaseState::has_focus();
 
-    sm_slidePanel->update(hasFocus);
+    sm_slidePanel->update(input, hasFocus);
 
-    const bool aPressed    = input::button_pressed(HidNpadButton_A);
-    const bool bPressed    = input::button_pressed(HidNpadButton_B);
+    const bool aPressed    = input.button_pressed(HidNpadButton_A);
+    const bool bPressed    = input.button_pressed(HidNpadButton_B);
     const bool panelClosed = sm_slidePanel->is_closed();
 
     if (m_refreshRequired.load())
@@ -60,13 +59,12 @@ void SaveCreateState::update()
     else if (panelClosed) { SaveCreateState::deactivate_state(); }
 }
 
-void SaveCreateState::render()
+void SaveCreateState::render(sdl2::Renderer &renderer)
 {
     const bool hasFocus = BaseState::has_focus();
 
     // Clear slide target, render menu, render slide to frame buffer.
-    sm_slidePanel->clear_target();
-    sm_slidePanel->render(sdl::Texture::Null, hasFocus);
+    sm_slidePanel->render(renderer, hasFocus);
 }
 
 void SaveCreateState::refresh_required() { m_refreshRequired.store(true); }

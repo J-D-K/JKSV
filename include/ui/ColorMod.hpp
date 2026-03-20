@@ -17,7 +17,7 @@ namespace ui
 
             /// @brief Operator that allows using this as an sdl::Color directly.
             /// @note Since all of these pulse the same color, no sense in not doing this.
-            operator sdl::Color() const noexcept;
+            operator SDL_Color() const noexcept;
 
         private:
             /// @brief Whether we're adding or subtracting from the color value.

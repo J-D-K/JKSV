@@ -15,15 +15,13 @@ namespace ui
 
             /// @brief Inline function to make constructing nicer.
             static inline std::shared_ptr<ui::Frame> create(int x, int y, int width, int height)
-            {
-                return std::make_shared<ui::Frame>(x, y, width, height);
-            }
+            { return std::make_shared<ui::Frame>(x, y, width, height); }
 
             /// @brief Doesn't need to do anything for this.
-            void update(bool hasFocus) override {};
+            void update(const sdl2::Input &input, bool hasFocus) override {};
 
             /// @brief Renders the frame to the target passed.
-            void render(sdl::SharedTexture &target, bool hasFocus) override;
+            void render(sdl2::Renderer &renderer, bool hasFocus) override;
 
             /// @brief Sets the X coord.
             void set_x(int x) noexcept;
@@ -54,7 +52,7 @@ namespace ui
             int m_height{};
 
             /// @brief This texture is shared by all instances.
-            static inline sdl::SharedTexture sm_frameCorners{};
+            static inline sdl2::SharedTexture sm_frameCorners{};
 
             /// @brief Ensures the texture is loading if it hasn't been.
             void initialize_static_members();

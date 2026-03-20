@@ -15,10 +15,10 @@ class AppletModeState final : public BaseState
         static inline std::shared_ptr<AppletModeState> create() { return std::make_shared<AppletModeState>(); }
 
         /// @brief Runs the update routine. Basically does nothing.
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
         /// @brief Renders the message to the screen.
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
     private:
         /// @brief Pointer to the string rendered to the screen.

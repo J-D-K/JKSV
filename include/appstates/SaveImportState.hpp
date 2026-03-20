@@ -15,9 +15,7 @@ class SaveImportState final : public BaseState
         SaveImportState(data::User *user);
 
         static inline std::shared_ptr<SaveImportState> create(data::User *user)
-        {
-            return std::make_shared<SaveImportState>(user);
-        }
+        { return std::make_shared<SaveImportState>(user); }
 
         static inline std::shared_ptr<SaveImportState> create_and_push(data::User *user)
         {
@@ -26,9 +24,9 @@ class SaveImportState final : public BaseState
             return newState;
         }
 
-        void update() override;
+        void update(const sdl2::Input &input) override;
 
-        void render() override;
+        void render(sdl2::Renderer &renderer) override;
 
         // clang-format off
         // Struct used to pass data to the task.

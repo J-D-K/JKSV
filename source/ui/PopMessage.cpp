@@ -2,6 +2,7 @@
 
 #include "config/config.hpp"
 #include "graphics/colors.hpp"
+#include "graphics/fonts.hpp"
 #include "graphics/screen.hpp"
 #include "mathutil.hpp"
 #include "sdl.hpp"
@@ -32,9 +33,7 @@ ui::PopMessage::PopMessage(int ticks, std::string &message)
     , m_ticks(ticks)
     , m_message(std::move(message))
     , m_state(State::Rising)
-{
-    PopMessage::initialize_static_members();
-}
+{ PopMessage::initialize_static_members(); }
 
 //                      ---- Public functions ----
 
@@ -62,9 +61,9 @@ void ui::PopMessage::update(double targetY)
     }
 }
 
-void ui::PopMessage::render()
+void ui::PopMessage::render(sdl2::Renderer &renderer)
 {
-    PopMessage::render_container();
+    PopMessage::render_container(renderer);
 
     // Don't continue unless the message is in place or it's not in its closing state.
     if (m_state != State::Opening && m_state != State::Displaying) { return; }
@@ -72,7 +71,7 @@ void ui::PopMessage::render()
     // This avoids allocating and returning another std::string.
     const int y = m_transition.get_y();
     const std::string_view message{m_message.c_str(), static_cast<size_t>(m_substrOffset)};
-    sdl::text::render(sdl::Texture::Null, m_textX, y + 11, FONT_SIZE, sdl::text::NO_WRAP, colors::BLACK, message);
+    sm_font->render_text(m_textX, y + 11, colors::BLACK, message);
 }
 
 bool ui::PopMessage::finished() const noexcept { return m_state == State::Finished; }
@@ -83,12 +82,13 @@ std::string_view ui::PopMessage::get_message() const noexcept { return m_message
 
 void ui::PopMessage::initialize_static_members()
 {
-    static constexpr std::string_view TEX_CAP_NAME = "PopCaps";
-    static constexpr const char *TEX_CAP_PATH      = "romfs:/Textures/PopMessage.png";
+    static constexpr std::string_view CAP_PATH = "romfs:/Textures/PopMessage.png";
 
-    if (sm_endCaps) { return; }
+    if (sm_endCaps && sm_font) { return; }
 
-    sm_endCaps = sdl::TextureManager::load(TEX_CAP_NAME, TEX_CAP_PATH);
+    sm_endCaps = sdl2::TextureManager::create_load_resource(CAP_PATH, CAP_PATH);
+    sm_font    = sdl2::FontManager::create_load_resource<sdl2::SystemFont>(graphics::fonts::names::TWENTY_TWO_PIXEL,
+                                                                           graphics::fonts::sizes::TWENTY_TWO_PIXEL);
 }
 
 void ui::PopMessage::update_y() noexcept
@@ -132,7 +132,7 @@ void ui::PopMessage::update_text_offset()
 
     // Get the substring and calculate the updated width and X of the message.
     const std::string_view subString{m_message.c_str(), static_cast<size_t>(m_substrOffset)};
-    const int subWidth       = sdl::text::get_width(FONT_SIZE, subString);
+    const int subWidth       = sm_font->get_text_width(subString);
     const int containerWidth = subWidth + CONTAINER_PADDING;
     m_textX                  = SCREEN_CENTER - (subWidth / 2);
 
@@ -171,7 +171,7 @@ void ui::PopMessage::update_display_timer() noexcept
     }
 }
 
-void ui::PopMessage::render_container() noexcept
+void ui::PopMessage::render_container(sdl2::Renderer &renderer) noexcept
 {
     // The width of the CAP graphics.
     constexpr int CAP_WIDTH = 48;
@@ -183,7 +183,7 @@ void ui::PopMessage::render_container() noexcept
     const int width = m_transition.get_width() + CAP_HALF;
 
     // Render the container.
-    sm_endCaps->render_part(sdl::Texture::Null, x, y, 0, 0, CAP_HALF, CAP_WIDTH);
-    sdl::render_rect_fill(sdl::Texture::Null, x + CAP_HALF, y, width - CAP_WIDTH, 48, colors::DIALOG_LIGHT);
-    sm_endCaps->render_part(sdl::Texture::Null, x + (width - CAP_HALF), y, CAP_HALF, 0, CAP_HALF, 48);
+    sm_endCaps->render_part(x, y, 0, 0, CAP_HALF, CAP_WIDTH);
+    renderer.render_rectangle(x + CAP_HALF, y, width - CAP_WIDTH, 48, colors::DIALOG_LIGHT);
+    sm_endCaps->render_part(x + (width - CAP_HALF), y, CAP_HALF, 0, CAP_HALF, 48);
 }
