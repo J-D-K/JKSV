@@ -57,6 +57,20 @@ remote::WebDav::WebDav()
     }
     m_origin = json_object_get_string(origin);
 
+    // Extract the path component from the origin URL for normalizing PROPFIND hrefs.
+    {
+        const size_t schemeEnd = m_origin.find("://");
+        if (schemeEnd != std::string::npos)
+        {
+            const size_t pathStart = m_origin.find('/', schemeEnd + 3);
+            if (pathStart != std::string::npos)
+            {
+                m_originPath = m_origin.substr(pathStart);
+                if (m_originPath.back() != '/') { m_originPath += '/'; }
+            }
+        }
+    }
+
     if (basepath)
     {
         // The root is both in the beginning. I want this to work as closely as the original just not as poorly written
@@ -75,7 +89,7 @@ remote::WebDav::WebDav()
     // This'll recursively get the full listing of the basepath for the WebDav server.
     std::string xml{};
     const bool propFind     = WebDav::prop_find(url, xml);
-    const bool xmlProcessed = propFind && WebDav::process_listing(xml);
+    const bool xmlProcessed = propFind && WebDav::process_listing(xml, m_root);
     if (!propFind || !xmlProcessed) { return; }
 
     m_isInitialized = true;
@@ -330,7 +344,7 @@ bool remote::WebDav::prop_find(const remote::URL &url, std::string &xml)
     return curl::perform(m_curl);
 }
 
-bool remote::WebDav::process_listing(std::string_view xml)
+bool remote::WebDav::process_listing(std::string_view xml, std::string_view queriedPath)
 {
     static constexpr const char *STRING_ERROR_PROCESSING_XML = "Error processing XML: %s";
     // These are so string_views aren't constructed every loop.
@@ -348,16 +362,13 @@ bool remote::WebDav::process_listing(std::string_view xml)
         return false;
     }
 
-    tinyxml2::XMLElement *root           = listing.RootElement();
-    tinyxml2::XMLElement *parent         = root->FirstChildElement();
-    tinyxml2::XMLElement *parentLocation = get_element_by_name(parent, tagHref);
-    if (!parentLocation)
-    {
-        logger::log(STRING_ERROR_PROCESSING_XML, "Error finding list parent location!");
-        return false;
-    }
+    tinyxml2::XMLElement *root   = listing.RootElement();
+    tinyxml2::XMLElement *parent = root->FirstChildElement();
 
-    const std::string parentID = ensure_valid_dir_path(parentLocation->GetText());
+    // Use the queried path for parentID instead of extracting from the XML href,
+    // because XML hrefs contain full server-relative paths that don't match
+    // our internal m_parent/m_root format.
+    const std::string parentID = ensure_valid_dir_path(queriedPath);
     tinyxml2::XMLElement *current{};
     for (current = parent->NextSiblingElement(); current; current = current->NextSiblingElement())
     {
@@ -374,16 +385,20 @@ bool remote::WebDav::process_listing(std::string_view xml)
         tinyxml2::XMLElement *collection = get_element_by_name(resourceType, tagCollection);
         if (collection)
         {
-            const std::string idString = ensure_valid_dir_path(hrefText);
+            // Build a normalized ID relative to the parent. Re-escape the name
+            // so the ID format matches what create_directory() produces.
+            std::string escapedName{};
+            curl::escape_string(m_curl, name, escapedName);
+            const std::string idString = ensure_valid_dir_path(parentID + escapedName);
 
             m_list.emplace_back(name, idString, parentID, 0, true);
 
             remote::URL nextUrl{m_origin};
-            nextUrl.append_path(hrefText);
+            nextUrl.append_path(idString);
 
             std::string xml{};
             const bool propFind   = WebDav::prop_find(nextUrl, xml);
-            const bool processXml = propFind && WebDav::process_listing(xml);
+            const bool processXml = propFind && WebDav::process_listing(xml, idString);
             if (!propFind || !processXml) { logger::log(STRING_ERROR_PROCESSING_XML, hrefText); }
         }
         else
@@ -393,7 +408,13 @@ bool remote::WebDav::process_listing(std::string_view xml)
 
             const char *lengthString    = getContentLength->GetText();
             const int64_t contentLength = std::strtoll(lengthString, nullptr, 10);
-            m_list.emplace_back(name, hrefText, parentID, contentLength, false);
+
+            // Build a normalized file ID relative to the parent.
+            std::string escapedName{};
+            curl::escape_string(m_curl, name, escapedName);
+            const std::string fileID = parentID + escapedName;
+
+            m_list.emplace_back(name, fileID, parentID, contentLength, false);
         }
     }
     return true;
