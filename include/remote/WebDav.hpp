@@ -47,6 +47,9 @@ namespace remote
             /// @brief Origin or server address.
             std::string m_origin{};
 
+            /// @brief Path component of the origin URL, used to normalize PROPFIND hrefs.
+            std::string m_originPath{};
+
             /// @brief Username for curl requests.
             std::string m_username{};
 
@@ -63,6 +66,7 @@ namespace remote
 
             /// @brief Processes a PROPFIND XML response.
             /// @param xml XML response.
-            bool process_listing(std::string_view xml);
+            /// @param queriedPath The path that was queried to produce this XML, used as parentID for children.
+            bool process_listing(std::string_view xml, std::string_view queriedPath);
     };
 } // namespace remote
