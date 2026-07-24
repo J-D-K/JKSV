@@ -309,6 +309,7 @@ static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDa
                 uint32_t codepointB = 0;
                 ssize_t unitCountA  = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA[i]));
                 ssize_t unitCountB  = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB[j]));
+                if (unitCountA <= 0 || unitCountB <= 0) { return false; }
 
                 // Lower so case doesn't screw with it.
                 int charA = std::tolower(codepointA);
