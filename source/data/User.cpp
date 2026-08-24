@@ -297,12 +297,12 @@ static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDa
             const char *titleA = titleInfoA->get_title();
             const char *titleB = titleInfoB->get_title();
 
-            // Get the shortest of the two.
-            size_t titleALength  = std::char_traits<char>::length(titleA);
-            size_t titleBLength  = std::char_traits<char>::length(titleB);
-            size_t shortestTitle = titleALength < titleBLength ? titleALength : titleBLength;
-            // Loop and compare codepoints.
-            for (size_t i = 0, j = 0; i < shortestTitle;)
+            const size_t titleALength = std::char_traits<char>::length(titleA);
+            const size_t titleBLength = std::char_traits<char>::length(titleB);
+
+            // Loop and compare codepoints. Each index is bounded by its own title: they advance by codepoint, and a
+            // multi-byte title runs through its bytes faster than an ASCII one.
+            for (size_t i = 0, j = 0; i < titleALength && j < titleBLength;)
             {
                 // Decode UTF-8
                 uint32_t codepointA = 0;
@@ -310,14 +310,31 @@ static bool sort_user_data(const data::UserDataEntry &entryA, const data::UserDa
                 ssize_t unitCountA  = decode_utf8(&codepointA, reinterpret_cast<const uint8_t *>(&titleA[i]));
                 ssize_t unitCountB  = decode_utf8(&codepointB, reinterpret_cast<const uint8_t *>(&titleB[j]));
 
-                // Lower so case doesn't screw with it.
-                int charA = std::tolower(codepointA);
-                int charB = std::tolower(codepointB);
+                // Undecodable bytes are compared raw. Anything else would leave the index sitting still.
+                if (unitCountA <= 0)
+                {
+                    codepointA = static_cast<uint8_t>(titleA[i]);
+                    unitCountA = 1;
+                }
+                if (unitCountB <= 0)
+                {
+                    codepointB = static_cast<uint8_t>(titleB[j]);
+                    unitCountB = 1;
+                }
+
+                // Lower so case doesn't screw with it. tolower is only defined for unsigned char, so the rest is
+                // compared as-is.
+                int charA = codepointA < 0x80 ? std::tolower(static_cast<int>(codepointA)) : static_cast<int>(codepointA);
+                int charB = codepointB < 0x80 ? std::tolower(static_cast<int>(codepointB)) : static_cast<int>(codepointB);
                 if (charA != charB) { return charA < charB; }
 
                 i += unitCountA;
                 j += unitCountB;
             }
+
+            // One is a prefix of the other, or they match. The shorter sorts first. Returning false for both
+            // directions here would make unequal titles compare equivalent and break the sort's ordering.
+            return titleALength < titleBLength;
         }
         break;
 
