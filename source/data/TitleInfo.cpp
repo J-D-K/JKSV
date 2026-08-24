@@ -8,6 +8,78 @@
 #include "stringutil.hpp"
 
 #include <cstring>
+#include <memory>
+#include <zlib.h>
+
+namespace
+{
+    /// @brief Offset of the TitlesDataFormat byte within the NACP. [21.0.0+]
+    /// @note Addressed by raw offset so this works against libnx versions that predate the field.
+    constexpr size_t OFFSET_TITLES_DATA_FORMAT = 0x3215;
+
+    /// @brief Value of TitlesDataFormat meaning the language entry block is raw-deflate compressed.
+    constexpr uint8_t TITLES_DATA_FORMAT_COMPRESSED = 0x01;
+
+    /// @brief Size of the language entry block that fits in NacpStruct (16 entries).
+    constexpr size_t SIZE_LANGUAGE_BLOCK = 0x3000;
+
+    /// @brief Size of the decompressed language entry block (32 entries).
+    constexpr size_t SIZE_LANGUAGE_BLOCK_FULL = 0x6000;
+
+    /// @brief Decompresses the NACP language entry block in place if it's in the [21.0.0+] compressed format.
+    /// @param controlData Control data to fix up.
+    /// @return True if the data is usable afterwards, false if decompression was needed but failed.
+    /// @note Firmware 21.0.0 added a compressed layout: when TitlesDataFormat is 1, the u16 at NACP+0x0 is the
+    /// compressed size and a raw deflate stream follows at NACP+0x2, inflating to NacpLanguageEntry[32]. libnx does
+    /// not decompress it, so nacpGetLanguageEntry would otherwise hand back compressed bytes as the title string.
+    bool decompress_language_entries(NsApplicationControlData &controlData) noexcept
+    {
+        uint8_t *nacpBytes        = reinterpret_cast<uint8_t *>(&controlData.nacp);
+        const uint8_t titlesFormat = nacpBytes[OFFSET_TITLES_DATA_FORMAT];
+
+        // 0 is the classic, uncompressed layout. Nothing to do.
+        if (titlesFormat == 0x00) { return true; }
+
+        // Anything other than 1 is a format we don't know how to read.
+        if (titlesFormat != TITLES_DATA_FORMAT_COMPRESSED) { return false; }
+
+        uint16_t compressedSize{};
+        std::memcpy(&compressedSize, nacpBytes, sizeof(compressedSize));
+        if (compressedSize == 0 || compressedSize > SIZE_LANGUAGE_BLOCK - sizeof(compressedSize)) { return false; }
+
+        // The full block is twice what NacpStruct holds, so it needs to land somewhere else first.
+        std::unique_ptr<uint8_t[]> decompressed = std::make_unique<uint8_t[]>(SIZE_LANGUAGE_BLOCK_FULL);
+        if (!decompressed) { return false; }
+
+        z_stream stream{};
+        // Negative window bits: raw deflate stream, no zlib or gzip header.
+        if (inflateInit2(&stream, -15) != Z_OK) { return false; }
+
+        stream.next_in   = nacpBytes + sizeof(compressedSize);
+        stream.avail_in  = compressedSize;
+        stream.next_out  = decompressed.get();
+        stream.avail_out = SIZE_LANGUAGE_BLOCK_FULL;
+
+        const int inflated       = inflate(&stream, Z_FINISH);
+        const size_t inflatedSize = stream.total_out;
+        inflateEnd(&stream);
+
+        // A stream that exactly fills the output buffer reports Z_BUF_ERROR instead of Z_STREAM_END, because the
+        // end-of-stream marker can't be consumed with no room left. Having the whole block is what actually matters.
+        if (inflated != Z_STREAM_END && inflatedSize != SIZE_LANGUAGE_BLOCK_FULL) { return false; }
+
+        // A short read would leave the tail of the block as uninitialized garbage.
+        if (inflatedSize < SIZE_LANGUAGE_BLOCK) { return false; }
+
+        // Only the first 16 entries fit in NacpStruct. The rest are languages libnx has no index for anyway.
+        std::memcpy(&controlData.nacp, decompressed.get(), SIZE_LANGUAGE_BLOCK);
+
+        // Mark it as the classic layout now that it actually is one.
+        nacpBytes[OFFSET_TITLES_DATA_FORMAT] = 0x00;
+
+        return true;
+    }
+} // namespace
 
 //                      ---- Construction ----
 
@@ -25,8 +97,9 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
                                                                                 &m_data,
                                                                                 SIZE_CTRL_DATA,
                                                                                 &controlSize));
-    const bool entryError = !getError && error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
-    if (isSystem || getError)
+    const bool nacpError  = !getError && !decompress_language_entries(m_data);
+    const bool entryError = !getError && !nacpError && error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
+    if (isSystem || getError || nacpError)
     {
         const std::string appIDHex = stringutil::get_formatted_string("%04X", m_applicationID & 0xFFFF);
         m_entry                    = &m_data.nacp.lang[SetLanguage_ENUS]; // I'm hoping this is enough?
@@ -34,7 +107,7 @@ data::TitleInfo::TitleInfo(uint64_t applicationID) noexcept
         std::snprintf(m_entry->name, TitleInfo::SIZE_PATH_SAFE, "%016lX", m_applicationID);
         TitleInfo::get_create_path_safe_title();
     }
-    else if (!getError && !entryError)
+    else if (!getError && !nacpError && !entryError)
     {
         m_hasData = true;
         TitleInfo::get_create_path_safe_title();
@@ -47,7 +120,8 @@ data::TitleInfo::TitleInfo(uint64_t applicationID, NsApplicationControlData &con
     , m_data(controlData)
     , m_hasData(true)
 {
-    const bool entryError = error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
+    const bool nacpError  = !decompress_language_entries(m_data);
+    const bool entryError = nacpError || error::libnx(nacpGetLanguageEntry(&m_data.nacp, &m_entry));
     if (entryError)
     {
         m_entry = &m_data.nacp.lang[SetLanguage_ENUS];
