@@ -10,8 +10,14 @@
 #include "stringutil.hpp"
 #include "ui/PopMessageManager.hpp"
 
-// Defined at bottom.
-static bool read_save_meta(const fslib::Path &path, fs::SaveMetaData &metaOut);
+// Imports one backup and returns false instead of terminating the batch, so a
+// single bad file does not stop the remaining entries. copyTask receives
+// byte-level copy progress; it can be null when the caller only tracks files.
+static bool import_one(sys::ProgressTask *task,
+                       sys::ProgressTask *copyTask,
+                       data::User *user,
+                       const fslib::Path &target,
+                       bool notifyFailure);
 static bool test_for_save(data::User *user, const fs::SaveMetaData &saveMeta);
 static bool create_save_data_from_meta(sys::ProgressTask *task, data::User *user, const fs::SaveMetaData &saveMeta);
 
@@ -19,66 +25,99 @@ void tasks::saveimport::import_save_backup(sys::threadpool::JobData taskData)
 {
     auto castData = std::static_pointer_cast<SaveImportState::DataStruct>(taskData);
 
-    sys::ProgressTask *task   = static_cast<sys::ProgressTask *>(castData->task);
-    data::User *user          = castData->user;
-    const fslib::Path &target = castData->path;
+    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
     if (error::is_null(task)) { return; }
-    else if (error::is_null(user)) { TASK_FINISH_RETURN(task); }
 
-    fs::SaveMetaData metaData{};
-    const bool metaRead = read_save_meta(target, metaData);
-    if (!metaRead || metaData.revision < 1) { TASK_FINISH_RETURN(task); }
-
-    const bool saveExists  = test_for_save(user, metaData);
-    const bool saveCreated = !saveExists && create_save_data_from_meta(task, user, metaData);
-    if (!saveExists && !saveCreated) { TASK_FINISH_RETURN(task); }
-
-    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(metaData.applicationID);
-    if (error::is_null(saveInfo)) { TASK_FINISH_RETURN(task); }
-
-    {
-        fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
-        if (!saveMount.is_open()) { TASK_FINISH_RETURN(task); }
-
-        const bool isDir = fslib::directory_exists(target);
-        if (isDir) { fs::copy_directory_commit(target, fs::DEFAULT_SAVE_ROOT, metaData.journalSize, task); }
-        else
-        {
-            fs::MiniUnzip unzip{target};
-            if (!unzip.is_open()) { TASK_FINISH_RETURN(task); }
-
-            fs::copy_zip_to_directory(unzip, fs::DEFAULT_SAVE_ROOT, metaData.journalSize, task);
-        }
-    }
-
+    import_one(task, task, castData->user, castData->path, true);
     task->complete();
 }
 
-static bool read_save_meta(const fslib::Path &path, fs::SaveMetaData &metaOut)
+// Applies every path to one user. The UI polls BatchData::started and
+// BatchData::finished, then reads succeeded and failed for the summary.
+void tasks::saveimport::import_save_backups(sys::threadpool::JobData taskData)
 {
-    const bool isDir = fslib::directory_exists(path);
-    if (isDir)
-    {
-        const fslib::Path metaPath{path / fs::NAME_SAVE_META};
-        const bool exists = fslib::file_exists(metaPath);
-        if (!exists) { return false; }
+    auto castData = std::static_pointer_cast<tasks::saveimport::BatchData>(taskData);
 
-        fslib::File metaFile{metaPath, FsOpenMode_Read};
-        const bool metaRead = metaFile.is_open() && metaFile.get_size() <= fs::SIZE_SAVE_META &&
-                              metaFile.read(&metaOut, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
-        const bool magicMatch = metaRead && metaOut.magic == fs::SAVE_META_MAGIC;
-        if (!metaRead || !magicMatch) { return false; }
+    sys::ProgressTask *task = static_cast<sys::ProgressTask *>(castData->task);
+    data::User *user        = castData->user;
+    if (error::is_null(task))
+    {
+        castData->finished = true;
+        return;
     }
-    else
-    {
-        fs::MiniUnzip zip{path};
-        if (!zip.is_open()) { return false; }
 
-        const bool located    = zip.locate_file(fs::NAME_SAVE_META);
-        const bool sizeMatch  = located && zip.get_uncompressed_size() <= fs::SIZE_SAVE_META;
-        const bool metaRead   = sizeMatch && zip.read(&metaOut, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
-        const bool magicMatch = metaRead && metaOut.magic == fs::SAVE_META_MAGIC;
-        if (!metaRead || !magicMatch) { return false; }
+    castData->started = true;
+
+    const int total = static_cast<int>(castData->paths.size());
+    task->reset(total);
+
+    const char *statusFormat = strings::get_by_name(strings::names::PEER, 53);
+
+    for (int i = 0; i < total; i++)
+    {
+        const fslib::Path &path = castData->paths[i];
+        const char *filename    = path.get_filename();
+
+        std::string status = stringutil::get_formatted_string(statusFormat ? statusFormat : "Applying %d/%d: %s",
+                                                              i + 1,
+                                                              total,
+                                                              filename);
+        task->set_status(status);
+
+        if (import_one(task, nullptr, user, path, false)) { castData->succeeded++; }
+        else
+        {
+            castData->failed++;
+            logger::log("saveimport: failed to apply %s", path.string().c_str());
+        }
+
+        task->update_current(i + 1);
+    }
+
+    castData->finished = true;
+    task->complete();
+}
+
+static bool import_one(sys::ProgressTask *task,
+                       sys::ProgressTask *copyTask,
+                       data::User *user,
+                       const fslib::Path &target,
+                       bool notifyFailure)
+{
+    if (error::is_null({task, user})) { return false; }
+
+    fs::SaveMetaData metaData{};
+    const bool metaRead = fs::read_save_meta(target, metaData);
+    if (!metaRead || metaData.revision < 1) { return false; }
+
+    const bool saveExists  = test_for_save(user, metaData);
+    const bool saveCreated = !saveExists && create_save_data_from_meta(task, user, metaData);
+    if (!saveExists && !saveCreated)
+    {
+        if (notifyFailure)
+        {
+            const char *popFailed = strings::get_by_name(strings::names::SAVECREATE_POPS, 1);
+            ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS, popFailed);
+        }
+        return false;
+    }
+
+    const FsSaveDataInfo *saveInfo = user->get_save_info_by_id(metaData.applicationID);
+    if (error::is_null(saveInfo)) { return false; }
+
+    {
+        fs::ScopedSaveMount saveMount{fs::DEFAULT_SAVE_MOUNT, saveInfo};
+        if (!saveMount.is_open()) { return false; }
+
+        const bool isDir = fslib::directory_exists(target);
+        if (isDir) { fs::copy_directory_commit(target, fs::DEFAULT_SAVE_ROOT, metaData.journalSize, copyTask); }
+        else
+        {
+            fs::MiniUnzip unzip{target};
+            if (!unzip.is_open()) { return false; }
+
+            fs::copy_zip_to_directory(unzip, fs::DEFAULT_SAVE_ROOT, metaData.journalSize, copyTask);
+        }
     }
 
     return true;
@@ -138,13 +177,7 @@ static bool create_save_data_from_meta(sys::ProgressTask *task, data::User *user
     task->set_status(status);
 
     const bool saveCreated = fs::create_save_data_for(user, saveMeta);
-    if (!saveCreated)
-    {
-        // Gonna borrow this too.
-        const char *popFailed = strings::get_by_name(strings::names::SAVECREATE_POPS, 1);
-        ui::PopMessageManager::push_message(ui::PopMessageManager::DEFAULT_TICKS, popFailed);
-        return false;
-    }
+    if (!saveCreated) { return false; }
 
     // Need to reload and refresh to reflect changes.
     user->clear_data_entries();

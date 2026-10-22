@@ -30,4 +30,6 @@ namespace config::keys
     inline constexpr std::string_view UI_ANIMATION_SCALE      = "UIAnimationScaling";
     inline constexpr std::string_view FAVORITES               = "Favorites";
     inline constexpr std::string_view BLACKLIST               = "BlackList";
+    // Peer save transfer (LAN transport; LDN disabled by default after the spike).
+    inline constexpr std::string_view PEER_LAST_IP = "PeerLastIP";
 }

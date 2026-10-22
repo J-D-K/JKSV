@@ -100,6 +100,11 @@ void data::DataContext::load_application_records(sys::Task *task)
 
     const char *statusLoadingRecords = strings::get_by_name(strings::names::DATA_LOADING_STATUS, 2);
 
+    {
+        std::lock_guard titleGuard{m_titleMutex};
+        m_installedApplications.clear();
+    }
+
     int offset{}, count{};
     NsApplicationRecord record{};
 
@@ -107,6 +112,12 @@ void data::DataContext::load_application_records(sys::Task *task)
     do {
         listError = error::libnx(nsListApplicationRecord(&record, 1, offset++, &count)) || count <= 0;
         if (listError) { break; }
+
+        {
+            std::lock_guard titleGuard{m_titleMutex};
+            m_installedApplications.insert(record.application_id);
+        }
+
         if (DataContext::title_is_loaded(record.application_id)) { continue; }
 
         {
@@ -125,6 +136,16 @@ bool data::DataContext::title_is_loaded(uint64_t applicationID) noexcept
     const bool loaded = m_titleInfo.find(applicationID) != m_titleInfo.end();
     if (!isSystem && !loaded) { m_cacheIsValid = false; }
     return loaded;
+}
+
+bool data::DataContext::is_application_installed(uint64_t applicationID) noexcept
+{
+    std::lock_guard titleGuard{m_titleMutex};
+    if (m_installedApplications.find(applicationID) != m_installedApplications.end()) { return true; }
+
+    // Titles loaded from SVI files or leftover save data are not in the application records.
+    auto findTitle = m_titleInfo.find(applicationID);
+    return findTitle != m_titleInfo.end() && findTitle->second.has_control_data();
 }
 
 void data::DataContext::load_title(uint64_t applicationID)

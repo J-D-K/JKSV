@@ -4,6 +4,7 @@
 #include <cstdint>
 #include <json-c/json.h>
 #include <string>
+#include <string_view>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -82,6 +83,12 @@ namespace config
             /// @brief Gets the custom output path of the applicationID passed.
             void get_custom_path(uint64_t applicationID, char *buffer, size_t bufferSize);
 
+            /// @brief Returns the last IP used to connect as a receiver.
+            const std::string &get_peer_last_ip() const noexcept;
+
+            /// @brief Sets and persists the last IP used to connect as a receiver.
+            void set_peer_last_ip(std::string_view ip);
+
         private:
             /// @brief This is where the majority of the config values are.
             std::unordered_map<std::string_view, uint8_t> m_configMap{};
@@ -100,6 +107,9 @@ namespace config
 
             /// @brief This holds user defined paths.
             std::unordered_map<uint64_t, std::string> m_paths{};
+
+            /// @brief Last IP entered manually when receiving a peer transfer.
+            std::string m_peerLastIp{};
 
             /// @brief Loads the config file from SD.
             bool load_config_file();

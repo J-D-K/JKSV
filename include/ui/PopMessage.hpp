@@ -3,18 +3,35 @@
 #include "ui/DialogBox.hpp"
 #include "ui/Transition.hpp"
 
+#include <cstdint>
 #include <string>
 
 namespace ui
 {
+    /// @brief Severity of a pop message. Neutral preserves the original look for existing callers.
+    enum class PopKind : uint8_t
+    {
+        Neutral, ///< No severity accent.
+        Info,    ///< Informational accent.
+        Success, ///< Success accent.
+        Warning, ///< Warning accent.
+        Error    ///< Error accent.
+    };
+
     class PopMessage
     {
         public:
             /// @brief PopMessage constructor.
-            PopMessage(int ticks, std::string_view message);
+            /// @param ticks Number of ticks to display the message.
+            /// @param message Text to display.
+            /// @param kind Severity used for the accent color.
+            PopMessage(int ticks, std::string_view message, PopKind kind = PopKind::Neutral);
 
             /// @brief Same as above. Moves string instead of copying.
-            PopMessage(int ticks, std::string &message);
+            /// @param ticks Number of ticks to display the message.
+            /// @param message Text to display.
+            /// @param kind Severity used for the accent color.
+            PopMessage(int ticks, std::string &message, PopKind kind = PopKind::Neutral);
 
             /// @brief Updates the width, target, and typing.
             void update(double targetY);
@@ -48,6 +65,9 @@ namespace ui
 
             /// @brief This stores the message for safe keeping.
             std::string m_message{};
+
+            /// @brief Severity used for the color accent.
+            PopKind m_kind{};
 
             /// @brief Current state the message is in.
             PopMessage::State m_state{};
@@ -84,5 +104,8 @@ namespace ui
 
             /// @brief Renders the container around the message.
             void render_container() noexcept;
+
+            /// @brief Returns the accent color for the current severity.
+            sdl::Color get_accent() const noexcept;
     };
 }

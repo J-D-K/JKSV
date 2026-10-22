@@ -2,6 +2,7 @@
 #include "fslib.hpp"
 
 #include <minizip/zip.h>
+#include <string>
 #include <string_view>
 
 namespace fs
@@ -28,6 +29,12 @@ namespace fs
             /// @brief Manual call for closing the zipFile.
             void close();
 
+            /// @brief Sets a path prefix to remove from entries added to the ZIP.
+            /// @param prefix Absolute path of the directory whose contents are being archived.
+            /// @note Used by peer folder transfers so the archive contains paths relative to
+            ///       the backup directory instead of the full SD-card path.
+            void set_root_prefix(std::string_view prefix);
+
             /// @brief Creates a new dummy directory entry in the ZIP.
             /// @param Path Path of the directory. Will be appended with a trailing slash if needed.
             void add_directory(std::string_view path);
@@ -42,11 +49,20 @@ namespace fs
             bool write(const void *buffer, size_t dataSize);
 
         private:
+            /// @brief Removes the configured root prefix, or the first path component by default.
+            std::string_view strip_path(std::string_view path) const;
+
+            /// @brief Opens an entry without applying path trimming.
+            bool open_new_file_raw(std::string_view filename);
+
             /// @brief Stores whether or not the zipFile was opened successfully.
             bool m_isOpen{};
 
             /// @brief Stores the compression level from config to avoid repeated calls.
             int m_level{};
+
+            /// @brief Prefix removed from entries when creating a relative archive.
+            std::string m_rootPrefix;
 
             /// @brief Underlying ZIP file.
             zipFile m_zip{};

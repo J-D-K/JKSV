@@ -2,6 +2,7 @@
 #include "config/keys.hpp"
 #include "fslib.hpp"
 
+#include <string>
 #include <string_view>
 #include <vector>
 
@@ -87,4 +88,10 @@ namespace config
     /// @param pathOut Buffer to write the path to.
     /// @param pathOutSize Size of the buffer to write the path to.
     void get_custom_path(uint64_t applicationID, char *pathOut, size_t pathOutSize);
+
+    /// @brief Returns the last IP used to connect as a receiver.
+    const std::string &get_peer_last_ip() noexcept;
+
+    /// @brief Sets and persists the last IP used to connect as a receiver.
+    void set_peer_last_ip(std::string_view ip);
 } // namespace config

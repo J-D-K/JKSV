@@ -6,6 +6,7 @@
 
 #include <mutex>
 #include <unordered_map>
+#include <unordered_set>
 #include <vector>
 
 namespace data
@@ -30,6 +31,10 @@ namespace data
 
             /// @brief Returns whether a title is loaded with the application ID passed.
             bool title_is_loaded(uint64_t applicationID) noexcept;
+
+            /// @brief Returns whether a title is installed on the console.
+            /// @param applicationID Application ID of the title to check.
+            bool is_application_installed(uint64_t applicationID) noexcept;
 
             /// @brief Attempts to load a title with the application ID passed.
             void load_title(uint64_t applicationID);
@@ -64,6 +69,9 @@ namespace data
 
             /// @brief Map of titles paired with their application ID.
             std::unordered_map<uint64_t, data::TitleInfo> m_titleInfo{};
+
+            /// @brief Application IDs reported by the application records.
+            std::unordered_set<uint64_t> m_installedApplications{};
 
             /// @brief Queue of the above to process the icons.
             std::vector<data::DataCommon *> m_iconQueue{};

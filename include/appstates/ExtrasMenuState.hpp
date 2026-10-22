@@ -27,6 +27,9 @@ class ExtrasMenuState final : public BaseState
         /// @brief Menu
         std::shared_ptr<ui::Menu> m_extrasMenu{};
 
+        /// @brief Index of the "Peer transfer" entry appended to the extras menu.
+        int m_peerIndex{7};
+
         /// @brief Render target for menu.
         sdl::SharedTexture m_renderTarget{};
 

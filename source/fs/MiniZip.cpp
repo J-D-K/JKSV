@@ -41,23 +41,62 @@ void fs::MiniZip::close()
     m_isOpen = false;
 }
 
+void fs::MiniZip::set_root_prefix(std::string_view prefix)
+{
+    m_rootPrefix.assign(prefix);
+    while (!m_rootPrefix.empty() && m_rootPrefix.back() == '/') { m_rootPrefix.pop_back(); }
+}
+
+std::string_view fs::MiniZip::strip_path(std::string_view path) const
+{
+    if (!m_rootPrefix.empty() && path.size() >= m_rootPrefix.size() &&
+        path.compare(0, m_rootPrefix.size(), m_rootPrefix) == 0 &&
+        (path.size() == m_rootPrefix.size() || path[m_rootPrefix.size()] == '/'))
+    {
+        path.remove_prefix(m_rootPrefix.size());
+        while (!path.empty() && path.front() == '/') { path.remove_prefix(1); }
+        return path;
+    }
+
+    const size_t pathBegin = path.find_first_of('/');
+    if (pathBegin != path.npos) { path.remove_prefix(pathBegin + 1); }
+    return path;
+}
+
 void fs::MiniZip::add_directory(std::string_view filename)
 {
-    std::string zipPath{filename};
+    std::string zipPath{strip_path(filename)};
+    if (zipPath.empty()) { return; }
     if (zipPath.back() != '/') { zipPath.append("/"); }
 
-    MiniZip::open_new_file(zipPath);
+    MiniZip::open_new_file_raw(zipPath);
     MiniZip::close_current_file();
 }
 
 bool fs::MiniZip::open_new_file(std::string_view filename, bool trimPath, size_t trimPlaces)
 {
-    const size_t pathBegin = filename.find_first_of('/');
-    if (pathBegin != filename.npos) { filename = filename.substr(pathBegin + 1); }
+    (void)trimPath;
+    (void)trimPlaces;
+    return MiniZip::open_new_file_raw(strip_path(filename));
+}
 
+bool fs::MiniZip::open_new_file_raw(std::string_view filename)
+{
+    if (filename.empty()) { return false; }
+
+    std::string entryName{filename};
     const zip_fileinfo fileInfo = create_zip_file_info();
-    return zipOpenNewFileInZip64(m_zip, filename.data(), &fileInfo, nullptr, 0, nullptr, 0, nullptr, Z_DEFLATED, m_level, 0) ==
-           ZIP_OK;
+    return zipOpenNewFileInZip64(m_zip,
+                                 entryName.c_str(),
+                                 &fileInfo,
+                                 nullptr,
+                                 0,
+                                 nullptr,
+                                 0,
+                                 nullptr,
+                                 Z_DEFLATED,
+                                 m_level,
+                                 0) == ZIP_OK;
 }
 
 bool fs::MiniZip::close_current_file() { return zipCloseFileInZip(m_zip) == ZIP_OK; }

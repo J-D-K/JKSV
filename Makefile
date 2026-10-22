@@ -9,6 +9,9 @@ endif
 TOPDIR ?= $(CURDIR)
 include $(DEVKITPRO)/libnx/switch_rules
 
+# Python is needed to compress the assets. Prefer python3 but fall back to python for other platforms.
+PYTHON ?= $(shell command -v python3 2>/dev/null || command -v python 2>/dev/null)
+
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
@@ -30,17 +33,17 @@ include $(DEVKITPRO)/libnx/switch_rules
 #     - icon.jpg
 #     - <libnx folder>/default_icon.jpg
 #---------------------------------------------------------------------------------
-TARGET		:=	JKSV
+TARGET		:=	JKSV-Peer
 BUILD		:=	build
 SOURCES		:=	source source/appstates source/config source/curl source/data source/fs \
 				source/keyboard source/logging source/remote source/strings source/sys \
-				source/tasks source/ui
+				source/tasks source/ui source/peer
 DATA		:=	data
 INCLUDES	:=	include ./Libraries/FsLib/Switch/FsLib/include ./Libraries/SDLLib/SDL/include
 EXEFS_SRC	:=	exefs_src
-APP_TITLE   :=  JKSV
+APP_TITLE   :=  JKSV Peer
 APP_AUTHOR  :=  JK
-APP_VERSION :=  12.02.2025
+APP_VERSION :=  10.21.2026
 ROMFS	    :=	romfs
 ICON		:=	icon.jpg
 
@@ -170,7 +173,7 @@ SDLLib:
 
 Assets:
 	@echo python script
-	@python ./Assets/compress_assets.py
+	@$(PYTHON) ./Assets/compress_assets.py
 
 #---------------------------------------------------------------------------------
 
@@ -179,7 +182,7 @@ clean:
 	@$(MAKE) -C ./Libraries/FsLib/Switch/FsLib clean
 	@$(MAKE) -C ./Libraries/SDLLib/SDL clean
 	@rm -fr $(BUILD) $(TARGET).pfs0 $(TARGET).nso $(TARGET).nro $(TARGET).nacp $(TARGET).elf
-	@rm -r ./romfs/Text
+	@rm -fr ./romfs/Text
 
 #---------------------------------------------------------------------------------
 send: $(BUILD)

@@ -1,6 +1,7 @@
 #include "fs/SaveMetaData.hpp"
 
 #include "error.hpp"
+#include "fs/MiniUnzip.hpp"
 #include "fs/directory_functions.hpp"
 #include "fs/save_data_functions.hpp"
 #include "fs/save_mount.hpp"
@@ -48,4 +49,26 @@ bool fs::process_save_meta_data(const FsSaveDataInfo *saveInfo, const SaveMetaDa
     if (needsExtend && !extended) { return false; }
 
     return true;
+}
+
+bool fs::read_save_meta(const fslib::Path &path, SaveMetaData &metaOut) noexcept
+{
+    if (fslib::directory_exists(path))
+    {
+        const fslib::Path metaPath{path / fs::NAME_SAVE_META};
+        if (!fslib::file_exists(metaPath)) { return false; }
+
+        fslib::File metaFile{metaPath, FsOpenMode_Read};
+        const bool metaRead = metaFile.is_open() && metaFile.get_size() <= fs::SIZE_SAVE_META &&
+                              metaFile.read(&metaOut, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
+        return metaRead && metaOut.magic == fs::SAVE_META_MAGIC;
+    }
+
+    fs::MiniUnzip zip{path};
+    if (!zip.is_open()) { return false; }
+
+    const bool located    = zip.locate_file(fs::NAME_SAVE_META);
+    const bool sizeMatch  = located && zip.get_uncompressed_size() <= fs::SIZE_SAVE_META;
+    const bool metaRead   = sizeMatch && zip.read(&metaOut, fs::SIZE_SAVE_META) <= fs::SIZE_SAVE_META;
+    return metaRead && metaOut.magic == fs::SAVE_META_MAGIC;
 }

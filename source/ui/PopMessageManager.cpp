@@ -31,7 +31,7 @@ void ui::PopMessageManager::update()
         if (!messageQueue.empty())
         {
             // Loop through the queue and process it so we don't wind up with black characters.
-            for (auto &[displayTicks, currentMessage] : messageQueue) { messages.emplace_back(displayTicks, currentMessage); }
+            for (auto &queued : messageQueue) { messages.emplace_back(queued.ticks, queued.text, queued.kind); }
             messageQueue.clear();
         }
     }
@@ -64,7 +64,10 @@ void ui::PopMessageManager::render()
     for (auto &message : messages) { message.render(); }
 }
 
-void ui::PopMessageManager::push_message(int displayTicks, std::string_view message)
+void ui::PopMessageManager::push_message(int displayTicks,
+                                         std::string_view message,
+                                         ui::PopKind kind,
+                                         bool silent)
 {
     PopMessageManager &manager = PopMessageManager::get_instance();
     std::mutex &queueMutex     = manager.m_queueMutex;
@@ -84,12 +87,14 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string_view mess
     }
 
     std::lock_guard queueGuard(queueMutex);
-    auto queuePair = std::make_pair(displayTicks, std::string{message});
-    messageQueue.push_back(std::move(queuePair));
-    popSound->play();
+    messageQueue.push_back({displayTicks, std::string{message}, kind, silent});
+    if (!silent) { popSound->play(); }
 }
 
-void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
+void ui::PopMessageManager::push_message(int displayTicks,
+                                         std::string &message,
+                                         ui::PopKind kind,
+                                         bool silent)
 {
     PopMessageManager &manager = PopMessageManager::get_instance();
     std::mutex &queueMutex     = manager.m_queueMutex;
@@ -109,9 +114,8 @@ void ui::PopMessageManager::push_message(int displayTicks, std::string &message)
     }
 
     std::lock_guard queueGuard(queueMutex);
-    auto queuePair = std::make_pair(displayTicks, std::move(message));
-    messageQueue.push_back(std::move(queuePair));
-    popSound->play();
+    messageQueue.push_back({displayTicks, std::move(message), kind, silent});
+    if (!silent) { popSound->play(); }
 }
 
 //                      ---- Private functions ----

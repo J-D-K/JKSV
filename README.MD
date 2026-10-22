@@ -22,6 +22,8 @@
 
 ---
 
+> **Unofficial fork:** This branch is a peer-transfer fork of [J-D-K/JKSV](https://github.com/J-D-K/JKSV). The original application, code, and credits belong to J-D-K. This fork adds LAN console-to-console save transfer and publishes as **JKSV Peer**. It is not affiliated with or endorsed by the upstream author.
+
 <p align="center">
 	If you appreciate my work, or if JKSM or JKSV has gotten you out of a jam, please consider supporting development through a donation. Any contribution is appreciated, but never required! Creating and maintaining these tools takes a lot of time and effort.
 </p>
@@ -93,6 +95,20 @@ JKSV's rewrite is a ground-up rewrite. It shares none of the original's code **a
 - **Safety:**
 	- JKSV can require holding to complete destructive operations or be set to make quick automatic backups upon restoring backups.
 
+## Peer Save Transfer (fork addition)
+
+This fork adds a LAN-only console-to-console save transfer mode on top of upstream JKSV:
+
+- **Send:** choose one backup or mark several backups and send them as a batch.
+- **Receive:** scan for a host, or enter its IP address manually, then receive the batch into the normal backup folder.
+- **Pairing:** both consoles display the same six-digit code and require **A** before any save data is sent.
+- **Post-receive:** choose a user, apply one or more received backups, and keep one backup per game marking.
+- **Cancellation:** **B** cancels a transfer; **+** exits while the host is waiting.
+
+The transfer runs only on the local network. It does not use Nintendo's online services, LDN, or the internet.
+
+See [docs/PEER_TRANSFER.md](docs/PEER_TRANSFER.md) for the user guide, [docs/PEER_PROTOCOL.md](docs/PEER_PROTOCOL.md) for the wire protocol, and [BUILDING.md](BUILDING.md) for build and validation instructions. The fork builds as `JKSV-Peer.nro` with the display name `JKSV Peer` and keeps `JK` as the application author.
+
 ## Remote Storage / Upload instructions.
 Detailed instructions for how to use JKSV's Google Drive and WebDav features can be found **[here](https://switch.hacks.guide/homebrew/jksv.html)**.
 
@@ -115,9 +131,9 @@ Detailed instructions for how to use JKSV's Google Drive and WebDav features can
 	- **switch-sdl2_image**
 	- **switch-tinyxml2**
 	- **switch-zlib**
-4. Clone JKSV's directory using the command `git clone --recurse-submodules https://github.com/J-D-K/JKSV.git` so you clone the libraries I've built for JKSV included.
+4. Clone this fork (or your own fork of it) with `git clone --recurse-submodules <repository-url>` so the bundled libraries are included. Upstream JKSV is at `https://github.com/J-D-K/JKSV.git`, but it does not contain the peer transfer changes.
 
-5. Press Y while in the Switch Homebrew menu, navigate to the directory JKSV was cloned into on your PC, and type `make -j send`. JKSV should build and nxlink will attempt to send it to your Switch.
+5. Press Y while in the Switch Homebrew menu, navigate to the directory JKSV was cloned into on your PC, and type `make -j send`. JKSV Peer should build and nxlink will attempt to send it to your Switch.
 
 ## Credits and Thanks:
 * [Iguniisu](https://github.com/igniscitrinus) for the icon.

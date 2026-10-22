@@ -26,6 +26,7 @@ namespace strings::names
     inline constexpr std::string_view MAINMENU_CONFS        = "MainMenuConfs";
     inline constexpr std::string_view MAINMENU_POPS         = "MainMenuPops";
     inline constexpr std::string_view ON_OFF                = "OnOff";
+    inline constexpr std::string_view PEER                  = "PeerStrings";
     inline constexpr std::string_view REMOTE_POPS           = "RemotePops";
     inline constexpr std::string_view SAVECREATE_CONFS      = "SaveCreateConfs";
     inline constexpr std::string_view SAVECREATE_POPS       = "SaveCreatePops";

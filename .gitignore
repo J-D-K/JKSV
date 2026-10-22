@@ -6,14 +6,31 @@ build/
 .idea/
 cmake-build-debug/
 
-# build artifacts
+# Build artifacts (root-level, including alternate titles)
 JKSV.elf
 JKSV.lst
 JKSV.nacp
 JKSV.nro
 JKSV.nso
 JKSV.pfs0
+/*.nro
+/*.nso
+/*.pfs0
+/*.elf
+/*.nacp
+/*.lst
 
-#sometimes I give jksv to people and forget about this.
+# Runtime logs
+JKSV.log
+peer_debug.txt
+*.log
+
+# Generated ROMFS text bundles
+romfs/Text/
+
+# Research spike (kept local, not published)
+spike/
+
+# Sometimes I give jksv to people and forget about this.
 JKSV.zip
 JKSV.nro.zip

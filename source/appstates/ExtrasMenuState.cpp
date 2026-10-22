@@ -1,6 +1,7 @@
 #include "appstates/ExtrasMenuState.hpp"
 
 #include "appstates/FileModeState.hpp"
+#include "appstates/PeerState.hpp"
 #include "appstates/MainMenuState.hpp"
 #include "data/data.hpp"
 #include "error.hpp"
@@ -55,6 +56,12 @@ void ExtrasMenuState::update()
 
     if (aPressed)
     {
+        if (m_extrasMenu->get_selected() == m_peerIndex)
+        {
+            PeerState::create_and_push();
+            return;
+        }
+
         switch (m_extrasMenu->get_selected())
         {
             case REINIT_DATA:       ExtrasMenuState::reinitialize_data(); break;
@@ -87,10 +94,17 @@ void ExtrasMenuState::initialize_menu()
 {
     if (!m_extrasMenu) { m_extrasMenu = ui::Menu::create(32, 10, 1000, 23, 555); }
 
-    for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRASMENU_MENU, i); i++)
+    int optionCount = 0;
+    for (int i = 0; const char *option = strings::get_by_name(strings::names::EXTRASMENU_MENU, i); i++, ++optionCount)
     {
         m_extrasMenu->add_option(option);
     }
+
+    // Append after the existing entries instead of hard-coding an index that
+    // upstream could change when it adds another extras option.
+    m_peerIndex           = optionCount;
+    const char *peerLabel = strings::get_by_name(strings::names::PEER, 36);
+    m_extrasMenu->add_option(peerLabel ? peerLabel : "Peer transfer");
 }
 
 void ExtrasMenuState::reinitialize_data() { data::launch_initialization(true, finish_reinitialization); }

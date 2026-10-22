@@ -45,6 +45,11 @@ void data::load_title_to_map(uint64_t applicationID) { s_context.load_title(appl
 
 bool data::title_exists_in_map(uint64_t applicationID) noexcept { return s_context.title_is_loaded(applicationID); }
 
+bool data::is_application_installed(uint64_t applicationID) noexcept
+{
+    return s_context.is_application_installed(applicationID);
+}
+
 void data::get_title_info_list(data::TitleInfoList &listOut) { s_context.get_title_info_list(listOut); }
 
 void data::get_title_info_by_type(FsSaveDataType saveType, data::TitleInfoList &listOut)

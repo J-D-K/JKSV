@@ -1,5 +1,6 @@
 #pragma once
 #include "data/TitleInfo.hpp"
+#include "fslib.hpp"
 
 #include <cstdint>
 #include <switch.h>
@@ -34,6 +35,12 @@ namespace fs
     inline constexpr std::string_view NAME_SAVE_META = ".nx_save_meta.bin";
 
     inline constexpr ssize_t SIZE_SAVE_META = sizeof(fs::SaveMetaData);
+
+    /// @brief Reads the save metadata from a backup folder or ZIP.
+    /// @param path Path to the backup folder or ZIP.
+    /// @param metaOut Struct to write the metadata to.
+    /// @return True if valid metadata was read. False otherwise.
+    bool read_save_meta(const fslib::Path &path, SaveMetaData &metaOut) noexcept;
 
     /// @brief Didn't feel like a whole new file just for this. Fills an fs::SaveMetaData struct.
     bool fill_save_meta_data(const FsSaveDataInfo *saveInfo, SaveMetaData &meta) noexcept;

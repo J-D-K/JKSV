@@ -1,6 +1,7 @@
 #pragma once
 #include "keyboard/Dictionary.hpp"
 
+#include <functional>
 #include <optional>
 #include <string_view>
 #include <switch.h>

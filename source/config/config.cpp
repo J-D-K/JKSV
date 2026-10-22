@@ -68,3 +68,7 @@ void config::get_custom_path(uint64_t applicationID, char *pathOut, size_t pathO
 {
     s_context.get_custom_path(applicationID, pathOut, pathOutSize);
 }
+
+const std::string &config::get_peer_last_ip() noexcept { return s_context.get_peer_last_ip(); }
+
+void config::set_peer_last_ip(std::string_view ip) { s_context.set_peer_last_ip(ip); }

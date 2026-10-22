@@ -26,10 +26,24 @@ namespace ui
             static void render();
 
             /// @brief Pushes a new message to the queue for processing.
-            static void push_message(int displayTicks, std::string_view message);
+            /// @param displayTicks Number of ticks to display the message.
+            /// @param message Text to display.
+            /// @param kind Severity used for the accent color.
+            /// @param silent Suppresses the pop sound when true.
+            static void push_message(int displayTicks,
+                                     std::string_view message,
+                                     ui::PopKind kind = ui::PopKind::Neutral,
+                                     bool silent = false);
 
             /// @brief Move version of above.
-            static void push_message(int displayTicks, std::string &message);
+            /// @param displayTicks Number of ticks to display the message.
+            /// @param message Text to display.
+            /// @param kind Severity used for the accent color.
+            /// @param silent Suppresses the pop sound when true.
+            static void push_message(int displayTicks,
+                                     std::string &message,
+                                     ui::PopKind kind = ui::PopKind::Neutral,
+                                     bool silent = false);
 
             /// @brief The default duration of ticks for messages to be shown.
             static constexpr int DEFAULT_TICKS = 2500;
@@ -45,8 +59,24 @@ namespace ui
                 return manager;
             }
 
+            /// @brief A message waiting to be turned into a PopMessage.
+            struct QueuedMessage
+            {
+                    /// @brief Number of ticks to display the message.
+                    int ticks{};
+
+                    /// @brief Text to display.
+                    std::string text{};
+
+                    /// @brief Severity used for the accent color.
+                    ui::PopKind kind{};
+
+                    /// @brief Suppresses the pop sound when true.
+                    bool silent{};
+            };
+
             // The queue for processing. SDL can't handle things being rendered in multiple threads.
-            std::vector<std::pair<int, std::string>> m_messageQueue{};
+            std::vector<QueuedMessage> m_messageQueue{};
 
             // Actual vector of messages
             std::vector<ui::PopMessage> m_messages{};

@@ -67,6 +67,7 @@ void config::ConfigContext::initialize()
     m_configMap[config::keys::SHOW_SYSTEM_USER]        = 0;
     m_configMap[config::keys::ENABLE_TRASH_BIN]        = 0;
     m_animationScaling                                 = DEFAULT_SCALING;
+    m_peerLastIp.clear();
 }
 
 bool config::ConfigContext::load()
@@ -187,6 +188,14 @@ void config::ConfigContext::get_custom_path(uint64_t applicationID, char *buffer
     std::memcpy(buffer, path.c_str(), path.length());
 }
 
+const std::string &config::ConfigContext::get_peer_last_ip() const noexcept { return m_peerLastIp; }
+
+void config::ConfigContext::set_peer_last_ip(std::string_view ip)
+{
+    m_peerLastIp = ip;
+    ConfigContext::save_config_file();
+}
+
 //                      ---- Private functions ----
 
 bool config::ConfigContext::load_config_file()
@@ -206,15 +215,17 @@ bool config::ConfigContext::load_config_file()
         json_object *value = json_object_iter_peek_value(&configIter);
 
         // These keys require special handling.
-        const bool workDir   = key == config::keys::WORKING_DIRECTORY;
-        const bool scaling   = key == config::keys::UI_ANIMATION_SCALE;
-        const bool favorites = key == config::keys::FAVORITES;
-        const bool blacklist = key == config::keys::BLACKLIST;
+        const bool workDir    = key == config::keys::WORKING_DIRECTORY;
+        const bool scaling    = key == config::keys::UI_ANIMATION_SCALE;
+        const bool favorites  = key == config::keys::FAVORITES;
+        const bool blacklist  = key == config::keys::BLACKLIST;
+        const bool peerLastIp = key == config::keys::PEER_LAST_IP;
 
         if (workDir) { m_workingDirectory = json_object_get_string(value); }
         else if (scaling) { m_animationScaling = json_object_get_double(value); }
         else if (favorites) { ConfigContext::read_array_to_set(m_favorites, value); }
         else if (blacklist) { ConfigContext::read_array_to_set(m_blacklist, value); }
+        else if (peerLastIp) { m_peerLastIp = json_object_get_string(value); }
         else { m_configMap[key] = json_object_get_uint64(value); }
 
         json_object_iter_next(&configIter);
@@ -240,6 +251,9 @@ void config::ConfigContext::save_config_file()
 
     json_object *scaling = json_object_new_double(m_animationScaling);
     json::add_object(configJSON, config::keys::UI_ANIMATION_SCALE, scaling);
+
+    json_object *peerLastIp = json_object_new_string(m_peerLastIp.c_str());
+    json::add_object(configJSON, config::keys::PEER_LAST_IP, peerLastIp);
 
     json_object *favoritesArray = json_object_new_array();
     for (const uint64_t applicationID : m_favorites)

@@ -13,24 +13,32 @@ namespace
     constexpr int PERMA_HEIGHT         = 48;
     constexpr int FONT_SIZE            = 22;
     constexpr int TRANSITION_THRESHOLD = 2; // This is used so the easing on opening doesn't look so odd.
+
+    // Accent colors chosen to keep readable contrast on colors::DIALOG_LIGHT.
+    constexpr sdl::Color POP_INFO    = {0x1A5FB4FF};
+    constexpr sdl::Color POP_SUCCESS = {0x166B2BFF};
+    constexpr sdl::Color POP_WARNING = {0x7A4F00FF};
+    constexpr sdl::Color POP_ERROR   = {0x9E1B1BFF};
 }
 
 //                      ---- Construction ----
 
-ui::PopMessage::PopMessage(int ticks, std::string_view message)
+ui::PopMessage::PopMessage(int ticks, std::string_view message, PopKind kind)
     : m_transition(START_X, graphics::SCREEN_HEIGHT, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
     , m_ticks(ticks)
     , m_message(message)
+    , m_kind(kind)
     , m_state(State::Rising)
 {
     // This will load the end cap graphics if they haven't been already.
     PopMessage::initialize_static_members();
 }
 
-ui::PopMessage::PopMessage(int ticks, std::string &message)
+ui::PopMessage::PopMessage(int ticks, std::string &message, PopKind kind)
     : m_transition(START_X, graphics::SCREEN_HEIGHT, START_WIDTH, PERMA_HEIGHT, 0, 0, 0, 0, TRANSITION_THRESHOLD)
     , m_ticks(ticks)
     , m_message(std::move(message))
+    , m_kind(kind)
     , m_state(State::Rising)
 {
     PopMessage::initialize_static_members();
@@ -70,9 +78,10 @@ void ui::PopMessage::render()
     if (m_state != State::Opening && m_state != State::Displaying) { return; }
 
     // This avoids allocating and returning another std::string.
-    const int y = m_transition.get_y();
+    const int y                 = m_transition.get_y();
+    const sdl::Color textColor  = m_kind == PopKind::Neutral ? colors::BLACK : PopMessage::get_accent();
     const std::string_view message{m_message.c_str(), static_cast<size_t>(m_substrOffset)};
-    sdl::text::render(sdl::Texture::Null, m_textX, y + 11, FONT_SIZE, sdl::text::NO_WRAP, colors::BLACK, message);
+    sdl::text::render(sdl::Texture::Null, m_textX, y + 11, FONT_SIZE, sdl::text::NO_WRAP, textColor, message);
 }
 
 bool ui::PopMessage::finished() const noexcept { return m_state == State::Finished; }
@@ -182,8 +191,21 @@ void ui::PopMessage::render_container() noexcept
     const int y     = m_transition.get_y();
     const int width = m_transition.get_width() + CAP_HALF;
 
-    // Render the container.
+    // Render the container. The rounded caps keep the same gray as the body so
+    // characters at either edge stay legible; severity is carried by the text color.
     sm_endCaps->render_part(sdl::Texture::Null, x, y, 0, 0, CAP_HALF, CAP_WIDTH);
     sdl::render_rect_fill(sdl::Texture::Null, x + CAP_HALF, y, width - CAP_WIDTH, 48, colors::DIALOG_LIGHT);
     sm_endCaps->render_part(sdl::Texture::Null, x + (width - CAP_HALF), y, CAP_HALF, 0, CAP_HALF, 48);
+}
+
+sdl::Color ui::PopMessage::get_accent() const noexcept
+{
+    switch (m_kind)
+    {
+        case PopKind::Info:    return POP_INFO;
+        case PopKind::Success: return POP_SUCCESS;
+        case PopKind::Warning: return POP_WARNING;
+        case PopKind::Error:   return POP_ERROR;
+        default:               return colors::BLACK;
+    }
 }

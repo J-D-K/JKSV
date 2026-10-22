@@ -37,6 +37,10 @@ namespace data
     /// @return True if it has been. False if it hasn't.
     bool title_exists_in_map(uint64_t applicationID) noexcept;
 
+    /// @brief Returns whether the title with applicationID is installed on the console.
+    /// @param applicationID Application ID of the title to check.
+    bool is_application_installed(uint64_t applicationID) noexcept;
+
     /// @brief Gets a vector of pointers with all titles with saveType.
     /// @param saveType Save data type to check for.
     /// @param vectorOut Vector to push pointers to.
